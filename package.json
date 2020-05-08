@@ -1,0 +1,58 @@
+{
+	"name": "hediet.vscode-drawio",
+	"private": true,
+	"displayName": "Multi Cursor Enhancer",
+	"description": "This extension provides helper commands for working with multiple cursors.",
+	"version": "0.1.2",
+	"license": "GPL-3.0",
+	"publisher": "hediet",
+	"author": {
+		"email": "henning.dieterichs@live.de",
+		"name": "Henning Dieterichs"
+	},
+	"readme": "./README.md",
+	"engines": {
+		"vscode": "^1.30.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"*"
+	],
+	"repository": {
+		"url": "https://github.com/hediet/vscode-drawio.git"
+	},
+	"enableProposedApi": true,
+	"main": "./out/extension",
+	"contributes": {
+		"customEditors": [
+			{
+				"viewType": "hediet.vscode-drawio",
+				"displayName": "Draw IO",
+				"selector": [
+					{
+						"filenamePattern": "*.png"
+					}
+				],
+				"priority": "default"
+			}
+		]
+	},
+	"scripts": {
+		"pub": "vsce publish --yarn",
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./"
+	},
+	"devDependencies": {
+		"@types/node": "^13.13.5",
+		"tslint": "^6.1.2",
+		"typescript": "^3.8.3",
+		"vscode": "1.1.37"
+	},
+	"dependencies": {
+		"@hediet/node-reload": "0.7.3",
+		"@hediet/std": "0.6.0"
+	}
+}
