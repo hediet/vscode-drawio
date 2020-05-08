@@ -23,7 +23,7 @@ export class MyCustomEditor implements CustomEditorProvider {
 		document: CustomDocument,
 		cancellation: CancellationToken
 	): Promise<void> {
-		throw new Error("Method not implemented.");
+		castToDrawio(document).save();
 	}
 
 	async saveCustomDocumentAs(
@@ -80,10 +80,10 @@ export class MyCustomEditor implements CustomEditorProvider {
                 window.addEventListener('message', event => {
 					
                     if (event.source === window.frames[0]) {
-						console.log("frame -> vscode", event.data);
+						//console.log("frame -> vscode", event.data);
 						api.postMessage(event.data);
                     } else {
-						console.log("vscode -> frame", event.data);
+						//console.log("vscode -> frame", event.data);
 						window.frames[0].postMessage(event.data, "*");
 					}
                 });
@@ -93,6 +93,7 @@ export class MyCustomEditor implements CustomEditorProvider {
         </body>
     </html>
 		`;
+
 		webviewPanel.webview.onDidReceiveMessage((arg: string) => {
 			const evt = JSON.parse(arg) as DrawioEvent;
 			console.log(evt.event);
@@ -106,13 +107,29 @@ export class MyCustomEditor implements CustomEditorProvider {
 				} as DrawioAction))
 			} else if (evt.event === "save") {
 				this.onDidChangeCustomDocumentEmitter.fire({ document, redo() {}, undo() {} })
+			} else if (evt.event === "autosave") {
+				
 			}
 		});
 	}
 }
 
+function castToDrawio(document: CustomDocument): DrawioDocument {
+	return document as DrawioDocument;
+}
+
 class DrawioDocument implements CustomDocument {
-	public constructor(public readonly uri: Uri, public readonly drawioInstance: DrawioInstance) {}
+	private _drawioInstance: DrawioInstance | undefined;
+
+	public constructor(public readonly uri: Uri) {}
+
+	public setDrawioInstance(instance: DrawioInstance): void {
+		this._drawioInstance = instance;
+	}
+
+	public save() {
+
+	}
 
 	public dispose(): void {}
 }
@@ -122,7 +139,7 @@ class DrawioInstance {
 
 	}
 
-	public exportAsPngWithEmbeddedXml(): Promise<Buffer> {
+	public async exportAsPngWithEmbeddedXml(): Promise<Buffer> {
 
 	}
 }
