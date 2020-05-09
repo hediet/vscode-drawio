@@ -3,7 +3,7 @@
 	"private": true,
 	"displayName": "Draw.io Integration",
 	"description": "This extension integrates Draw.io into VS Code.",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"license": "GPL-3.0",
 	"publisher": "hediet",
 	"author": {
@@ -13,7 +13,7 @@
 	"readme": "./README.md",
 	"icon": "docs/logo.drawio.png",
 	"engines": {
-		"vscode": "^1.44.0"
+		"vscode": "^1.45.0"
 	},
 	"categories": [
 		"Other"
@@ -31,7 +31,7 @@
 		"customEditors": [
 			{
 				"viewType": "hediet.vscode-drawio",
-				"displayName": "Draw IO",
+				"displayName": "Draw.io (Binary)",
 				"selector": [
 					{
 						"filenamePattern": "*.drawio.png"
@@ -41,7 +41,7 @@
 			},
 			{
 				"viewType": "hediet.vscode-drawio-text",
-				"displayName": "Draw IO",
+				"displayName": "Draw.io",
 				"selector": [
 					{
 						"filenamePattern": "*.drawio"
@@ -54,13 +54,13 @@
 	"scripts": {
 		"pub": "vsce publish --yarn",
 		"package": "vsce package --yarn",
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./"
+		"vscode:prepublish": "npm run build",
+		"build": "tsc -p ./",
+		"dev": "tsc -watch -p ./"
 	},
 	"devDependencies": {
 		"@types/node": "^13.13.5",
-		"@types/vscode": "^1.44.0",
+		"@types/vscode": "1.45.0",
 		"tslint": "^6.1.2",
 		"typescript": "^3.8.3"
 	},
