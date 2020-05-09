@@ -1,9 +1,9 @@
 {
-	"name": "hediet.vscode-drawio",
+	"name": "vscode-drawio",
 	"private": true,
-	"displayName": "Multi Cursor Enhancer",
-	"description": "This extension provides helper commands for working with multiple cursors.",
-	"version": "0.1.2",
+	"displayName": "Draw.io Integration",
+	"description": "This extension integrates Draw.io into VS Code.",
+	"version": "0.1.0",
 	"license": "GPL-3.0",
 	"publisher": "hediet",
 	"author": {
@@ -11,6 +11,7 @@
 		"name": "Henning Dieterichs"
 	},
 	"readme": "./README.md",
+	"icon": "./docs/logo.drawio.png",
 	"engines": {
 		"vscode": "^1.30.0"
 	},
@@ -18,12 +19,13 @@
 		"Other"
 	],
 	"activationEvents": [
-		"*"
+		"onCustomEditor:hediet.vscode-drawio",
+		"onCustomEditor:hediet.vscode-drawio-text"
 	],
 	"repository": {
 		"url": "https://github.com/hediet/vscode-drawio.git"
 	},
-	"enableProposedApi": true,
+	"enableProposedApi": false,
 	"main": "./out/extension",
 	"contributes": {
 		"customEditors": [
@@ -32,7 +34,17 @@
 				"displayName": "Draw IO",
 				"selector": [
 					{
-						"filenamePattern": "*.png"
+						"filenamePattern": "*.drawio.png"
+					}
+				],
+				"priority": "default"
+			},
+			{
+				"viewType": "hediet.vscode-drawio-text",
+				"displayName": "Draw IO",
+				"selector": [
+					{
+						"filenamePattern": "*.drawio"
 					}
 				],
 				"priority": "default"
@@ -47,12 +59,14 @@
 	},
 	"devDependencies": {
 		"@types/node": "^13.13.5",
+		"@types/vscode": "1.45.0",
 		"tslint": "^6.1.2",
-		"typescript": "^3.8.3",
-		"vscode": "1.1.37"
+		"typescript": "^3.8.3"
 	},
 	"dependencies": {
 		"@hediet/node-reload": "0.7.3",
-		"@hediet/std": "0.6.0"
+		"@hediet/std": "0.6.0",
+		"@types/xml-formatter": "^1.1.0",
+		"xml-formatter": "^2.0.1"
 	}
 }

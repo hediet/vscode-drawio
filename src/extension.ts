@@ -6,11 +6,13 @@ import {
 	registerUpdateReconciler,
 	getReloadCount,
 } from "@hediet/node-reload";
-import { MyCustomEditor } from "./MyCustomEditor";
 
 if (process.env.HOT_RELOAD) {
 	enableHotReload({ entryModule: module, loggingEnabled: true });
 }
+
+import { DrawioEditorProvider } from "./DrawioEditorProvider";
+import { DrawioTextEditorProvider } from "./DrawioTextEditorProvider";
 
 registerUpdateReconciler(module);
 
@@ -24,11 +26,29 @@ export class Extension {
 			i.show();
 		}
 
-		vscode.window.registerCustomEditorProvider2(
-			"hediet.vscode-drawio",
-			new MyCustomEditor(),
-			{ supportsMultipleEditorsPerDocument: false, webviewOptions: {  } }
+		this.dispose.track(
+			vscode.window.registerCustomEditorProvider(
+				"hediet.vscode-drawio-text",
+				new DrawioTextEditorProvider(),
+				{ webviewOptions: { retainContextWhenHidden: true } }
+			)
 		);
+
+		const enableProposedApi = require("../package.json")
+			.enableProposedApi as boolean | undefined;
+
+		if (enableProposedApi) {
+			this.dispose.track(
+				vscode.window.registerCustomEditorProvider2(
+					"hediet.vscode-drawio",
+					new DrawioEditorProvider(),
+					{
+						supportsMultipleEditorsPerDocument: false,
+						webviewOptions: { retainContextWhenHidden: true },
+					}
+				)
+			);
+		}
 	}
 }
 
