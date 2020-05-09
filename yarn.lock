@@ -131,7 +131,7 @@
   resolved "https://registry.yarnpkg.com/@types/stack-trace/-/stack-trace-0.0.29.tgz#eb7a7c60098edb35630ed900742a5ecb20cfcb4d"
   integrity sha512-TgfOX+mGY/NyNxJLIbDWrO9DjGoVSW9+aB8H2yy1fy32jsvxijhmyJI9fDFgvz3YP4lvJaq9DzdR/M1bOgVc9g==
 
-"@types/vscode@1.45.0":
+"@types/vscode@^1.44.0":
   version "1.45.0"
   resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.45.0.tgz#8a07e740aa1ca7264da8cb17be87b733836d6c01"
   integrity sha512-b0Gyir7sPBCqiKLygAhn/AYVfzWD+SMPkWltBrIuPEyTOxSU1wVApWY/FcxYO2EWTRacoubTl4+gvZf86RkecA==
