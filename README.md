@@ -2,15 +2,14 @@
 
 [![](https://img.shields.io/twitter/follow/hediet_dev.svg?style=social)](https://twitter.com/intent/follow?screen_name=hediet_dev)
 
-This extension integrates Draw.io into VS Code.
+This extension integrates [Draw.io](https://app.diagrams.net/) into VS Code.
 
 # Features
 
 -   Edit `.drawio` or `.dio` files in the Draw.io editor, as xml or both.
--   _(Using proposed APIs, not released yet)_ Edit `.drawio.png` files with embedded Draw.io diagrams in the Draw.io editor.
--   To create a new diagram, simply create an empty `*.drawio` _(or `_.drawio.png` in the future)\* file and open it!
--   Uses bundled version of Draw.io by default.
--   The Draw.io url can be configured.
+-   To create a new diagram, simply create an empty `*.drawio` file and open it!
+-   Uses an offline version of Draw.io by default.
+-   An online Draw.io url can be configured.
 
 # Demo
 

@@ -4,7 +4,7 @@
 
 -   Implements offline mode (enabled by default).
 -   Implements config to disable offline mode.
--   Implements config to chose a custom drawio url.
+-   Implements config to choose a custom drawio url.
 
 ## 0.1.3
 
