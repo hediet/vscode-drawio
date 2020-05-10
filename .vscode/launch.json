@@ -11,10 +11,7 @@
 				"--enable-proposed-api hediet.vscode-drawio"
 			],
 			"outFiles": ["${workspaceFolder}/out/**/*.js"],
-			"preLaunchTask": "npm: dev",
-			"env": {
-				"HOT_RELOAD": "true"
-			}
+			"preLaunchTask": "npm: dev"
 		}
 	]
 }
