@@ -7,16 +7,20 @@ import {
 	workspace,
 	WorkspaceEdit,
 } from "vscode";
-import { setupWebviewForDrawio } from "./setupWebviewForDrawio";
 import * as formatter from "xml-formatter";
+import { DrawioAppServer } from "./DrawioAppServer";
 
 export class DrawioTextEditorProvider implements CustomTextEditorProvider {
+	constructor(public readonly drawioAppServer: DrawioAppServer) {}
+
 	public async resolveCustomTextEditor(
 		document: TextDocument,
 		webviewPanel: WebviewPanel,
 		token: CancellationToken
 	): Promise<void> {
-		const drawioInstance = setupWebviewForDrawio(webviewPanel.webview);
+		const drawioInstance = await this.drawioAppServer.setupWebview(
+			webviewPanel.webview
+		);
 		let isThisEditorSaving = false;
 
 		workspace.onDidChangeTextDocument((evt) => {

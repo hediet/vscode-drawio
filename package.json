@@ -3,7 +3,7 @@
 	"private": true,
 	"displayName": "Draw.io Integration",
 	"description": "This extension integrates Draw.io into VS Code.",
-	"version": "0.1.3",
+	"version": "0.2.0",
 	"license": "GPL-3.0",
 	"publisher": "hediet",
 	"author": {
@@ -55,7 +55,23 @@
 				],
 				"priority": "default"
 			}
-		]
+		],
+		"configuration": {
+			"title": "Draw.io Integration",
+			"properties": {
+				"hediet.vscode-drawio.offline": {
+					"type": "boolean",
+					"default": true,
+					"title": "Use Offline Mode",
+					"description": "When enabled, the bundled instance of Draw.io is used."
+				},
+				"hediet.vscode-drawio.online-url": {
+					"type": "string",
+					"default": "https://www.draw.io/",
+					"description": "The app to use when offline mode is disabled."
+				}
+			}
+		}
 	},
 	"scripts": {
 		"pub": "vsce publish --yarn",
@@ -68,11 +84,15 @@
 		"@types/node": "^13.13.5",
 		"@types/vscode": "1.44.0",
 		"tslint": "^6.1.2",
-		"typescript": "^3.8.3"
+		"typescript": "^3.8.3",
+		"@types/finalhandler": "^1.1.0",
+		"@types/serve-static": "^1.13.3",
+		"@types/xml-formatter": "^1.1.0"
 	},
 	"dependencies": {
 		"@hediet/std": "0.6.0",
-		"@types/xml-formatter": "^1.1.0",
+		"finalhandler": "^1.1.2",
+		"serve-static": "^1.14.1",
 		"xml-formatter": "^2.0.1"
 	}
 }

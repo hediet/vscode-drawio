@@ -7,3 +7,6 @@
 !CHANGELOG.md
 !LICENSE.txt
 !docs/**/*
+!drawio/src/main/webapp/**/*
+!drawio/LICENSE
+!drawio/VERSION

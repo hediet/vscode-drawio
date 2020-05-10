@@ -12,25 +12,28 @@ import {
 	workspace,
 } from "vscode";
 import { DrawioInstance, DrawioDocumentChange } from "./DrawioInstance";
-import { setupWebviewForDrawio } from "./setupWebviewForDrawio";
 import { extname } from "path";
+import { DrawioAppServer } from "./DrawioAppServer";
 
 export class DrawioEditorProvider
 	implements CustomEditorProvider<DrawioDocument> {
 	private readonly onDidChangeCustomDocumentEmitter = new EventEmitter<
 		CustomDocumentContentChangeEvent<DrawioDocument>
 	>();
+
 	public readonly onDidChangeCustomDocument = this
 		.onDidChangeCustomDocumentEmitter.event;
 
-	saveCustomDocument(
+	public constructor(public readonly drawioAppServer: DrawioAppServer) {}
+
+	public saveCustomDocument(
 		document: DrawioDocument,
 		cancellation: CancellationToken
 	): Promise<void> {
 		return document.save();
 	}
 
-	saveCustomDocumentAs(
+	public saveCustomDocumentAs(
 		document: DrawioDocument,
 		destination: Uri,
 		cancellation: CancellationToken
@@ -38,14 +41,14 @@ export class DrawioEditorProvider
 		return document.saveAs(destination);
 	}
 
-	revertCustomDocument(
+	public revertCustomDocument(
 		document: DrawioDocument,
 		cancellation: CancellationToken
 	): Promise<void> {
 		return document.revert();
 	}
 
-	async backupCustomDocument(
+	public async backupCustomDocument(
 		document: DrawioDocument,
 		context: CustomDocumentBackupContext,
 		cancellation: CancellationToken
@@ -53,7 +56,7 @@ export class DrawioEditorProvider
 		return document.backup(context.destination);
 	}
 
-	async openCustomDocument(
+	public async openCustomDocument(
 		uri: Uri,
 		openContext: CustomDocumentOpenContext,
 		token: CancellationToken
@@ -69,12 +72,14 @@ export class DrawioEditorProvider
 		return document;
 	}
 
-	async resolveCustomEditor(
+	public async resolveCustomEditor(
 		document: DrawioDocument,
 		webviewPanel: WebviewPanel,
 		token: CancellationToken
 	): Promise<void> {
-		const drawioInstance = setupWebviewForDrawio(webviewPanel.webview);
+		const drawioInstance = await this.drawioAppServer.setupWebview(
+			webviewPanel.webview
+		);
 		document.setDrawioInstance(drawioInstance);
 	}
 }

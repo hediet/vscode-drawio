@@ -2,15 +2,22 @@ import * as vscode from "vscode";
 import { Disposable } from "@hediet/std/disposable";
 import { DrawioEditorProvider } from "./DrawioEditorProvider";
 import { DrawioTextEditorProvider } from "./DrawioTextEditorProvider";
+import { Config } from "./Config";
+import { ConfiguredDrawioAppServer } from "./DrawioAppServer";
 
 export class Extension {
 	public readonly dispose = Disposable.fn();
 
 	constructor() {
+		const config = this.dispose.track(new Config());
+		const server = this.dispose.track(
+			new ConfiguredDrawioAppServer(config)
+		);
+
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
 				"hediet.vscode-drawio-text",
-				new DrawioTextEditorProvider(),
+				new DrawioTextEditorProvider(server),
 				{ webviewOptions: { retainContextWhenHidden: true } }
 			)
 		);
@@ -22,7 +29,7 @@ export class Extension {
 			this.dispose.track(
 				vscode.window.registerCustomEditorProvider2(
 					"hediet.vscode-drawio",
-					new DrawioEditorProvider(),
+					new DrawioEditorProvider(server),
 					{
 						supportsMultipleEditorsPerDocument: false,
 						webviewOptions: { retainContextWhenHidden: true },

@@ -105,7 +105,7 @@ export class DrawioInstance {
 
 	public async loadPngWithEmbeddedXml(png: Uint8Array): Promise<void> {
 		let str = Buffer.from(png).toString("base64");
-		await this.loadXml("data:image/png;base64," + str);
+		this.loadXml("data:image/png;base64," + str);
 	}
 
 	public async export(extension: string): Promise<Buffer> {

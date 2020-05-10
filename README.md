@@ -6,9 +6,11 @@ This extension integrates Draw.io into VS Code.
 
 # Features
 
--   Edit `.drawio` files in the Draw.io editor, as xml or both.
--   (Using Proposed APIs, not released yet) Edit `.drawio.png` files with embedded Draw.io diagrams in the Draw.io editor.
--   To create a new diagram, simply create an empty `*.drawio` (or `*.drawio.png` in the future) file and open it!
+-   Edit `.drawio` or `.dio` files in the Draw.io editor, as xml or both.
+-   _(Using proposed APIs, not released yet)_ Edit `.drawio.png` files with embedded Draw.io diagrams in the Draw.io editor.
+-   To create a new diagram, simply create an empty `*.drawio` _(or `_.drawio.png` in the future)\* file and open it!
+-   Uses bundled version of Draw.io by default.
+-   The Draw.io url can be configured.
 
 # Demo
 
@@ -16,7 +18,7 @@ This extension integrates Draw.io into VS Code.
 
 # Editing .drawio.png Files (Not Released Yet)
 
-_This feature is not released yet as it uses unstable VS Code APIs. It will be available next month._
+_This feature is not released yet as it uses unstable VS Code APIs. This feature might be stable in the next release of VS Code ._
 
 You can directly edit and save `.drawio.png` files.
 These files are perfectly valid png-images that contain an embedded Draw.io diagram.
@@ -30,12 +32,13 @@ This allows you to include Draw.io diagrams in readme files on github!
 You can open the same `*.drawio` file with the Draw.io editor and as xml file.
 They are synchronized, so you can switch between them as you like it.
 This is super pratical if you want to use find/replace to rename text or other features of VS Code to speed up your diagram creation/edit process.
+Use the `File: Reopen With...` command to toggle between the text or the Draw.io editor. You can open multiple editors for the same file.
 
 ![](./docs/drawio-xml.gif)
 
 # See Also / Similar Extensions
 
--   [Draw.io](https://app.diagrams.net/) - This extension relies on the giant work of Draw.io. Their embedding feature enables this extension!
+-   [Draw.io](https://app.diagrams.net/) - This extension relies on the giant work of Draw.io. Their embedding feature enables this extension! This extension bundles a recent version of Draw.io.
 -   [vscode-drawio](https://github.com/eightHundreds/vscode-drawio) by eightHundreds.
 
 # Other Cool Extensions
