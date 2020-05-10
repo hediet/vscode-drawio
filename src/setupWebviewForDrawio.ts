@@ -1,14 +1,22 @@
-import { Webview, window, ColorThemeKind } from "vscode";
+import * as vscode from "vscode";
+import { Webview } from "vscode";
 import { DrawioInstance } from "./DrawioInstance";
 
 export function setupWebviewForDrawio(webview: Webview): DrawioInstance {
 	webview.options = { enableScripts: true };
 
-	const ui = {
-		[ColorThemeKind.Light]: "Kennedy",
-		[ColorThemeKind.Dark]: "dark",
-		[ColorThemeKind.HighContrast]: "Kennedy",
-	}[window.activeColorTheme.kind];
+	let ui = "dark";
+
+	try {
+		const ctk = (vscode as any).ColorThemeKind;
+		ui = {
+			[ctk.Light]: "Kennedy",
+			[ctk.Dark]: "dark",
+			[ctk.HighContrast]: "Kennedy",
+		}[(vscode as any).window.activeColorTheme.kind];
+	} catch (e) {
+		// window.activeColorTheme is only supported since VS Code 45.
+	}
 
 	webview.html = `
         <html>
