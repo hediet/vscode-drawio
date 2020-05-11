@@ -27,19 +27,23 @@ export class DrawioInstance {
 	private currentActionId = 0;
 	private responseHandlers = new Map<
 		string,
-		(response: DrawioEvent) => void
+		{ resolve: (response: DrawioEvent) => void; reject: () => void }
 	>();
 
 	private sendAction(
 		action: DrawioAction,
 		expectResponse: boolean = false
 	): Promise<DrawioEvent> {
-		return new Promise((resolve) => {
-			const actionId = "" + this.currentActionId++;
+		return new Promise((resolve, reject) => {
+			const actionId = (this.currentActionId++).toString();
 			if (expectResponse) {
-				this.responseHandlers.set(actionId, (response) =>
-					resolve(response)
-				);
+				this.responseHandlers.set(actionId, {
+					resolve: (response) => {
+						this.responseHandlers.delete(actionId);
+						resolve(response);
+					},
+					reject,
+				});
 			}
 			this.messageStream.sendMessage(
 				JSON.stringify(Object.assign(action, { actionId }))
@@ -63,12 +67,16 @@ export class DrawioInstance {
 			this.onSaveEmitter.emit();
 		} else if (msg.event === "export") {
 			if (!("message" in msg)) {
-				// sometimes, message is not includen :(
+				// sometimes, message is not included :(
 				const vals = [...this.responseHandlers.values()];
+				this.responseHandlers.clear();
 				if (vals.length !== 1) {
-					throw new Error("Communication Error");
+					for (const val of vals) {
+						val.reject();
+					}
+				} else {
+					vals[0].resolve(msg);
 				}
-				vals[0](msg);
 			}
 			// do nothing
 		} else if (msg.event === "configure") {
@@ -88,24 +96,27 @@ export class DrawioInstance {
 				const responseHandler = this.responseHandlers.get(actionId);
 				this.responseHandlers.delete(actionId);
 				if (responseHandler) {
-					responseHandler(msg);
+					responseHandler.resolve(msg);
 				}
 			}
 		}
 	}
 
-	public loadXml(xml: string) {
+	/**
+	 * This loads an xml or svg+xml Draw.io diagram.
+	 */
+	public loadXmlLike(xmlLike: string) {
 		this.currentXml = undefined;
 		this.sendAction({
 			action: "load",
-			xml: xml,
+			xml: xmlLike,
 			autosave: 1,
 		});
 	}
 
 	public async loadPngWithEmbeddedXml(png: Uint8Array): Promise<void> {
 		let str = Buffer.from(png).toString("base64");
-		this.loadXml("data:image/png;base64," + str);
+		this.loadXmlLike("data:image/png;base64," + str);
 	}
 
 	public async export(extension: string): Promise<Buffer> {
@@ -114,6 +125,8 @@ export class DrawioInstance {
 		} else if (extension === ".drawio") {
 			const xml = await this.getXml();
 			return Buffer.from(xml, "utf-8");
+		} else if (extension === ".svg") {
+			return await this.exportAsSvgWithEmbeddedXml();
 		} else {
 			throw new Error(
 				`Invalid file extension "${extension}"! Only ".png" and ".drawio" are supported.`
@@ -155,6 +168,25 @@ export class DrawioInstance {
 			throw new Error("Unexpected response");
 		}
 		const start = "data:image/png;base64,";
+		if (!response.data.startsWith(start)) {
+			throw new Error("Invalid data");
+		}
+		const base64Data = response.data.substr(start.length);
+		return Buffer.from(base64Data, "base64");
+	}
+
+	public async exportAsSvgWithEmbeddedXml(): Promise<Buffer> {
+		const response = await this.sendAction(
+			{
+				action: "export",
+				format: "xmlsvg",
+			},
+			true
+		);
+		if (response.event !== "export") {
+			throw new Error("Unexpected response");
+		}
+		const start = "data:image/svg+xml;base64,";
 		if (!response.data.startsWith(start)) {
 			throw new Error("Invalid data");
 		}
@@ -218,4 +250,4 @@ type DrawioAction =
 			};
 	  };
 
-type DrawioFormat = "html" | "xmlpng" | "png" | "xml";
+type DrawioFormat = "html" | "xmlpng" | "png" | "xml" | "xmlsvg";

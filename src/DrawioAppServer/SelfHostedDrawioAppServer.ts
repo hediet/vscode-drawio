@@ -4,6 +4,8 @@ import { HostedDrawioAppServer } from "./HostedDrawioAppServer";
 import * as http from "http";
 import * as serveStatic from "serve-static";
 import * as finalhandler from "finalhandler";
+import { OutputChannel } from "vscode";
+import { Config } from "../Config";
 
 export class SelfHostedDrawioAppServer extends HostedDrawioAppServer {
 	private readonly server: http.Server;
@@ -16,8 +18,8 @@ export class SelfHostedDrawioAppServer extends HostedDrawioAppServer {
 		return `http://localhost:${port}/index.html`;
 	}
 
-	constructor() {
-		super();
+	constructor(log: OutputChannel, config: Config) {
+		super(log, config);
 
 		const webRoot = resolve(__dirname, "../../drawio/src/main/webapp/");
 

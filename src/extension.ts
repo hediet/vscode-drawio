@@ -7,11 +7,14 @@ import { ConfiguredDrawioAppServer } from "./DrawioAppServer";
 
 export class Extension {
 	public readonly dispose = Disposable.fn();
+	private readonly log = this.dispose.track(
+		vscode.window.createOutputChannel("Drawio Integration Log")
+	);
 
 	constructor() {
 		const config = this.dispose.track(new Config());
 		const server = this.dispose.track(
-			new ConfiguredDrawioAppServer(config)
+			new ConfiguredDrawioAppServer(config, this.log)
 		);
 
 		this.dispose.track(

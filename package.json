@@ -3,7 +3,7 @@
 	"private": true,
 	"displayName": "Draw.io Integration",
 	"description": "This extension integrates Draw.io into VS Code.",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"license": "GPL-3.0",
 	"publisher": "hediet",
 	"author": {
@@ -51,6 +51,12 @@
 					},
 					{
 						"filenamePattern": "*.dio"
+					},
+					{
+						"filenamePattern": "*.dio.svg"
+					},
+					{
+						"filenamePattern": "*.drawio.svg"
 					}
 				],
 				"priority": "default"
@@ -68,7 +74,21 @@
 				"hediet.vscode-drawio.online-url": {
 					"type": "string",
 					"default": "https://www.draw.io/",
+					"title": "Online URL",
 					"description": "The app to use when offline mode is disabled."
+				},
+				"hediet.vscode-drawio.theme": {
+					"title": "Draw.io Theme",
+					"type": "string",
+					"default": "automatic",
+					"enum": [
+						"automatic",
+						"min",
+						"atlas",
+						"dark",
+						"Kennedy"
+					],
+					"description": "The theme to use for the Draw.io editor. Use automatic to choose a Draw.io theme matching your current VS Code theme."
 				}
 			}
 		}

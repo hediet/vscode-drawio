@@ -10,10 +10,12 @@ import {
 	WebviewPanel,
 	CustomDocumentContentChangeEvent,
 	workspace,
+	window,
 } from "vscode";
 import { DrawioInstance, DrawioDocumentChange } from "./DrawioInstance";
 import { extname } from "path";
 import { DrawioAppServer } from "./DrawioAppServer";
+import { Disposable } from "@hediet/std/disposable";
 
 export class DrawioEditorProvider
 	implements CustomEditorProvider<DrawioDocument> {
@@ -122,7 +124,7 @@ class DrawioDocument implements CustomDocument {
 			const backupFile = Uri.parse(this.backupId);
 			const content = await workspace.fs.readFile(backupFile);
 			const xml = Buffer.from(content).toString("utf-8");
-			await this.drawio.loadXml(xml);
+			await this.drawio.loadXmlLike(xml);
 		} else {
 			if (this.uri.fsPath.endsWith(".png")) {
 				const buffer = await workspace.fs.readFile(this.uri);

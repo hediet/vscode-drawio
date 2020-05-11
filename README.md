@@ -7,9 +7,12 @@ This extension integrates [Draw.io](https://app.diagrams.net/) into VS Code.
 # Features
 
 -   Edit `.drawio` or `.dio` files in the Draw.io editor, as xml or both.
--   To create a new diagram, simply create an empty `*.drawio` file and open it!
+-   Edit `.drawio.svg` files with embedded Draw.io diagrams (might be slow for diagrams with > 400 nodes).
+-   To create a new diagram, simply create an empty `*.drawio` or `*.drawio.svg` file and open it!
+-   `.drawio.svg` are valid `.svg` files.
 -   Uses an offline version of Draw.io by default.
 -   An online Draw.io url can be configured.
+-   A Draw.io theme can be selected.
 
 # Demo
 
