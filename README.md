@@ -26,7 +26,7 @@ This allows you to include Draw.io diagrams in readme files on github!
 
 ![](./docs/drawio-png.gif)
 
-# Editing the Diagram and it's XML Side by Side
+# Editing the Diagram and its XML Side by Side
 
 You can open the same `*.drawio` file with the Draw.io editor and as xml file.
 They are synchronized, so you can switch between them as you like it.
