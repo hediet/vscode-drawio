@@ -11,6 +11,7 @@ import {
 	CustomDocumentContentChangeEvent,
 	workspace,
 	window,
+	commands,
 } from "vscode";
 import { DrawioInstance, DrawioDocumentChange } from "./DrawioInstance";
 import { extname } from "path";
@@ -69,7 +70,9 @@ export class DrawioEditorProvider
 				document,
 			});
 		});
-		document.onInstanceSave(() => {});
+		document.onInstanceSave(() => {
+			commands.executeCommand("workbench.action.files.save");
+		});
 
 		return document;
 	}
@@ -116,6 +119,10 @@ class DrawioDocument implements CustomDocument {
 
 		instance.onChange.sub((change) => {
 			this.onChangeEmitter.fire(change);
+		});
+
+		instance.onSave.sub((change) => {
+			this.onInstanceSaveEmitter.fire();
 		});
 	}
 
