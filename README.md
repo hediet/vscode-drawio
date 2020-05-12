@@ -38,6 +38,35 @@ Use the `File: Reopen With...` command to toggle between the text or the Draw.io
 
 ![](./docs/drawio-xml.gif)
 
+# Change theme
+
+For set light theme, add in your `settings.json` one of:
+
+```jsonc
+    "hediet.vscode-drawio.theme": "atlas" // Same as DrawIO
+    "hediet.vscode-drawio.theme": "Kennedy" // Use if you'd like white menu on the top, not blue
+    "hediet.vscode-drawio.theme": "min" // Use if you mostly view, not edit
+```
+
+Dark:
+
+```json
+    "hediet.vscode-drawio.theme": "dark"
+```
+
+<details>
+ <summary><b>Screenshot Examples</b> (click to show)</summary>
+  <!-- Please use HTML syntax here so that it works for Github and mkdocs -->
+  <ul>
+    <li> atlas: <br> <img src="docs/theme-atlas.png" alt="atlas" width="800"> </li>
+    <li> Kennedy: <br> <img src="docs/theme-Kennedy.png" alt="Kennedy" width="800"> </li>
+    <li> min: <br> <img src="docs/theme-min.png" alt="min" width="800"></li>
+    <li> dark: <br> <img src="docs/theme-dark.png" alt="dark" width="800"> </li>
+    </ul>
+</details>
+
+See all possible values (and settings) in [`package.json`](https://github.com/hediet/vscode-drawio/blob/master/package.json) file.
+
 # See Also / Similar Extensions
 
 -   [Draw.io](https://app.diagrams.net/) - This extension relies on the giant work of Draw.io. Their embedding feature enables this extension! This extension bundles a recent version of Draw.io.
