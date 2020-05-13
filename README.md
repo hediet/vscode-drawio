@@ -64,6 +64,7 @@ Dark:
     <li> dark: <br> <img src="docs/theme-dark.png" alt="dark" width="800"> </li>
     </ul>
 </details>
+<br>
 
 See all possible values (and settings) in [`package.json`](https://github.com/hediet/vscode-drawio/blob/master/package.json) file.
 
