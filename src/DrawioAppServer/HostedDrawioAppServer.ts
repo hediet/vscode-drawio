@@ -44,24 +44,37 @@ export abstract class HostedDrawioAppServer implements DrawioAppServer {
 					});
 				</script>
 	
-				<iframe src="${indexUrl}?embed=1&ui=${this.getTheme()}&proto=json&configure=1"></iframe>
+				<iframe src="${indexUrl}?embed=1&ui=${this.getTheme()}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&lang=${this.getLanguage()}"></iframe>
 			</body>
 		</html>
 			`;
 
-		const drawioInstance = new DrawioInstance({
-			sendMessage: (msg) => {
-				this.log.appendLine("vscode -> drawio: " + prettify(msg));
-				webview.postMessage(msg);
+		const drawioInstance = new DrawioInstance(
+			{
+				sendMessage: (msg) => {
+					this.log.appendLine("vscode -> drawio: " + prettify(msg));
+					webview.postMessage(msg);
+				},
+				registerMessageHandler: (handler) => {
+					return webview.onDidReceiveMessage((msg) => {
+						this.log.appendLine(
+							"vscode <- drawio: " + prettify(msg)
+						);
+						handler(msg);
+					});
+				},
 			},
-			registerMessageHandler: (handler) => {
-				return webview.onDidReceiveMessage((msg) => {
-					this.log.appendLine("vscode <- drawio: " + prettify(msg));
-					handler(msg);
-				});
-			},
-		});
+			{
+				compressXml: false,
+			}
+		);
+
 		return drawioInstance;
+	}
+
+	private getLanguage(): string {
+		const lang = vscode.env.language.split("-")[0].toLowerCase();
+		return lang;
 	}
 
 	private getTheme(): string {
@@ -87,7 +100,10 @@ function prettify(msg: unknown): string {
 	try {
 		if (typeof msg === "string") {
 			const obj = JSON.parse(msg as string);
-			return formatValue(obj, 80);
+			return formatValue(
+				obj,
+				process.env.NODE_ENV === "development" ? 500 : 80
+			);
 		}
 	} catch {}
 	return "" + msg;

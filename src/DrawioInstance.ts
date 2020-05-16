@@ -16,7 +16,10 @@ export class DrawioInstance {
 	// This is always up to date, except directly after calling load.
 	private currentXml: string | undefined = undefined;
 
-	constructor(private readonly messageStream: MessageStream) {
+	constructor(
+		private readonly messageStream: MessageStream,
+		private readonly options: { compressXml: boolean }
+	) {
 		this.dispose.track(
 			messageStream.registerMessageHandler((msg) =>
 				this.handleEvent(JSON.parse(msg as string) as DrawioEvent)
@@ -83,7 +86,7 @@ export class DrawioInstance {
 			this.sendAction({
 				action: "configure",
 				config: {
-					compressXml: false,
+					compressXml: this.options.compressXml,
 				},
 			});
 		}
@@ -260,9 +263,29 @@ type DrawioAction =
 	  }
 	| {
 			action: "configure";
-			config: {
-				compressXml?: boolean;
-			};
+			config: DrawioConfig;
 	  };
+
+interface DrawioConfig {
+	compressXml?: boolean;
+	defaultLibraries?: string;
+	libraries?: {
+		title: DrawioResource;
+		entries: {
+			id: string;
+			preview?: string;
+			title: DrawioResource;
+			desc?: DrawioResource;
+			libs: ({
+				title: DrawioResource;
+				tags?: string;
+			} & ({ data: string } | { url: string }))[];
+		}[];
+	}[];
+}
+
+interface DrawioResource {
+	main: string;
+}
 
 type DrawioFormat = "html" | "xmlpng" | "png" | "xml" | "xmlsvg";
