@@ -17,7 +17,11 @@ export function formatValue(value: unknown, availableLen: number): string {
 			if (value === null) {
 				return "null";
 			}
-			return formatObject(value, availableLen);
+			if (Array.isArray(value)) {
+				return formatArray(value, availableLen);
+			} else {
+				return formatObject(value, availableLen);
+			}
 		case "symbol":
 			return value.toString();
 		case "function":
@@ -42,5 +46,23 @@ function formatObject(value: object, availableLen: number): string {
 		result += `${key}: ${formatValue(val, availableLen - result.length)}`;
 	}
 	result += " }";
+	return result;
+}
+
+function formatArray(value: any[], availableLen: number): string {
+	let result = "[ ";
+	let first = true;
+	for (const val of value) {
+		if (!first) {
+			result += ", ";
+		}
+		if (result.length - 5 > availableLen) {
+			result += "...";
+			break;
+		}
+		first = false;
+		result += `${formatValue(val, availableLen - result.length)}`;
+	}
+	result += " ]";
 	return result;
 }
