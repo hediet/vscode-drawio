@@ -10,3 +10,4 @@
 !drawio/src/main/webapp/**/*
 !drawio/LICENSE
 !drawio/VERSION
+!injected-scripts/**/*
