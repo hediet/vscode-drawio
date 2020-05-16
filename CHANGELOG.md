@@ -1,5 +1,18 @@
 # Change Log
 
+## 0.4.0
+
+    - Supports Draw.io features that required local storage:
+        - Scratchpad
+        - Languages
+        - Selected Libraries
+        - Layout Settings
+    - Uses current VS Code locale settings for Draw.io.
+    - Removes export options as they did not work.
+    - Fixes bug when using VS Code remote development.
+    - Fixes bug that caused empty drawio diagrams to be saved with xml compression.
+    - Technical code improvements.
+
 ## 0.3.0
 
     - Supports editing `*.drawio.svg` files.
