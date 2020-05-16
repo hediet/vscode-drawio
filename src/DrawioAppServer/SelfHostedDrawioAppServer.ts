@@ -36,6 +36,9 @@ export class SelfHostedDrawioAppServer extends HostedDrawioAppServer {
 					{
 						encoding: "utf-8",
 					}
+				).replace(
+					"$defaultLocalStorageValue$",
+					JSON.stringify(this.config.localStorage)
 				);
 
 				const patcherJsContent = readFileSync(

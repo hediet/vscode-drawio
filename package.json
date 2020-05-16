@@ -71,6 +71,13 @@
 					"title": "Use Offline Mode",
 					"description": "When enabled, the bundled instance of Draw.io is used."
 				},
+				"hediet.vscode-drawio.local-storage": {
+					"type": "object",
+					"default": {},
+					"readOnly": true,
+					"title": "Draw.io Local Storage",
+					"description": "Only change this property if you know what you are doing. Manual changes to this property are not supported!"
+				},
 				"hediet.vscode-drawio.online-url": {
 					"type": "string",
 					"default": "https://www.draw.io/",

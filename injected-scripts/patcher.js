@@ -10,13 +10,13 @@ window.addEventListener("load", () => {
 			if (args[0] === "exportAs") {
 				return;
 			}
+			console.log("added submenu ", args[0]);
 			return old.apply(this, args);
 		};
 	});
 
 	patchProto(Menus, "put", function (old) {
 		return function (...args) {
-			log(...args);
 			if (args[0] === "language") {
 				return;
 			}

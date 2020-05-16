@@ -10,7 +10,7 @@ export abstract class HostedDrawioAppServer implements DrawioAppServer {
 
 	constructor(
 		private readonly log: vscode.OutputChannel,
-		private readonly config: Config
+		protected readonly config: Config
 	) {}
 
 	public async setupWebview(webview: Webview): Promise<DrawioInstance> {
@@ -68,6 +68,14 @@ export abstract class HostedDrawioAppServer implements DrawioAppServer {
 				compressXml: false,
 			}
 		);
+
+		drawioInstance.onUnknownMessage.sub(({ message }) => {
+			if (message.event === "updateLocalStorage") {
+				const newLocalStorage: Record<string, string> = (message as any)
+					.newLocalStorage;
+				this.config.setLocalStorage(newLocalStorage);
+			}
+		});
 
 		return drawioInstance;
 	}

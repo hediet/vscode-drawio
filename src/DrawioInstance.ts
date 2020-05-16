@@ -13,6 +13,11 @@ export class DrawioInstance {
 	private readonly onSaveEmitter = new EventEmitter();
 	public readonly onSave = this.onSaveEmitter.asEvent();
 
+	private readonly onUnknownMessageEmitter = new EventEmitter<{
+		message: { event: string };
+	}>();
+	public readonly onUnknownMessage = this.onUnknownMessageEmitter.asEvent();
+
 	// This is always up to date, except directly after calling load.
 	private currentXml: string | undefined = undefined;
 
@@ -89,6 +94,8 @@ export class DrawioInstance {
 					compressXml: this.options.compressXml,
 				},
 			});
+		} else {
+			this.onUnknownMessageEmitter.emit({ message: msg });
 		}
 
 		if ("message" in msg) {
