@@ -4,19 +4,22 @@ import { HostedDrawioAppServer } from "./HostedDrawioAppServer";
 import * as http from "http";
 import * as serveStatic from "serve-static";
 import * as finalhandler from "finalhandler";
-import { OutputChannel, env } from "vscode";
+import { OutputChannel } from "vscode";
 import { Config } from "../Config";
-import { readFile, readFileSync } from "fs";
+import { readFileSync } from "fs";
 
 export class SelfHostedDrawioAppServer extends HostedDrawioAppServer {
 	private readonly server: http.Server;
 	private readonly serverReady: Promise<void>;
 
 	public async getIndexUrl(): Promise<string> {
-		await this.serverReady;
-		const port = (this.server.address() as AddressInfo).port;
-		// We could use https://www.draw.io/ too
+		const port = await this.getRequiredPort();
 		return `http://localhost:${port}/index.html`;
+	}
+
+	public async getRequiredPort(): Promise<number | undefined> {
+		await this.serverReady;
+		return (this.server.address() as AddressInfo).port;
 	}
 
 	constructor(log: OutputChannel, config: Config) {

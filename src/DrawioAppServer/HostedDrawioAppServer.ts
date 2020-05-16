@@ -7,6 +7,9 @@ import { Config } from "../Config";
 
 export abstract class HostedDrawioAppServer implements DrawioAppServer {
 	public abstract getIndexUrl(): Promise<string>;
+	public async getRequiredPort(): Promise<number | undefined> {
+		return undefined;
+	}
 
 	constructor(
 		private readonly log: vscode.OutputChannel,
@@ -14,7 +17,19 @@ export abstract class HostedDrawioAppServer implements DrawioAppServer {
 	) {}
 
 	public async setupWebview(webview: Webview): Promise<DrawioInstance> {
-		webview.options = { enableScripts: true };
+		const requiredPort = await this.getRequiredPort();
+		webview.options = {
+			enableScripts: true,
+			portMapping:
+				requiredPort !== undefined
+					? [
+							{
+								webviewPort: requiredPort,
+								extensionHostPort: requiredPort,
+							},
+					  ]
+					: [],
+		};
 
 		const indexUrl = await this.getIndexUrl();
 
