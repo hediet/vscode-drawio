@@ -1,6 +1,6 @@
 import { Webview } from "vscode";
-import { DrawioInstance } from "../DrawioInstance";
+import { CustomDrawioInstance } from "../DrawioInstance";
 
 export interface DrawioAppServer {
-	setupWebview(webview: Webview): Promise<DrawioInstance>;
+	setupWebview(webview: Webview): Promise<CustomDrawioInstance>;
 }

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { Webview } from "vscode";
-import { DrawioInstance } from "../DrawioInstance";
+import { CustomDrawioInstance } from "../DrawioInstance";
 import { DrawioAppServer } from "./DrawioAppServer";
 import { formatValue } from "./formatValue";
 import { Config } from "../Config";
@@ -16,7 +16,7 @@ export abstract class HostedDrawioAppServer implements DrawioAppServer {
 		protected readonly config: Config
 	) {}
 
-	public async setupWebview(webview: Webview): Promise<DrawioInstance> {
+	public async setupWebview(webview: Webview): Promise<CustomDrawioInstance> {
 		const requiredPort = await this.getRequiredPort();
 		webview.options = {
 			enableScripts: true,
@@ -48,7 +48,7 @@ export abstract class HostedDrawioAppServer implements DrawioAppServer {
 				<script>
 					const api = window.VsCodeApi = acquireVsCodeApi();
 					window.addEventListener('message', event => {
-						
+
 						if (event.source === window.frames[0]) {
 							//console.log("frame -> vscode", event.data);
 							api.postMessage(event.data);
@@ -58,13 +58,13 @@ export abstract class HostedDrawioAppServer implements DrawioAppServer {
 						}
 					});
 				</script>
-	
-				<iframe src="${indexUrl}?embed=1&ui=${this.getTheme()}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&lang=${this.getLanguage()}"></iframe>
+
+				<iframe src="${indexUrl}?embed=1&ui=${this.getTheme()}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&lang=${this.getLanguage()}&p=foo"></iframe>
 			</body>
 		</html>
 			`;
 
-		const drawioInstance = new DrawioInstance(
+		const drawioInstance = new CustomDrawioInstance(
 			{
 				sendMessage: (msg) => {
 					this.log.appendLine("vscode -> drawio: " + prettify(msg));

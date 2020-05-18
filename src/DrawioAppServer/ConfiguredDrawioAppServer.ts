@@ -2,7 +2,7 @@ import { DrawioAppServer } from "./DrawioAppServer";
 import { SelfHostedDrawioAppServer } from "./SelfHostedDrawioAppServer";
 import { Disposable } from "@hediet/std/disposable";
 import { Webview, OutputChannel } from "vscode";
-import { DrawioInstance } from "../DrawioInstance";
+import { CustomDrawioInstance } from "../DrawioInstance";
 import { Config } from "../Config";
 import { ExternallyHostedDrawioAppServer } from "./ExternallyHostedDrawioAppServer";
 
@@ -16,7 +16,7 @@ export class ConfiguredDrawioAppServer implements DrawioAppServer {
 		private readonly log: OutputChannel
 	) {}
 
-	setupWebview(webview: Webview): Promise<DrawioInstance> {
+	setupWebview(webview: Webview): Promise<CustomDrawioInstance> {
 		let target: DrawioAppServer;
 		if (this.config.useOfflineMode) {
 			if (!this.selfHostedAppServer) {

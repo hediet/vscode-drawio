@@ -36,7 +36,7 @@
 
 			window.addEventListener("message", (event) => {
 				if (event.source === window.frames[0]) {
-					//console.log("frame -> vscode", event.data);
+					console.log("frame -> vscode", event.data);
 					//api.postMessage(event.data);
 					var e = JSON.parse(event.data);
 					if (e.event === "init") {
@@ -47,7 +47,8 @@
 							action: "configure",
 							config: {
 								compressXml: false,
-								forceSimpleViewer: true,
+								//forceSimpleViewer: true,
+								plugins: [,],
 							},
 						});
 					}

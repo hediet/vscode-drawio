@@ -28,6 +28,18 @@
 	"enableProposedApi": false,
 	"main": "./out/extension",
 	"contributes": {
+		"commands": [
+			{
+				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
+				"title": "Draw.io: Link Code with Selected Node"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
+				"key": "shift+F3"
+			}
+		],
 		"customEditors": [
 			{
 				"viewType": "hediet.vscode-drawio",

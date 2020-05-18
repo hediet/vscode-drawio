@@ -24,3 +24,15 @@ window.addEventListener("load", () => {
 		};
 	});
 });
+
+/**
+ * @param url {string}
+ */
+function loadScript(url) {
+	const pluginScript = document.createElement("script");
+	pluginScript.type = "text/javascript";
+	pluginScript.src = url;
+	document.getElementsByTagName("head")[0].appendChild(pluginScript);
+}
+
+loadScript("/plugins/linkSelectedNodeWithData.js");

@@ -4,6 +4,9 @@ import { Disposable } from "@hediet/std/disposable";
 export class DrawioInstance {
 	public readonly dispose = Disposable.fn();
 
+	private readonly onDidDisposeEmitter = new EventEmitter();
+	public readonly onDidDispose = this.onDidDisposeEmitter.asEvent();
+
 	private readonly onInitEmitter = new EventEmitter();
 	public readonly onInit = this.onInitEmitter.asEvent();
 
@@ -30,6 +33,10 @@ export class DrawioInstance {
 				this.handleEvent(JSON.parse(msg as string) as DrawioEvent)
 			)
 		);
+
+		this.dispose.track({
+			dispose: () => this.onDidDisposeEmitter.emit(),
+		});
 	}
 
 	private currentActionId = 0;
@@ -38,7 +45,11 @@ export class DrawioInstance {
 		{ resolve: (response: DrawioEvent) => void; reject: () => void }
 	>();
 
-	private sendAction(
+	protected sendUnknownAction(action: { action: string }): void {
+		this.messageStream.sendMessage(JSON.stringify(Object.assign(action)));
+	}
+
+	protected sendAction(
 		action: DrawioAction,
 		expectResponse: boolean = false
 	): Promise<DrawioEvent> {
@@ -62,19 +73,21 @@ export class DrawioInstance {
 		});
 	}
 
-	private handleEvent(msg: DrawioEvent): void {
-		if (msg.event === "init") {
+	protected handleEvent(evt: { event: string }): void {
+		const drawioEvt = evt as DrawioEvent;
+
+		if (drawioEvt.event === "init") {
 			this.onInitEmitter.emit();
-		} else if (msg.event === "autosave") {
-			const newXml = msg.xml;
+		} else if (drawioEvt.event === "autosave") {
+			const newXml = drawioEvt.xml;
 			const oldXml = this.currentXml;
 			this.currentXml = newXml;
 
 			this.onChangeEmitter.emit({ newXml, oldXml });
-		} else if (msg.event === "save") {
+		} else if (drawioEvt.event === "save") {
 			this.onSaveEmitter.emit();
-		} else if (msg.event === "export") {
-			if (!("message" in msg)) {
+		} else if (drawioEvt.event === "export") {
+			if (!("message" in drawioEvt)) {
 				// sometimes, message is not included :(
 				const vals = [...this.responseHandlers.values()];
 				this.responseHandlers.clear();
@@ -83,11 +96,11 @@ export class DrawioInstance {
 						val.reject();
 					}
 				} else {
-					vals[0].resolve(msg);
+					vals[0].resolve(drawioEvt);
 				}
 			}
 			// do nothing
-		} else if (msg.event === "configure") {
+		} else if (drawioEvt.event === "configure") {
 			this.sendAction({
 				action: "configure",
 				config: {
@@ -95,18 +108,18 @@ export class DrawioInstance {
 				},
 			});
 		} else {
-			this.onUnknownMessageEmitter.emit({ message: msg });
+			this.onUnknownMessageEmitter.emit({ message: drawioEvt });
 		}
 
-		if ("message" in msg) {
-			const actionId = (msg.message as any).actionId as
+		if ("message" in drawioEvt) {
+			const actionId = (drawioEvt.message as any).actionId as
 				| string
 				| undefined;
 			if (actionId) {
 				const responseHandler = this.responseHandlers.get(actionId);
 				this.responseHandlers.delete(actionId);
 				if (responseHandler) {
-					responseHandler.resolve(msg);
+					responseHandler.resolve(drawioEvt);
 				}
 			}
 		}
@@ -296,3 +309,32 @@ interface DrawioResource {
 }
 
 type DrawioFormat = "html" | "xmlpng" | "png" | "xml" | "xmlsvg";
+
+export class CustomDrawioInstance extends DrawioInstance {
+	private readonly onBlurEmitter = new EventEmitter();
+	public readonly onBlur = this.onBlurEmitter.asEvent();
+
+	private readonly onRevealCodeEmitter = new EventEmitter<{
+		linkedData: string;
+	}>();
+	public readonly onRevealCode = this.onRevealCodeEmitter.asEvent();
+
+	public linkSelectedNodeWithData(linkedData: string) {
+		this.sendUnknownAction({
+			action: "linkSelectedNodeWithData",
+			linkedData: linkedData,
+		} as any);
+	}
+
+	protected handleEvent(evt: { event: string }) {
+		if (evt.event === "onBlur") {
+			this.onBlurEmitter.emit();
+		} else if (evt.event === "revealCode") {
+			this.onRevealCodeEmitter.emit({
+				linkedData: (evt as any).linkedData,
+			});
+		} else {
+			super.handleEvent(evt);
+		}
+	}
+}

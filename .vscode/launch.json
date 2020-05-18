@@ -8,7 +8,8 @@
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--enable-proposed-api hediet.vscode-drawio"
+				"--enable-proposed-api hediet.vscode-drawio",
+				"--disable-extensions"
 			],
 			"outFiles": ["${workspaceFolder}/out/**/*.js"],
 			"preLaunchTask": "npm: dev",

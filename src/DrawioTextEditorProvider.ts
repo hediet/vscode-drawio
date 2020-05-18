@@ -10,9 +10,16 @@ import {
 import * as formatter from "xml-formatter";
 import { DrawioAppServer } from "./DrawioAppServer";
 import { canonicalizeXml } from "./canonicalizeXml";
+import { EventEmitter } from "@hediet/std/events";
+import { CustomDrawioInstance } from "./DrawioInstance";
 
 export class DrawioTextEditorProvider implements CustomTextEditorProvider {
-	constructor(public readonly drawioAppServer: DrawioAppServer) {}
+	private readonly onNewDrawioInstanceEmitter = new EventEmitter<{
+		drawioInstance: CustomDrawioInstance;
+	}>();
+	public readonly onNewDrawioInstance = this.onNewDrawioInstanceEmitter.asEvent();
+
+	constructor(private readonly drawioAppServer: DrawioAppServer) {}
 
 	public async resolveCustomTextEditor(
 		document: TextDocument,
@@ -103,5 +110,11 @@ export class DrawioTextEditorProvider implements CustomTextEditorProvider {
 		drawioInstance.onInit.one(async () => {
 			drawioInstance.loadXmlLike(document.getText());
 		});
+
+		webviewPanel.onDidDispose(() => {
+			drawioInstance.dispose();
+		});
+
+		this.onNewDrawioInstanceEmitter.emit({ drawioInstance });
 	}
 }
