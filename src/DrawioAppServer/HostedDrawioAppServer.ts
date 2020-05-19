@@ -6,7 +6,8 @@ import { formatValue } from "./formatValue";
 import { Config } from "../Config";
 
 export abstract class HostedDrawioAppServer implements DrawioAppServer {
-	public abstract getIndexUrl(): Promise<string>;
+	public abstract getHtml(webview: Webview): Promise<string>;
+
 	public async getRequiredPort(): Promise<number | undefined> {
 		return undefined;
 	}
@@ -31,38 +32,7 @@ export abstract class HostedDrawioAppServer implements DrawioAppServer {
 					: [],
 		};
 
-		const indexUrl = await this.getIndexUrl();
-
-		webview.html = `
-			<html>
-			<head>
-			<meta charset="UTF-8">
-			<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline'; worker-src * data: 'unsafe-inline' 'unsafe-eval'; font-src * 'unsafe-inline' 'unsafe-eval';">
-			<style>
-				html { height: 100%; width: 100%; padding: 0; margin: 0; }
-				body { height: 100%; width: 100%; padding: 0; margin: 0; }
-				iframe { height: 100%; width: 100%; padding: 0; margin: 0; border: 0; display: block; }
-			</style>
-			</head>
-			<body>
-				<script>
-					const api = window.VsCodeApi = acquireVsCodeApi();
-					window.addEventListener('message', event => {
-						
-						if (event.source === window.frames[0]) {
-							//console.log("frame -> vscode", event.data);
-							api.postMessage(event.data);
-						} else {
-							//console.log("vscode -> frame", event.data);
-							window.frames[0].postMessage(event.data, "*");
-						}
-					});
-				</script>
-	
-				<iframe src="${indexUrl}?embed=1&ui=${this.getTheme()}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&lang=${this.getLanguage()}"></iframe>
-			</body>
-		</html>
-			`;
+		webview.html = await this.getHtml(webview);
 
 		const drawioInstance = new DrawioInstance(
 			{
@@ -95,12 +65,13 @@ export abstract class HostedDrawioAppServer implements DrawioAppServer {
 		return drawioInstance;
 	}
 
-	private getLanguage(): string {
+
+	public getLanguage(): string {
 		const lang = vscode.env.language.split("-")[0].toLowerCase();
 		return lang;
 	}
 
-	private getTheme(): string {
+	public getTheme(): string {
 		if (this.config.drawioTheme !== "automatic") {
 			return this.config.drawioTheme;
 		}

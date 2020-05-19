@@ -25,7 +25,7 @@
 	"repository": {
 		"url": "https://github.com/hediet/vscode-drawio.git"
 	},
-	"enableProposedApi": true,
+	"enableProposedApi": false,
 	"main": "./out/extension",
 	"contributes": {
 		"customEditors": [
@@ -112,14 +112,10 @@
 		"@types/vscode": "1.44.0",
 		"tslint": "^6.1.2",
 		"typescript": "^3.8.3",
-		"@types/finalhandler": "^1.1.0",
-		"@types/serve-static": "^1.13.3",
 		"@types/xml-formatter": "^1.1.0"
 	},
 	"dependencies": {
 		"@hediet/std": "0.6.0",
-		"finalhandler": "^1.1.2",
-		"serve-static": "^1.14.1",
 		"xml-formatter": "^2.0.1"
 	}
 }
