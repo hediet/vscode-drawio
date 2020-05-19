@@ -2,7 +2,7 @@
 	"name": "vscode-drawio",
 	"private": true,
 	"displayName": "Draw.io Integration",
-	"description": "This extension integrates Draw.io into VS Code.",
+	"description": "This unofficial extension integrates Draw.io into VS Code.",
 	"version": "0.4.0",
 	"license": "GPL-3.0",
 	"publisher": "hediet",
@@ -25,7 +25,7 @@
 	"repository": {
 		"url": "https://github.com/hediet/vscode-drawio.git"
 	},
-	"enableProposedApi": false,
+	"enableProposedApi": true,
 	"main": "./out/extension",
 	"contributes": {
 		"customEditors": [
