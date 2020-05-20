@@ -12,6 +12,6 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v1
               with:
-                  node-version: 8.x
+                  node-version: 10.x
             - run: yarn install
             - run: yarn vscode:prepublish
