@@ -8,28 +8,14 @@ import { Config } from "../Config";
 export abstract class HostedDrawioAppServer implements DrawioAppServer {
 	public abstract getHtml(webview: Webview): Promise<string>;
 
-	public async getRequiredPort(): Promise<number | undefined> {
-		return undefined;
-	}
-
 	constructor(
 		private readonly log: vscode.OutputChannel,
 		protected readonly config: Config
 	) {}
 
 	public async setupWebview(webview: Webview): Promise<DrawioInstance> {
-		const requiredPort = await this.getRequiredPort();
 		webview.options = {
 			enableScripts: true,
-			portMapping:
-				requiredPort !== undefined
-					? [
-							{
-								webviewPort: requiredPort,
-								extensionHostPort: requiredPort,
-							},
-					  ]
-					: [],
 		};
 
 		webview.html = await this.getHtml(webview);
@@ -64,7 +50,6 @@ export abstract class HostedDrawioAppServer implements DrawioAppServer {
 
 		return drawioInstance;
 	}
-
 
 	public getLanguage(): string {
 		const lang = vscode.env.language.split("-")[0].toLowerCase();
