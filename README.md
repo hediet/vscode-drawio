@@ -70,6 +70,11 @@ Use the `File: Reopen With...` command to toggle between the text or the Draw.io
 
 ![](./docs/drawio-xml.gif)
 
+## Contributors
+
+-   Henning Dieterichs, [hediet](https://github.com/hediet) on Github (Main Contributor / Author)
+-   Vincent Rouillé, [Speedy37](https://github.com/Speedy37) on Github
+
 ## See Also / Similar Extensions
 
 -   [Draw.io](https://app.diagrams.net/) - This extension relies on the giant work of Draw.io. Their embedding feature enables this extension! This extension bundles a recent version of Draw.io.
