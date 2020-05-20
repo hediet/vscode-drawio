@@ -112,6 +112,20 @@ export class DrawioInstance {
 		}
 	}
 
+	public async mergeXmlLike(xmlLike: string): Promise<void> {
+		const evt = await this.sendAction(
+			{ action: "merge", xml: xmlLike },
+			true
+		);
+
+		if (evt.event !== "merge") {
+			throw new Error("Invalid response");
+		}
+		if (evt.error) {
+			throw new Error(evt.error);
+		}
+	}
+
 	/**
 	 * This loads an xml or svg+xml Draw.io diagram.
 	 */
@@ -232,6 +246,11 @@ export interface MessageStream {
 
 type DrawioEvent =
 	| {
+			event: "merge";
+			error: string;
+			message: DrawioEvent;
+	  }
+	| {
 			event: "init";
 	  }
 	| {
@@ -255,6 +274,7 @@ type DrawioEvent =
 
 type DrawioAction =
 	| { action: "load"; xml: string; autosave?: 1 }
+	| { action: "merge"; xml: string }
 	| {
 			action: "prompt";
 	  }

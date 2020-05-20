@@ -26,7 +26,7 @@ export class DrawioTextEditorProvider implements CustomTextEditorProvider {
 		let lastOutput: string;
 		let isThisEditorSaving = false;
 
-		workspace.onDidChangeTextDocument((evt) => {
+		workspace.onDidChangeTextDocument(async (evt) => {
 			if (evt.document !== document) {
 				return;
 			}
@@ -43,7 +43,7 @@ export class DrawioTextEditorProvider implements CustomTextEditorProvider {
 				return;
 			}
 
-			drawioInstance.loadXmlLike(result);
+			await drawioInstance.mergeXmlLike(result);
 		});
 
 		drawioInstance.onChange.sub(async ({ newXml }) => {
