@@ -25,7 +25,7 @@
 	"repository": {
 		"url": "https://github.com/hediet/vscode-drawio.git"
 	},
-	"enableProposedApi": true,
+	"enableProposedApi": false,
 	"main": "./out/extension",
 	"contributes": {
 		"customEditors": [
@@ -103,23 +103,29 @@
 	"scripts": {
 		"pub": "vsce publish --yarn",
 		"package": "vsce package --yarn",
-		"vscode:prepublish": "npm run build",
-		"build": "tsc -p ./",
-		"dev": "tsc -watch -p ./"
+		"vscode:prepublish": "webpack --mode production",
+		"build": "webpack --mode development",
+		"dev": "webpack --mode development --watch",
+		"test-compile": "tsc -p ./",
+		"fmt": "prettier --write src",
+		"fmt-check": "prettier --check src"
 	},
 	"devDependencies": {
 		"@types/node": "^13.13.5",
 		"@types/vscode": "1.44.0",
+		"@types/xml-formatter": "^1.1.0",
+		"prettier": "^2.0.5",
+		"raw-loader": "^4.0.1",
+		"ts-loader": "^7.0.4",
 		"tslint": "^6.1.2",
 		"typescript": "^3.8.3",
-		"@types/finalhandler": "^1.1.0",
-		"@types/serve-static": "^1.13.3",
-		"@types/xml-formatter": "^1.1.0"
+		"webpack": "^4.43.0",
+		"webpack-cli": "^3.3.11",
+		"ts-node": "^8.10.1",
+		"clean-webpack-plugin": "^3.0.0"
 	},
 	"dependencies": {
 		"@hediet/std": "0.6.0",
-		"finalhandler": "^1.1.2",
-		"serve-static": "^1.14.1",
 		"xml-formatter": "^2.0.1"
 	}
 }

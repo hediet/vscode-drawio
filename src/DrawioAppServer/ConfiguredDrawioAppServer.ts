@@ -9,8 +9,6 @@ import { ExternallyHostedDrawioAppServer } from "./ExternallyHostedDrawioAppServ
 export class ConfiguredDrawioAppServer implements DrawioAppServer {
 	public readonly dispose = Disposable.fn();
 
-	private selfHostedAppServer: SelfHostedDrawioAppServer | undefined;
-
 	constructor(
 		private readonly config: Config,
 		private readonly log: OutputChannel
@@ -19,12 +17,7 @@ export class ConfiguredDrawioAppServer implements DrawioAppServer {
 	setupWebview(webview: Webview): Promise<DrawioInstance> {
 		let target: DrawioAppServer;
 		if (this.config.useOfflineMode) {
-			if (!this.selfHostedAppServer) {
-				this.selfHostedAppServer = this.dispose.track(
-					new SelfHostedDrawioAppServer(this.log, this.config)
-				);
-			}
-			target = this.selfHostedAppServer;
+			target = new SelfHostedDrawioAppServer(this.log, this.config);
 		} else {
 			target = new ExternallyHostedDrawioAppServer(
 				this.config.drawioUrl,

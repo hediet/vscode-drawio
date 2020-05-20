@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="${vsuri}" />
+		<script type="text/javascript">
+			var log;
+			(() => {
+				const api = (window.VsCodeApi = acquireVsCodeApi());
+				function sendToVsCode(msg) {
+					api.postMessage(JSON.stringify(msg));
+				}
+				log = function log(...msg) {
+					sendToVsCode({ event: "log", body: msg });
+				};
+
+				// Fix draw.io tries to acces unavailable localStorage
+				// Replace it with a bridged version
+				var storage = $$localStorage$$;
+				const bridgedLocalStorage = {
+					getItem: function (key) {
+						log("localStorage: get " + key);
+						return storage[key];
+					},
+					setItem: function (key, val) {
+						log("localStorage: set " + key + " to " + val);
+						storage[key] = val;
+						sendToVsCode({
+							event: "updateLocalStorage",
+							newLocalStorage: storage,
+						});
+					},
+					removeItem: function (key) {
+						log("localStorage: remove " + key);
+						delete storage[key];
+					},
+				};
+				Object.defineProperty(window, "localStorage", {
+					value: bridgedLocalStorage,
+				});
+
+				// Fix draw.io tries to acces unavailable cookie prop
+				Object.defineProperty(document, "cookie", { value: "" });
+
+				// Fix draw.io "message" source check
+				Object.defineProperty(window, "opener", { value: window.top });
+
+				// Capture draw.io "postMessage"
+				Object.defineProperty(window.opener, "postMessage", {
+					value: (msg) => {
+						api.postMessage(msg);
+					},
+				});
+			})();
+
+			var urlParams = {
+				embed: "1",
+				configure: "1",
+				proto: "json",
+				ui: "${theme}",
+				lang: "${lang}",
+				noSaveBtn: "1",
+				noExitBtn: "1",
+			};
+
+			// Checks for local storage
+			var isLocalStorage = true;
+		</script>
+		<link
+			rel="stylesheet"
+			type="text/css"
+			href="js/croppie/croppie.min.css"
+		/>
+		<link rel="stylesheet" type="text/css" href="styles/grapheditor.css" />
+		<link rel="manifest" href="images/manifest.json" />
+		<style type="text/css">
+			body {
+				overflow: hidden;
+			}
+			div.picker {
+				z-index: 10007;
+			}
+			.geSidebarContainer .geTitle input {
+				font-size: 8pt;
+				color: #606060;
+			}
+			.geBlock {
+				z-index: -3;
+				margin: 100px;
+				margin-top: 40px;
+				margin-bottom: 30px;
+				padding: 20px;
+			}
+			.geBlock h1,
+			.geBlock h2 {
+				margin-top: 0px;
+				padding-top: 0px;
+			}
+			.geEditor ::-webkit-scrollbar {
+				width: 14px;
+				height: 14px;
+			}
+			.geEditor ::-webkit-scrollbar-track {
+				background-clip: padding-box;
+				border: solid transparent;
+				border-width: 1px;
+			}
+			.geEditor ::-webkit-scrollbar-corner {
+				background-color: transparent;
+			}
+			.geEditor ::-webkit-scrollbar-thumb {
+				background-color: rgba(0, 0, 0, 0.1);
+				background-clip: padding-box;
+				border: solid transparent;
+				border-radius: 10px;
+			}
+			.geEditor ::-webkit-scrollbar-thumb:hover {
+				background-color: rgba(0, 0, 0, 0.4);
+			}
+			.geTemplate {
+				border: 1px solid transparent;
+				display: inline-block;
+				_display: inline;
+				vertical-align: top;
+				border-radius: 3px;
+				overflow: hidden;
+				font-size: 14pt;
+				cursor: pointer;
+				margin: 5px;
+			}
+		</style>
+		<script src="js/PreConfig.js"></script>
+		<script src="js/app.min.js"></script>
+		<script src="js/extensions.min.js"></script>
+		<script src="js/stencils.min.js"></script>
+		<script src="js/shapes.min.js"></script>
+		<script src="js/PostConfig.js"></script>
+	</head>
+	<body class="geEditor">
+		<div id="geInfo">
+			<div class="geBlock" style="text-align: center; min-width: 50%;">
+				<h1>Flowchart Maker and Online Diagram Software</h1>
+				<p>
+					diagrams.net (formerly draw.io) is free online diagram
+					software. You can use it as a flowchart maker, network
+					diagram software, to create UML online, as an ER diagram
+					tool, to design database schema, to build BPMN online, as a
+					circuit diagram maker, and more. draw.io can import .vsdx,
+					Gliffy&trade; and Lucidchart&trade; files .
+				</p>
+				<h2 id="geStatus">Loading...</h2>
+				<p>
+					If you see this message longer than a few seconds, it
+					probably broke due to
+					<a href="https://github.com/microsoft/vscode/issues/89038"
+						>this issue</a
+					>. Just reopen this file. Future versions of VS Code might
+					fix this bug.
+				</p>
+			</div>
+		</div>
+		<script type="text/javascript">
+			(() => {
+				function patchProto(clazz, fnName, fnFactory) {
+					var old = clazz.prototype[fnName];
+					clazz.prototype[fnName] = fnFactory(old);
+				}
+
+				log("Document loaded, patching prototypes");
+				patchProto(Menus, "addSubmenu", function (old) {
+					return function (...args) {
+						if (args[0] === "exportAs") {
+							return;
+						}
+						console.log("added submenu ", args[0]);
+						return old.apply(this, args);
+					};
+				});
+
+				patchProto(Menus, "put", function (old) {
+					return function (...args) {
+						if (args[0] === "language") {
+							return;
+						}
+						return old.apply(this, args);
+					};
+				});
+
+				EditorUi.prototype.addEmbedButtons = () => {};
+
+				App.main();
+			})();
+		</script>
+	</body>
+</html>

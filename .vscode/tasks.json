@@ -6,7 +6,14 @@
 		{
 			"type": "npm",
 			"script": "dev",
-			"problemMatcher": "$tsc-watch",
+			"problemMatcher": {
+				"base": "$tsc",
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "^Hash:",
+					"endsPattern": "^Built at:"
+				}
+			},
 			"isBackground": true,
 			"presentation": {
 				"reveal": "never"
