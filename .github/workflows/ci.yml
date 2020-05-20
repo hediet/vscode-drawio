@@ -1,4 +1,8 @@
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   build:
@@ -16,6 +20,4 @@ jobs:
         with:
           node-version: 10.x
       - run: yarn install
-      - run: yarn vscode:prepublish
-      - name: "Package"
-        run: npx vsce package
+      - run: yarn build
