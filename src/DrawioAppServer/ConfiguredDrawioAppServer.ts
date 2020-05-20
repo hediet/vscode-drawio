@@ -17,10 +17,7 @@ export class ConfiguredDrawioAppServer implements DrawioAppServer {
 	setupWebview(webview: Webview): Promise<DrawioInstance> {
 		let target: DrawioAppServer;
 		if (this.config.useOfflineMode) {
-			target = new SelfHostedDrawioAppServer(
-				this.log,
-				this.config
-			);
+			target = new SelfHostedDrawioAppServer(this.log, this.config);
 		} else {
 			target = new ExternallyHostedDrawioAppServer(
 				this.config.drawioUrl,

@@ -6,7 +6,7 @@ import { formatValue } from "./formatValue";
 import { Config } from "../Config";
 
 export abstract class HostedDrawioAppServer implements DrawioAppServer {
-	public abstract getHtml(webview: Webview): Promise<string>;
+	public abstract getHtml(webview: Webview): string;
 
 	constructor(
 		private readonly log: vscode.OutputChannel,
@@ -18,7 +18,7 @@ export abstract class HostedDrawioAppServer implements DrawioAppServer {
 			enableScripts: true,
 		};
 
-		webview.html = await this.getHtml(webview);
+		webview.html = this.getHtml(webview);
 
 		const drawioInstance = new DrawioInstance(
 			{

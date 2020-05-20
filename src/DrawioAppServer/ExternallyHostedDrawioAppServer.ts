@@ -7,7 +7,7 @@ export class ExternallyHostedDrawioAppServer extends HostedDrawioAppServer {
 		super(log, config);
 	}
 
-	public async getHtml(webview: Webview): Promise<string> {
+	public getHtml(webview: Webview): string {
 		return `
 			<html>
 			<head>
@@ -34,7 +34,9 @@ export class ExternallyHostedDrawioAppServer extends HostedDrawioAppServer {
 					});
 				</script>
 
-				<iframe src="${this.url}?embed=1&ui=${this.getTheme()}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&lang=${this.getLanguage()}"></iframe>
+				<iframe src="${
+					this.url
+				}?embed=1&ui=${this.getTheme()}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&lang=${this.getLanguage()}"></iframe>
 			</body>
 		</html>
 			`;
