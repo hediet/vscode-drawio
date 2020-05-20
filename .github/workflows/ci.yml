@@ -1,0 +1,17 @@
+on: [push, pull_request]
+
+jobs:
+    build:
+        strategy:
+            matrix:
+                os: [macos-latest, ubuntu-latest, windows-latest]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: Install Node.js
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 8.x
+            - run: yarn install
+            - run: yarn vscode:prepublish

@@ -103,7 +103,7 @@
 	"scripts": {
 		"pub": "vsce publish --yarn",
 		"package": "vsce package --yarn",
-		"vscode:prepublish": "webpack --mode production",
+		"vscode:prepublish": "prettier --check src && webpack --mode production",
 		"build": "webpack --mode development",
 		"dev": "webpack --mode development --watch",
 		"test-compile": "tsc -p ./",
