@@ -160,13 +160,14 @@
 		</div>
 		<script type="text/javascript">
 			(() => {
-				function patchProto(clazz, fnName, fnFactory) {
-					var old = clazz.prototype[fnName];
-					clazz.prototype[fnName] = fnFactory(old);
+				function patchFn(clazz, fnName, fnFactory) {
+					var old = clazz[fnName];
+					clazz[fnName] = fnFactory(old);
 				}
 
 				log("Document loaded, patching prototypes");
-				patchProto(Menus, "addSubmenu", function (old) {
+				// This removes the exportAs submenu
+				patchFn(Menus.prototype, "addSubmenu", function (old) {
 					return function (...args) {
 						if (args[0] === "exportAs") {
 							return;
@@ -176,7 +177,8 @@
 					};
 				});
 
-				patchProto(Menus, "put", function (old) {
+				// This removes the language menu
+				patchFn(Menus.prototype, "put", function (old) {
 					return function (...args) {
 						if (args[0] === "language") {
 							return;
@@ -187,23 +189,34 @@
 
 				EditorUi.prototype.addEmbedButtons = () => {};
 
-				let hardCodedBlacklist = new Set(["formatPanel", "indent"]);
-				let oldmxKeyHandler = mxKeyHandler;
-				mxKeyHandler = function () {
-					oldmxKeyHandler.apply(this, arguments);
-					let bindAction;
-					Object.defineProperty(this, "bindAction", {
-						get: () => bindAction,
-						set: (v) => {
-							bindAction = function (code, control, key, shift) {
-								// console.info(code, control, key, shift);
-								if (!hardCodedBlacklist.has(key))
-									v.apply(this, arguments);
+				// This prevents Draw.io from overriding VS Code commands
+				patchFn(mxEvent, "addListener", function (old) {
+					return function (...args) {
+						const [eventName, oldHandler] = args;
+
+						if (eventName === "keydown") {
+							args[2] = (/** @type {KeyboardEvent} */ keyEvt) => {
+								console.log(keyEvt);
+
+								// Draw.io should not override these shortcuts
+								if (keyEvt.key === "Tab" && keyEvt.ctrlKey) {
+									return;
+								}
+								if (
+									keyEvt.key === "P" &&
+									keyEvt.ctrlKey &&
+									keyEvt.shiftKey
+								) {
+									return;
+								}
+
+								oldHandler(keyEvt);
 							};
-						},
-					});
-				};
-				mxKeyHandler.prototype = oldmxKeyHandler.prototype;
+						}
+
+						return old.apply(this, args);
+					};
+				});
 
 				App.main();
 			})();
