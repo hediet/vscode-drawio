@@ -1,0 +1,22 @@
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Install Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.x
+      - run: yarn install
+      - name: "Prepublish"
+        run: yarn vscode:prepublish
+      - name: "Publish"
+        run: npx vsce publish --yarn --pat ${{ secrets.MARKETPLACE_TOKEN }}
