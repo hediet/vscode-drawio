@@ -2,5 +2,13 @@
 	"trailingComma": "es5",
 	"tabWidth": 4,
 	"semi": true,
-	"useTabs": true
+	"useTabs": true,
+	"overrides": [
+		{
+			"files": ["*.yml"],
+			"options": {
+				"tabWidth": 2
+			}
+		}
+	]
 }
