@@ -9,7 +9,7 @@ import {
 } from "vscode";
 import * as formatter from "xml-formatter";
 import { DrawioAppServer } from "./DrawioAppServer";
-import { canonicalizeXml } from "./canonicalizeXml";
+import { canonicalizeXml } from "./utils/canonicalizeXml";
 
 export class DrawioTextEditorProvider implements CustomTextEditorProvider {
 	constructor(public readonly drawioAppServer: DrawioAppServer) {}

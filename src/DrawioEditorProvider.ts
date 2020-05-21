@@ -16,7 +16,6 @@ import {
 import { DrawioInstance, DrawioDocumentChange } from "./DrawioInstance";
 import { extname } from "path";
 import { DrawioAppServer } from "./DrawioAppServer";
-import { Disposable } from "@hediet/std/disposable";
 
 export class DrawioEditorProvider
 	implements CustomEditorProvider<DrawioDocument> {

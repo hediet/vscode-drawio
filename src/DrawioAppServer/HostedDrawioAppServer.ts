@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { Webview } from "vscode";
 import { DrawioInstance } from "../DrawioInstance";
 import { DrawioAppServer } from "./DrawioAppServer";
-import { formatValue } from "./formatValue";
+import { formatValue } from "../utils/formatValue";
 import { Config } from "../Config";
 
 export abstract class HostedDrawioAppServer implements DrawioAppServer {
