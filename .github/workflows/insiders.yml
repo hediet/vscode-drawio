@@ -1,10 +1,10 @@
 on:
   push:
-    tags:
-      - v*
+    branches:
+      - master
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,4 +16,5 @@ jobs:
         with:
           node-version: 10.x
       - run: yarn install
+      - run: yarn prepare-insiders-build
       - run: yarn vsce publish --yarn --pat ${{ secrets.MARKETPLACE_TOKEN }}

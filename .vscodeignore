@@ -24,3 +24,4 @@
 !drawio/src/main/webapp/resources/**
 !drawio/src/main/webapp/styles/**
 !drawio/src/main/webapp/templates/**
+!ci/README_INSIDERS_BUILD.md

@@ -1,0 +1,7 @@
+{
+	"name": "vscode-drawio-insiders-build",
+	"displayName": "Draw.io Integration - Insiders Build",
+	"description": "This is the unstable Insiders Build",
+	"preview": true,
+	"icon": "docs/logo-insiders.drawio.png"
+}

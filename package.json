@@ -101,16 +101,16 @@
 		}
 	},
 	"scripts": {
-		"pub": "vsce publish --yarn",
-		"package": "vsce package --yarn",
+		"build": "vsce package --yarn --out ./vscode-drawio.vsix",
 		"vscode:prepublish": "prettier --check src && webpack --mode production",
-		"build": "webpack --mode development",
+		"prepare-insiders-build": "ts-node ./ci/prepare-insiders-build",
 		"dev": "webpack --mode development --watch",
 		"test-compile": "tsc -p ./",
 		"fmt": "prettier --write src",
 		"fmt-check": "prettier --check src"
 	},
 	"devDependencies": {
+		"vsce": "1.75.0",
 		"@types/node": "^13.13.5",
 		"@types/vscode": "1.44.0",
 		"@types/xml-formatter": "^1.1.0",
