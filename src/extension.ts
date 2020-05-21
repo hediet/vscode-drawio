@@ -1,15 +1,17 @@
 import * as vscode from "vscode";
 import { Disposable } from "@hediet/std/disposable";
-import { DrawioEditorProvider } from "./DrawioEditorProvider";
-import { DrawioTextEditorProvider } from "./DrawioTextEditorProvider";
+import { DrawioEditorProviderBinary } from "./DrawioEditorProviderBinary";
+import { DrawioEditorProviderText } from "./DrawioEditorProviderText";
 import { Config } from "./Config";
 import { ConfiguredDrawioAppServer } from "./DrawioAppServer";
+import { DrawioEditorManager } from "./DrawioEditorManager";
 
 export class Extension {
 	public readonly dispose = Disposable.fn();
 	private readonly log = this.dispose.track(
 		vscode.window.createOutputChannel("Drawio Integration Log")
 	);
+	private readonly editorManager = new DrawioEditorManager();
 
 	constructor() {
 		const config = this.dispose.track(new Config());
@@ -20,7 +22,7 @@ export class Extension {
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
 				"hediet.vscode-drawio-text",
-				new DrawioTextEditorProvider(server),
+				new DrawioEditorProviderText(server, this.editorManager),
 				{ webviewOptions: { retainContextWhenHidden: true } }
 			)
 		);
@@ -32,7 +34,7 @@ export class Extension {
 			this.dispose.track(
 				vscode.window.registerCustomEditorProvider2(
 					"hediet.vscode-drawio",
-					new DrawioEditorProvider(server),
+					new DrawioEditorProviderBinary(server, this.editorManager),
 					{
 						supportsMultipleEditorsPerDocument: false,
 						webviewOptions: { retainContextWhenHidden: true },
@@ -40,6 +42,50 @@ export class Extension {
 				)
 			);
 		}
+
+		this.dispose.track(
+			vscode.commands.registerCommand(
+				"hediet.vscode-drawio.convert",
+				async () => {
+					// TODO remove the current format from the selection
+					const result = await vscode.window.showQuickPick(
+						[
+							{
+								label: ".drawio.svg",
+								description:
+									"Converts the diagram to an editable SVG file",
+							},
+							{
+								label: ".drawio",
+								description:
+									"Converts the diagram to an editable drawio file",
+							},
+						].concat(
+							enableProposedApi
+								? [
+										{
+											label: ".drawio.png",
+											description:
+												"Converts the diagram to an editable png file",
+										},
+								  ]
+								: []
+						)
+					);
+
+					if (!result) {
+						return;
+					}
+
+					const activeDrawioEditor = this.editorManager
+						.activeDrawioEditor;
+					if (!activeDrawioEditor) {
+						return;
+					}
+					await activeDrawioEditor.convertTo(result.label);
+				}
+			)
+		);
 	}
 }
 

@@ -10,9 +10,13 @@ import {
 import * as formatter from "xml-formatter";
 import { DrawioAppServer } from "./DrawioAppServer";
 import { canonicalizeXml } from "./utils/canonicalizeXml";
+import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
 
-export class DrawioTextEditorProvider implements CustomTextEditorProvider {
-	constructor(public readonly drawioAppServer: DrawioAppServer) {}
+export class DrawioEditorProviderText implements CustomTextEditorProvider {
+	constructor(
+		public readonly drawioAppServer: DrawioAppServer,
+		private readonly drawioEditorManager: DrawioEditorManager
+	) {}
 
 	public async resolveCustomTextEditor(
 		document: TextDocument,
@@ -21,6 +25,12 @@ export class DrawioTextEditorProvider implements CustomTextEditorProvider {
 	): Promise<void> {
 		const drawioInstance = await this.drawioAppServer.setupWebview(
 			webviewPanel.webview
+		);
+		this.drawioEditorManager.register(
+			new DrawioEditor(webviewPanel, drawioInstance, {
+				kind: "text",
+				document,
+			})
 		);
 
 		let lastOutput: string;
@@ -51,7 +61,7 @@ export class DrawioTextEditorProvider implements CustomTextEditorProvider {
 
 			let output: string;
 
-			if (document.fileName.endsWith(".svg")) {
+			if (document.uri.path.endsWith(".svg")) {
 				const svg = await drawioInstance.exportAsSvgWithEmbeddedXml();
 				newXml = svg.toString("utf-8");
 				output = formatter(newXml);

@@ -159,16 +159,19 @@ export class DrawioInstance {
 	}
 
 	public async export(extension: string): Promise<Buffer> {
-		if (extension === ".png") {
+		if (extension.endsWith(".png")) {
 			return await this.exportAsPngWithEmbeddedXml();
-		} else if (extension === ".drawio") {
+		} else if (
+			extension.endsWith(".drawio") ||
+			extension.endsWith(".dio")
+		) {
 			const xml = await this.getXml();
 			return Buffer.from(xml, "utf-8");
-		} else if (extension === ".svg") {
+		} else if (extension.endsWith(".svg")) {
 			return await this.exportAsSvgWithEmbeddedXml();
 		} else {
 			throw new Error(
-				`Invalid file extension "${extension}"! Only ".png" and ".drawio" are supported.`
+				`Invalid file extension "${extension}"! Only ".png", ".svg" and ".drawio" are supported.`
 			);
 		}
 	}

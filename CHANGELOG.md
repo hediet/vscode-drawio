@@ -1,11 +1,12 @@
 # Change Log
 
-## 0.5.0
+## 0.5.1
 
     - Reduces the size of the extension significantly.
     - Does not spawn an http server anymore to host Draw.io
     - Uses new Draw.io merge API for better Live-Share experience.
     - Fixes F1/Ctrl+Tab/Ctrl+Shift+P shortcuts.
+    - Implements a command that lets you convert a diagram to other editabled formats (e.g. drawio.svg).
 
 ## 0.4.0
 

@@ -10,14 +10,14 @@ import {
 	WebviewPanel,
 	CustomDocumentContentChangeEvent,
 	workspace,
-	window,
 	commands,
 } from "vscode";
 import { DrawioInstance, DrawioDocumentChange } from "./DrawioInstance";
 import { extname } from "path";
 import { DrawioAppServer } from "./DrawioAppServer";
+import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
 
-export class DrawioEditorProvider
+export class DrawioEditorProviderBinary
 	implements CustomEditorProvider<DrawioDocument> {
 	private readonly onDidChangeCustomDocumentEmitter = new EventEmitter<
 		CustomDocumentContentChangeEvent<DrawioDocument>
@@ -26,7 +26,10 @@ export class DrawioEditorProvider
 	public readonly onDidChangeCustomDocument = this
 		.onDidChangeCustomDocumentEmitter.event;
 
-	public constructor(public readonly drawioAppServer: DrawioAppServer) {}
+	public constructor(
+		private readonly drawioAppServer: DrawioAppServer,
+		private readonly drawioEditorManager: DrawioEditorManager
+	) {}
 
 	public saveCustomDocument(
 		document: DrawioDocument,
@@ -84,11 +87,17 @@ export class DrawioEditorProvider
 		const drawioInstance = await this.drawioAppServer.setupWebview(
 			webviewPanel.webview
 		);
+		this.drawioEditorManager.register(
+			new DrawioEditor(webviewPanel, drawioInstance, {
+				kind: "drawio",
+				document,
+			})
+		);
 		document.setDrawioInstance(drawioInstance);
 	}
 }
 
-class DrawioDocument implements CustomDocument {
+export class DrawioDocument implements CustomDocument {
 	private readonly onChangeEmitter = new EventEmitter<DrawioDocumentChange>();
 	public readonly onChange = this.onChangeEmitter.event;
 
@@ -99,6 +108,11 @@ class DrawioDocument implements CustomDocument {
 
 	private get drawio(): DrawioInstance {
 		return this._drawio!;
+	}
+
+	private _isDirty = false;
+	public get isDirty() {
+		return this._isDirty;
 	}
 
 	public constructor(
@@ -117,6 +131,7 @@ class DrawioDocument implements CustomDocument {
 		});
 
 		instance.onChange.sub((change) => {
+			this._isDirty = true;
 			this.onChangeEmitter.fire(change);
 		});
 
@@ -131,6 +146,7 @@ class DrawioDocument implements CustomDocument {
 			const content = await workspace.fs.readFile(backupFile);
 			const xml = Buffer.from(content).toString("utf-8");
 			await this.drawio.loadXmlLike(xml);
+			this._isDirty = true; // because of backup
 		} else {
 			if (this.uri.fsPath.endsWith(".png")) {
 				const buffer = await workspace.fs.readFile(this.uri);
@@ -142,6 +158,7 @@ class DrawioDocument implements CustomDocument {
 	}
 
 	public save(): Promise<void> {
+		this._isDirty = false;
 		return this.saveAs(this.uri);
 	}
 
@@ -168,6 +185,7 @@ class DrawioDocument implements CustomDocument {
 	public dispose(): void {}
 
 	public revert(): Promise<void> {
+		this._isDirty = false;
 		return this.load(false);
 	}
 }

@@ -62,6 +62,12 @@
 				"priority": "default"
 			}
 		],
+		"commands": [
+			{
+				"command": "hediet.vscode-drawio.convert",
+				"title": "Draw.io: Convert To..."
+			}
+		],
 		"configuration": {
 			"title": "Draw.io Integration",
 			"properties": {
