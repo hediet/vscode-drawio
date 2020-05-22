@@ -58,7 +58,7 @@ export class Extension {
 							{
 								label: ".drawio",
 								description:
-									"Converts the diagram to an editable drawio file",
+									"Converts the diagram to a drawio file",
 							},
 						].concat(
 							enableProposedApi
@@ -83,6 +83,40 @@ export class Extension {
 						return;
 					}
 					await activeDrawioEditor.convertTo(result.label);
+				}
+			)
+		);
+
+		this.dispose.track(
+			vscode.commands.registerCommand(
+				"hediet.vscode-drawio.export",
+				async () => {
+					// TODO remove the current format from the selection
+					const result = await vscode.window.showQuickPick([
+						{
+							label: ".svg",
+							description: "Exports the diagram to a SVG file",
+						},
+						{
+							label: ".png",
+							description: "Exports the diagram to a png file",
+						},
+						{
+							label: ".drawio",
+							description: "Exports the diagram to a drawio file",
+						},
+					]);
+
+					if (!result) {
+						return;
+					}
+
+					const activeDrawioEditor = this.editorManager
+						.activeDrawioEditor;
+					if (!activeDrawioEditor) {
+						return;
+					}
+					await activeDrawioEditor.exportTo(result.label);
 				}
 			)
 		);

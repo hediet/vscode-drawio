@@ -66,6 +66,10 @@
 			{
 				"command": "hediet.vscode-drawio.convert",
 				"title": "Draw.io: Convert To..."
+			},
+			{
+				"command": "hediet.vscode-drawio.export",
+				"title": "Draw.io: Export To..."
 			}
 		],
 		"configuration": {

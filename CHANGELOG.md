@@ -1,5 +1,9 @@
 # Change Log
 
+## [unreleased]
+
+    - Implements a command that lets you export a diagram to svg, png or drawio.
+
 ## 0.5.2
 
     - Implements a command that lets you convert a diagram to other editabled formats (e.g. drawio.svg).

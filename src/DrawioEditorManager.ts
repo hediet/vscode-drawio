@@ -63,5 +63,17 @@ export class DrawioEditor {
 
 		await workspace.fs.writeFile(sourceUri, buffer);
 		await workspace.fs.rename(sourceUri, targetUri);
-	}
+    }
+    
+    public async exportTo(targetExtension: string): Promise<void> {
+        const buffer = await this.instance.export(targetExtension);
+        const targetUri = await window.showSaveDialog({
+            defaultUri: this.getUriWithExtension(targetExtension)
+        });
+
+        if (!targetUri) {
+            return;
+        }
+        await workspace.fs.writeFile(targetUri, buffer);
+    }
 }
