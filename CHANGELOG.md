@@ -1,6 +1,6 @@
 # Change Log
 
-## [unreleased]
+## 0.6.0
 
     - Implements a command that lets you export a diagram to svg, png or drawio.
 
