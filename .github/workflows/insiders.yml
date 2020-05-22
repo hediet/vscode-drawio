@@ -17,4 +17,5 @@ jobs:
           node-version: 10.x
       - run: yarn install
       - run: yarn prepare-insiders-build
+      - run: yarn check
       - run: yarn vsce publish --yarn --pat ${{ secrets.MARKETPLACE_TOKEN }}

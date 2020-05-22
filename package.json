@@ -111,8 +111,9 @@
 		}
 	},
 	"scripts": {
+		"check": "prettier --check src && webpack --mode production",
 		"build": "vsce package --yarn --out ./vscode-drawio.vsix",
-		"vscode:prepublish": "prettier --check src && webpack --mode production",
+		"vscode:prepublish": "webpack --mode production",
 		"prepare-insiders-build": "ts-node ./ci/prepare-insiders-build",
 		"dev": "webpack --mode development --watch",
 		"test-compile": "tsc -p ./",
