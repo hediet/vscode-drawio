@@ -3,7 +3,7 @@
 	"private": true,
 	"displayName": "Draw.io Integration",
 	"description": "This unofficial extension integrates Draw.io into VS Code.",
-	"version": "0.6.0",
+	"version": "0.6.1",
 	"license": "GPL-3.0",
 	"publisher": "hediet",
 	"author": {
@@ -82,11 +82,79 @@
 					"description": "When enabled, the bundled instance of Draw.io is used."
 				},
 				"hediet.vscode-drawio.local-storage": {
-					"type": "object",
+					"anyOf": [
+						{
+							"type": "object"
+						},
+						{
+							"type": "string"
+						}
+					],
 					"default": {},
 					"readOnly": true,
 					"title": "Draw.io Local Storage",
 					"description": "Only change this property if you know what you are doing. Manual changes to this property are not supported!"
+				},
+				"hediet.vscode-drawio.customFonts": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"title": "Custom Fonts",
+					"description": "Configures the Draw.io editor to use custom fonts."
+				},
+				"hediet.vscode-drawio.customLibraries": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"entryId": {
+								"type": "string",
+								"description": "The id of the entry. A specfic entry can be enabled or deactivated in the editor."
+							},
+							"libName": {
+								"type": "string",
+								"description": "The name of the library in the shape overview."
+							}
+						},
+						"anyOf": [
+							{
+								"type": "object",
+								"properties": {
+									"url": {
+										"type": "string"
+									}
+								}
+							},
+							{
+								"type": "object",
+								"properties": {
+									"xml": {
+										"type": "string"
+									}
+								}
+							},
+							{
+								"type": "object",
+								"properties": {
+									"json": {}
+								}
+							},
+							{
+								"type": "object",
+								"properties": {
+									"file": {
+										"type": "string",
+										"description": "The file path to the library. Must be absolute. You can use ${workspaceFolder}."
+									}
+								}
+							}
+						]
+					},
+					"default": [],
+					"title": "Custom Libraries",
+					"description": "Configures the Draw.io editor to use custom libraries."
 				},
 				"hediet.vscode-drawio.online-url": {
 					"type": "string",
@@ -105,7 +173,7 @@
 						"dark",
 						"Kennedy"
 					],
-					"description": "The theme to use for the Draw.io editor. Use automatic to choose a Draw.io theme matching your current VS Code theme."
+					"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
 				}
 			}
 		}
@@ -121,22 +189,26 @@
 		"fmt-check": "prettier --check src"
 	},
 	"devDependencies": {
-		"vsce": "1.75.0",
 		"@types/node": "^13.13.5",
 		"@types/vscode": "1.44.0",
 		"@types/xml-formatter": "^1.1.0",
+		"clean-webpack-plugin": "^3.0.0",
 		"prettier": "^2.0.5",
 		"raw-loader": "^4.0.1",
 		"ts-loader": "^7.0.4",
+		"ts-node": "^8.10.1",
 		"tslint": "^6.1.2",
 		"typescript": "^3.8.3",
+		"vsce": "1.75.0",
 		"webpack": "^4.43.0",
-		"webpack-cli": "^3.3.11",
-		"ts-node": "^8.10.1",
-		"clean-webpack-plugin": "^3.0.0"
+		"webpack-cli": "^3.3.11"
 	},
 	"dependencies": {
 		"@hediet/std": "0.6.0",
-		"xml-formatter": "^2.0.1"
+		"@knuddels/mobx-logger": "^1.1.1",
+		"mobx": "5.15.4",
+		"mobx-utils": "5.5.7",
+		"xml-formatter": "^2.0.1",
+		"xml-parser-xo": "^3.0.0"
 	}
 }

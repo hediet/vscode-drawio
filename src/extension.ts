@@ -3,8 +3,12 @@ import { Disposable } from "@hediet/std/disposable";
 import { DrawioEditorProviderBinary } from "./DrawioEditorProviderBinary";
 import { DrawioEditorProviderText } from "./DrawioEditorProviderText";
 import { Config } from "./Config";
-import { ConfiguredDrawioAppServer } from "./DrawioAppServer";
+import { DrawioWebviewInitializer } from "./DrawioAppServer";
 import { DrawioEditorManager } from "./DrawioEditorManager";
+import { MobxConsoleLogger } from "@knuddels/mobx-logger";
+import * as mobx from "mobx";
+
+new MobxConsoleLogger(mobx);
 
 export class Extension {
 	public readonly dispose = Disposable.fn();
@@ -14,15 +18,19 @@ export class Extension {
 	private readonly editorManager = new DrawioEditorManager();
 
 	constructor() {
-		const config = this.dispose.track(new Config());
-		const server = this.dispose.track(
-			new ConfiguredDrawioAppServer(config, this.log)
+		const config = new Config();
+		const drawioWebviewInitializer = new DrawioWebviewInitializer(
+			config,
+			this.log
 		);
 
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
 				"hediet.vscode-drawio-text",
-				new DrawioEditorProviderText(server, this.editorManager),
+				new DrawioEditorProviderText(
+					drawioWebviewInitializer,
+					this.editorManager
+				),
 				{ webviewOptions: { retainContextWhenHidden: true } }
 			)
 		);
@@ -34,7 +42,10 @@ export class Extension {
 			this.dispose.track(
 				vscode.window.registerCustomEditorProvider2(
 					"hediet.vscode-drawio",
-					new DrawioEditorProviderBinary(server, this.editorManager),
+					new DrawioEditorProviderBinary(
+						drawioWebviewInitializer,
+						this.editorManager
+					),
 					{
 						supportsMultipleEditorsPerDocument: false,
 						webviewOptions: { retainContextWhenHidden: true },

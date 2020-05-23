@@ -14,7 +14,7 @@ import {
 } from "vscode";
 import { DrawioInstance, DrawioDocumentChange } from "./DrawioInstance";
 import { extname } from "path";
-import { DrawioAppServer } from "./DrawioAppServer";
+import { DrawioWebviewInitializer } from "./DrawioAppServer";
 import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
 
 export class DrawioEditorProviderBinary
@@ -27,7 +27,7 @@ export class DrawioEditorProviderBinary
 		.onDidChangeCustomDocumentEmitter.event;
 
 	public constructor(
-		private readonly drawioAppServer: DrawioAppServer,
+		private readonly drawioWebviewInitializer: DrawioWebviewInitializer,
 		private readonly drawioEditorManager: DrawioEditorManager
 	) {}
 
@@ -84,7 +84,8 @@ export class DrawioEditorProviderBinary
 		webviewPanel: WebviewPanel,
 		token: CancellationToken
 	): Promise<void> {
-		const drawioInstance = await this.drawioAppServer.setupWebview(
+		const drawioInstance = await this.drawioWebviewInitializer.setupWebview(
+			document.uri,
 			webviewPanel.webview
 		);
 		this.drawioEditorManager.register(
@@ -126,7 +127,7 @@ export class DrawioDocument implements CustomDocument {
 		}
 		this._drawio = instance;
 
-		instance.onInit.one(async () => {
+		instance.onInit.sub(async () => {
 			await this.load(true);
 		});
 

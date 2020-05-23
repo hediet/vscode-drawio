@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.6.1
+
+    - Adds hediet.vscode-drawio.editor.customFonts to configure custom fonts.
+    - Adds hediet.vscode-drawio.editor.customLibraries to configure custom fonts.
+    - Encodes hediet.vscode-drawio.local-storage to make editing more difficult (other settings should be used for that).
+    - Reloads diagram editor when the config changes.
+    - Writes localStorage to the settings file it was read from.
+
 ## 0.6.0
 
     - Implements a command that lets you export a diagram to svg, png or drawio.

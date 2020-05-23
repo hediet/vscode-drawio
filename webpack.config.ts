@@ -40,5 +40,10 @@ module.exports = {
 	node: {
 		__dirname: false,
 	},
-	plugins: [new CleanWebpackPlugin()],
+	plugins: [
+		new CleanWebpackPlugin(),
+		new webpack.EnvironmentPlugin({
+			NODE_ENV: null,
+		}),
+	],
 } as webpack.Configuration;

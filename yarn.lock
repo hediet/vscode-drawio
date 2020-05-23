@@ -34,6 +34,11 @@
     mobx "^5.10.0"
     sinon "^7.2.7"
 
+"@knuddels/mobx-logger@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@knuddels/mobx-logger/-/mobx-logger-1.1.1.tgz#64f3d449d5fabfdd710616d668a6d898cc9caa7f"
+  integrity sha512-5iVhsa8e4Gsfg/UbgKGSLOMcZdcjl5usZmpVm50mK/CQgnsjupE6KNS/514VnWcwaW3w38Rv0uherHYhEInDuQ==
+
 "@sinonjs/commons@^1", "@sinonjs/commons@^1.3.0", "@sinonjs/commons@^1.4.0", "@sinonjs/commons@^1.7.0":
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.7.2.tgz#505f55c74e0272b43f6c52d81946bed7058fc0e2"
@@ -2205,7 +2210,12 @@ mkdirp@^0.5.1, mkdirp@^0.5.3:
   dependencies:
     minimist "^1.2.5"
 
-mobx@^5.10.0:
+mobx-utils@5.5.7:
+  version "5.5.7"
+  resolved "https://registry.yarnpkg.com/mobx-utils/-/mobx-utils-5.5.7.tgz#0ef58f2d5e05ca0e59ba2322f84f9c763de6ce14"
+  integrity sha512-jEtTe45gCXYtv3WTAyPiQUhQQRRDnx68WxgNn886i1B11ormsAey+gIJJkfh/cqSssBEWXcXwYTvODpGPN8Tgw==
+
+mobx@5.15.4, mobx@^5.10.0:
   version "5.15.4"
   resolved "https://registry.yarnpkg.com/mobx/-/mobx-5.15.4.tgz#9da1a84e97ba624622f4e55a0bf3300fb931c2ab"
   integrity sha512-xRFJxSU2Im3nrGCdjSuOTFmxVDGeqOHL+TyADCGbT0k4HHqGmx5u2yaHNryvoORpI4DfbzjJ5jPmuv+d7sioFw==

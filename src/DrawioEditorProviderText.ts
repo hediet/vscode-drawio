@@ -8,13 +8,13 @@ import {
 	WorkspaceEdit,
 } from "vscode";
 import * as formatter from "xml-formatter";
-import { DrawioAppServer } from "./DrawioAppServer";
+import { DrawioWebviewInitializer } from "./DrawioAppServer";
 import { canonicalizeXml } from "./utils/canonicalizeXml";
 import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
 
 export class DrawioEditorProviderText implements CustomTextEditorProvider {
 	constructor(
-		public readonly drawioAppServer: DrawioAppServer,
+		public readonly drawioWebviewInitializer: DrawioWebviewInitializer,
 		private readonly drawioEditorManager: DrawioEditorManager
 	) {}
 
@@ -23,7 +23,8 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 		webviewPanel: WebviewPanel,
 		token: CancellationToken
 	): Promise<void> {
-		const drawioInstance = await this.drawioAppServer.setupWebview(
+		const drawioInstance = await this.drawioWebviewInitializer.setupWebview(
+			document.uri,
 			webviewPanel.webview
 		);
 		this.drawioEditorManager.register(
@@ -110,7 +111,7 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 			await document.save();
 		});
 
-		drawioInstance.onInit.one(async () => {
+		drawioInstance.onInit.sub(async () => {
 			drawioInstance.loadXmlLike(document.getText());
 		});
 	}

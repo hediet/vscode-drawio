@@ -13,9 +13,9 @@
 					sendToVsCode({ event: "log", body: msg });
 				};
 
-				// Fix draw.io tries to acces unavailable localStorage
+				// Fix draw.io tries to access unavailable localStorage
 				// Replace it with a bridged version
-				var storage = $$localStorage$$;
+				const storage = $$localStorage$$;
 				const bridgedLocalStorage = {
 					getItem: function (key) {
 						log("localStorage: get " + key);
@@ -38,17 +38,24 @@
 					value: bridgedLocalStorage,
 				});
 
-				// Fix draw.io tries to acces unavailable cookie prop
+				// Fix draw.io tries to access unavailable cookie prop
 				Object.defineProperty(document, "cookie", { value: "" });
 
-				// Fix draw.io "message" source check
-				Object.defineProperty(window, "opener", { value: window.top });
-
-				// Capture draw.io "postMessage"
-				Object.defineProperty(window.opener, "postMessage", {
-					value: (msg) => {
-						api.postMessage(msg);
-					},
+				// See EditorUI.js:10675
+				const fakedWindowOpener = {
+					postMessage: (msg) => api.postMessage(msg),
+				};
+				Object.defineProperty(window, "opener", {
+					value: fakedWindowOpener,
+				});
+				window.addEventListener("message", function (evt) {
+					if (evt.source !== fakedWindowOpener) {
+						// Re-emit messages with faked source, so that drawio handles the payload.
+						const fakedEvt = new Event("message");
+						fakedEvt.source = fakedWindowOpener;
+						fakedEvt.data = evt.data;
+						window.dispatchEvent(fakedEvt);
+					}
 				});
 			})();
 
