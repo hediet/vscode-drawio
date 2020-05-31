@@ -1,3 +1,4 @@
+name: Lint & Build
 on:
   push:
     branches:
@@ -19,6 +20,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 10.x
-      - run: yarn install
-      - run: yarn check
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
       - run: yarn build

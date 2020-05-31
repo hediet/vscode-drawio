@@ -1,10 +1,11 @@
+name: Release
 on:
   push:
-    tags:
-      - v*
+    branches:
+      - "releases/**"
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -15,6 +16,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 10.x
-      - run: yarn install
-      - run: yarn check
-      - run: yarn vsce publish --yarn --pat ${{ secrets.MARKETPLACE_TOKEN }}
+      - run: yarn install --immutable
+      - run: yarn lint
+      - run: yarn run-script prepare-insiders-build
+      - run: yarn build
+      - run: yarn run-script pub
+        env:
+          MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
