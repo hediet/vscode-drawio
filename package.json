@@ -3,7 +3,7 @@
 	"private": true,
 	"displayName": "Draw.io Integration",
 	"description": "This unofficial extension integrates Draw.io into VS Code.",
-	"version": "0.6.1",
+	"version": "0.6.2",
 	"license": "GPL-3.0",
 	"publisher": "hediet",
 	"author": {
@@ -26,7 +26,7 @@
 		"url": "https://github.com/hediet/vscode-drawio.git"
 	},
 	"enableProposedApi": false,
-	"main": "./out/extension",
+	"main": "./dist/extension/index",
 	"contributes": {
 		"customEditors": [
 			{
@@ -70,6 +70,16 @@
 			{
 				"command": "hediet.vscode-drawio.export",
 				"title": "Draw.io: Export To..."
+			},
+			{
+				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
+				"title": "Draw.io: Link Code with Selected Node"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
+				"key": "shift+F3"
 			}
 		],
 		"configuration": {
@@ -181,9 +191,10 @@
 	"scripts": {
 		"check": "prettier --check src && webpack --mode production",
 		"build": "vsce package --yarn --out ./vscode-drawio.vsix",
-		"vscode:prepublish": "webpack --mode production",
+		"vscode:prepublish": "webpack --mode production && webpack --mode production --config ./drawio-custom-plugins/webpack.config.ts",
 		"prepare-insiders-build": "ts-node ./ci/prepare-insiders-build",
 		"dev": "webpack --mode development --watch",
+		"dev-drawio-plugins": "webpack --mode development --watch --config ./drawio-custom-plugins/webpack.config.ts",
 		"test-compile": "tsc -p ./",
 		"fmt": "prettier --write src",
 		"fmt-check": "prettier --check src"
@@ -204,8 +215,11 @@
 		"webpack-cli": "^3.3.11"
 	},
 	"dependencies": {
+		"@hediet/json-to-dictionary": "^0.2.1",
 		"@hediet/std": "0.6.0",
 		"@knuddels/mobx-logger": "^1.1.1",
+		"@types/jsdom": "^16.2.3",
+		"jsdom": "^16.2.2",
 		"mobx": "5.15.4",
 		"mobx-utils": "5.5.7",
 		"xml-formatter": "^2.0.1",

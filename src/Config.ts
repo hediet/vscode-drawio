@@ -1,9 +1,10 @@
-import { workspace, ConfigurationTarget, Uri, Disposable, env } from "vscode";
-import { fromResource } from "mobx-utils";
-import { EventEmitter } from "@hediet/std/events";
-import { runInAction, computed } from "mobx";
+import { workspace, Uri, env } from "vscode";
+import { computed } from "mobx";
 import * as vscode from "vscode";
 import { DrawioLibraryData } from "./DrawioInstance";
+import { VsCodeSetting, serializerWithDefault } from "./utils/VsCodeSetting";
+import { mapObject } from "./utils/mapObject";
+import { SimpleTemplate } from "./utils/SimpleTemplate";
 
 const extensionId = "hediet.vscode-drawio";
 
@@ -70,7 +71,7 @@ export class DiagramConfig {
 						}
 					}
 
-					if (process.env.NODE_ENV === "development") {
+					if (process.env.DEV === "1") {
 						// jsonify obj
 						const val2 = mapObject(val, (item) =>
 							tryJsonParse(item)
@@ -236,143 +237,3 @@ type DrawioCustomLibrary = (
 			file: string;
 	  }
 ) & { libName: string; entryId: string };
-
-class SimpleTemplate {
-	constructor(private readonly str: string) {}
-
-	render(data: Record<string, () => string>): string {
-		return this.str.replace(/\$\{([a-zA-Z0-9]+)\}/g, (substr, grp1) => {
-			return data[grp1]();
-		});
-	}
-}
-
-export function mapObject<TObj extends Record<string, any>, TResult>(
-	obj: TObj,
-	map: (item: TObj[keyof TObj], key: string) => TResult
-): Record<keyof TObj, TResult> {
-	const result: Record<keyof TObj, TResult> = {} as any;
-
-	for (const [key, value] of Object.entries(obj)) {
-		result[key as keyof TObj] = map(value as any, key);
-	}
-
-	return result;
-}
-
-interface Serializer<T> {
-	deserialize: (val: any) => T;
-	serializer: (val: T) => any;
-}
-
-function serializerWithDefault<T>(defaultValue: T): Serializer<T> {
-	return {
-		deserialize: (val) => (val === undefined ? defaultValue : val),
-		serializer: (val) => val,
-	};
-}
-
-class VsCodeSetting<T> {
-	public get T(): T {
-		throw new Error();
-	}
-
-	public readonly serializer: Serializer<T>;
-	public readonly scope: Uri | undefined;
-	//public readonly updateTarget: ConfigurationTarget | undefined;
-	private readonly settingResource: VsCodeSettingResource;
-
-	public constructor(
-		public readonly id: string,
-		options: {
-			serializer?: Serializer<T>;
-			scope?: Uri;
-			//updateTarget?: ConfigurationTarget;
-		} = {}
-	) {
-		this.scope = options.scope;
-		//this.updateTarget = options.updateTarget;
-		this.serializer = options.serializer || {
-			deserialize: (val) => val,
-			serializer: (val) => val,
-		};
-		this.settingResource = new VsCodeSettingResource(this.id, this.scope);
-	}
-
-	public get(): T {
-		const result = this.settingResource.value;
-		return this.serializer.deserialize(result);
-	}
-
-	public set(value: T): void {
-		const value2 = this.serializer.serializer(value);
-		const c = workspace.getConfiguration(undefined, this.scope);
-		const result = c.inspect(this.id);
-		let target: ConfigurationTarget;
-
-		if (
-			result &&
-			[
-				result.workspaceFolderLanguageValue,
-				result.workspaceFolderValue,
-			].some((i) => i !== undefined)
-		) {
-			target = ConfigurationTarget.WorkspaceFolder;
-		}
-		if (
-			result &&
-			[result.workspaceLanguageValue, result.workspaceValue].some(
-				(i) => i !== undefined
-			)
-		) {
-			target = ConfigurationTarget.Workspace;
-		} else {
-			target = ConfigurationTarget.Global;
-		}
-
-		c.update(this.id, value2, target);
-	}
-}
-
-class VsCodeSettingResource {
-	public static onConfigChange = new EventEmitter();
-
-	private subscription: Disposable | undefined;
-	private readonly r = fromResource<any>(
-		(update) => {
-			this.subscription = VsCodeSettingResource.onConfigChange.sub(() => {
-				update(this.readValue());
-			});
-		},
-		() => this.subscription!.dispose(),
-		this.readValue()
-	);
-
-	constructor(
-		private readonly id: string,
-		private readonly scope: Uri | undefined
-	) {}
-
-	private readValue(): any {
-		return workspace.getConfiguration(undefined, this.scope).get(this.id);
-	}
-
-	private readonly val = computed(() => JSON.stringify(this.r.current()), {
-		name: `VsCodeSettingResource[${this.id}].value`,
-		context: this,
-	});
-
-	public get value() {
-		const v = this.val.get();
-		if (v === undefined) {
-			return undefined;
-		}
-		return JSON.parse(v);
-	}
-}
-
-workspace.onDidChangeConfiguration(() => {
-	runInAction("Update Configuration", () => {
-		VsCodeSettingResource.onConfigChange.emit();
-	});
-});

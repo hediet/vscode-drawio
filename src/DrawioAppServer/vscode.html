@@ -67,10 +67,59 @@
 				lang: "${lang}",
 				noSaveBtn: "1",
 				noExitBtn: "1",
+				chrome: "${chrome}",
 			};
 
 			// Checks for local storage
 			var isLocalStorage = true;
+
+			function mxscript(src, onLoad, id, dataAppKey, noWrite) {
+				if (onLoad != null || noWrite) {
+					var s = document.createElement("script");
+					s.setAttribute("type", "text/javascript");
+					s.setAttribute("src", src);
+					var r = false;
+
+					if (id != null) {
+						s.setAttribute("id", id);
+					}
+
+					if (dataAppKey != null) {
+						s.setAttribute("data-app-key", dataAppKey);
+					}
+
+					if (onLoad != null) {
+						s.onload = s.onreadystatechange = function () {
+							if (
+								!r &&
+								(!this.readyState ||
+									this.readyState == "complete")
+							) {
+								r = true;
+								onLoad();
+							}
+						};
+					}
+
+					var t = document.getElementsByTagName("script")[0];
+
+					if (t != null) {
+						t.parentNode.insertBefore(s, t);
+					}
+				} else {
+					document.write(
+						'<script src="' +
+							src +
+							'"' +
+							(id != null ? ' id="' + id + '" ' : "") +
+							(dataAppKey != null
+								? ' data-app-key="' + dataAppKey + '" '
+								: "") +
+							"></scr" +
+							"ipt>"
+					);
+				}
+			}
 		</script>
 		<link
 			rel="stylesheet"
@@ -200,7 +249,7 @@
 				patchFn(mxEvent, "addListener", function (old) {
 					return function (...args) {
 						const [target, eventName, oldHandler] = args;
-						console.log("Intercepting addListener", args);
+						// console.log("Intercepting addListener", args);
 						if (eventName === "keydown") {
 							args[2] = (/** @type {KeyboardEvent} */ keyEvt) => {
 								console.log("Handling key", keyEvt);
@@ -227,6 +276,21 @@
 				});
 
 				App.main();
+				console.log("drawio", window.Draw);
+
+				/**
+				 * @param url {string}
+				 */
+				function loadScript(url) {
+					const pluginScript = document.createElement("script");
+					pluginScript.type = "text/javascript";
+					pluginScript.src = url;
+					document
+						.getElementsByTagName("head")[0]
+						.appendChild(pluginScript);
+				}
+
+				loadScript("${customPluginsPath}");
 			})();
 		</script>
 	</body>

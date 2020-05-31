@@ -7,6 +7,7 @@ import { DrawioWebviewInitializer } from "./DrawioAppServer";
 import { DrawioEditorManager } from "./DrawioEditorManager";
 import { MobxConsoleLogger } from "@knuddels/mobx-logger";
 import * as mobx from "mobx";
+import { LinkCodeWithSelectedNodeService } from "./LinkCodeWithSelectedNodeService";
 
 new MobxConsoleLogger(mobx);
 
@@ -16,6 +17,10 @@ export class Extension {
 		vscode.window.createOutputChannel("Drawio Integration Log")
 	);
 	private readonly editorManager = new DrawioEditorManager();
+
+	private readonly linkCodeWithSelectedNodeService = this.dispose.track(
+		new LinkCodeWithSelectedNodeService(this.editorManager)
+	);
 
 	constructor() {
 		const config = new Config();

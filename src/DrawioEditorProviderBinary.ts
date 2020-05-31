@@ -86,7 +86,8 @@ export class DrawioEditorProviderBinary
 	): Promise<void> {
 		const drawioInstance = await this.drawioWebviewInitializer.setupWebview(
 			document.uri,
-			webviewPanel.webview
+			webviewPanel.webview,
+			{ isReadOnly: false }
 		);
 		this.drawioEditorManager.register(
 			new DrawioEditor(webviewPanel, drawioInstance, {

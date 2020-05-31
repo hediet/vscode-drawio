@@ -1,5 +1,6 @@
 import { EventEmitter } from "@hediet/std/events";
 import { Disposable } from "@hediet/std/disposable";
+import { groupBy } from "./utils/groupBy";
 
 export class DrawioInstance {
 	public readonly dispose = Disposable.fn();
@@ -38,6 +39,10 @@ export class DrawioInstance {
 		{ resolve: (response: DrawioEvent) => void; reject: () => void }
 	>();
 
+	protected sendUnknownAction(action: { action: string }): void {
+		this.messageStream.sendMessage(JSON.stringify(Object.assign(action)));
+	}
+
 	private sendAction(
 		action: DrawioAction,
 		expectResponse: boolean = false
@@ -62,19 +67,20 @@ export class DrawioInstance {
 		});
 	}
 
-	private async handleEvent(msg: DrawioEvent): Promise<void> {
-		if (msg.event === "init") {
+	protected async handleEvent(evt: { event: string }): Promise<void> {
+		const drawioEvt = evt as DrawioEvent;
+		if (drawioEvt.event === "init") {
 			this.onInitEmitter.emit();
-		} else if (msg.event === "autosave") {
-			const newXml = msg.xml;
+		} else if (drawioEvt.event === "autosave") {
+			const newXml = drawioEvt.xml;
 			const oldXml = this.currentXml;
 			this.currentXml = newXml;
 
 			this.onChangeEmitter.emit({ newXml, oldXml });
-		} else if (msg.event === "save") {
+		} else if (drawioEvt.event === "save") {
 			this.onSaveEmitter.emit();
-		} else if (msg.event === "export") {
-			if (!("message" in msg)) {
+		} else if (drawioEvt.event === "export") {
+			if (!("message" in drawioEvt)) {
 				// sometimes, message is not included :(
 				const vals = [...this.responseHandlers.values()];
 				this.responseHandlers.clear();
@@ -83,29 +89,29 @@ export class DrawioInstance {
 						val.reject();
 					}
 				} else {
-					vals[0].resolve(msg);
+					vals[0].resolve(drawioEvt);
 				}
 			}
 			// do nothing
-		} else if (msg.event === "configure") {
+		} else if (drawioEvt.event === "configure") {
 			const config = await this.getConfig();
 			this.sendAction({
 				action: "configure",
 				config,
 			});
 		} else {
-			this.onUnknownMessageEmitter.emit({ message: msg });
+			this.onUnknownMessageEmitter.emit({ message: drawioEvt });
 		}
 
-		if ("message" in msg) {
-			const actionId = (msg.message as any).actionId as
+		if ("message" in drawioEvt) {
+			const actionId = (drawioEvt.message as any).actionId as
 				| string
 				| undefined;
 			if (actionId) {
 				const responseHandler = this.responseHandlers.get(actionId);
 				this.responseHandlers.delete(actionId);
 				if (responseHandler) {
-					responseHandler.resolve(msg);
+					responseHandler.resolve(drawioEvt);
 				}
 			}
 		}
@@ -456,24 +462,26 @@ export interface DrawioResource {
 
 export type DrawioFormat = "html" | "xmlpng" | "png" | "xml" | "xmlsvg";
 
-interface Group<TKey, TItem> {
-	key: TKey;
-	items: TItem[];
-}
+export class CustomDrawioInstance extends DrawioInstance {
+	private readonly onRevealCodeEmitter = new EventEmitter<{
+		linkedData: unknown;
+	}>();
+	public readonly onRevealCode = this.onRevealCodeEmitter.asEvent();
 
-export function groupBy<TKey, T>(
-	items: ReadonlyArray<T>,
-	selectKey: (item: T) => TKey
-): Map<TKey, Group<TKey, T>> {
-	const map = new Map<TKey, Group<TKey, T>>();
-	for (const item of items) {
-		const key = selectKey(item);
-		let group = map.get(key);
-		if (!group) {
-			group = { key, items: [] };
-			map.set(key, group);
-		}
-		group.items.push(item);
+	public linkSelectedNodeWithData(linkedData: unknown) {
+		this.sendUnknownAction({
+			action: "linkSelectedNodeWithData",
+			linkedData: linkedData,
+		} as any);
 	}
-	return map;
+
+	protected async handleEvent(evt: { event: string }): Promise<void> {
+		if (evt.event === "revealCode") {
+			this.onRevealCodeEmitter.emit({
+				linkedData: (evt as any).linkedData,
+			});
+		} else {
+			await super.handleEvent(evt);
+		}
+	}
 }

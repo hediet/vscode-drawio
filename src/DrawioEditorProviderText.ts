@@ -6,11 +6,12 @@ import {
 	WebviewPanel,
 	workspace,
 	WorkspaceEdit,
+	FileType,
 } from "vscode";
 import * as formatter from "xml-formatter";
 import { DrawioWebviewInitializer } from "./DrawioAppServer";
-import { canonicalizeXml } from "./utils/canonicalizeXml";
 import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
+import { JSDOM } from "jsdom";
 
 export class DrawioEditorProviderText implements CustomTextEditorProvider {
 	constructor(
@@ -23,9 +24,13 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 		webviewPanel: WebviewPanel,
 		token: CancellationToken
 	): Promise<void> {
+		const readonlySchemes = new Set(["git", "conflictResolution"]);
+		const isReadOnly = readonlySchemes.has(document.uri.scheme);
+
 		const drawioInstance = await this.drawioWebviewInitializer.setupWebview(
 			document.uri,
-			webviewPanel.webview
+			webviewPanel.webview,
+			{ isReadOnly }
 		);
 		this.drawioEditorManager.register(
 			new DrawioEditor(webviewPanel, drawioInstance, {
@@ -34,7 +39,65 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 			})
 		);
 
-		let lastOutput: string;
+		interface NormalizedDocument {
+			equals(other: this): boolean;
+		}
+
+		function getNormalizedDocument(src: string): NormalizedDocument {
+			try {
+				var document = new JSDOM(src).window.document;
+			} catch (e) {
+				console.warn("Could not parse xml: ", e);
+				return {
+					equals: () => false,
+				};
+			}
+
+			try {
+				// If only those attributes have changed, we want to ignore this change
+				const mxFile = document.getElementsByTagName("mxfile")[0];
+				if (mxFile !== undefined) {
+					mxFile.setAttribute("modified", "");
+				}
+
+				const mxGraphModel = document.getElementsByTagName(
+					"mxGraphModel"
+				)[0];
+				if (mxGraphModel !== undefined) {
+					mxGraphModel.setAttribute("dx", "");
+					mxGraphModel.setAttribute("dy", "");
+				}
+			} catch (e) {
+				console.error(e);
+			}
+
+			function trimText(node: any) {
+				for (node = node.firstChild; node; node = node.nextSibling) {
+					if (node.nodeType == 3) {
+						node.textContent = node.textContent.trim();
+					} else {
+						trimText(node);
+					}
+				}
+			}
+			trimText(document);
+
+			const html = [...document.children]
+				.map((c) => c.innerHTML)
+				.join("\n");
+
+			const normalizedDoc = {
+				html,
+				equals(other: any) {
+					return other.html === html;
+				},
+			};
+			return normalizedDoc;
+		}
+
+		let lastDocument: NormalizedDocument = getNormalizedDocument(
+			document.getText()
+		);
 		let isThisEditorSaving = false;
 
 		workspace.onDidChangeTextDocument(async (evt) => {
@@ -49,19 +112,21 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 				// Sometimes VS Code reports a document change without a change.
 				return;
 			}
-			const result = evt.document.getText();
-			if (canonicalizeXml(result) === lastOutput) {
+
+			const newText = evt.document.getText();
+			const newDocument = getNormalizedDocument(newText);
+			if (newDocument.equals(lastDocument)) {
 				return;
 			}
+			lastDocument = newDocument;
 
-			await drawioInstance.mergeXmlLike(result);
+			await drawioInstance.mergeXmlLike(newText);
 		});
 
 		drawioInstance.onChange.sub(async ({ newXml }) => {
 			// We format the xml so that it can be easily edited in a second text editor.
 
 			let output: string;
-
 			if (document.uri.path.endsWith(".svg")) {
 				const svg = await drawioInstance.exportAsSvgWithEmbeddedXml();
 				newXml = svg.toString("utf-8");
@@ -70,8 +135,11 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 				output = formatter(newXml);
 			}
 
-			// TODO improve this.
-			lastOutput = canonicalizeXml(output);
+			const newDocument = getNormalizedDocument(output);
+			if (newDocument.equals(lastDocument)) {
+				return;
+			}
+			lastDocument = newDocument;
 
 			const workspaceEdit = new WorkspaceEdit();
 

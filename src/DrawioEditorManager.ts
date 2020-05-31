@@ -1,16 +1,47 @@
-import { WebviewPanel, TextDocument, window, workspace, Uri } from "vscode";
-import { DrawioInstance } from "./DrawioInstance";
+import {
+	WebviewPanel,
+	TextDocument,
+	window,
+	workspace,
+	Uri,
+	ThemeColor,
+} from "vscode";
+import { CustomDrawioInstance } from "./DrawioInstance";
 import { DrawioDocument } from "./DrawioEditorProviderBinary";
+import { EventEmitter } from "@hediet/std/events";
+import { computed, observable, autorun, ObservableSet } from "mobx";
 
 export class DrawioEditorManager {
-	private readonly openedEditors = new Set<DrawioEditor>();
+	private readonly onEditorOpenedEmitter = new EventEmitter<{
+		editor: DrawioEditor;
+	}>();
+	public readonly onEditorOpened = this.onEditorOpenedEmitter.asEvent();
 
+	private readonly openedEditors = new ObservableSet<DrawioEditor>();
+
+	@computed
 	get activeDrawioEditor(): DrawioEditor | undefined {
-		return [...this.openedEditors].find((e) => e.webviewPanel.active);
+		return [...this.openedEditors].find((e) => e.isActive);
+	}
+
+	@observable _lastActiveDrawioEditor: DrawioEditor | undefined;
+	get lastActiveDrawioEditor(): DrawioEditor | undefined {
+		return this._lastActiveDrawioEditor;
+	}
+
+	constructor() {
+		autorun(() => {
+			const a = this.activeDrawioEditor;
+			if (a) {
+				this._lastActiveDrawioEditor = a;
+			}
+		});
 	}
 
 	register(editor: DrawioEditor): void {
 		this.openedEditors.add(editor);
+		this.onEditorOpenedEmitter.emit({ editor });
+
 		editor.webviewPanel.onDidDispose(() => {
 			this.openedEditors.delete(editor);
 		});
@@ -18,13 +49,25 @@ export class DrawioEditorManager {
 }
 
 export class DrawioEditor {
+	@observable
+	private _isActive = false;
+
 	constructor(
 		public readonly webviewPanel: WebviewPanel,
-		public readonly instance: DrawioInstance,
+		public readonly instance: CustomDrawioInstance,
 		public readonly document:
 			| { kind: "text"; document: TextDocument }
 			| { kind: "drawio"; document: DrawioDocument }
-	) {}
+	) {
+		this._isActive = webviewPanel.active;
+		webviewPanel.onDidChangeViewState(() => {
+			this._isActive = webviewPanel.active;
+		});
+	}
+
+	public get isActive(): boolean {
+		return this._isActive;
+	}
 
 	public get uri(): Uri {
 		return this.document.document.uri;

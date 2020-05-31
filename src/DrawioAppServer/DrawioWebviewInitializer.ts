@@ -1,6 +1,6 @@
 import { Webview, OutputChannel, Uri } from "vscode";
 import {
-	DrawioInstance,
+	CustomDrawioInstance,
 	simpleDrawioLibrary,
 	DrawioLibraryData,
 } from "../DrawioInstance";
@@ -18,8 +18,9 @@ export class DrawioWebviewInitializer {
 
 	public async setupWebview(
 		uri: Uri,
-		webview: Webview
-	): Promise<DrawioInstance> {
+		webview: Webview,
+		options: DiagramOptions
+	): Promise<CustomDrawioInstance> {
 		const config = this.config.getConfig(uri);
 
 		webview.options = {
@@ -29,7 +30,8 @@ export class DrawioWebviewInitializer {
 		let i = 0;
 		autorun(
 			() => {
-				webview.html = this.getHtml(config, webview) + " ".repeat(i++);
+				webview.html =
+					this.getHtml(config, options, webview) + " ".repeat(i++);
 
 				// these getters triggers a reload on change
 				config.customLibraries;
@@ -38,7 +40,7 @@ export class DrawioWebviewInitializer {
 			{ name: "Update Webview Html" }
 		);
 
-		const drawioInstance = new DrawioInstance(
+		const drawioInstance = new CustomDrawioInstance(
 			{
 				sendMessage: (msg) => {
 					this.log.appendLine("vscode -> drawio: " + prettify(msg));
@@ -75,19 +77,31 @@ export class DrawioWebviewInitializer {
 		return drawioInstance;
 	}
 
-	private getHtml(config: DiagramConfig, webview: Webview): string {
+	private getHtml(
+		config: DiagramConfig,
+		options: DiagramOptions,
+		webview: Webview
+	): string {
 		if (config.mode.kind === "offline") {
-			return this.getOfflineHtml(config, webview);
+			return this.getOfflineHtml(config, options, webview);
 		} else {
 			return this.getOnlineHtml(config, config.mode.url);
 		}
 	}
 
-	private getOfflineHtml(config: DiagramConfig, webview: Webview): string {
+	private getOfflineHtml(
+		config: DiagramConfig,
+		options: DiagramOptions,
+		webview: Webview
+	): string {
 		const vsuri = webview.asWebviewUri(
 			Uri.file(
-				path.join(__dirname, "../drawio/src/main/webapp/index.html")
+				path.join(__dirname, "../../drawio/src/main/webapp/index.html")
 			)
+		);
+		const customPluginsPath = webview.asWebviewUri(
+			// See webpack configuration.
+			Uri.file(path.join(__dirname, "../custom-drawio-plugins/index.js"))
 		);
 
 		const localStorage = untracked(() => config.localStorage);
@@ -97,6 +111,8 @@ export class DrawioWebviewInitializer {
 			.replace("${vsuri}", vsuri.toString())
 			.replace("${theme}", config.theme)
 			.replace("${lang}", config.language)
+			.replace("${chrome}", options.isReadOnly ? "0" : "1")
+			.replace("${customPluginsPath}", customPluginsPath.toString())
 			.replace("$$localStorage$$", JSON.stringify(localStorage));
 		return patchedHtml;
 	}
@@ -135,19 +151,17 @@ export class DrawioWebviewInitializer {
 	}
 }
 
+export interface DiagramOptions {
+	isReadOnly: boolean;
+}
+
 function prettify(msg: unknown): string {
 	try {
 		if (typeof msg === "string") {
 			const obj = JSON.parse(msg as string);
-			return formatValue(
-				obj,
-				process.env.NODE_ENV === "development" ? 500 : 80
-			);
+			return formatValue(obj, process.env.DEV === "1" ? 500 : 80);
 		}
-		return formatValue(
-			msg,
-			process.env.NODE_ENV === "development" ? 500 : 80
-		);
+		return formatValue(msg, process.env.DEV === "1" ? 500 : 80);
 	} catch {}
 	return "" + msg;
 }

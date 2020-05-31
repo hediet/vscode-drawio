@@ -8,15 +8,14 @@ module.exports = {
 	target: "node",
 	entry: r("./src/index"),
 	output: {
-		path: r("./dist/extension"),
+		path: r("../dist/custom-drawio-plugins"),
 		filename: "index.js",
-		libraryTarget: "commonjs2",
-		devtoolModuleFilenameTemplate: "../../[resource-path]",
+		libraryTarget: "window",
+		devtoolModuleFilenameTemplate: "../[resource-path]",
 	},
 	devtool: "source-map",
 	externals: {
 		vscode: "commonjs vscode",
-		canvas: "undefined",
 	},
 	resolve: {
 		extensions: [".ts", ".js"],

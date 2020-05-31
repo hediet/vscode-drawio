@@ -11,10 +11,10 @@
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--enable-proposed-api hediet.vscode-drawio"
 			],
-			"outFiles": ["${workspaceFolder}/out/**/*.js"],
+			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
 			"preLaunchTask": "npm: dev",
 			"env": {
-				"NODE_ENV": "development"
+				"DEV": "1"
 			}
 		},
 		{
@@ -27,7 +27,7 @@
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--enable-proposed-api hediet.vscode-drawio"
 			],
-			"outFiles": ["${workspaceFolder}/out/**/*.js"],
+			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
 			"preLaunchTask": "npm: dev"
 		}
 	]
