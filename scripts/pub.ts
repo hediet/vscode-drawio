@@ -1,15 +1,11 @@
 import { GitHub, context } from "@actions/github";
 import { exec } from "@actions/exec";
-import { getChangelog, readPackageJson } from "./shared";
+import { getChangelog } from "./shared";
 
 export async function run(): Promise<void> {
 	const version = getChangelog().latestVersion;
-	if (version.kind === "unreleased" || version.releaseDate) {
+	if (version.kind === "unreleased") {
 		return;
-	}
-
-	if (readPackageJson().name !== "vscode-drawio-insiders-build") {
-		throw new Error("Disabled: " + readPackageJson().name);
 	}
 
 	await exec("yarn", [
@@ -21,7 +17,7 @@ export async function run(): Promise<void> {
 		process.env.MARKETPLACE_TOKEN!,
 	]);
 
-	const gitTag = `v${version}`;
+	const gitTag = `v${version.version}`;
 	console.log(`Creating a version tag "${gitTag}".`);
 	const api = new GitHub(process.env.GH_TOKEN!);
 	await api.git.createRef({

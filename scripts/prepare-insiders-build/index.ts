@@ -30,8 +30,18 @@ export async function run(): Promise<void> {
 		prerelease = false;
 		version = v.version.toString();
 	} else {
+		// VS Code does not allow for prerelease numbers. This fixes that.
+		const firstPrereleaseNumber =
+			(v.version.prerelease.parts.find((p) => typeof p === "number") as
+				| number
+				| undefined) || 0;
 		prerelease = true;
-		version = v.version.with({ prerelease: null }).toString();
+		version = v.version
+			.with({
+				prerelease: null,
+				patch: v.version.patch * 100 + firstPrereleaseNumber,
+			})
+			.toString();
 	}
 
 	const packageJson = readJsonFile(join(__dirname, "../../package.json"));
