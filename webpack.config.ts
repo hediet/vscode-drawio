@@ -16,7 +16,6 @@ module.exports = {
 	devtool: "source-map",
 	externals: {
 		vscode: "commonjs vscode",
-		canvas: "undefined",
 	},
 	resolve: {
 		extensions: [".ts", ".js"],
@@ -46,5 +45,6 @@ module.exports = {
 		new webpack.EnvironmentPlugin({
 			NODE_ENV: null,
 		}),
+		new webpack.IgnorePlugin(/^canvas$/),
 	],
 } as webpack.Configuration;
