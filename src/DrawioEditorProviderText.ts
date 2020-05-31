@@ -58,6 +58,7 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 				const mxFile = document.getElementsByTagName("mxfile")[0];
 				if (mxFile !== undefined) {
 					mxFile.setAttribute("modified", "");
+					mxFile.setAttribute("etag", "");
 				}
 
 				const mxGraphModel = document.getElementsByTagName(
