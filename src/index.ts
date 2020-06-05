@@ -22,11 +22,12 @@ export class Extension {
 		new LinkCodeWithSelectedNodeService(this.editorManager)
 	);
 
-	constructor() {
+	constructor(context: vscode.ExtensionContext) {
 		const config = new Config();
 		const drawioWebviewInitializer = new DrawioWebviewInitializer(
 			config,
-			this.log
+			this.log,
+			context
 		);
 
 		this.dispose.track(
@@ -140,7 +141,7 @@ export class Extension {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-	context.subscriptions.push(new Extension());
+	context.subscriptions.push(new Extension(context));
 }
 
 export function deactivate() {}

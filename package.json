@@ -114,6 +114,15 @@
 					"title": "Custom Fonts",
 					"description": "Configures the Draw.io editor to use custom fonts."
 				},
+				"hediet.vscode-drawio.customPlugins": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"title": "Custom Plugins",
+					"description": "Loads custom scripts from specified paths to extend the Draw.io editor."
+				},
 				"hediet.vscode-drawio.customLibraries": {
 					"type": "array",
 					"items": {

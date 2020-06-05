@@ -290,7 +290,18 @@
 						.appendChild(pluginScript);
 				}
 
-				loadScript("${customPluginsPath}");
+				/**
+				 * @param urls {string[]}
+				 */
+				function loadScripts(urls) {
+					JSON.parse(urls).forEach((url) => {
+						console.log("load custom plugin:", url);
+						loadScript(url);
+					});
+				}
+				// prettier needs to ignore these single quotes
+				// prettier-ignore
+				loadScripts('${customPluginsPathList}');
 			})();
 		</script>
 	</body>

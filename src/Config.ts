@@ -94,6 +94,14 @@ export class DiagramConfig {
 		serializer: serializerWithDefault<any[]>([]),
 	});
 
+	private readonly _customPlugins = new VsCodeSetting<string[]>(
+		`${extensionId}.customPlugins`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<any[]>([]),
+		}
+	);
+
 	private readonly _customFonts = new VsCodeSetting<string[]>(
 		`${extensionId}.customFonts`,
 		{
@@ -214,6 +222,11 @@ export class DiagramConfig {
 	@computed
 	public get customFonts(): string[] {
 		return this._customFonts.get();
+	}
+
+	@computed
+	public get customPlugins(): string[] {
+		return this._customPlugins.get();
 	}
 
 	@computed

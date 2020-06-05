@@ -1,4 +1,11 @@
-import { Webview, OutputChannel, Uri } from "vscode";
+import {
+	Webview,
+	OutputChannel,
+	Uri,
+	extensions,
+	workspace,
+	ExtensionContext,
+} from "vscode";
 import {
 	CustomDrawioInstance,
 	simpleDrawioLibrary,
@@ -13,7 +20,8 @@ import { autorun, untracked } from "mobx";
 export class DrawioWebviewInitializer {
 	constructor(
 		private readonly config: Config,
-		private readonly log: OutputChannel
+		private readonly log: OutputChannel,
+		private readonly context: ExtensionContext
 	) {}
 
 	public async setupWebview(
@@ -23,8 +31,27 @@ export class DrawioWebviewInitializer {
 	): Promise<CustomDrawioInstance> {
 		const config = this.config.getConfig(uri);
 
+		const localResourceRoots = Array();
+		const workspaceUri = workspace.workspaceFolders?.[0]?.uri;
+		if (workspaceUri) {
+			localResourceRoots.push(workspaceUri);
+		}
+		config.customPlugins.forEach((p) => {
+			const dir = path.dirname(p);
+			if (!path.isAbsolute(dir)) {
+				if (workspaceUri) {
+					localResourceRoots.push(
+						Uri.file(path.join(workspaceUri.path))
+					);
+				}
+			} else {
+				localResourceRoots.push(Uri.file(dir));
+			}
+		});
+		localResourceRoots.push(Uri.file(this.context.extensionPath));
 		webview.options = {
 			enableScripts: true,
+			localResourceRoots: localResourceRoots,
 		};
 
 		let i = 0;
@@ -36,6 +63,7 @@ export class DrawioWebviewInitializer {
 				// these getters triggers a reload on change
 				config.customLibraries;
 				config.customFonts;
+				config.customPlugins;
 			},
 			{ name: "Update Webview Html" }
 		);
@@ -99,9 +127,36 @@ export class DrawioWebviewInitializer {
 				path.join(__dirname, "../../drawio/src/main/webapp/index.html")
 			)
 		);
-		const customPluginsPath = webview.asWebviewUri(
-			// See webpack configuration.
-			Uri.file(path.join(__dirname, "../custom-drawio-plugins/index.js"))
+		const customPluginsPathList = Array();
+		const workspaceUri = workspace.workspaceFolders?.[0]?.uri;
+		config.customPlugins.forEach((p) => {
+			if (!path.isAbsolute(p)) {
+				if (workspaceUri) {
+					customPluginsPathList.push(
+						webview
+							.asWebviewUri(
+								Uri.file(path.join(workspaceUri.path, p))
+							)
+							.toString()
+					);
+				}
+			} else {
+				customPluginsPathList.push(
+					webview.asWebviewUri(Uri.file(p)).toString()
+				);
+			}
+		});
+		customPluginsPathList.push(
+			webview
+				.asWebviewUri(
+					Uri.file(
+						path.join(
+							__dirname,
+							"../custom-drawio-plugins/index.js"
+						)
+					)
+				)
+				.toString()
 		);
 
 		const localStorage = untracked(() => config.localStorage);
@@ -112,7 +167,10 @@ export class DrawioWebviewInitializer {
 			.replace("${theme}", config.theme)
 			.replace("${lang}", config.language)
 			.replace("${chrome}", options.isReadOnly ? "0" : "1")
-			.replace("${customPluginsPath}", customPluginsPath.toString())
+			.replace(
+				"${customPluginsPathList}",
+				JSON.stringify(customPluginsPathList)
+			)
 			.replace("$$localStorage$$", JSON.stringify(localStorage));
 		return patchedHtml;
 	}
