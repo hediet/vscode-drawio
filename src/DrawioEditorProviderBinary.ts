@@ -103,7 +103,7 @@ export class DrawioDocument implements CustomDocument {
 	private readonly onChangeEmitter = new EventEmitter<DrawioDocumentChange>();
 	public readonly onChange = this.onChangeEmitter.event;
 
-	private readonly onInstanceSaveEmitter = new EventEmitter();
+	private readonly onInstanceSaveEmitter = new EventEmitter<void>();
 	public readonly onInstanceSave = this.onInstanceSaveEmitter.event;
 
 	private _drawio: DrawioInstance | undefined;
