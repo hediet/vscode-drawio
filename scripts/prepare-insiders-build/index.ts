@@ -17,6 +17,7 @@ export async function run(): Promise<void> {
 
 	const v = getChangelog().latestVersion;
 	let prerelease: boolean;
+	let versionName: string;
 	let version: string;
 	if (v.kind === "unreleased") {
 		console.log(
@@ -24,12 +25,14 @@ export async function run(): Promise<void> {
 		);
 		prerelease = false;
 		version = "unreleased";
+		versionName = "unreleased";
 	} else if (!v.version.prerelease) {
 		console.log(
 			"No need to prepare for insiders - version is not a prerelease."
 		);
 		prerelease = false;
 		version = v.version.toString();
+		versionName = version;
 	} else {
 		// VS Code does not allow for prerelease numbers. This fixes that.
 		const firstPrereleaseNumber =
@@ -37,6 +40,7 @@ export async function run(): Promise<void> {
 				| number
 				| undefined) || 0;
 		prerelease = true;
+		versionName = v.version.toString();
 		version = v.version
 			.with({
 				prerelease: null,
@@ -54,8 +58,13 @@ export async function run(): Promise<void> {
 	let prLink: string | undefined = undefined;
 	if (prerelease) {
 		const api = new GitHub(process.env.GH_TOKEN!);
+		const data = await api.git.getRef({
+			ref: `pending-releases/v${versionName}`,
+			...context.repo,
+		});
+		console.log(`Pending release commit sha is ${data.data.object.sha}.`);
 		const prs = await api.repos.listPullRequestsAssociatedWithCommit({
-			commit_sha: context.sha,
+			commit_sha: data.data.object.sha,
 			...context.repo,
 		});
 		const pr = prs.data[0];
@@ -82,9 +91,8 @@ export async function run(): Promise<void> {
 			}
 		);
 		content = content.replace(/\$commit-sha\$/g, context.sha);
-		if (prLink) {
-			content = content.replace(/\$pr-link\$/g, prLink);
-		}
+		content = content.replace(/\$pr-link\$/g, prLink || "invalid");
+
 		writeFileSync(join(__dirname, "../../README.md"), content);
 	}
 }
