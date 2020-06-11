@@ -16,4 +16,4 @@ This extension might get unpublished as soon as the marketplace officially suppo
 
 This version is built from commit [$commit-sha$](https://github.com/hediet/vscode-drawio/tree/$commit-sha$).
 
-[Please up or downvote this PR to give feedback for this insiders build!]($pr-link$).
+[Please up or downvote this PR to give feedback for this insiders build!]($pr-link$)

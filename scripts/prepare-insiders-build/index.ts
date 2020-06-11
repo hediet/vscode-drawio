@@ -69,7 +69,7 @@ export async function run(): Promise<void> {
 		});
 		const pr = prs.data[0];
 		if (pr) {
-			prLink = pr.url;
+			prLink = pr.html_url;
 		}
 	}
 
