@@ -9,7 +9,8 @@
 			"args": [
 				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--enable-proposed-api hediet.vscode-drawio"
+				"--enable-proposed-api hediet.vscode-drawio",
+				"${workspaceFolder}/examples"
 			],
 			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
 			"preLaunchTask": "npm: dev",
@@ -25,7 +26,8 @@
 			"args": [
 				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--enable-proposed-api hediet.vscode-drawio"
+				"--enable-proposed-api hediet.vscode-drawio",
+				"${workspaceFolder}/examples"
 			],
 			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
 			"preLaunchTask": "npm: dev"

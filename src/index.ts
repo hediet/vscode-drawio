@@ -40,54 +40,43 @@ export class Extension {
 			)
 		);
 
-		const enableProposedApi = require("../package.json")
-			.enableProposedApi as boolean | undefined;
-
-		if (enableProposedApi) {
-			this.dispose.track(
-				vscode.window.registerCustomEditorProvider2(
-					"hediet.vscode-drawio",
-					new DrawioEditorProviderBinary(
-						drawioWebviewInitializer,
-						this.editorManager
-					),
-					{
-						supportsMultipleEditorsPerDocument: false,
-						webviewOptions: { retainContextWhenHidden: true },
-					}
-				)
-			);
-		}
+		this.dispose.track(
+			vscode.window.registerCustomEditorProvider(
+				"hediet.vscode-drawio",
+				new DrawioEditorProviderBinary(
+					drawioWebviewInitializer,
+					this.editorManager
+				),
+				{
+					supportsMultipleEditorsPerDocument: false,
+					webviewOptions: { retainContextWhenHidden: true },
+				}
+			)
+		);
 
 		this.dispose.track(
 			vscode.commands.registerCommand(
 				"hediet.vscode-drawio.convert",
 				async () => {
 					// TODO remove the current format from the selection
-					const result = await vscode.window.showQuickPick(
-						[
-							{
-								label: ".drawio.svg",
-								description:
-									"Converts the diagram to an editable SVG file",
-							},
-							{
-								label: ".drawio",
-								description:
-									"Converts the diagram to a drawio file",
-							},
-						].concat(
-							enableProposedApi
-								? [
-										{
-											label: ".drawio.png",
-											description:
-												"Converts the diagram to an editable png file",
-										},
-								  ]
-								: []
-						)
-					);
+					const result = await vscode.window.showQuickPick([
+						{
+							label: ".drawio.svg",
+							description:
+								"Converts the diagram to an editable SVG file",
+						},
+						{
+							label: ".drawio",
+							description:
+								"Converts the diagram to a drawio file",
+						},
+
+						{
+							label: ".drawio.png",
+							description:
+								"Converts the diagram to an editable png file",
+						},
+					]);
 
 					if (!result) {
 						return;
