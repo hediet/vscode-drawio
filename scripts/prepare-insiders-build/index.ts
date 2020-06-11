@@ -2,6 +2,7 @@ import { writeFileSync, readFileSync } from "fs";
 import { join } from "path";
 import { execSync } from "child_process";
 import { getChangelog } from "../shared";
+import { GitHub, context } from "@actions/github";
 
 function readJsonFile(fileName: string): any {
 	const content = readFileSync(fileName, { encoding: "utf-8" });
@@ -50,6 +51,19 @@ export async function run(): Promise<void> {
 		join(__dirname, "./package-insiders-build.json")
 	);
 
+	let prLink: string | undefined = undefined;
+	if (prerelease) {
+		const api = new GitHub(process.env.GH_TOKEN!);
+		const prs = await api.repos.listPullRequestsAssociatedWithCommit({
+			commit_sha: context.sha,
+			...context.repo,
+		});
+		const pr = prs.data[0];
+		if (pr) {
+			prLink = pr.url;
+		}
+	}
+
 	if (prerelease) {
 		Object.assign(packageJson, patchPackageJson);
 	}
@@ -67,10 +81,10 @@ export async function run(): Promise<void> {
 				encoding: "utf-8",
 			}
 		);
-		const commitSha = execSync("git rev-parse HEAD", {
-			encoding: "utf-8",
-		}).trim();
-		content = content.replace(/\$commit-sha\$/g, commitSha);
+		content = content.replace(/\$commit-sha\$/g, context.sha);
+		if (prLink) {
+			content = content.replace(/\$pr-link\$/g, prLink);
+		}
 		writeFileSync(join(__dirname, "../../README.md"), content);
 	}
 }
