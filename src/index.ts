@@ -9,7 +9,9 @@ import { MobxConsoleLogger } from "@knuddels/mobx-logger";
 import * as mobx from "mobx";
 import { LinkCodeWithSelectedNodeService } from "./LinkCodeWithSelectedNodeService";
 
-new MobxConsoleLogger(mobx);
+if (process.env.DEV === "1") {
+	new MobxConsoleLogger(mobx);
+}
 
 export class Extension {
 	public readonly dispose = Disposable.fn();
