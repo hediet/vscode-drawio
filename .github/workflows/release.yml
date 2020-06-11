@@ -19,6 +19,8 @@ jobs:
       - run: yarn install --immutable
       - run: yarn lint
       - run: yarn run-script prepare-insiders-build
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
       - run: yarn build
       - run: yarn run-script pub
         env:
