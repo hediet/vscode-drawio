@@ -260,9 +260,13 @@
 									return;
 								}
 								if (keyEvt.key === "P" && keyEvt.ctrlKey) {
-									// this covers both ctrl+p and ctrl+shift+p.
-									// We don't need these keyboard shortcuts in drawio.
-									// Printing does not make sense in VS Code anyways.
+									// this covers ctrl+shift+p.
+									return;
+								}
+								if (keyEvt.key === "p" && keyEvt.ctrlKey) {
+									// this covers ctrl+p.
+									// We don't need this keyboard shortcuts in drawio.
+									// Printing does not make sense in VS Code.
 									// Users should use the drawio desktop app for that.
 									return;
 								}
