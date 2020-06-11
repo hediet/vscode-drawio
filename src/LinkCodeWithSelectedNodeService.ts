@@ -11,6 +11,7 @@ import {
 	TextEditorRevealType,
 	ViewColumn,
 	TextEditorDecorationType,
+	TextEditor,
 } from "vscode";
 import { wait } from "@hediet/std/timer";
 import { DrawioEditorManager } from "./DrawioEditorManager";
@@ -19,13 +20,13 @@ import { autorun, observable, action } from "mobx";
 export class LinkCodeWithSelectedNodeService {
 	public readonly dispose = Disposable.fn();
 
-	private readonly statusBar = window.createStatusBarItem({
-		id: "hediet.vscode-drawio.code-link-enabled",
-		name: "Draw.io Code Link",
-	});
+	private readonly statusBar = window.createStatusBarItem();
 
 	@observable
 	private codeLinkEnabled = true;
+
+	private lastActiveTextEditor: TextEditor | undefined =
+		window.activeTextEditor;
 
 	constructor(private readonly editorManager: DrawioEditorManager) {
 		return; // not enabled yet
@@ -50,6 +51,11 @@ export class LinkCodeWithSelectedNodeService {
 					}
 				}),
 			},
+			window.onDidChangeActiveTextEditor(() => {
+				if (window.activeTextEditor) {
+					this.lastActiveTextEditor = window.activeTextEditor;
+				}
+			}),
 			commands.registerCommand(
 				"hediet.vscode-drawio.linkCodeWithSelectedNode",
 				this.linkCodeWithSelectedNode
@@ -74,8 +80,8 @@ export class LinkCodeWithSelectedNodeService {
 			window.showErrorMessage("No active drawio instance.");
 			return;
 		}
-		const editor = window.activeTextEditor;
 
+		const editor = this.lastActiveTextEditor;
 		if (!editor) {
 			window.showErrorMessage("No text editor active.");
 			return;
@@ -90,6 +96,7 @@ export class LinkCodeWithSelectedNodeService {
 		lastActiveDrawioEditor.instance.linkSelectedNodeWithData(
 			pos.serialize()
 		);
+		this.revealSelection(pos);
 	}
 
 	private handleDrawioInstance(drawioInstance: CustomDrawioInstance): void {
