@@ -95,9 +95,7 @@ export class DrawioWebviewInitializer {
 		webview: Webview
 	): string {
 		const vsuri = webview.asWebviewUri(
-			Uri.file(
-				path.join(__dirname, "../../drawio/src/main/webapp/index.html")
-			)
+			Uri.file(path.join(__dirname, "../../drawio/src/main/webapp"))
 		);
 		const customPluginsPath = webview.asWebviewUri(
 			// See webpack configuration.
@@ -108,7 +106,7 @@ export class DrawioWebviewInitializer {
 
 		// TODO use template engine
 		const patchedHtml = html
-			.replace("${vsuri}", vsuri.toString())
+			.replace(/\$\{vsuri\}/g, vsuri.toString())
 			.replace("${theme}", config.theme)
 			.replace("${lang}", config.language)
 			.replace("${chrome}", options.isReadOnly ? "0" : "1")
