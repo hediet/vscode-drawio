@@ -279,17 +279,25 @@
 					};
 				});
 
-				// Fix mxUrlConverter.prototype.convert
-				// See https://github.com/jgraph/mxgraph/blob/master/javascript/src/js/util/mxUrlConverter.js for non minified version
-				mxUrlConverter.prototype.baseUrl = "${vsuri}/";
-				mxUrlConverter.prototype.updateBaseUrl = function () {
-					this.baseDomain = "${vsuri}";
-					this.baseUrl = "${vsuri}/";
-				};
-				const RX_IS_ABS_URL = /^(\/\/|[a-zA-Z][a-zA-Z\d+\-.]*:)/;
-				mxUrlConverter.prototype.isRelativeUrl = function (url) {
-					return url != null && !RX_IS_ABS_URL.test(url);
-				};
+				/**
+				 * See https://github.com/jgraph/mxgraph/blob/master/javascript/src/js/util/mxUrlConverter.js
+				 * for non minified version.
+				 * Fixes https://github.com/hediet/vscode-drawio/issues/53 and
+				 * https://github.com/hediet/vscode-drawio/issues/74.
+				 */
+				function fix_mxUrlConverter_prototype_convert() {
+					mxUrlConverter.prototype.baseUrl = "${vsuri}/";
+					mxUrlConverter.prototype.updateBaseUrl = function () {
+						this.baseDomain = "${vsuri}";
+						this.baseUrl = "${vsuri}/";
+					};
+					const RX_IS_ABS_URL = /^(\/\/|[a-zA-Z][a-zA-Z\d+\-.]*:)/;
+					mxUrlConverter.prototype.isRelativeUrl = function (url) {
+						return url != null && !RX_IS_ABS_URL.test(url);
+					};
+				}
+
+				fix_mxUrlConverter_prototype_convert();
 
 				App.main();
 				console.log("drawio", window.Draw);
