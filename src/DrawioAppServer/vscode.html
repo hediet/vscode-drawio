@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<base href="${vsuri}" />
+		<base href="${vsuri}/index.html" />
 		<script type="text/javascript">
 			var log;
 			(() => {
@@ -278,6 +278,18 @@
 						return old.apply(this, args);
 					};
 				});
+
+				// Fix mxUrlConverter.prototype.convert
+				// See https://github.com/jgraph/mxgraph/blob/master/javascript/src/js/util/mxUrlConverter.js for non minified version
+				mxUrlConverter.prototype.baseUrl = "${vsuri}/";
+				mxUrlConverter.prototype.updateBaseUrl = function () {
+					this.baseDomain = "${vsuri}";
+					this.baseUrl = "${vsuri}/";
+				};
+				const RX_IS_ABS_URL = /^(\/\/|[a-zA-Z][a-zA-Z\d+\-.]*:)/;
+				mxUrlConverter.prototype.isRelativeUrl = function (url) {
+					return url != null && !RX_IS_ABS_URL.test(url);
+				};
 
 				App.main();
 				console.log("drawio", window.Draw);
