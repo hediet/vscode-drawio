@@ -29,16 +29,15 @@ Draw.loadPlugin(function (ui: any) {
 	const selectionModel = graph.getSelectionModel();
 	selectionModel.addListener(mxEvent.CHANGE, (sender: any, evt: any) => {
 		// selection has changed
-		const cells = selectionModel.cells; // array of cells
+		const cells: any[] = selectionModel.cells; // array of cells
 		if (cells.length >= 1) {
 			const selectedCell = cells[0];
 			activeCell = selectedCell;
 			(window as any).hediet_Cell = selectedCell;
 
+			const label = graph.getLabel(selectedCell) as string;
 			const data = getLinkedData(selectedCell);
-			if (data !== undefined) {
-				sendEvent({ event: "revealCode", linkedData: data });
-			}
+			sendEvent({ event: "nodeSelected", label, linkedData: data });
 		} else {
 			activeCell = undefined;
 		}

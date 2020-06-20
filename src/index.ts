@@ -20,22 +20,21 @@ export class Extension {
 	);
 	private readonly editorManager = new DrawioEditorManager();
 
+	private readonly config = new Config();
 	private readonly linkCodeWithSelectedNodeService = this.dispose.track(
-		new LinkCodeWithSelectedNodeService(this.editorManager)
+		new LinkCodeWithSelectedNodeService(this.editorManager, this.config)
+	);
+	private readonly drawioWebviewInitializer = new DrawioWebviewInitializer(
+		this.config,
+		this.log
 	);
 
 	constructor() {
-		const config = new Config();
-		const drawioWebviewInitializer = new DrawioWebviewInitializer(
-			config,
-			this.log
-		);
-
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
 				"hediet.vscode-drawio-text",
 				new DrawioEditorProviderText(
-					drawioWebviewInitializer,
+					this.drawioWebviewInitializer,
 					this.editorManager
 				),
 				{ webviewOptions: { retainContextWhenHidden: true } }
@@ -46,7 +45,7 @@ export class Extension {
 			vscode.window.registerCustomEditorProvider(
 				"hediet.vscode-drawio",
 				new DrawioEditorProviderBinary(
-					drawioWebviewInitializer,
+					this.drawioWebviewInitializer,
 					this.editorManager
 				),
 				{

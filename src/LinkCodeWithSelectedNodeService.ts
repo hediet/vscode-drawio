@@ -12,10 +12,14 @@ import {
 	ViewColumn,
 	TextEditorDecorationType,
 	TextEditor,
+	SymbolInformation,
+	DocumentSymbol,
+	SymbolKind,
 } from "vscode";
 import { wait } from "@hediet/std/timer";
 import { DrawioEditorManager } from "./DrawioEditorManager";
 import { autorun, observable, action } from "mobx";
+import { Config } from "./Config";
 
 export class LinkCodeWithSelectedNodeService {
 	public readonly dispose = Disposable.fn();
@@ -28,8 +32,14 @@ export class LinkCodeWithSelectedNodeService {
 	private lastActiveTextEditor: TextEditor | undefined =
 		window.activeTextEditor;
 
-	constructor(private readonly editorManager: DrawioEditorManager) {
-		return; // not enabled yet
+	constructor(
+		private readonly editorManager: DrawioEditorManager,
+		private readonly config: Config
+	) {
+		if (!config.experimentalFeaturesEnabled) {
+			return;
+		}
+
 		this.dispose.track([
 			editorManager.onEditorOpened.sub(({ editor }) =>
 				this.handleDrawioInstance(editor.instance)
@@ -100,13 +110,33 @@ export class LinkCodeWithSelectedNodeService {
 	}
 
 	private handleDrawioInstance(drawioInstance: CustomDrawioInstance): void {
-		drawioInstance.onRevealCode.sub(async ({ linkedData }) => {
+		drawioInstance.onNodeSelected.sub(async ({ linkedData, label }) => {
 			if (!this.codeLinkEnabled) {
 				return;
 			}
 
-			const pos = CodePosition.deserialize(linkedData);
-			await this.revealSelection(pos);
+			if (linkedData) {
+				const pos = CodePosition.deserialize(linkedData);
+				await this.revealSelection(pos);
+			} else if (label.startsWith("#")) {
+				const match = label.match(/#([a-zA-Z0-9_]+)/);
+				if (match) {
+					const symbolName = match[1];
+					const result = (await commands.executeCommand(
+						"vscode.executeWorkspaceSymbolProvider",
+						symbolName
+					)) as (SymbolInformation | DocumentSymbol)[];
+
+					const symbolInfo = result[0];
+					if (symbolInfo && "location" in symbolInfo) {
+						const pos = new CodePosition(
+							symbolInfo.location.uri,
+							symbolInfo.location.range
+						);
+						await this.revealSelection(pos);
+					}
+				}
+			}
 		});
 	}
 

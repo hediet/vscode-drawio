@@ -12,6 +12,17 @@ export class Config {
 	public getConfig(uri: Uri): DiagramConfig {
 		return new DiagramConfig(uri);
 	}
+
+	private readonly _experimentalFeatures = new VsCodeSetting(
+		`${extensionId}.enableExperimentalFeatures`,
+		{
+			serializer: serializerWithDefault<boolean>(false),
+		}
+	);
+
+	public get experimentalFeaturesEnabled(): boolean {
+		return this._experimentalFeatures.get();
+	}
 }
 
 export class DiagramConfig {

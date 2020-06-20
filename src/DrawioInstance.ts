@@ -463,10 +463,11 @@ export interface DrawioResource {
 export type DrawioFormat = "html" | "xmlpng" | "png" | "xml" | "xmlsvg";
 
 export class CustomDrawioInstance extends DrawioInstance {
-	private readonly onRevealCodeEmitter = new EventEmitter<{
+	private readonly onNodeSelectedEmitter = new EventEmitter<{
+		label: string;
 		linkedData: unknown;
 	}>();
-	public readonly onRevealCode = this.onRevealCodeEmitter.asEvent();
+	public readonly onNodeSelected = this.onNodeSelectedEmitter.asEvent();
 
 	public linkSelectedNodeWithData(linkedData: unknown) {
 		this.sendUnknownAction({
@@ -476,9 +477,11 @@ export class CustomDrawioInstance extends DrawioInstance {
 	}
 
 	protected async handleEvent(evt: { event: string }): Promise<void> {
-		if (evt.event === "revealCode") {
-			this.onRevealCodeEmitter.emit({
-				linkedData: (evt as any).linkedData,
+		if (evt.event === "nodeSelected") {
+			const e = evt as { event: string; linkedData: any; label: string };
+			this.onNodeSelectedEmitter.emit({
+				label: e.label,
+				linkedData: e.linkedData,
 			});
 		} else {
 			await super.handleEvent(evt);
