@@ -9,5 +9,5 @@
 		"strict": true,
 		"experimentalDecorators": true
 	},
-	"include": ["./src/**/*"]
+	"include": ["./src/**/*", "./drawio-custom-plugins/src/types.d.ts"]
 }
