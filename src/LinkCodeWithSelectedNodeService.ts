@@ -125,10 +125,47 @@ export class LinkCodeWithSelectedNodeService {
 					const result = (await commands.executeCommand(
 						"vscode.executeWorkspaceSymbolProvider",
 						symbolName
-					)) as (SymbolInformation | DocumentSymbol)[];
+					)) as SymbolInformation[];
+					result.sort(
+						getSorterBy((i) => {
+							let score = 0;
+							if (i.name === symbolName) {
+								score += 100;
+							}
+							if (
+								i.name.toLowerCase() ===
+								symbolName.toLowerCase()
+							) {
+								score += 20;
+							}
+
+							const uriAsString = i.location.uri.toString();
+							/*if (
+								this.lastActiveTextEditor &&
+								uriAsString ===
+									this.lastActiveTextEditor.document.uri.toString()
+							) {
+								score += 2;
+							}*/
+
+							const idx = window.visibleTextEditors.findIndex(
+								(e) => e.document.uri.toString() === uriAsString
+							);
+							if (idx !== -1) {
+								score +=
+									(window.visibleTextEditors.length - idx) /
+									window.visibleTextEditors.length;
+							}
+
+							if (i.containerName === "") {
+								score += 10;
+							}
+							return score;
+						})
+					);
 
 					const symbolInfo = result[0];
-					if (symbolInfo && "location" in symbolInfo) {
+					if (symbolInfo) {
 						const pos = new CodePosition(
 							symbolInfo.location.uri,
 							symbolInfo.location.range
@@ -210,4 +247,10 @@ interface Data {
 interface PositionData {
 	line: number;
 	col: number;
+}
+
+function getSorterBy<T>(selector: (item: T) => number) {
+	return (item1: T, item2: T) => {
+		return selector(item2) - selector(item1);
+	};
 }
