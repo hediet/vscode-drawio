@@ -48,13 +48,18 @@
 				Object.defineProperty(window, "opener", {
 					value: fakedWindowOpener,
 				});
+
 				window.addEventListener("message", function (evt) {
 					if (evt.source !== fakedWindowOpener) {
 						// Re-emit messages with faked source, so that drawio handles the payload.
+						// If we don't do this, `evt.source === window.opener` will fail
+						// and drawio ignores the message.
 						const fakedEvt = new Event("message");
 						fakedEvt.source = fakedWindowOpener;
 						fakedEvt.data = evt.data;
 						window.dispatchEvent(fakedEvt);
+						evt.stopPropagation();
+						evt.preventDefault();
 					}
 				});
 			})();

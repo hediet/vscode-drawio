@@ -73,6 +73,10 @@
 			{
 				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
 				"title": "Draw.io: Link Code with Selected Node"
+			},
+			{
+				"command": "hediet.vscode-drawio.editDiagramAsText",
+				"title": "Draw.io: Edit Diagram As Text"
 			}
 		],
 		"keybindings": [

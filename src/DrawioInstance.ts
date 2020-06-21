@@ -2,7 +2,10 @@ import { EventEmitter } from "@hediet/std/events";
 import { Disposable } from "@hediet/std/disposable";
 import { groupBy } from "./utils/groupBy";
 
-export class DrawioInstance {
+export class DrawioInstance<
+	TCustomAction extends {} = never,
+	TCustomEvent extends {} = never
+> {
 	public readonly dispose = Disposable.fn();
 
 	private readonly onInitEmitter = new EventEmitter();
@@ -15,7 +18,7 @@ export class DrawioInstance {
 	public readonly onSave = this.onSaveEmitter.asEvent();
 
 	private readonly onUnknownMessageEmitter = new EventEmitter<{
-		message: { event: string };
+		message: TCustomEvent;
 	}>();
 	public readonly onUnknownMessage = this.onUnknownMessageEmitter.asEvent();
 
@@ -39,69 +42,48 @@ export class DrawioInstance {
 		{ resolve: (response: DrawioEvent) => void; reject: () => void }
 	>();
 
-	protected sendUnknownAction(action: { action: string }): void {
-		this.messageStream.sendMessage(JSON.stringify(Object.assign(action)));
+	protected sendCustomAction(action: TCustomAction): void {
+		this.sendAction(action);
 	}
 
-	private sendAction(
-		action: DrawioAction,
-		expectResponse: boolean = false
-	): Promise<DrawioEvent> {
+	protected sendCustomActionExpectResponse(
+		action: TCustomAction
+	): Promise<TCustomEvent> {
+		return this.sendActionWaitForResponse(action);
+	}
+
+	private sendAction(action: DrawioAction | TCustomAction) {
+		this.messageStream.sendMessage(JSON.stringify(action));
+	}
+
+	private sendActionWaitForResponse(
+		action: DrawioAction
+	): Promise<DrawioEvent>;
+	private sendActionWaitForResponse(
+		action: TCustomAction
+	): Promise<TCustomEvent>;
+	private sendActionWaitForResponse(
+		action: DrawioAction | TCustomAction
+	): Promise<DrawioEvent | TCustomEvent> {
 		return new Promise((resolve, reject) => {
 			const actionId = (this.currentActionId++).toString();
-			if (expectResponse) {
-				this.responseHandlers.set(actionId, {
-					resolve: (response) => {
-						this.responseHandlers.delete(actionId);
-						resolve(response);
-					},
-					reject,
-				});
-			}
+
+			this.responseHandlers.set(actionId, {
+				resolve: (response) => {
+					this.responseHandlers.delete(actionId);
+					resolve(response);
+				},
+				reject,
+			});
+
 			this.messageStream.sendMessage(
 				JSON.stringify(Object.assign(action, { actionId }))
 			);
-			if (!expectResponse) {
-				resolve();
-			}
 		});
 	}
 
 	protected async handleEvent(evt: { event: string }): Promise<void> {
 		const drawioEvt = evt as DrawioEvent;
-		if (drawioEvt.event === "init") {
-			this.onInitEmitter.emit();
-		} else if (drawioEvt.event === "autosave") {
-			const newXml = drawioEvt.xml;
-			const oldXml = this.currentXml;
-			this.currentXml = newXml;
-
-			this.onChangeEmitter.emit({ newXml, oldXml });
-		} else if (drawioEvt.event === "save") {
-			this.onSaveEmitter.emit();
-		} else if (drawioEvt.event === "export") {
-			if (!("message" in drawioEvt)) {
-				// sometimes, message is not included :(
-				const vals = [...this.responseHandlers.values()];
-				this.responseHandlers.clear();
-				if (vals.length !== 1) {
-					for (const val of vals) {
-						val.reject();
-					}
-				} else {
-					vals[0].resolve(drawioEvt);
-				}
-			}
-			// do nothing
-		} else if (drawioEvt.event === "configure") {
-			const config = await this.getConfig();
-			this.sendAction({
-				action: "configure",
-				config,
-			});
-		} else {
-			this.onUnknownMessageEmitter.emit({ message: drawioEvt });
-		}
 
 		if ("message" in drawioEvt) {
 			const actionId = (drawioEvt.message as any).actionId as
@@ -114,14 +96,44 @@ export class DrawioInstance {
 					responseHandler.resolve(drawioEvt);
 				}
 			}
+		} else if (drawioEvt.event === "init") {
+			this.onInitEmitter.emit();
+		} else if (drawioEvt.event === "autosave") {
+			const newXml = drawioEvt.xml;
+			const oldXml = this.currentXml;
+			this.currentXml = newXml;
+
+			this.onChangeEmitter.emit({ newXml, oldXml });
+		} else if (drawioEvt.event === "save") {
+			this.onSaveEmitter.emit();
+		} else if (drawioEvt.event === "export") {
+			// sometimes, message is not included :(
+			// this is a hack to find the request to resolve
+			const vals = [...this.responseHandlers.values()];
+			this.responseHandlers.clear();
+			if (vals.length !== 1) {
+				for (const val of vals) {
+					val.reject();
+				}
+			} else {
+				vals[0].resolve(drawioEvt);
+			}
+		} else if (drawioEvt.event === "configure") {
+			const config = await this.getConfig();
+			this.sendAction({
+				action: "configure",
+				config,
+			});
+		} else {
+			this.onUnknownMessageEmitter.emit({ message: drawioEvt });
 		}
 	}
 
 	public async mergeXmlLike(xmlLike: string): Promise<void> {
-		const evt = await this.sendAction(
-			{ action: "merge", xml: xmlLike },
-			true
-		);
+		const evt = await this.sendActionWaitForResponse({
+			action: "merge",
+			xml: xmlLike,
+		});
 
 		if (evt.event !== "merge") {
 			throw new Error("Invalid response");
@@ -183,13 +195,10 @@ export class DrawioInstance {
 
 	public async getXml(): Promise<string> {
 		if (!this.currentXml) {
-			const response = await this.sendAction(
-				{
-					action: "export",
-					format: "xml",
-				},
-				true
-			);
+			const response = await this.sendActionWaitForResponse({
+				action: "export",
+				format: "xml",
+			});
 			if (response.event !== "export") {
 				throw new Error("Unexpected response");
 			}
@@ -204,13 +213,10 @@ export class DrawioInstance {
 	}
 
 	public async exportAsPngWithEmbeddedXml(): Promise<Buffer> {
-		const response = await this.sendAction(
-			{
-				action: "export",
-				format: "xmlpng",
-			},
-			true
-		);
+		const response = await this.sendActionWaitForResponse({
+			action: "export",
+			format: "xmlpng",
+		});
 		if (response.event !== "export") {
 			throw new Error("Unexpected response");
 		}
@@ -223,13 +229,10 @@ export class DrawioInstance {
 	}
 
 	public async exportAsSvgWithEmbeddedXml(): Promise<Buffer> {
-		const response = await this.sendAction(
-			{
-				action: "export",
-				format: "xmlsvg",
-			},
-			true
-		);
+		const response = await this.sendActionWaitForResponse({
+			action: "export",
+			format: "xmlsvg",
+		});
 		if (response.event !== "export") {
 			throw new Error("Unexpected response");
 		}
@@ -274,7 +277,7 @@ type DrawioEvent =
 			data: string;
 			format: DrawioFormat;
 			xml: string;
-			message: DrawioEvent;
+			message?: DrawioEvent;
 	  }
 	| {
 			event: "configure";
@@ -462,7 +465,10 @@ export interface DrawioResource {
 
 export type DrawioFormat = "html" | "xmlpng" | "png" | "xml" | "xmlsvg";
 
-export class CustomDrawioInstance extends DrawioInstance {
+export class CustomDrawioInstance extends DrawioInstance<
+	CustomDrawioAction,
+	CustomDrawioEvent
+> {
 	private readonly onNodeSelectedEmitter = new EventEmitter<{
 		label: string;
 		linkedData: unknown;
@@ -470,18 +476,42 @@ export class CustomDrawioInstance extends DrawioInstance {
 	public readonly onNodeSelected = this.onNodeSelectedEmitter.asEvent();
 
 	public linkSelectedNodeWithData(linkedData: unknown) {
-		this.sendUnknownAction({
+		this.sendCustomAction({
 			action: "linkSelectedNodeWithData",
-			linkedData: linkedData,
-		} as any);
+			linkedData,
+		});
 	}
 
-	protected async handleEvent(evt: { event: string }): Promise<void> {
+	public async getVertices(): Promise<{ id: string; label: string }[]> {
+		const response = await this.sendCustomActionExpectResponse({
+			action: "getVertices",
+		});
+		if (response.event !== "getVertices") {
+			throw new Error("Invalid Response");
+		}
+
+		return response.vertices;
+	}
+
+	public updateVertices(verticesToUpdate: { id: string; label: string }[]) {
+		this.sendCustomAction({
+			action: "updateVertices",
+			verticesToUpdate,
+		});
+	}
+
+	public addVertices(vertices: { label: string }[]) {
+		this.sendCustomAction({
+			action: "addVertices",
+			vertices,
+		});
+	}
+
+	protected async handleEvent(evt: CustomDrawioEvent): Promise<void> {
 		if (evt.event === "nodeSelected") {
-			const e = evt as { event: string; linkedData: any; label: string };
 			this.onNodeSelectedEmitter.emit({
-				label: e.label,
-				linkedData: e.linkedData,
+				label: evt.label,
+				linkedData: evt.linkedData,
 			});
 		} else {
 			await super.handleEvent(evt);
