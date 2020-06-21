@@ -8,6 +8,7 @@ import { DrawioEditorManager } from "./DrawioEditorManager";
 import { MobxConsoleLogger } from "@knuddels/mobx-logger";
 import * as mobx from "mobx";
 import { LinkCodeWithSelectedNodeService } from "./LinkCodeWithSelectedNodeService";
+import { EditDiagramAsTextService } from "./EditDiagramsAsTextService";
 
 if (process.env.DEV === "1") {
 	new MobxConsoleLogger(mobx);
@@ -23,6 +24,9 @@ export class Extension {
 	private readonly config = new Config();
 	private readonly linkCodeWithSelectedNodeService = this.dispose.track(
 		new LinkCodeWithSelectedNodeService(this.editorManager, this.config)
+	);
+	private readonly editDiagramsAsTextService = this.dispose.track(
+		new EditDiagramAsTextService(this.editorManager, this.config)
 	);
 	private readonly drawioWebviewInitializer = new DrawioWebviewInitializer(
 		this.config,

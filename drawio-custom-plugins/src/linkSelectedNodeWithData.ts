@@ -13,7 +13,7 @@ declare const mxUtils: {
 	createXmlDocument(): XMLDocument;
 };
 
-function sendEvent(data: any) {
+function sendEvent(data: CustomDrawioEvent) {
 	window.opener.postMessage(JSON.stringify(data), "*");
 }
 
@@ -92,18 +92,89 @@ Draw.loadPlugin(function (ui: any) {
 	}
 
 	window.addEventListener("message", (evt) => {
-		const data = JSON.parse(evt.data);
-		if (data.action === "linkSelectedNodeWithData") {
-			if (activeCell !== undefined) {
-				log("Set linkedData to " + data.linkedData);
-				setLinkedData(activeCell, data.linkedData);
-				highlight.highlight(graph.view.getState(activeCell));
-				setTimeout(() => {
-					highlight.highlight(null);
-				}, 500);
-			}
-			evt.preventDefault();
+		if (evt.source !== window.opener) {
+			return;
 		}
+
+		console.log(evt);
+		const data = JSON.parse(evt.data) as CustomDrawioAction;
+
+		switch (data.action) {
+			case "linkSelectedNodeWithData": {
+				if (activeCell !== undefined) {
+					log("Set linkedData to " + data.linkedData);
+					setLinkedData(activeCell, data.linkedData);
+					highlight.highlight(graph.view.getState(activeCell));
+					setTimeout(() => {
+						highlight.highlight(null);
+					}, 500);
+				}
+				break;
+			}
+			case "getVertices": {
+				const vertices = Object.values(graph.model.cells)
+					.filter((c) => graph.model.isVertex(c))
+					.map((c: any) => ({ id: c.id, label: graph.getLabel(c) }));
+				sendEvent({
+					event: "getVertices",
+					message: data,
+					vertices: vertices,
+				});
+				break;
+			}
+			case "updateVertices": {
+				const vertices = data.verticesToUpdate;
+
+				graph.model.beginUpdate();
+				try {
+					for (const v of vertices) {
+						const c = graph.model.cells[v.id];
+						if (!c) {
+							log(`Unknown cell "${v.id}"!`);
+							continue;
+						}
+						if (graph.getLabel(c) !== v.label) {
+							graph.model.setValue(c, v.label);
+						}
+					}
+				} finally {
+					graph.model.endUpdate();
+				}
+				break;
+			}
+			case "addVertices": {
+				// why is this called twice?
+				log("add vertices is being called");
+				const vertices = data.vertices;
+
+				graph.model.beginUpdate();
+				try {
+					let i = 0;
+					for (const v of vertices) {
+						graph.insertVertex(
+							undefined,
+							null,
+							v.label,
+							i * 120,
+							0,
+							100,
+							50,
+							"rectangle"
+						);
+						i++;
+					}
+				} finally {
+					graph.model.endUpdate();
+				}
+				break;
+			}
+			default: {
+				return;
+			}
+		}
+
+		evt.preventDefault();
+		evt.stopPropagation();
 	});
 
 	(window as any).hediet_DbgUi = ui;

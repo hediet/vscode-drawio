@@ -12,7 +12,7 @@ import {
 	workspace,
 	commands,
 } from "vscode";
-import { DrawioInstance, DrawioDocumentChange } from "./DrawioInstance";
+import { DrawioDocumentChange, CustomDrawioInstance } from "./DrawioInstance";
 import { extname } from "path";
 import { DrawioWebviewInitializer } from "./DrawioAppServer";
 import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
@@ -106,9 +106,9 @@ export class DrawioDocument implements CustomDocument {
 	private readonly onInstanceSaveEmitter = new EventEmitter<void>();
 	public readonly onInstanceSave = this.onInstanceSaveEmitter.event;
 
-	private _drawio: DrawioInstance | undefined;
+	private _drawio: CustomDrawioInstance | undefined;
 
-	private get drawio(): DrawioInstance {
+	private get drawio(): CustomDrawioInstance {
 		return this._drawio!;
 	}
 
@@ -122,7 +122,7 @@ export class DrawioDocument implements CustomDocument {
 		public readonly backupId: string | undefined
 	) {}
 
-	public setDrawioInstance(instance: DrawioInstance): void {
+	public setDrawioInstance(instance: CustomDrawioInstance): void {
 		if (this._drawio) {
 			throw new Error("Instance already set!");
 		}

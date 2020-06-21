@@ -68,8 +68,7 @@ export class DrawioWebviewInitializer {
 
 		drawioInstance.onUnknownMessage.sub(({ message }) => {
 			if (message.event === "updateLocalStorage") {
-				const newLocalStorage: Record<string, string> = (message as any)
-					.newLocalStorage;
+				const newLocalStorage = message.newLocalStorage;
 				config.setLocalStorage(newLocalStorage);
 			}
 		});
