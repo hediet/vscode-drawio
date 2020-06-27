@@ -1,14 +1,30 @@
-import { workspace, Uri, env } from "vscode";
-import { computed } from "mobx";
-import * as vscode from "vscode";
+import { workspace, Uri, env, commands, window, ColorThemeKind } from "vscode";
+import { computed, autorun } from "mobx";
 import { DrawioLibraryData } from "./DrawioInstance";
 import { VsCodeSetting, serializerWithDefault } from "./utils/VsCodeSetting";
 import { mapObject } from "./utils/mapObject";
 import { SimpleTemplate } from "./utils/SimpleTemplate";
 
 const extensionId = "hediet.vscode-drawio";
+const experimentalFeaturesEnabled = "vscode-drawio.experimentalFeaturesEnabled";
+
+export async function setContext(
+	key: string,
+	value: string | boolean
+): Promise<void> {
+	return (await commands.executeCommand("setContext", key, value)) as any;
+}
 
 export class Config {
+	constructor() {
+		autorun(() => {
+			setContext(
+				experimentalFeaturesEnabled,
+				this.experimentalFeaturesEnabled
+			);
+		});
+	}
+
 	public getConfig(uri: Uri): DiagramConfig {
 		return new DiagramConfig(uri);
 	}
@@ -26,10 +42,35 @@ export class Config {
 }
 
 export class DiagramConfig {
+	// #region Theme
+
 	private readonly _theme = new VsCodeSetting(`${extensionId}.theme`, {
 		scope: this.uri,
 		serializer: serializerWithDefault("automatic"),
 	});
+
+	@computed
+	public get theme(): string {
+		const theme = this._theme.get();
+
+		if (theme !== "automatic") {
+			return theme;
+		}
+
+		return {
+			[ColorThemeKind.Light]: "Kennedy",
+			[ColorThemeKind.Dark]: "dark",
+			[ColorThemeKind.HighContrast]: "Kennedy",
+		}[window.activeColorTheme.kind];
+	}
+
+	public async setTheme(value: string): Promise<void> {
+		await this._theme.set(value);
+	}
+
+	// #endregion
+
+	// #region Mode
 
 	private readonly _useOfflineMode = new VsCodeSetting(
 		`${extensionId}.offline`,
@@ -46,6 +87,39 @@ export class DiagramConfig {
 			serializer: serializerWithDefault("https://draw.io"),
 		}
 	);
+
+	@computed
+	public get mode(): { kind: "offline" } | { kind: "online"; url: string } {
+		if (this._useOfflineMode.get()) {
+			return { kind: "offline" };
+		} else {
+			return { kind: "online", url: this._onlineUrl.get() };
+		}
+	}
+
+	// #endregion
+
+	// #region Code Link Activated
+
+	private readonly _codeLinkActivated = new VsCodeSetting(
+		`${extensionId}.codeLinkActivated`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault(false),
+		}
+	);
+
+	public get codeLinkActivated(): boolean {
+		return this._codeLinkActivated.get();
+	}
+
+	public setCodeLinkActivated(value: boolean): Promise<void> {
+		return this._codeLinkActivated.set(value);
+	}
+
+	// #endregion
+
+	// #region Local Storage
 
 	private readonly _localStorage = new VsCodeSetting<Record<string, string>>(
 		`${extensionId}.local-storage`,
@@ -98,53 +172,6 @@ export class DiagramConfig {
 		}
 	);
 
-	private readonly _customLibraries = new VsCodeSetting<
-		DrawioCustomLibrary[]
-	>(`${extensionId}.customLibraries`, {
-		scope: this.uri,
-		serializer: serializerWithDefault<any[]>([]),
-	});
-
-	private readonly _customFonts = new VsCodeSetting<string[]>(
-		`${extensionId}.customFonts`,
-		{
-			scope: this.uri,
-			serializer: serializerWithDefault<string[]>([]),
-		}
-	);
-
-	constructor(public readonly uri: Uri) {}
-
-	@computed
-	public get mode(): { kind: "offline" } | { kind: "online"; url: string } {
-		if (this._useOfflineMode.get()) {
-			return { kind: "offline" };
-		} else {
-			return { kind: "online", url: this._onlineUrl.get() };
-		}
-	}
-
-	@computed
-	public get theme(): string {
-		const theme = this._theme.get();
-
-		if (theme !== "automatic") {
-			return theme;
-		}
-
-		try {
-			const ctk = (vscode as any).ColorThemeKind;
-			return {
-				[ctk.Light]: "Kennedy",
-				[ctk.Dark]: "dark",
-				[ctk.HighContrast]: "Kennedy",
-			}[(vscode as any).window.activeColorTheme.kind];
-		} catch (e) {
-			// window.activeColorTheme is only supported since VS Code 1.45.
-		}
-		return "dark";
-	}
-
 	public get localStorage(): Record<string, string> {
 		return this._localStorage.get();
 	}
@@ -152,6 +179,17 @@ export class DiagramConfig {
 	public setLocalStorage(value: Record<string, string>): void {
 		this._localStorage.set(value);
 	}
+
+	//#endregion
+
+	// #region Custom Libraries
+
+	private readonly _customLibraries = new VsCodeSetting<
+		DrawioCustomLibrary[]
+	>(`${extensionId}.customLibraries`, {
+		scope: this.uri,
+		serializer: serializerWithDefault<any[]>([]),
+	});
 
 	@computed
 	public get customLibraries(): Promise<DrawioLibraryData[]> {
@@ -222,10 +260,26 @@ export class DiagramConfig {
 		});
 	}
 
+	// #endregion
+
+	// #region Custom Fonts
+
+	private readonly _customFonts = new VsCodeSetting<string[]>(
+		`${extensionId}.customFonts`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<string[]>([]),
+		}
+	);
+
 	@computed
 	public get customFonts(): string[] {
 		return this._customFonts.get();
 	}
+
+	// #endregion
+
+	constructor(public readonly uri: Uri) {}
 
 	@computed
 	public get language(): string {

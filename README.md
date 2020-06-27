@@ -32,6 +32,25 @@ The logo of this extension is such a `.drawio.png` file that has been created wi
 
 If diffs are important for you, you should prefer `.drawio` and avoid `.drawio.png` diagrams.
 
+## Code Link Feature
+
+In the status bar, you can enable or disable the code link feature.
+If it is enabled and you double click on a node whose label starts with `#`,
+you will perform a workspace search for a symbol matching the rest of the label.
+
+If you have a node labeled `#MyClass` and a class of name `MyClass`, you will jump to its source if you double click the node!
+
+**Pleaes note that you have to open at least one file of the project that contains the symbol.**
+Otherwise, VS Code will not consider this project when searching for symbols.
+This file itself does not have to contain the symbol though.
+
+Thanks to my latest github sponsors, this feature is open source and freely available now.
+
+_TIP_: If you open the draw.io editor to the left side (i.e. the second editor column) and navigate to a symbol,
+the diagram will stay visible.
+
+![](./docs/demo-code-link.gif)
+
 ## Settings
 
 This extension contributes the following settings:

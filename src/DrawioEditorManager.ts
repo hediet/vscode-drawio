@@ -6,10 +6,15 @@ import {
 	Uri,
 	ThemeColor,
 } from "vscode";
-import { CustomDrawioInstance } from "./DrawioInstance";
+import {
+	CustomDrawioInstance,
+	DrawioConfig,
+	DrawioInstance,
+} from "./DrawioInstance";
 import { DrawioDocument } from "./DrawioEditorProviderBinary";
 import { EventEmitter } from "@hediet/std/events";
 import { computed, observable, autorun, ObservableSet } from "mobx";
+import { DiagramConfig, Config } from "./Config";
 
 export class DrawioEditorManager {
 	private readonly onEditorOpenedEmitter = new EventEmitter<{
@@ -29,7 +34,7 @@ export class DrawioEditorManager {
 		return this._lastActiveDrawioEditor;
 	}
 
-	constructor() {
+	constructor(private readonly config: Config) {
 		autorun(() => {
 			const a = this.activeDrawioEditor;
 			if (a) {
@@ -38,26 +43,47 @@ export class DrawioEditorManager {
 		});
 	}
 
-	register(editor: DrawioEditor): void {
+	public createDrawioEditor(
+		webviewPanel: WebviewPanel,
+		instance: CustomDrawioInstance,
+		document:
+			| { kind: "text"; document: TextDocument }
+			| { kind: "drawio"; document: DrawioDocument }
+	): DrawioEditor {
+		const config = this.config.getConfig(document.document.uri);
+		const editor = new DrawioEditor(
+			PrivateSymbol,
+			webviewPanel,
+			instance,
+			document,
+			config
+		);
+
 		this.openedEditors.add(editor);
 		this.onEditorOpenedEmitter.emit({ editor });
 
 		editor.webviewPanel.onDidDispose(() => {
 			this.openedEditors.delete(editor);
 		});
+
+		return editor;
 	}
 }
+
+const PrivateSymbol = Symbol();
 
 export class DrawioEditor {
 	@observable
 	private _isActive = false;
 
 	constructor(
+		_constructorGuard: typeof PrivateSymbol,
 		public readonly webviewPanel: WebviewPanel,
 		public readonly instance: CustomDrawioInstance,
 		public readonly document:
 			| { kind: "text"; document: TextDocument }
-			| { kind: "drawio"; document: DrawioDocument }
+			| { kind: "drawio"; document: DrawioDocument },
+		public readonly config: DiagramConfig
 	) {
 		this._isActive = webviewPanel.active;
 		webviewPanel.onDidChangeViewState(() => {

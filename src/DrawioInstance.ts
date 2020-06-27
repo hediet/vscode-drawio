@@ -475,6 +475,9 @@ export class CustomDrawioInstance extends DrawioInstance<
 	}>();
 	public readonly onNodeSelected = this.onNodeSelectedEmitter.asEvent();
 
+	private readonly onCustomPluginLoadedEmitter = new EventEmitter();
+	public readonly onCustomPluginLoaded = this.onCustomPluginLoadedEmitter.asEvent();
+
 	public linkSelectedNodeWithData(linkedData: unknown) {
 		this.sendCustomAction({
 			action: "linkSelectedNodeWithData",
@@ -491,6 +494,13 @@ export class CustomDrawioInstance extends DrawioInstance<
 		}
 
 		return response.vertices;
+	}
+
+	public setNodeSelectionEnabled(enabled: boolean): void {
+		this.sendCustomAction({
+			action: "setNodeSelectionEnabled",
+			enabled,
+		});
 	}
 
 	public updateVertices(verticesToUpdate: { id: string; label: string }[]) {
@@ -513,6 +523,8 @@ export class CustomDrawioInstance extends DrawioInstance<
 				label: evt.label,
 				linkedData: evt.linkedData,
 			});
+		} else if (evt.event === "pluginLoaded") {
+			this.onCustomPluginLoadedEmitter.emit();
 		} else {
 			await super.handleEvent(evt);
 		}

@@ -13,21 +13,21 @@ import {
 	TextEditorDecorationType,
 	TextEditor,
 	SymbolInformation,
-	DocumentSymbol,
-	SymbolKind,
 } from "vscode";
 import { wait } from "@hediet/std/timer";
-import { DrawioEditorManager } from "./DrawioEditorManager";
-import { autorun, observable, action } from "mobx";
+import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
+import { autorun, action } from "mobx";
 import { Config } from "./Config";
+
+const toggleCodeLinkActivationCommandName =
+	"hediet.vscode-drawio.toggleCodeLinkActivation";
+const linkCodeWithSelectedNodeCommandName =
+	"hediet.vscode-drawio.linkCodeWithSelectedNode";
 
 export class LinkCodeWithSelectedNodeService {
 	public readonly dispose = Disposable.fn();
 
 	private readonly statusBar = window.createStatusBarItem();
-
-	@observable
-	private codeLinkEnabled = true;
 
 	private lastActiveTextEditor: TextEditor | undefined =
 		window.activeTextEditor;
@@ -36,30 +36,29 @@ export class LinkCodeWithSelectedNodeService {
 		private readonly editorManager: DrawioEditorManager,
 		private readonly config: Config
 	) {
-		if (!config.experimentalFeaturesEnabled) {
-			return;
-		}
-
 		this.dispose.track([
 			editorManager.onEditorOpened.sub(({ editor }) =>
-				this.handleDrawioInstance(editor.instance)
+				this.handleDrawioEditor(editor)
 			),
 			{
-				dispose: autorun(() => {
-					const activeEditor = editorManager.activeDrawioEditor;
-					this.statusBar.command =
-						"hediet.vscode-drawio.toggleCodeLinkEnabled";
-					this.statusBar.text = `$(link) ${
-						this.codeLinkEnabled
-							? "$(circle-filled)"
-							: "$(circle-outline)"
-					} Code Link`;
-					if (activeEditor) {
-						this.statusBar.show();
-					} else {
-						this.statusBar.hide();
-					}
-				}),
+				dispose: autorun(
+					() => {
+						const activeEditor = editorManager.activeDrawioEditor;
+						this.statusBar.command = toggleCodeLinkActivationCommandName;
+
+						if (activeEditor) {
+							this.statusBar.text = `$(link) ${
+								activeEditor.config.codeLinkActivated
+									? "$(circle-filled)"
+									: "$(circle-outline)"
+							} Code Link`;
+							this.statusBar.show();
+						} else {
+							this.statusBar.hide();
+						}
+					},
+					{ name: "Update UI" }
+				),
 			},
 			window.onDidChangeActiveTextEditor(() => {
 				if (window.activeTextEditor) {
@@ -67,23 +66,34 @@ export class LinkCodeWithSelectedNodeService {
 				}
 			}),
 			commands.registerCommand(
-				"hediet.vscode-drawio.linkCodeWithSelectedNode",
+				linkCodeWithSelectedNodeCommandName,
 				this.linkCodeWithSelectedNode
 			),
 			commands.registerCommand(
-				"hediet.vscode-drawio.toggleCodeLinkEnabled",
+				toggleCodeLinkActivationCommandName,
 				this.toggleCodeClinkEnabled
 			),
 		]);
 	}
 
 	@action.bound
-	private toggleCodeClinkEnabled() {
-		this.codeLinkEnabled = !this.codeLinkEnabled;
+	private async toggleCodeClinkEnabled() {
+		const activeEditor = this.editorManager.activeDrawioEditor;
+		if (!activeEditor) {
+			return;
+		}
+		await activeEditor.config.setCodeLinkActivated(
+			!activeEditor.config.codeLinkActivated
+		);
 	}
 
 	@action.bound
 	private linkCodeWithSelectedNode(): void {
+		if (!this.config.experimentalFeaturesEnabled) {
+			window.showErrorMessage("Feature not enabled.");
+			return;
+		}
+
 		const lastActiveDrawioEditor = this.editorManager
 			.lastActiveDrawioEditor;
 		if (!lastActiveDrawioEditor) {
@@ -109,9 +119,24 @@ export class LinkCodeWithSelectedNodeService {
 		this.revealSelection(pos);
 	}
 
-	private handleDrawioInstance(drawioInstance: CustomDrawioInstance): void {
+	private handleDrawioEditor(editor: DrawioEditor): void {
+		const drawioInstance = editor.instance;
+
+		drawioInstance.onCustomPluginLoaded.sub(() => {
+			drawioInstance.dispose.track({
+				dispose: autorun(
+					() => {
+						drawioInstance.setNodeSelectionEnabled(
+							editor.config.codeLinkActivated
+						);
+					},
+					{ name: "Send codeLinkActivated to drawio instance" }
+				),
+			});
+		});
+
 		drawioInstance.onNodeSelected.sub(async ({ linkedData, label }) => {
-			if (!this.codeLinkEnabled) {
+			if (!editor.config.codeLinkActivated) {
 				return;
 			}
 
@@ -119,58 +144,51 @@ export class LinkCodeWithSelectedNodeService {
 				const pos = CodePosition.deserialize(linkedData);
 				await this.revealSelection(pos);
 			} else if (label.startsWith("#")) {
-				const match = label.match(/#([a-zA-Z0-9_]+)/);
+				const match = label.match(/^#([a-zA-Z0-9_]+)/);
 				if (match) {
 					const symbolName = match[1];
 					const result = (await commands.executeCommand(
 						"vscode.executeWorkspaceSymbolProvider",
 						symbolName
 					)) as SymbolInformation[];
-					result.sort(
-						getSorterBy((i) => {
-							let score = 0;
-							if (i.name === symbolName) {
-								score += 100;
-							}
-							if (
-								i.name.toLowerCase() ===
-								symbolName.toLowerCase()
-							) {
-								score += 20;
-							}
+					const filtered = result
+						.filter((r) => r.name === symbolName)
+						.sort(
+							getSorterBy((matchedSymbol) => {
+								let score = 0;
 
-							const uriAsString = i.location.uri.toString();
-							/*if (
-								this.lastActiveTextEditor &&
-								uriAsString ===
-									this.lastActiveTextEditor.document.uri.toString()
-							) {
-								score += 2;
-							}*/
+								const uriAsString = matchedSymbol.location.uri.toString();
 
-							const idx = window.visibleTextEditors.findIndex(
-								(e) => e.document.uri.toString() === uriAsString
-							);
-							if (idx !== -1) {
-								score +=
-									(window.visibleTextEditors.length - idx) /
-									window.visibleTextEditors.length;
-							}
+								const idx = window.visibleTextEditors.findIndex(
+									(e) =>
+										e.document.uri.toString() ===
+										uriAsString
+								);
+								if (idx !== -1) {
+									score +=
+										(window.visibleTextEditors.length -
+											idx) /
+										window.visibleTextEditors.length;
+								}
 
-							if (i.containerName === "") {
-								score += 10;
-							}
-							return score;
-						})
-					);
+								if (matchedSymbol.containerName === "") {
+									score += 10;
+								}
+								return score;
+							})
+						);
 
-					const symbolInfo = result[0];
+					const symbolInfo = filtered[0];
 					if (symbolInfo) {
 						const pos = new CodePosition(
 							symbolInfo.location.uri,
 							symbolInfo.location.range
 						);
 						await this.revealSelection(pos);
+					} else {
+						window.showErrorMessage(
+							`No symbol found with name "${symbolName}". Maybe you need to load the project by opening at least one of its code files?`
+						);
 					}
 				}
 			}

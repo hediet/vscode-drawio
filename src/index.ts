@@ -7,7 +7,7 @@ import { DrawioWebviewInitializer } from "./DrawioAppServer";
 import { DrawioEditorManager } from "./DrawioEditorManager";
 import { MobxConsoleLogger } from "@knuddels/mobx-logger";
 import * as mobx from "mobx";
-import { LinkCodeWithSelectedNodeService } from "./LinkCodeWithSelectedNodeService";
+import { LinkCodeWithSelectedNodeService } from "./CodeLinkFeature";
 import { EditDiagramAsTextService } from "./EditDiagramsAsTextService";
 
 if (process.env.DEV === "1") {
@@ -19,9 +19,9 @@ export class Extension {
 	private readonly log = this.dispose.track(
 		vscode.window.createOutputChannel("Drawio Integration Log")
 	);
-	private readonly editorManager = new DrawioEditorManager();
 
 	private readonly config = new Config();
+	private readonly editorManager = new DrawioEditorManager(this.config);
 	private readonly linkCodeWithSelectedNodeService = this.dispose.track(
 		new LinkCodeWithSelectedNodeService(this.editorManager, this.config)
 	);
@@ -61,8 +61,63 @@ export class Extension {
 
 		this.dispose.track(
 			vscode.commands.registerCommand(
+				"hediet.vscode-drawio.changeTheme",
+				async () => {
+					const activeDrawioEditor = this.editorManager
+						.activeDrawioEditor;
+					if (!activeDrawioEditor) {
+						return;
+					}
+
+					let availableThemes = [
+						"automatic",
+						"min",
+						"atlas",
+						"dark",
+						"Kennedy",
+					];
+
+					const originalTheme = activeDrawioEditor.config.theme;
+					availableThemes = availableThemes.filter(
+						(t) => t !== originalTheme
+					);
+					availableThemes.unshift(originalTheme);
+
+					const result = await vscode.window.showQuickPick(
+						availableThemes.map((theme) => ({
+							label: theme,
+							description: `Selects Theme "${theme}"`,
+							theme,
+						})),
+						{
+							onDidSelectItem: async (item) => {
+								await activeDrawioEditor.config.setTheme(
+									(item as any).theme
+								);
+							},
+						}
+					);
+
+					if (!result) {
+						await activeDrawioEditor.config.setTheme(originalTheme);
+						return;
+					}
+
+					await activeDrawioEditor.config.setTheme(result.theme);
+				}
+			)
+		);
+
+		this.dispose.track(
+			vscode.commands.registerCommand(
 				"hediet.vscode-drawio.convert",
 				async () => {
+					const activeDrawioEditor = this.editorManager
+						.activeDrawioEditor;
+					if (!activeDrawioEditor) {
+						return;
+					}
+
 					// TODO remove the current format from the selection
 					const result = await vscode.window.showQuickPick([
 						{
@@ -86,12 +141,6 @@ export class Extension {
 					if (!result) {
 						return;
 					}
-
-					const activeDrawioEditor = this.editorManager
-						.activeDrawioEditor;
-					if (!activeDrawioEditor) {
-						return;
-					}
 					await activeDrawioEditor.convertTo(result.label);
 				}
 			)
@@ -101,6 +150,12 @@ export class Extension {
 			vscode.commands.registerCommand(
 				"hediet.vscode-drawio.export",
 				async () => {
+					const activeDrawioEditor = this.editorManager
+						.activeDrawioEditor;
+					if (!activeDrawioEditor) {
+						return;
+					}
+
 					// TODO remove the current format from the selection
 					const result = await vscode.window.showQuickPick([
 						{
@@ -118,12 +173,6 @@ export class Extension {
 					]);
 
 					if (!result) {
-						return;
-					}
-
-					const activeDrawioEditor = this.editorManager
-						.activeDrawioEditor;
-					if (!activeDrawioEditor) {
 						return;
 					}
 					await activeDrawioEditor.exportTo(result.label);

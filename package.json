@@ -71,18 +71,27 @@
 				"title": "Draw.io: Export To..."
 			},
 			{
-				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
-				"title": "Draw.io: Link Code with Selected Node"
+				"command": "hediet.vscode-drawio.toggleCodeLinkActivation",
+				"title": "Draw.io: Toggle Code Link Activation"
+			},
+			{
+				"command": "hediet.vscode-drawio.changeTheme",
+				"title": "Draw.io: Change Theme"
 			},
 			{
 				"command": "hediet.vscode-drawio.editDiagramAsText",
-				"title": "Draw.io: Edit Diagram As Text"
+				"title": "Draw.io: Edit Diagram As Text (Experimental)"
+			},
+			{
+				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
+				"title": "Draw.io: Link Code with Selected Node (Experimental)"
 			}
 		],
 		"keybindings": [
 			{
 				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
-				"key": "shift+F3"
+				"key": "shift+F3",
+				"when": "hediet.vscode-drawio.experimentalFeaturesEnabled"
 			}
 		],
 		"configuration": {
@@ -93,6 +102,12 @@
 					"default": true,
 					"title": "Use Offline Mode",
 					"description": "When enabled, the bundled instance of Draw.io is used."
+				},
+				"hediet.vscode-drawio.codeLinkActivated": {
+					"type": "boolean",
+					"default": false,
+					"title": "Code Link Enabled",
+					"description": "When activated, selecting a node will navigate to an associated code section."
 				},
 				"hediet.vscode-drawio.local-storage": {
 					"anyOf": [

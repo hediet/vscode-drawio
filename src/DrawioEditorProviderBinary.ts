@@ -89,11 +89,13 @@ export class DrawioEditorProviderBinary
 			webviewPanel.webview,
 			{ isReadOnly: false }
 		);
-		this.drawioEditorManager.register(
-			new DrawioEditor(webviewPanel, drawioInstance, {
+		this.drawioEditorManager.createDrawioEditor(
+			webviewPanel,
+			drawioInstance,
+			{
 				kind: "drawio",
 				document,
-			})
+			}
 		);
 		document.setDrawioInstance(drawioInstance);
 	}

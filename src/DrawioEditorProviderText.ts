@@ -32,11 +32,13 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 			webviewPanel.webview,
 			{ isReadOnly }
 		);
-		this.drawioEditorManager.register(
-			new DrawioEditor(webviewPanel, drawioInstance, {
+		this.drawioEditorManager.createDrawioEditor(
+			webviewPanel,
+			drawioInstance,
+			{
 				kind: "text",
 				document,
-			})
+			}
 		);
 
 		interface NormalizedDocument {

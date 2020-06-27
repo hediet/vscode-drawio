@@ -1,6 +1,5 @@
-/** Test */
-// drawio
-class Foo {
+
+class Foo extends Baz {
     test: string;
 }
 

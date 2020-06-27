@@ -1,6 +1,11 @@
 
-declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | GetVerticesAction | LinkSelectedNodeWithDataAction;
-declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent | UpdateLocalStorage;
+declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | GetVerticesAction | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction;
+declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent | UpdateLocalStorage | PluginLoaded;
+
+declare interface NodeSelectionEnabledAction {
+    action: "setNodeSelectionEnabled";
+    enabled: boolean;
+}
 
 declare interface UpdateVerticesAction {
     action: "updateVertices",
@@ -38,3 +43,6 @@ declare interface UpdateLocalStorage {
     newLocalStorage: Record<string, string>;
 }
 
+declare interface PluginLoaded {
+    event: "pluginLoaded";
+}

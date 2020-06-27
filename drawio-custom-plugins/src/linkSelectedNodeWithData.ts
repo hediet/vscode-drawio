@@ -18,13 +18,39 @@ function sendEvent(data: CustomDrawioEvent) {
 }
 
 Draw.loadPlugin(function (ui: any) {
-	log("Registering Node Data Linker Plugin");
+	sendEvent({ event: "pluginLoaded" });
 
+	let interceptNodeClick = false;
 	const graph = ui.editor.graph;
 	const highlight = new mxCellHighlight(graph, "#00ff00", 8);
 
 	const model: { setStyle(cell: unknown, style: string): void } = graph.model;
 	let activeCell: { style: string } | undefined = undefined;
+
+	graph.addListener(mxEvent.DOUBLE_CLICK, function (sender: any, evt: any) {
+		if (!interceptNodeClick) {
+			return;
+		}
+
+		var cell: any | null = evt.getProperty("cell");
+		if (cell != null) {
+			const label = getLabelTextOfCell(cell);
+			if (!label.match(/^#([a-zA-Z0-9_]+)/)) {
+				return;
+			}
+
+			const data = getLinkedData(cell);
+			sendEvent({ event: "nodeSelected", label, linkedData: data });
+			evt.consume();
+		}
+	});
+
+	function getLabelTextOfCell(cell: any): string {
+		const labelHtml = graph.getLabel(cell) as string;
+		const el = document.createElement("html");
+		el.innerHTML = labelHtml; // label can be html
+		return el.innerText;
+	}
 
 	const selectionModel = graph.getSelectionModel();
 	selectionModel.addListener(mxEvent.CHANGE, (sender: any, evt: any) => {
@@ -34,10 +60,6 @@ Draw.loadPlugin(function (ui: any) {
 			const selectedCell = cells[0];
 			activeCell = selectedCell;
 			(window as any).hediet_Cell = selectedCell;
-
-			const label = graph.getLabel(selectedCell) as string;
-			const data = getLinkedData(selectedCell);
-			sendEvent({ event: "nodeSelected", label, linkedData: data });
 		} else {
 			activeCell = undefined;
 		}
@@ -100,6 +122,10 @@ Draw.loadPlugin(function (ui: any) {
 		const data = JSON.parse(evt.data) as CustomDrawioAction;
 
 		switch (data.action) {
+			case "setNodeSelectionEnabled": {
+				interceptNodeClick = data.enabled;
+				break;
+			}
 			case "linkSelectedNodeWithData": {
 				if (activeCell !== undefined) {
 					log("Set linkedData to " + data.linkedData);

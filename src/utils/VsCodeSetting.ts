@@ -80,6 +80,7 @@ class VsCodeSettingResource {
 	private subscription: Disposable | undefined;
 	private readonly resource = fromResource<any>(
 		(update) => {
+			update(this.readValue());
 			this.subscription = VsCodeSettingResource.onConfigChange.sub(() => {
 				update(this.readValue());
 			});
@@ -94,7 +95,10 @@ class VsCodeSettingResource {
 	) {}
 
 	private readValue(): any {
-		return workspace.getConfiguration(undefined, this.scope).get(this.id);
+		const val = workspace
+			.getConfiguration(undefined, this.scope)
+			.get(this.id);
+		return val;
 	}
 
 	/**
