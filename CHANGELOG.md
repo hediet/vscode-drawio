@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.2-alpha.6]
+## [0.7.2-alpha.7]
 
 ### Added
 
@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   "Draw.io: Change Theme" Command
 -   Experimental Manual Code Link Feature (disabled by default)
 -   Experimental Command "Edit Diagram as Text" (disabled by default)
+
+### Changed
+
+-   Uses `https://embed.diagrams.net/` as default URL when using the online mode.
 
 ## [0.7.1] - 2020-06-13
 

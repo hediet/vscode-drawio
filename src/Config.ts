@@ -84,7 +84,7 @@ export class DiagramConfig {
 		`${extensionId}.online-url`,
 		{
 			scope: this.uri,
-			serializer: serializerWithDefault("https://draw.io"),
+			serializer: serializerWithDefault("https://embed.diagrams.net/"),
 		}
 	);
 

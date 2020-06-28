@@ -186,7 +186,7 @@
 				},
 				"hediet.vscode-drawio.online-url": {
 					"type": "string",
-					"default": "https://www.draw.io/",
+					"default": "https://embed.diagrams.net/",
 					"title": "Online URL",
 					"description": "The app to use when offline mode is disabled."
 				},
