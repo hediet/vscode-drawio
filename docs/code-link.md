@@ -7,6 +7,8 @@ When code link is enabled (see the status bar) and you double click on a node or
 ![](./demo-code-link.gif)
 
 Disable Code Link or select a node and press F2 if you want to change the label.
+This feature works with any programming language that implements the VS Code workspace symbol search.
+In TypeScript, symbols are functions, classes, consts, interfaces, ...
 
 ## Link Screenshots with Symbols
 
