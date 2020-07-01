@@ -22,3 +22,7 @@ This feature can be used in many ways:
 -   for documentation
 -   for quick code navigation (like visual bookmarks)
 -   for diagram based code tours
+
+## Thank You
+
+Thank you to Draw.io for being so open and enabling this kind of stuff, thank you to all the Contributors of this extension and thank you so much for my Sponsors on Github that really motivate me implementing features like this!
