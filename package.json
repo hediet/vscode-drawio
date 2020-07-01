@@ -6,6 +6,14 @@
 	"version": "999.0.0-alpha",
 	"license": "GPL-3.0",
 	"publisher": "hediet",
+	"keywords": [
+		"drawio",
+		"diagram",
+		"visio",
+		"architecture",
+		"uml",
+		"code link"
+	],
 	"author": {
 		"email": "henning.dieterichs@live.de",
 		"name": "Henning Dieterichs"
