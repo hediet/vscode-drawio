@@ -46,7 +46,7 @@ This file itself does not have to contain the symbol though.
 
 Thanks to my latest github sponsors, this feature is open source and freely available now.
 
-_TIP_: If you open the draw.io editor to the left side (i.e. the second editor column) and navigate to a symbol,
+_TIP_: If you open the draw.io editor to the right side (i.e. the second editor column) and navigate to a symbol,
 the diagram will stay visible.
 
 ![](./docs/demo-code-link.gif)
