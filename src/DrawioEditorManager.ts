@@ -15,6 +15,7 @@ import { DrawioDocument } from "./DrawioEditorProviderBinary";
 import { EventEmitter } from "@hediet/std/events";
 import { computed, observable, autorun, ObservableSet } from "mobx";
 import { DiagramConfig, Config } from "./Config";
+import { basename, extname, dirname, join } from "path";
 
 export class DrawioEditorManager {
 	private readonly onEditorOpenedEmitter = new EventEmitter<{
@@ -75,6 +76,14 @@ const PrivateSymbol = Symbol();
 export class DrawioEditor {
 	@observable
 	private _isActive = false;
+	private readonly specialExtensions = new Array<string>(
+		".drawio",
+		".dio",
+		".drawio.svg",
+		".drawio.png",
+		".dio.svg",
+		".dio.png"
+	);
 
 	constructor(
 		_constructorGuard: typeof PrivateSymbol,
@@ -100,10 +109,25 @@ export class DrawioEditor {
 	}
 
 	/**
+	 * support `.drawio`, `.dio`, `.drawio.svg` `.drawio.png` and other exts
+	 *
 	 * @param newExtension Must start with a dot.
 	 */
 	public getUriWithExtension(newExtension: string): Uri {
-		const baseName = this.uri.path.split(".")[0];
+		const currentFilePath = this.uri.path;
+
+		// default using path.extname as oldExtension
+		let oldExtension = extname(currentFilePath);
+
+		// if current file is end with speical extension, use it
+		this.specialExtensions.forEach((ext) => {
+			currentFilePath.endsWith(ext) && (oldExtension = ext);
+		});
+
+		const baseName = join(
+			dirname(currentFilePath),
+			basename(currentFilePath, oldExtension)
+		);
 
 		return this.uri.with({
 			path: baseName + newExtension,
