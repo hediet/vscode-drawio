@@ -5,11 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.3-alpha.1]
+## [0.7.3-alpha.2]
+
+### Added
+
+-   Adds a status bar item to quickly change the current drawio theme.
+
+### Changed
+
+-   Updates drawio to 13.6.5.
+-   Code Link looks for `#symbol` references in the entire label, not just in the beginning.
+-   Hides the option to convert a drawio file format to itself.
 
 ### Fixed
 
-- Fixes export/convert output to wrong directory when filepath contains '.' . ([#117](https://github.com/hediet/vscode-drawio/pull/117),[@fatalc](https://github.com/fatalc))
+-   Fixes loss of data when changing theme in binary drawio editor with unsaved changes.
+-   Fixes export/convert output to wrong directory when filepath contains '.' . ([#117](https://github.com/hediet/vscode-drawio/pull/117),[@fatalc](https://github.com/fatalc))
 
 ## [0.7.2] - 2020-06-28
 
