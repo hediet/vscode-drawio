@@ -14,7 +14,7 @@ import {
 } from "vscode";
 import { DrawioDocumentChange, CustomDrawioInstance } from "./DrawioInstance";
 import { extname } from "path";
-import { DrawioWebviewInitializer } from "./DrawioAppServer";
+import { DrawioWebviewInitializer } from "./DrawioWebviewInitializer";
 import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
 
 export class DrawioEditorProviderBinary
@@ -84,7 +84,7 @@ export class DrawioEditorProviderBinary
 		webviewPanel: WebviewPanel,
 		token: CancellationToken
 	): Promise<void> {
-		const drawioInstance = await this.drawioWebviewInitializer.setupWebview(
+		const drawioInstance = await this.drawioWebviewInitializer.initializeWebview(
 			document.uri,
 			webviewPanel.webview,
 			{ isReadOnly: false }

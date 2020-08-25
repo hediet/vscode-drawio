@@ -9,7 +9,7 @@ import {
 	FileType,
 } from "vscode";
 import * as formatter from "xml-formatter";
-import { DrawioWebviewInitializer } from "./DrawioAppServer";
+import { DrawioWebviewInitializer } from "./DrawioWebviewInitializer";
 import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
 import { JSDOM } from "jsdom";
 
@@ -27,7 +27,7 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 		const readonlySchemes = new Set(["git", "conflictResolution"]);
 		const isReadOnly = readonlySchemes.has(document.uri.scheme);
 
-		const drawioInstance = await this.drawioWebviewInitializer.setupWebview(
+		const drawioInstance = await this.drawioWebviewInitializer.initializeWebview(
 			document.uri,
 			webviewPanel.webview,
 			{ isReadOnly }

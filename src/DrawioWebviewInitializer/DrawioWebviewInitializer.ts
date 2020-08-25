@@ -5,7 +5,7 @@ import {
 	DrawioLibraryData,
 } from "../DrawioInstance";
 import { Config, DiagramConfig } from "../Config";
-import html from "./vscode.html";
+import html from "./webview-content.html";
 import path = require("path");
 import { formatValue } from "../utils/formatValue";
 import { autorun, untracked } from "mobx";
@@ -16,7 +16,7 @@ export class DrawioWebviewInitializer {
 		private readonly log: OutputChannel
 	) {}
 
-	public async setupWebview(
+	public async initializeWebview(
 		uri: Uri,
 		webview: Webview,
 		options: DiagramOptions

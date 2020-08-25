@@ -3,7 +3,7 @@ import { Disposable } from "@hediet/std/disposable";
 import { DrawioEditorProviderBinary } from "./DrawioEditorProviderBinary";
 import { DrawioEditorProviderText } from "./DrawioEditorProviderText";
 import { Config } from "./Config";
-import { DrawioWebviewInitializer } from "./DrawioAppServer";
+import { DrawioWebviewInitializer } from "./DrawioWebviewInitializer";
 import { DrawioEditorManager } from "./DrawioEditorManager";
 import { MobxConsoleLogger } from "@knuddels/mobx-logger";
 import * as mobx from "mobx";
