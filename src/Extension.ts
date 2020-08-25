@@ -7,6 +7,9 @@ import { DrawioWebviewInitializer } from "./DrawioWebviewInitializer";
 import { DrawioEditorManager } from "./DrawioEditorManager";
 import { LinkCodeWithSelectedNodeService } from "./features/CodeLinkFeature";
 import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
+import { autorun } from "mobx";
+
+const drawioChangeThemeCommand = "hediet.vscode-drawio.changeTheme";
 
 export class Extension {
 	public readonly dispose = Disposable.fn();
@@ -25,6 +28,10 @@ export class Extension {
 	private readonly drawioWebviewInitializer = new DrawioWebviewInitializer(
 		this.config,
 		this.log
+	);
+
+	private readonly statusBar = this.dispose.track(
+		vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right)
 	);
 
 	constructor() {
@@ -54,9 +61,8 @@ export class Extension {
 		);
 
 		this.dispose.track(
-			vscode.commands.registerCommand(
-				"hediet.vscode-drawio.changeTheme",
-				() => this.changeTheme()
+			vscode.commands.registerCommand(drawioChangeThemeCommand, () =>
+				this.changeTheme()
 			)
 		);
 
@@ -72,6 +78,23 @@ export class Extension {
 				this.export()
 			)
 		);
+
+		this.dispose.track({
+			dispose: autorun(
+				() => {
+					const activeEditor = this.editorManager.activeDrawioEditor;
+					this.statusBar.command = drawioChangeThemeCommand;
+
+					if (activeEditor) {
+						this.statusBar.text = `Theme: ${activeEditor.config.theme}`;
+						this.statusBar.show();
+					} else {
+						this.statusBar.hide();
+					}
+				},
+				{ name: "Update UI" }
+			),
+		});
 	}
 
 	private async convert(): Promise<void> {
@@ -80,22 +103,23 @@ export class Extension {
 			return;
 		}
 
-		// TODO remove the current format from the selection
-		const result = await vscode.window.showQuickPick([
-			{
-				label: ".drawio.svg",
-				description: "Converts the diagram to an editable SVG file",
-			},
-			{
-				label: ".drawio",
-				description: "Converts the diagram to a drawio file",
-			},
+		const result = await vscode.window.showQuickPick(
+			[
+				{
+					label: ".drawio.svg",
+					description: "Converts the diagram to an editable SVG file",
+				},
+				{
+					label: ".drawio",
+					description: "Converts the diagram to a drawio file",
+				},
 
-			{
-				label: ".drawio.png",
-				description: "Converts the diagram to an editable png file",
-			},
-		]);
+				{
+					label: ".drawio.png",
+					description: "Converts the diagram to an editable png file",
+				},
+			].filter((x) => x.label !== activeDrawioEditor.fileExtension)
+		);
 
 		if (!result) {
 			return;
@@ -109,7 +133,6 @@ export class Extension {
 			return;
 		}
 
-		// TODO remove the current format from the selection
 		const result = await vscode.window.showQuickPick([
 			{
 				label: ".svg",
