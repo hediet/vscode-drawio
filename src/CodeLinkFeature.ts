@@ -143,8 +143,8 @@ export class LinkCodeWithSelectedNodeService {
 			if (linkedData) {
 				const pos = CodePosition.deserialize(linkedData);
 				await this.revealSelection(pos);
-			} else if (label.startsWith("#")) {
-				const match = label.match(/^#([a-zA-Z0-9_]+)/);
+			} else {
+				const match = label.match(/#([a-zA-Z0-9_]+)/);
 				if (match) {
 					const symbolName = match[1];
 					const result = (await commands.executeCommand(
