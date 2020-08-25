@@ -6,11 +6,10 @@ import {
 	WebviewPanel,
 	workspace,
 	WorkspaceEdit,
-	FileType,
 } from "vscode";
 import * as formatter from "xml-formatter";
 import { DrawioWebviewInitializer } from "./DrawioWebviewInitializer";
-import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
+import { DrawioEditorManager } from "./DrawioEditorManager";
 import { JSDOM } from "jsdom";
 
 export class DrawioEditorProviderText implements CustomTextEditorProvider {

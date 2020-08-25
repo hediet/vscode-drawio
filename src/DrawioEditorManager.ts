@@ -1,21 +1,10 @@
-import {
-	WebviewPanel,
-	TextDocument,
-	window,
-	workspace,
-	Uri,
-	ThemeColor,
-} from "vscode";
-import {
-	CustomDrawioInstance,
-	DrawioConfig,
-	DrawioInstance,
-} from "./DrawioInstance";
-import { DrawioDocument } from "./DrawioEditorProviderBinary";
 import { EventEmitter } from "@hediet/std/events";
-import { computed, observable, autorun, ObservableSet } from "mobx";
-import { DiagramConfig, Config } from "./Config";
-import { basename, extname, dirname, join } from "path";
+import { autorun, computed, observable, ObservableSet } from "mobx";
+import { basename, dirname, extname, join } from "path";
+import { TextDocument, Uri, WebviewPanel, window, workspace } from "vscode";
+import { Config, DiagramConfig } from "./Config";
+import { DrawioBinaryDocument } from "./DrawioEditorProviderBinary";
+import { CustomDrawioInstance } from "./DrawioInstance";
 
 export class DrawioEditorManager {
 	private readonly onEditorOpenedEmitter = new EventEmitter<{
@@ -49,7 +38,7 @@ export class DrawioEditorManager {
 		instance: CustomDrawioInstance,
 		document:
 			| { kind: "text"; document: TextDocument }
-			| { kind: "drawio"; document: DrawioDocument }
+			| { kind: "drawio"; document: DrawioBinaryDocument }
 	): DrawioEditor {
 		const config = this.config.getConfig(document.document.uri);
 		const editor = new DrawioEditor(
@@ -76,14 +65,28 @@ const PrivateSymbol = Symbol();
 export class DrawioEditor {
 	@observable
 	private _isActive = false;
-	private readonly specialExtensions = new Array<string>(
+	private readonly knownDrawioFileExtensions: ReadonlyArray<string> = [
 		".drawio",
 		".dio",
 		".drawio.svg",
 		".drawio.png",
 		".dio.svg",
-		".dio.png"
-	);
+		".dio.png",
+	];
+
+	public get fileExtension(): string {
+		const currentFilePath = this.uri.path;
+		// Just in case an extension is the prefix of another,
+		// we want to return the longest.
+		const sortedExtensionsByLengthDesc = this.knownDrawioFileExtensions
+			.slice()
+			.sort((a, b) => b.length - a.length);
+		return (
+			sortedExtensionsByLengthDesc.find((ext) =>
+				currentFilePath.endsWith(ext)
+			) || extname(currentFilePath)
+		);
+	}
 
 	constructor(
 		_constructorGuard: typeof PrivateSymbol,
@@ -91,7 +94,7 @@ export class DrawioEditor {
 		public readonly instance: CustomDrawioInstance,
 		public readonly document:
 			| { kind: "text"; document: TextDocument }
-			| { kind: "drawio"; document: DrawioDocument },
+			| { kind: "drawio"; document: DrawioBinaryDocument },
 		public readonly config: DiagramConfig
 	) {
 		this._isActive = webviewPanel.active;
@@ -109,28 +112,18 @@ export class DrawioEditor {
 	}
 
 	/**
-	 * support `.drawio`, `.dio`, `.drawio.svg` `.drawio.png` and other exts
+	 * Supports `.drawio`, `.dio`, `.drawio.svg` `.drawio.png` and other extensions.
 	 *
 	 * @param newExtension Must start with a dot.
 	 */
 	public getUriWithExtension(newExtension: string): Uri {
 		const currentFilePath = this.uri.path;
-
-		// default using path.extname as oldExtension
-		let oldExtension = extname(currentFilePath);
-
-		// if current file is end with speical extension, use it
-		this.specialExtensions.forEach((ext) => {
-			currentFilePath.endsWith(ext) && (oldExtension = ext);
-		});
-
-		const baseName = join(
-			dirname(currentFilePath),
-			basename(currentFilePath, oldExtension)
-		);
-
 		return this.uri.with({
-			path: baseName + newExtension,
+			path: join(
+				dirname(currentFilePath),
+				basename(currentFilePath, this.fileExtension),
+				newExtension
+			),
 		});
 	}
 
@@ -139,21 +132,18 @@ export class DrawioEditor {
 			await window.showErrorMessage("Save your diagram first!");
 			return;
 		}
-		const sourceUri = this.document.document.uri;
-		const targetUri = this.getUriWithExtension(targetExtension);
 
-		try {
-			await workspace.fs.stat(targetUri);
+		const targetUri = this.getUriWithExtension(targetExtension);
+		if (await fileExists(targetUri)) {
 			await window.showErrorMessage(
 				`File "${targetUri.toString()}" already exists!`
 			);
 			return;
-		} catch (e) {
-			// file does not exist
 		}
 
 		const buffer = await this.instance.export(targetExtension);
 
+		const sourceUri = this.document.document.uri;
 		await workspace.fs.writeFile(sourceUri, buffer);
 		await workspace.fs.rename(sourceUri, targetUri);
 	}
@@ -168,5 +158,14 @@ export class DrawioEditor {
 			return;
 		}
 		await workspace.fs.writeFile(targetUri, buffer);
+	}
+}
+
+async function fileExists(uri: Uri): Promise<boolean> {
+	try {
+		await workspace.fs.stat(uri);
+		return true;
+	} catch (e) {
+		return false;
 	}
 }

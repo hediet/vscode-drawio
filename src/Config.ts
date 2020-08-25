@@ -1,7 +1,10 @@
 import { workspace, Uri, env, commands, window, ColorThemeKind } from "vscode";
 import { computed, autorun } from "mobx";
 import { DrawioLibraryData } from "./DrawioInstance";
-import { VsCodeSetting, serializerWithDefault } from "./utils/VsCodeSetting";
+import {
+	VsCodeSetting,
+	serializerWithDefault,
+} from "./vscode-utils/VsCodeSetting";
 import { mapObject } from "./utils/mapObject";
 import { SimpleTemplate } from "./utils/SimpleTemplate";
 

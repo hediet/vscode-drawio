@@ -1,4 +1,4 @@
-import { CustomDrawioInstance } from "./DrawioInstance";
+import { CustomDrawioInstance } from "../DrawioInstance";
 import { Disposable } from "@hediet/std/disposable";
 import {
 	commands,
@@ -15,9 +15,9 @@ import {
 	SymbolInformation,
 } from "vscode";
 import { wait } from "@hediet/std/timer";
-import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
+import { DrawioEditorManager, DrawioEditor } from "../DrawioEditorManager";
 import { autorun, action } from "mobx";
-import { Config } from "./Config";
+import { Config } from "../Config";
 
 const toggleCodeLinkActivationCommandName =
 	"hediet.vscode-drawio.toggleCodeLinkActivation";

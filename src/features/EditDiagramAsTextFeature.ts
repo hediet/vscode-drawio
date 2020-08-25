@@ -1,10 +1,10 @@
 import { Disposable } from "@hediet/std/disposable";
-import { Config } from "./Config";
+import { Config } from "../Config";
 import { workspace, commands, window, ViewColumn, TextDocument } from "vscode";
-import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
-import { DrawioFileSystemController } from "./VirtualFileSystemProvider";
+import { DrawioEditorManager, DrawioEditor } from "../DrawioEditorManager";
+import { DrawioFileSystemController } from "../vscode-utils/VirtualFileSystemProvider";
 
-export class EditDiagramAsTextService {
+export class EditDiagramAsTextFeature {
 	public readonly dispose = Disposable.fn();
 	private readonly drawioFsController = this.dispose.track(
 		new DrawioFileSystemController()

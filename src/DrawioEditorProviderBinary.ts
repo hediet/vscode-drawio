@@ -15,12 +15,12 @@ import {
 import { DrawioDocumentChange, CustomDrawioInstance } from "./DrawioInstance";
 import { extname } from "path";
 import { DrawioWebviewInitializer } from "./DrawioWebviewInitializer";
-import { DrawioEditorManager, DrawioEditor } from "./DrawioEditorManager";
+import { DrawioEditorManager } from "./DrawioEditorManager";
 
 export class DrawioEditorProviderBinary
-	implements CustomEditorProvider<DrawioDocument> {
+	implements CustomEditorProvider<DrawioBinaryDocument> {
 	private readonly onDidChangeCustomDocumentEmitter = new EventEmitter<
-		CustomDocumentContentChangeEvent<DrawioDocument>
+		CustomDocumentContentChangeEvent<DrawioBinaryDocument>
 	>();
 
 	public readonly onDidChangeCustomDocument = this
@@ -32,14 +32,14 @@ export class DrawioEditorProviderBinary
 	) {}
 
 	public saveCustomDocument(
-		document: DrawioDocument,
+		document: DrawioBinaryDocument,
 		cancellation: CancellationToken
 	): Promise<void> {
 		return document.save();
 	}
 
 	public saveCustomDocumentAs(
-		document: DrawioDocument,
+		document: DrawioBinaryDocument,
 		destination: Uri,
 		cancellation: CancellationToken
 	): Promise<void> {
@@ -47,14 +47,14 @@ export class DrawioEditorProviderBinary
 	}
 
 	public revertCustomDocument(
-		document: DrawioDocument,
+		document: DrawioBinaryDocument,
 		cancellation: CancellationToken
 	): Promise<void> {
 		return document.revert();
 	}
 
 	public async backupCustomDocument(
-		document: DrawioDocument,
+		document: DrawioBinaryDocument,
 		context: CustomDocumentBackupContext,
 		cancellation: CancellationToken
 	): Promise<CustomDocumentBackup> {
@@ -65,8 +65,8 @@ export class DrawioEditorProviderBinary
 		uri: Uri,
 		openContext: CustomDocumentOpenContext,
 		token: CancellationToken
-	): Promise<DrawioDocument> {
-		const document = new DrawioDocument(uri, openContext.backupId);
+	): Promise<DrawioBinaryDocument> {
+		const document = new DrawioBinaryDocument(uri, openContext.backupId);
 		document.onChange(() => {
 			this.onDidChangeCustomDocumentEmitter.fire({
 				document,
@@ -80,7 +80,7 @@ export class DrawioEditorProviderBinary
 	}
 
 	public async resolveCustomEditor(
-		document: DrawioDocument,
+		document: DrawioBinaryDocument,
 		webviewPanel: WebviewPanel,
 		token: CancellationToken
 	): Promise<void> {
@@ -101,7 +101,7 @@ export class DrawioEditorProviderBinary
 	}
 }
 
-export class DrawioDocument implements CustomDocument {
+export class DrawioBinaryDocument implements CustomDocument {
 	private readonly onChangeEmitter = new EventEmitter<DrawioDocumentChange>();
 	public readonly onChange = this.onChangeEmitter.event;
 
