@@ -50,7 +50,7 @@ export class DrawioEditorProviderBinary
 		document: DrawioBinaryDocument,
 		cancellation: CancellationToken
 	): Promise<void> {
-		return document.revert();
+		return document.loadFromDisk();
 	}
 
 	public async backupCustomDocument(
@@ -119,6 +119,8 @@ export class DrawioBinaryDocument implements CustomDocument {
 		return this._isDirty;
 	}
 
+	private currentXml: string | undefined;
+
 	public constructor(
 		public readonly uri: Uri,
 		public readonly backupId: string | undefined
@@ -131,10 +133,21 @@ export class DrawioBinaryDocument implements CustomDocument {
 		this._drawio = instance;
 
 		instance.onInit.sub(async () => {
-			await this.load(true);
+			if (this.currentXml) {
+				this.drawio.loadXmlLike(this.currentXml);
+			} else if (this.backupId) {
+				const backupFile = Uri.parse(this.backupId);
+				const content = await workspace.fs.readFile(backupFile);
+				const xml = Buffer.from(content).toString("utf-8");
+				await this.drawio.loadXmlLike(xml);
+				this._isDirty = true; // because of backup
+			} else {
+				this.loadFromDisk();
+			}
 		});
 
 		instance.onChange.sub((change) => {
+			this.currentXml = change.newXml;
 			this._isDirty = true;
 			this.onChangeEmitter.fire(change);
 		});
@@ -144,20 +157,13 @@ export class DrawioBinaryDocument implements CustomDocument {
 		});
 	}
 
-	private async load(initial: boolean) {
-		if (initial && this.backupId) {
-			const backupFile = Uri.parse(this.backupId);
-			const content = await workspace.fs.readFile(backupFile);
-			const xml = Buffer.from(content).toString("utf-8");
-			await this.drawio.loadXmlLike(xml);
-			this._isDirty = true; // because of backup
+	public async loadFromDisk(): Promise<void> {
+		this._isDirty = false;
+		if (this.uri.fsPath.endsWith(".png")) {
+			const buffer = await workspace.fs.readFile(this.uri);
+			await this.drawio.loadPngWithEmbeddedXml(buffer);
 		} else {
-			if (this.uri.fsPath.endsWith(".png")) {
-				const buffer = await workspace.fs.readFile(this.uri);
-				await this.drawio.loadPngWithEmbeddedXml(buffer);
-			} else {
-				throw new Error("Invalid file extension");
-			}
+			throw new Error("Invalid file extension");
 		}
 	}
 
@@ -187,9 +193,4 @@ export class DrawioBinaryDocument implements CustomDocument {
 	}
 
 	public dispose(): void {}
-
-	public revert(): Promise<void> {
-		this._isDirty = false;
-		return this.load(false);
-	}
 }

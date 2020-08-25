@@ -117,13 +117,8 @@ export class DrawioEditor {
 	 * @param newExtension Must start with a dot.
 	 */
 	public getUriWithExtension(newExtension: string): Uri {
-		const currentFilePath = this.uri.path;
 		return this.uri.with({
-			path: join(
-				dirname(currentFilePath),
-				basename(currentFilePath, this.fileExtension),
-				newExtension
-			),
+			path: removeEnd(this.uri.path, this.fileExtension) + newExtension,
 		});
 	}
 
@@ -144,8 +139,15 @@ export class DrawioEditor {
 		const buffer = await this.instance.export(targetExtension);
 
 		const sourceUri = this.document.document.uri;
+		const oldContent = await workspace.fs.readFile(sourceUri);
+
 		await workspace.fs.writeFile(sourceUri, buffer);
-		await workspace.fs.rename(sourceUri, targetUri);
+		try {
+			await workspace.fs.rename(sourceUri, targetUri);
+		} catch (e) {
+			await workspace.fs.writeFile(sourceUri, oldContent);
+			throw e;
+		}
 	}
 
 	public async exportTo(targetExtension: string): Promise<void> {
@@ -168,4 +170,11 @@ async function fileExists(uri: Uri): Promise<boolean> {
 	} catch (e) {
 		return false;
 	}
+}
+
+function removeEnd(value: string, end: string): string {
+	if (!value.endsWith(end)) {
+		throw new Error(`Value does not end with "${end}"!`);
+	}
+	return value.substr(0, value.length - end.length);
 }
