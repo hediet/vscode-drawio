@@ -1,9 +1,5 @@
 import { Webview, OutputChannel, Uri } from "vscode";
-import {
-	CustomDrawioInstance,
-	simpleDrawioLibrary,
-	DrawioLibraryData,
-} from "../DrawioInstance";
+import { CustomDrawioInstance, simpleDrawioLibrary } from "../DrawioInstance";
 import { Config, DiagramConfig } from "../Config";
 import html from "./webview-content.html";
 import path = require("path");
