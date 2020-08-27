@@ -1,5 +1,5 @@
 import { Uri, workspace, ConfigurationTarget, Disposable } from "vscode";
-import { fromResource } from "mobx-utils";
+import { fromResource } from "../utils/fromResource";
 import { computed, runInAction } from "mobx";
 import { EventEmitter } from "@hediet/std/events";
 
@@ -77,17 +77,12 @@ export class VsCodeSetting<T> {
 class VsCodeSettingResource {
 	public static onConfigChange = new EventEmitter();
 
-	private subscription: Disposable | undefined;
-	private readonly resource = fromResource<any>(
-		(update) => {
+	private readonly resource = fromResource<any>((update) => {
+		update(this.readValue());
+		return VsCodeSettingResource.onConfigChange.sub(() => {
 			update(this.readValue());
-			this.subscription = VsCodeSettingResource.onConfigChange.sub(() => {
-				update(this.readValue());
-			});
-		},
-		() => this.subscription!.dispose(),
-		this.readValue()
-	);
+		});
+	}, this.readValue());
 
 	constructor(
 		private readonly id: string,

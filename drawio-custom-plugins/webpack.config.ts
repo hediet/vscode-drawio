@@ -5,7 +5,7 @@ import { CleanWebpackPlugin } from "clean-webpack-plugin";
 const r = (file: string) => path.resolve(__dirname, file);
 
 module.exports = {
-	target: "node",
+	target: "web",
 	entry: r("./src/index"),
 	output: {
 		path: r("../dist/custom-drawio-plugins"),

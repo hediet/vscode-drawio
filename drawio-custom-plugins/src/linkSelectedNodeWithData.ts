@@ -3,29 +3,17 @@ import {
 	FlattenToDictionary,
 	JSONValue,
 } from "@hediet/json-to-dictionary";
+import { sendEvent } from "./vscode";
 
-declare const Draw: any;
-declare const log: any;
-declare const mxCellHighlight: any;
-declare const mxEvent: any;
-declare const mxUtils: {
-	isNode(node: any): node is HTMLElement;
-	createXmlDocument(): XMLDocument;
-};
-
-function sendEvent(data: CustomDrawioEvent) {
-	window.opener.postMessage(JSON.stringify(data), "*");
-}
-
-Draw.loadPlugin(function (ui: any) {
-	sendEvent({ event: "pluginLoaded" });
+Draw.loadPlugin((ui) => {
+	sendEvent({ event: "pluginLoaded", pluginId: "linkSelectedNodeWithData" });
 
 	let interceptNodeClick = false;
 	const graph = ui.editor.graph;
 	const highlight = new mxCellHighlight(graph, "#00ff00", 8);
 
-	const model: { setStyle(cell: unknown, style: string): void } = graph.model;
-	let activeCell: { style: string } | undefined = undefined;
+	const model = graph.model;
+	let activeCell: DrawioCell | undefined = undefined;
 
 	graph.addListener(mxEvent.DOUBLE_CLICK, function (sender: any, evt: any) {
 		if (!interceptNodeClick) {
@@ -35,7 +23,7 @@ Draw.loadPlugin(function (ui: any) {
 		var cell: any | null = evt.getProperty("cell");
 		if (cell != null) {
 			const label = getLabelTextOfCell(cell);
-			if (!label.match(/^#([a-zA-Z0-9_]+)/)) {
+			if (!label.match(/#([a-zA-Z0-9_]+)/)) {
 				return;
 			}
 
@@ -46,7 +34,7 @@ Draw.loadPlugin(function (ui: any) {
 	});
 
 	function getLabelTextOfCell(cell: any): string {
-		const labelHtml = graph.getLabel(cell) as string;
+		const labelHtml = graph.getLabel(cell);
 		const el = document.createElement("html");
 		el.innerHTML = labelHtml; // label can be html
 		return el.innerText;
@@ -55,7 +43,7 @@ Draw.loadPlugin(function (ui: any) {
 	const selectionModel = graph.getSelectionModel();
 	selectionModel.addListener(mxEvent.CHANGE, (sender: any, evt: any) => {
 		// selection has changed
-		const cells: any[] = selectionModel.cells; // array of cells
+		const cells = selectionModel.cells;
 		if (cells.length >= 1) {
 			const selectedCell = cells[0];
 			activeCell = selectedCell;

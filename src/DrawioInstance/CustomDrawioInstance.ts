@@ -15,8 +15,20 @@ export class CustomDrawioInstance extends DrawioInstance<
 	}>();
 	public readonly onNodeSelected = this.onNodeSelectedEmitter.asEvent();
 
-	private readonly onCustomPluginLoadedEmitter = new EventEmitter();
+	private readonly onCustomPluginLoadedEmitter = new EventEmitter<{
+		pluginId: string;
+	}>();
 	public readonly onCustomPluginLoaded = this.onCustomPluginLoadedEmitter.asEvent();
+
+	private readonly onCursorChangeEmitter = new EventEmitter<{
+		newPosition: { x: number; y: number } | undefined;
+	}>();
+	public readonly onCursorChanged = this.onCursorChangeEmitter.asEvent();
+
+	private readonly onSelectionsChangedEmitter = new EventEmitter<{
+		selectedCellIds: string[];
+	}>();
+	public readonly onSelectionsChanged = this.onSelectionsChangedEmitter.asEvent();
 
 	public linkSelectedNodeWithData(linkedData: unknown) {
 		this.sendCustomAction({
@@ -57,6 +69,22 @@ export class CustomDrawioInstance extends DrawioInstance<
 		});
 	}
 
+	public updateGhostCursors(cursorUpdateInfos: CursorUpdateInfo[]) {
+		this.sendCustomAction({
+			action: "updateGhostCursors",
+			cursors: cursorUpdateInfos,
+		});
+	}
+
+	public updateGhostSelections(
+		selectionsUpdateInfos: SelectionsUpdateInfo[]
+	) {
+		this.sendCustomAction({
+			action: "updateGhostSelections",
+			selections: selectionsUpdateInfos,
+		});
+	}
+
 	protected async handleEvent(evt: CustomDrawioEvent): Promise<void> {
 		if (evt.event === "nodeSelected") {
 			this.onNodeSelectedEmitter.emit({
@@ -64,7 +92,13 @@ export class CustomDrawioInstance extends DrawioInstance<
 				linkedData: evt.linkedData,
 			});
 		} else if (evt.event === "pluginLoaded") {
-			this.onCustomPluginLoadedEmitter.emit();
+			this.onCustomPluginLoadedEmitter.emit({ pluginId: evt.pluginId });
+		} else if (evt.event === "cursorChanged") {
+			this.onCursorChangeEmitter.emit({ newPosition: evt.position });
+		} else if (evt.event === "selectionChanged") {
+			this.onSelectionsChangedEmitter.emit({
+				selectedCellIds: evt.selectedCellIds,
+			});
 		} else {
 			await super.handleEvent(evt);
 		}

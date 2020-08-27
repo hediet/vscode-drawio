@@ -220,7 +220,8 @@
 		"build": "yarn pre-build && vsce package --yarn --out ./vscode-drawio.vsix",
 		"pre-build": "webpack --mode production && webpack --mode production --config ./drawio-custom-plugins/webpack.config.ts",
 		"dev": "webpack --mode development --watch",
-		"dev-drawio-plugins": "webpack --mode development --watch --config ./drawio-custom-plugins/webpack.config.ts"
+		"dev-drawio-plugins": "webpack --mode development --watch --config ./drawio-custom-plugins/webpack.config.ts",
+		"dev-drawio-plugins-web": "webpack-dev-server --hot --config ./drawio-custom-plugins/webpack.config.ts"
 	},
 	"devDependencies": {
 		"@types/node": "^13.13.5",
@@ -239,7 +240,8 @@
 		"@hediet/semver": "^0.2.1",
 		"@actions/exec": "^1.0.4",
 		"@actions/github": "^2.2.0",
-		"@types/jsdom": "^16.2.3"
+		"@types/jsdom": "^16.2.3",
+		"webpack-dev-server": "^3.11.0"
 	},
 	"dependencies": {
 		"@hediet/json-to-dictionary": "^0.2.1",
@@ -249,6 +251,7 @@
 		"mobx": "5.15.4",
 		"mobx-utils": "5.5.7",
 		"xml-formatter": "^2.0.1",
-		"xml-parser-xo": "^3.0.0"
+		"xml-parser-xo": "^3.0.0",
+		"vsls": "^1.0.2594"
 	}
 }

@@ -12,14 +12,14 @@ export class DrawioEditorManager {
 	}>();
 	public readonly onEditorOpened = this.onEditorOpenedEmitter.asEvent();
 
-	private readonly openedEditors = new ObservableSet<DrawioEditor>();
+	public readonly openedEditors = new ObservableSet<DrawioEditor>();
 
 	@computed
 	get activeDrawioEditor(): DrawioEditor | undefined {
 		return [...this.openedEditors].find((e) => e.isActive);
 	}
 
-	@observable _lastActiveDrawioEditor: DrawioEditor | undefined;
+	@observable private _lastActiveDrawioEditor: DrawioEditor | undefined;
 	get lastActiveDrawioEditor(): DrawioEditor | undefined {
 		return this._lastActiveDrawioEditor;
 	}

@@ -8,6 +8,7 @@ import { DrawioEditorManager } from "./DrawioEditorManager";
 import { LinkCodeWithSelectedNodeService } from "./features/CodeLinkFeature";
 import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
 import { autorun } from "mobx";
+import { LiveshareFeature } from "./features/LiveshareFeature";
 
 const drawioChangeThemeCommand = "hediet.vscode-drawio.changeTheme";
 
@@ -22,8 +23,11 @@ export class Extension {
 	private readonly linkCodeWithSelectedNodeService = this.dispose.track(
 		new LinkCodeWithSelectedNodeService(this.editorManager, this.config)
 	);
-	private readonly editDiagramsAsTextService = this.dispose.track(
+	private readonly editDiagramsAsTextFeature = this.dispose.track(
 		new EditDiagramAsTextFeature(this.editorManager, this.config)
+	);
+	private readonly liveshareFeature = this.dispose.track(
+		new LiveshareFeature(this.editorManager, this.config)
 	);
 	private readonly drawioWebviewInitializer = new DrawioWebviewInitializer(
 		this.config,
