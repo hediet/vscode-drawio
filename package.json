@@ -35,6 +35,23 @@
 	},
 	"main": "./dist/extension/index",
 	"contributes": {
+		"languages": [
+			{
+				"id": "drawio",
+				"extensions": [
+					".drawio",
+					".dio",
+					".dio.svg",
+					".drawio.svg",
+					".drawio.png",
+					".dio.png"
+				],
+				"aliases": [
+					"Draw.io",
+					"drawio"
+				]
+			}
+		],
 		"customEditors": [
 			{
 				"viewType": "hediet.vscode-drawio",
@@ -224,6 +241,10 @@
 		"dev-drawio-plugins-web": "webpack-dev-server --hot --config ./drawio-custom-plugins/webpack.config.ts"
 	},
 	"devDependencies": {
+		"@actions/exec": "^1.0.4",
+		"@actions/github": "^2.2.0",
+		"@hediet/semver": "^0.2.1",
+		"@types/jsdom": "^16.2.3",
 		"@types/node": "^13.13.5",
 		"@types/vscode": "1.46.0",
 		"@types/xml-formatter": "^1.1.0",
@@ -237,21 +258,19 @@
 		"vsce": "1.75.0",
 		"webpack": "^4.43.0",
 		"webpack-cli": "^3.3.11",
-		"@hediet/semver": "^0.2.1",
-		"@actions/exec": "^1.0.4",
-		"@actions/github": "^2.2.0",
-		"@types/jsdom": "^16.2.3",
 		"webpack-dev-server": "^3.11.0"
 	},
 	"dependencies": {
 		"@hediet/json-to-dictionary": "^0.2.1",
 		"@hediet/std": "0.6.0",
 		"@knuddels/mobx-logger": "^1.1.1",
+		"@types/copy-webpack-plugin": "^6.0.0",
+		"copy-webpack-plugin": "^6.1.1",
 		"jsdom": "^16.2.2",
 		"mobx": "5.15.4",
 		"mobx-utils": "5.5.7",
+		"vsls": "^1.0.2594",
 		"xml-formatter": "^2.0.1",
-		"xml-parser-xo": "^3.0.0",
-		"vsls": "^1.0.2594"
+		"xml-parser-xo": "^3.0.0"
 	}
 }
