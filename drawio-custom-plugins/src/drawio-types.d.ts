@@ -35,6 +35,7 @@ declare interface DrawioEditor {
 }
 
 declare interface DrawioGraph {
+	defaultThemeName: string;
 	insertVertex(arg0: undefined, arg1: null, label: string, arg3: number, arg4: number, arg5: number, arg6: number, arg7: string): void;
 	addListener: any;
 	model: DrawioGraphModel;

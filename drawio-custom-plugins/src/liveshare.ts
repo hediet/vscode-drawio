@@ -14,6 +14,18 @@ Draw.loadPlugin((ui) => {
 		});
 	});
 
+	const theme = graph.defaultThemeName === "darkTheme" ? "dark" : "light";
+
+	/*
+	new Cursor(graph.view.canvas, "test", {
+		color: "#2965CC",
+		name: "Henning Dieterichs",
+		theme,
+	}).setPosition({
+		x: 1200,
+		y: 800,
+	});*/
+
 	const cursors = new Set<Cursor>();
 	const hightlights = new Highlights(graph);
 
@@ -35,7 +47,12 @@ Draw.loadPlugin((ui) => {
 					const existing =
 						[...cursors].find(
 							(existingCursor) => existingCursor.id === c.id
-						) || new Cursor(graph.view.canvas, c.id);
+						) ||
+						new Cursor(graph.view.canvas, c.id, {
+							color: c.color,
+							name: c.name || "",
+							theme,
+						});
 					cursors.add(existing);
 					existing.setPosition(transform(c.position));
 				}
@@ -46,7 +63,7 @@ Draw.loadPlugin((ui) => {
 				for (const s of data.selections) {
 					for (const selectedCellId of s.selectedCellIds) {
 						const cell = graph.model.cells[selectedCellId];
-						highlightInfos.push({ cell, color: "#00ff00" });
+						highlightInfos.push({ cell, color: s.color });
 					}
 				}
 				hightlights.updateHighlights(highlightInfos);
@@ -77,16 +94,46 @@ Draw.loadPlugin((ui) => {
 
 const svgns = "http://www.w3.org/2000/svg";
 
+function escapeHtml(html: string): string {
+	var text = document.createTextNode(html);
+	var p = document.createElement("p");
+	p.appendChild(text);
+	return p.innerHTML;
+}
+
+interface CursorOptions {
+	color: string;
+	///borderColor: string;
+	name: string;
+	theme: "dark" | "light";
+}
+
 class Cursor {
 	private readonly g = document.createElementNS(svgns, "g");
 
-	constructor(canvas: SVGElement, public readonly id: string) {
+	constructor(
+		canvas: SVGElement,
+		public readonly id: string,
+		options: CursorOptions
+	) {
 		canvas.appendChild(this.g);
 		this.g.setAttribute("pointer-events", "none");
+		// TODO don't use strings
 		this.g.innerHTML = `
-            <g transform="scale(0.06,0.06)">
-                <path fill="green" d="M302.189 329.126H196.105l55.831 135.993c3.889 9.428-.555 19.999-9.444 23.999l-49.165 21.427c-9.165 4-19.443-.571-23.332-9.714l-53.053-129.136-86.664 89.138C18.729 472.71 0 463.554 0 447.977V18.299C0 1.899 19.921-6.096 30.277 5.443l284.412 292.542c11.472 11.179 3.007 31.141-12.5 31.141z"/>
-            </g>
+			<g>
+				<g transform="scale(0.06,0.06)">
+					<path
+						fill="${options.color}"
+						style="stroke: ${
+							options.theme === "dark" ? "white" : "black"
+						}; stroke-width: 10px"
+						d="M302.189 329.126H196.105l55.831 135.993c3.889 9.428-.555 19.999-9.444 23.999l-49.165 21.427c-9.165 4-19.443-.571-23.332-9.714l-53.053-129.136-86.664 89.138C18.729 472.71 0 463.554 0 447.977V18.299C0 1.899 19.921-6.096 30.277 5.443l284.412 292.542c11.472 11.179 3.007 31.141-12.5 31.141z"
+					/>
+				</g>
+				<text x="10" y="45" style="font-size: 12px; fill: ${
+					options.theme === "dark" ? "white" : "gray"
+				}">${escapeHtml(options.name)}</text>
+			</g>
         `;
 	}
 

@@ -71,12 +71,14 @@ declare interface UpdateGhostSelections {
 }
 
 declare interface CursorUpdateInfo {
-    name: string;
+    name: string | undefined;
+    color: string;
     id: string;
     position: { x: number, y: number };
 }
 
 declare interface SelectionsUpdateInfo {
     id: string;
+    color: string;
     selectedCellIds: string[];
 }

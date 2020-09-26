@@ -1,6 +1,7 @@
 import * as webpack from "webpack";
 import path = require("path");
 import { CleanWebpackPlugin } from "clean-webpack-plugin";
+import * as CopyPlugin from "copy-webpack-plugin";
 
 const r = (file: string) => path.resolve(__dirname, file);
 
@@ -46,5 +47,10 @@ module.exports = {
 			NODE_ENV: null,
 		}),
 		new webpack.IgnorePlugin(/^canvas$/),
+		new CopyPlugin({
+			patterns: [
+				{ from: "./src/features/LiveshareFeature/assets", to: "." },
+			],
+		}),
 	],
 } as webpack.Configuration;
