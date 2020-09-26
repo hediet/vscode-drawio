@@ -20,7 +20,7 @@ export class InsiderFeedbackFeature {
 			editorManager.onEditorOpened.sub(({ editor }) => {
 				const { feedbackUrl } = config;
 				if (feedbackUrl && !config.alreadyAskedToTest) {
-					editor.onActiveForTwoMinutes.sub(async () => {
+					editor.onActivityDetected.sub(async () => {
 						if (config.alreadyAskedToTest) {
 							return;
 						}

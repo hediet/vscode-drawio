@@ -7,7 +7,7 @@ import {
 	workspace,
 	WorkspaceEdit,
 } from "vscode";
-import * as formatter from "xml-formatter";
+import formatter = require("xml-formatter");
 import { DrawioWebviewInitializer } from "./DrawioWebviewInitializer";
 import { DrawioEditorManager } from "./DrawioEditorManager";
 import { JSDOM } from "jsdom";
