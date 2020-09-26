@@ -227,6 +227,9 @@
 						"Kennedy"
 					],
 					"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
+				},
+				"hediet.vscode-drawio.version-asked-for-feedback": {
+					"type": "string"
 				}
 			}
 		}

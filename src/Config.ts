@@ -7,6 +7,8 @@ import {
 } from "./vscode-utils/VsCodeSetting";
 import { mapObject } from "./utils/mapObject";
 import { SimpleTemplate } from "./utils/SimpleTemplate";
+import { Extension } from "./Extension";
+import { readFileSync } from "fs";
 
 const extensionId = "hediet.vscode-drawio";
 const experimentalFeaturesEnabled = "vscode-drawio.experimentalFeaturesEnabled";
@@ -19,7 +21,27 @@ export async function setContext(
 }
 
 export class Config {
-	constructor() {
+	public readonly packageJson: {
+		version: string;
+		name: string;
+		feedbackUrl?: string;
+	} = JSON.parse(readFileSync(this.packageJsonPath, { encoding: "utf-8" }));
+
+	public get feedbackUrl(): Uri | undefined {
+		if (this.packageJson.feedbackUrl) {
+			return Uri.parse(this.packageJson.feedbackUrl);
+		}
+		return undefined;
+	}
+
+	public get isInsiders() {
+		return (
+			this.packageJson.name === "vscode-drawio-insiders-build" ||
+			process.env.DEV === "1"
+		);
+	}
+
+	constructor(private readonly packageJsonPath: string) {
 		autorun(() => {
 			setContext(
 				experimentalFeaturesEnabled,
@@ -41,6 +63,20 @@ export class Config {
 
 	public get experimentalFeaturesEnabled(): boolean {
 		return this._experimentalFeatures.get();
+	}
+
+	private readonly _lastVersionAskedToTest = new VsCodeSetting<
+		string | undefined
+	>(`${extensionId}.version-asked-for-feedback`, {
+		serializer: serializerWithDefault<undefined | string>(undefined),
+	});
+
+	public get alreadyAskedToTest(): boolean {
+		return this._lastVersionAskedToTest.get() === this.packageJson.version;
+	}
+
+	public async markAskedToTest(): Promise<void> {
+		await this._lastVersionAskedToTest.set(this.packageJson.version);
 	}
 }
 

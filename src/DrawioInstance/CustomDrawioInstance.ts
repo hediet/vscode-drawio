@@ -30,6 +30,11 @@ export class CustomDrawioInstance extends DrawioInstance<
 	}>();
 	public readonly onSelectionsChanged = this.onSelectionsChangedEmitter.asEvent();
 
+	private readonly onFocusChangedEmitter = new EventEmitter<{
+		hasFocus: boolean;
+	}>();
+	public readonly onFocusChanged = this.onFocusChangedEmitter.asEvent();
+
 	public linkSelectedNodeWithData(linkedData: unknown) {
 		this.sendCustomAction({
 			action: "linkSelectedNodeWithData",
@@ -93,6 +98,8 @@ export class CustomDrawioInstance extends DrawioInstance<
 			});
 		} else if (evt.event === "pluginLoaded") {
 			this.onCustomPluginLoadedEmitter.emit({ pluginId: evt.pluginId });
+		} else if (evt.event === "focusChanged") {
+			this.onFocusChangedEmitter.emit({ hasFocus: evt.hasFocus });
 		} else if (evt.event === "cursorChanged") {
 			this.onCursorChangeEmitter.emit({ newPosition: evt.position });
 		} else if (evt.event === "selectionChanged") {

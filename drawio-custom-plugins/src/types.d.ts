@@ -1,6 +1,11 @@
 
 declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | GetVerticesAction | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction | UpdateGhostCursors | UpdateGhostSelections;
-declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent | UpdateLocalStorage | PluginLoaded | CursorChangedEvent |  SelectionChangedEvent;
+declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent | UpdateLocalStorage | PluginLoaded | CursorChangedEvent |  SelectionChangedEvent | FocusChangedEvent;
+
+declare interface FocusChangedEvent {
+    event: "focusChanged";
+    hasFocus: boolean;
+}
 
 declare interface NodeSelectionEnabledAction {
     action: "setNodeSelectionEnabled";

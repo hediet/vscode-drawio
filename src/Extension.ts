@@ -9,6 +9,7 @@ import { LinkCodeWithSelectedNodeService } from "./features/CodeLinkFeature";
 import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
 import { autorun } from "mobx";
 import { LiveshareFeature } from "./features/LiveshareFeature";
+import { InsiderFeedbackFeature } from "./features/InsiderFeedbackFeature";
 
 const drawioChangeThemeCommand = "hediet.vscode-drawio.changeTheme";
 
@@ -18,7 +19,7 @@ export class Extension {
 		vscode.window.createOutputChannel("Drawio Integration Log")
 	);
 
-	private readonly config = new Config();
+	private readonly config = new Config(this.packageJsonPath);
 	private readonly editorManager = new DrawioEditorManager(this.config);
 	private readonly linkCodeWithSelectedNodeService = this.dispose.track(
 		new LinkCodeWithSelectedNodeService(this.editorManager, this.config)
@@ -29,6 +30,9 @@ export class Extension {
 	private readonly liveshareFeature = this.dispose.track(
 		new LiveshareFeature(this.editorManager, this.config)
 	);
+	private readonly insiderFeedbackFeature = this.dispose.track(
+		new InsiderFeedbackFeature(this.editorManager, this.config)
+	);
 	private readonly drawioWebviewInitializer = new DrawioWebviewInitializer(
 		this.config,
 		this.log
@@ -38,7 +42,7 @@ export class Extension {
 		vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right)
 	);
 
-	constructor() {
+	constructor(private readonly packageJsonPath: string) {
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
 				"hediet.vscode-drawio-text",

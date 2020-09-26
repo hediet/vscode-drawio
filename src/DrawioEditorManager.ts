@@ -1,4 +1,6 @@
+import { Disposable } from "@hediet/std/disposable";
 import { EventEmitter } from "@hediet/std/events";
+import { startTimeout } from "@hediet/std/timer";
 import { autorun, computed, observable, ObservableSet } from "mobx";
 import { basename, dirname, extname, join } from "path";
 import { TextDocument, Uri, WebviewPanel, window, workspace } from "vscode";
@@ -63,8 +65,13 @@ export class DrawioEditorManager {
 const PrivateSymbol = Symbol();
 
 export class DrawioEditor {
-	@observable
-	private _isActive = false;
+	public readonly dispose = Disposable.fn();
+	private readonly onActivityDetectedEmitter = new EventEmitter();
+	public readonly onActivityDetected = this.onActivityDetectedEmitter.asEvent();
+
+	@observable private _isActive = false;
+	@observable private _hasFocus = false;
+
 	private readonly knownDrawioFileExtensions: ReadonlyArray<string> = [
 		".drawio",
 		".dio",
@@ -88,6 +95,8 @@ export class DrawioEditor {
 		);
 	}
 
+	private timeout: Disposable | undefined;
+
 	constructor(
 		_constructorGuard: typeof PrivateSymbol,
 		public readonly webviewPanel: WebviewPanel,
@@ -98,13 +107,47 @@ export class DrawioEditor {
 		public readonly config: DiagramConfig
 	) {
 		this._isActive = webviewPanel.active;
-		webviewPanel.onDidChangeViewState(() => {
-			this._isActive = webviewPanel.active;
+		this.dispose.track(
+			webviewPanel.onDidChangeViewState(() => {
+				this._isActive = webviewPanel.active;
+			})
+		);
+
+		this.dispose.track(
+			instance.onFocusChanged.sub(({ hasFocus }) => {
+				this._hasFocus = hasFocus;
+			})
+		);
+
+		this.dispose.track({
+			dispose: autorun(() => {
+				console.log(this.hasFocus);
+				if (this.hasFocus) {
+					if (!this.timeout) {
+						this.timeout = this.dispose.track(
+							startTimeout(1000 * 60 * 2, () => {
+								// Activity = 2 minutes of focus time
+								this.dispose.untrack(this.timeout);
+								this.onActivityDetectedEmitter.emit();
+							})
+						);
+					}
+				} else {
+					if (this.timeout) {
+						this.timeout.dispose();
+						this.timeout = undefined;
+					}
+				}
+			}),
 		});
 	}
 
 	public get isActive(): boolean {
 		return this._isActive;
+	}
+
+	public get hasFocus(): boolean {
+		return this._hasFocus;
 	}
 
 	public get uri(): Uri {

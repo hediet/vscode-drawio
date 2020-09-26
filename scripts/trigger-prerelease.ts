@@ -79,13 +79,17 @@ export async function run(): Promise<void> {
 		branch: prereleaseBranch,
 		sha: d.sha,
 		content: Buffer.from(changelog.toString()).toString("base64"),
-		message: `Release of version [${releaseVersion}]`,
+		message: `Release of version ${releaseVersion}`,
 	});
 
 	await api.pulls.create({
 		...context.repo,
 		base: targetBranch,
 		head: prereleaseBranch,
-		title: `Release [${prereleaseVersion}] as [${releaseVersion}]`,
+		title: `Release ${prereleaseVersion} as ${releaseVersion}`,
+		body:
+			`Please vote with **thumbs up** if this build works as expected or **thumbs down** if you found an issue.\n\n` +
+			`If you found issues, please describe them so they can be fixed!\n\n` +
+			`Once this pull request receives enough thumbs up and no issues are reported, version ${prereleaseVersion} will be released as ${releaseVersion}`,
 	});
 }
