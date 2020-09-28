@@ -121,12 +121,11 @@ export class DrawioEditor {
 
 		this.dispose.track({
 			dispose: autorun(() => {
-				console.log(this.hasFocus);
 				if (this.hasFocus) {
 					if (!this.timeout) {
 						this.timeout = this.dispose.track(
-							startTimeout(1000 * 60 * 2, () => {
-								// Activity = 2 minutes of focus time
+							startTimeout(1000 * 60, () => {
+								// Activity = 1 minute of focus time
 								this.dispose.untrack(this.timeout);
 								this.onActivityDetectedEmitter.emit();
 							})
