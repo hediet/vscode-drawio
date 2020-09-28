@@ -49,27 +49,35 @@ export class CurrentViewState {
 function getCursorPositionResource(
 	drawioInstance: CustomDrawioInstance
 ): IResource<Point | undefined> {
-	return fromResource<Point | undefined>((sink) => {
-		let lastPosition: Point | undefined;
-		let timeout: any;
-		return drawioInstance.onCursorChanged.sub(({ newPosition }) => {
-			lastPosition = newPosition;
-			if (!timeout) {
-				timeout = setTimeout(() => {
-					timeout = undefined;
-					sink(lastPosition);
-				}, 1000 / 30);
-			}
-		});
-	}, undefined);
+	return fromResource<Point | undefined>(
+		(sink) => {
+			let lastPosition: Point | undefined;
+			let timeout: any;
+			return drawioInstance.onCursorChanged.sub(({ newPosition }) => {
+				lastPosition = newPosition;
+				if (!timeout) {
+					timeout = setTimeout(() => {
+						timeout = undefined;
+						sink(lastPosition);
+					}, 1000 / 30);
+				}
+			});
+		},
+		() => undefined
+	);
 }
 
 function getSelectedCellsResource(
 	drawioInstance: CustomDrawioInstance
 ): IResource<string[]> {
-	return fromResource<string[]>((sink) => {
-		return drawioInstance.onSelectionsChanged.sub(({ selectedCellIds }) => {
-			sink(selectedCellIds);
-		});
-	}, []);
+	return fromResource<string[]>(
+		(sink) => {
+			return drawioInstance.onSelectionsChanged.sub(
+				({ selectedCellIds }) => {
+					sink(selectedCellIds);
+				}
+			);
+		},
+		() => []
+	);
 }

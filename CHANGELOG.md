@@ -5,19 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.8.0-alpha.3]
+## [0.8.0-alpha.4]
 
 ### Added
 
+-   Supports custom drawio plugins.
+-   Other VS Code extensions can provide custom drawio plugins.
 -   Adds a status bar item to quickly change the current drawio theme.
 -   Adds drawio-language-mode (see [#130](https://github.com/hediet/vscode-drawio/issues/130)).
--   Users of the Insiders Build are asked for feedback.
+-   Users of the Insiders Build are asked for feedback after some activity time.
 
 ### Changed
 
 -   Updates drawio to 13.6.5.
 -   Code Link looks for `#symbol` references in the entire label, not just in the beginning.
 -   Hides the option to convert a drawio file format to itself.
+-   Changes Category to "Visualization".
 
 ### Fixed
 

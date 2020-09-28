@@ -1,4 +1,12 @@
-import { workspace, Uri, env, commands, window, ColorThemeKind } from "vscode";
+import {
+	workspace,
+	Uri,
+	env,
+	commands,
+	window,
+	ColorThemeKind,
+	ConfigurationTarget,
+} from "vscode";
 import { computed, autorun } from "mobx";
 import { DrawioLibraryData } from "./DrawioInstance";
 import {
@@ -78,6 +86,41 @@ export class Config {
 
 	public async markAskedToTest(): Promise<void> {
 		await this._lastVersionAskedToTest.set(this.packageJson.version);
+	}
+
+	private readonly _knownPlugins = new VsCodeSetting<
+		{ pluginId: string; fingerprint: string; allowed: boolean }[]
+	>(`${extensionId}.knownPlugins`, {
+		serializer: serializerWithDefault<any>([]),
+		// Don't use workspace settings here!
+		target: ConfigurationTarget.Global,
+	});
+
+	public isPluginAllowed(
+		pluginId: string,
+		fingerprint: string
+	): boolean | undefined {
+		const data = this._knownPlugins.get();
+		const entry = data.find(
+			(d) => d.pluginId === pluginId && d.fingerprint === fingerprint
+		);
+		if (!entry) {
+			return undefined;
+		}
+		return entry.allowed;
+	}
+
+	public async addKnownPlugin(
+		pluginId: string,
+		fingerprint: string,
+		allowed: boolean
+	): Promise<void> {
+		const plugins = [...this._knownPlugins.get()].filter(
+			(p) => p.pluginId !== pluginId || p.fingerprint !== fingerprint
+		);
+
+		plugins.push({ pluginId, fingerprint, allowed });
+		await this._knownPlugins.set(plugins);
 	}
 }
 
@@ -222,13 +265,28 @@ export class DiagramConfig {
 
 	//#endregion
 
+	private readonly _plugins = new VsCodeSetting<{ file: string }[]>(
+		`${extensionId}.plugins`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<any[]>([]),
+		}
+	);
+
+	public get plugins(): { file: string }[] {
+		return this._plugins.get().map((entry) => {
+			const fullFilePath = this.evaluateTemplate(entry.file);
+			return { file: fullFilePath };
+		});
+	}
+
 	// #region Custom Libraries
 
 	private readonly _customLibraries = new VsCodeSetting<
 		DrawioCustomLibrary[]
 	>(`${extensionId}.customLibraries`, {
 		scope: this.uri,
-		serializer: serializerWithDefault<any[]>([]),
+		serializer: serializerWithDefault<DrawioCustomLibrary[]>([]),
 	});
 
 	@computed

@@ -1,10 +1,13 @@
-import { Webview, OutputChannel, Uri } from "vscode";
+import { Webview, OutputChannel, Uri, window } from "vscode";
 import { CustomDrawioInstance, simpleDrawioLibrary } from "../DrawioInstance";
 import { Config, DiagramConfig } from "../Config";
 import html from "./webview-content.html";
 import path = require("path");
 import { formatValue } from "../utils/formatValue";
 import { autorun, untracked } from "mobx";
+import { sha256 } from "js-sha256";
+import { readFileSync } from "fs";
+import { getDrawioExtensions } from "../DrawioExtensionApi";
 
 export class DrawioWebviewInitializer {
 	constructor(
@@ -18,16 +21,17 @@ export class DrawioWebviewInitializer {
 		options: DiagramOptions
 	): Promise<CustomDrawioInstance> {
 		const config = this.config.getConfig(uri);
+		const plugins = await this.getPlugins(config);
 
 		webview.options = {
 			enableScripts: true,
 		};
-
 		let i = 0;
 		autorun(
 			() => {
 				webview.html =
-					this.getHtml(config, options, webview) + " ".repeat(i++);
+					this.getHtml(config, options, webview, plugins) +
+					" ".repeat(i++);
 
 				// these getters triggers a reload on change
 				config.customLibraries;
@@ -72,13 +76,91 @@ export class DrawioWebviewInitializer {
 		return drawioInstance;
 	}
 
+	private async getPlugins(
+		config: DiagramConfig
+	): Promise<{ jsCode: string }[]> {
+		const pluginsToLoad = new Array<{ jsCode: string }>();
+		const promises = new Array<Promise<void>>();
+
+		for (const ext of getDrawioExtensions()) {
+			promises.push(
+				(async () => {
+					pluginsToLoad.push(
+						...(await ext.getDrawioPlugins({ uri: config.uri }))
+					);
+				})()
+			);
+		}
+
+		for (const p of config.plugins) {
+			let jsCode: string;
+			try {
+				jsCode = readFileSync(p.file, { encoding: "utf-8" });
+			} catch (e) {
+				window.showErrorMessage(
+					`Could not read plugin file "${p.file}"!`
+				);
+				continue;
+			}
+
+			const fingerprint = sha256.hex(jsCode);
+			const pluginId = p.file;
+
+			const isAllowed = this.config.isPluginAllowed(
+				pluginId,
+				fingerprint
+			);
+			if (isAllowed) {
+				pluginsToLoad.push({ jsCode });
+			} else if (isAllowed === undefined) {
+				promises.push(
+					(async () => {
+						const result = await window.showWarningMessage(
+							`Found unknown plugin "${pluginId}" with fingerprint "${fingerprint}"`,
+							{},
+							{
+								title: "Allow",
+								action: async () => {
+									pluginsToLoad.push({ jsCode });
+									await this.config.addKnownPlugin(
+										pluginId,
+										fingerprint,
+										true
+									);
+								},
+							},
+							{
+								title: "Disallow",
+								action: async () => {
+									await this.config.addKnownPlugin(
+										pluginId,
+										fingerprint,
+										false
+									);
+								},
+							}
+						);
+
+						if (result) {
+							await result.action();
+						}
+					})()
+				);
+			}
+		}
+
+		await Promise.all(promises);
+		return pluginsToLoad;
+	}
+
 	private getHtml(
 		config: DiagramConfig,
 		options: DiagramOptions,
-		webview: Webview
+		webview: Webview,
+		plugins: { jsCode: string }[]
 	): string {
 		if (config.mode.kind === "offline") {
-			return this.getOfflineHtml(config, options, webview);
+			return this.getOfflineHtml(config, options, webview, plugins);
 		} else {
 			return this.getOnlineHtml(config, config.mode.url);
 		}
@@ -87,7 +169,8 @@ export class DrawioWebviewInitializer {
 	private getOfflineHtml(
 		config: DiagramConfig,
 		options: DiagramOptions,
-		webview: Webview
+		webview: Webview,
+		plugins: { jsCode: string }[]
 	): string {
 		const vsuri = webview.asWebviewUri(
 			Uri.file(path.join(__dirname, "../../drawio/src/main/webapp"))
@@ -100,13 +183,24 @@ export class DrawioWebviewInitializer {
 		const localStorage = untracked(() => config.localStorage);
 
 		// TODO use template engine
+		// Prevent injection attacks by using JSON.stringify.
 		const patchedHtml = html
-			.replace(/\$\{vsuri\}/g, vsuri.toString())
-			.replace("${theme}", config.theme)
-			.replace("${lang}", config.language)
-			.replace("${chrome}", options.isReadOnly ? "0" : "1")
-			.replace("${customPluginsPath}", customPluginsPath.toString())
-			.replace("$$localStorage$$", JSON.stringify(localStorage));
+			.replace(/\$\$literal-vsuri\$\$/g, vsuri.toString())
+			.replace("$$theme$$", JSON.stringify(config.theme))
+			.replace("$$lang$$", JSON.stringify(config.language))
+			.replace(
+				"$$chrome$$",
+				JSON.stringify(options.isReadOnly ? "0" : "1")
+			)
+			.replace(
+				"$$customPluginPaths$$",
+				JSON.stringify([customPluginsPath.toString()])
+			)
+			.replace("$$localStorage$$", JSON.stringify(localStorage))
+			.replace(
+				"$$additionalCode$$",
+				JSON.stringify(plugins.map((p) => p.jsCode))
+			);
 		return patchedHtml;
 	}
 
@@ -137,7 +231,11 @@ export class DrawioWebviewInitializer {
 					});
 				</script>
 
-				<iframe src="${drawioUrl}?embed=1&ui=${config.theme}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&lang=${config.language}"></iframe>
+				<iframe src="${drawioUrl}?embed=1&ui=${encodeURIComponent(
+			config.theme
+		)}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&lang=${encodeURIComponent(
+			config.language
+		)}"></iframe>
 			</body>
 		</html>
 			`;

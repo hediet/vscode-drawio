@@ -68,6 +68,9 @@ Draw.loadPlugin((ui) => {
 		const kvs = [...(cell.value.attributes as any)]
 			.filter((a) => a.name.startsWith(prefix))
 			.map((a) => [a.name, a.value]);
+		if (kvs.length === 0) {
+			return undefined;
+		}
 
 		const r: Record<string, string> = {};
 		for (const [k, v] of kvs) {

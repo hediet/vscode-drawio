@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<base href="${vsuri}/index.html" />
+		<base href="$$literal-vsuri$$/index.html" />
 		<script type="text/javascript">
 			var log;
 			(() => {
@@ -68,11 +68,11 @@
 				embed: "1",
 				configure: "1",
 				proto: "json",
-				ui: "${theme}",
-				lang: "${lang}",
+				ui: $$theme$$,
+				lang: $$lang$$,
 				noSaveBtn: "1",
 				noExitBtn: "1",
-				chrome: "${chrome}",
+				chrome: $$chrome$$,
 			};
 
 			// Checks for local storage
@@ -295,10 +295,10 @@
 				 * https://github.com/hediet/vscode-drawio/issues/74.
 				 */
 				function fix_mxUrlConverter_prototype_convert() {
-					mxUrlConverter.prototype.baseUrl = "${vsuri}/";
+					mxUrlConverter.prototype.baseUrl = "$$literal-vsuri$$/";
 					mxUrlConverter.prototype.updateBaseUrl = function () {
-						this.baseDomain = "${vsuri}";
-						this.baseUrl = "${vsuri}/";
+						this.baseDomain = "$$literal-vsuri$$";
+						this.baseUrl = "$$literal-vsuri$$/";
 					};
 					const RX_IS_ABS_URL = /^(\/\/|[a-zA-Z][a-zA-Z\d+\-.]*:)/;
 					mxUrlConverter.prototype.isRelativeUrl = function (url) {
@@ -315,6 +315,7 @@
 				 * @param url {string}
 				 */
 				function loadScript(url) {
+					console.log("load custom plugin:", url);
 					const pluginScript = document.createElement("script");
 					pluginScript.type = "text/javascript";
 					pluginScript.src = url;
@@ -322,8 +323,28 @@
 						.getElementsByTagName("head")[0]
 						.appendChild(pluginScript);
 				}
+				/**
+				 * @param url {string[]}
+				 */
+				function loadScripts(urls) {
+					urls.forEach(loadScript);
+				}
+				loadScripts($$customPluginPaths$$);
 
-				loadScript("${customPluginsPath}");
+				/**
+				 * @param src {string}
+				 */
+				function loadScriptSrc(src) {
+					const pluginScript = document.createElement("script");
+					pluginScript.type = "text/javascript";
+					pluginScript.text = src;
+
+					document
+						.getElementsByTagName("head")[0]
+						.appendChild(pluginScript);
+				}
+
+				$$additionalCode$$.forEach(loadScriptSrc);
 			})();
 		</script>
 	</body>

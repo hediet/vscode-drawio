@@ -7,24 +7,32 @@ export function fromResource<T>(
 	subscriber: (sink: (newValue: T) => void) => DisposableLike
 ): IResource<T | undefined>;
 export function fromResource<T>(
-	subscriber: (sink: (newValue: T) => void) => DisposableLike,
-	initialValue: T
+	subscriber: (sink: (newValue?: T) => void) => DisposableLike,
+	getValue: () => T
 ): IResource<T>;
 export function fromResource<T>(
-	subscriber: (sink: (newValue: T) => void) => DisposableLike,
-	initialValue: T | undefined = undefined
+	subscriber: (sink: (newValue?: T) => void) => DisposableLike,
+	getValue: (() => T) | undefined = undefined
 ): IResource<T | undefined> {
 	let isActive = false;
 	let isDisposed = false;
-	let value = initialValue;
+	let value = getValue ? getValue() : undefined;
 	let disposable: DisposableLike;
 
 	const initializer = () => {
 		invariant(!isActive && !isDisposed);
 		isActive = true;
-		disposable = subscriber((newValue: T) => {
+		disposable = subscriber((...args) => {
 			_allowStateChanges(true, () => {
-				value = newValue;
+				if (args.length > 0) {
+					value = args[0];
+				} else if (getValue) {
+					value = getValue();
+				} else {
+					throw new Error(
+						"Either an argument or getValue must be provided"
+					);
+				}
 				atom.reportChanged();
 			});
 		});
@@ -46,10 +54,16 @@ export function fromResource<T>(
 				"subscribingObservable has already been disposed"
 			);
 			const isBeingTracked = atom.reportObserved();
-			if (!isBeingTracked && !isActive)
-				console.warn(
-					"Called `get` of a subscribingObservable outside a reaction. Current value will be returned but no new subscription has started"
-				);
+			if (!isBeingTracked && !isActive) {
+				if (getValue) {
+					return getValue();
+				} else {
+					console.warn(
+						"Called `get` of a subscribingObservable outside a reaction. Current value will be returned but no new subscription has started"
+					);
+				}
+			}
+
 			return value;
 		},
 		dispose: () => {

@@ -8,14 +8,6 @@ export class InsiderFeedbackFeature {
 	public readonly dispose = Disposable.fn();
 
 	constructor(editorManager: DrawioEditorManager, config: Config) {
-		this.dispose.track({
-			dispose: autorun(() => {
-				// this keeps the setting up to date.
-				// TODO make this hack unnecessary!
-				config.alreadyAskedToTest;
-			}),
-		});
-
 		this.dispose.track(
 			editorManager.onEditorOpened.sub(({ editor }) => {
 				const { feedbackUrl } = config;

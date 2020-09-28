@@ -23,12 +23,14 @@ export class VsCodeSetting<T> {
 	public readonly serializer: Serializer<T>;
 	public readonly scope: Uri | undefined;
 	private readonly settingResource: VsCodeSettingResource;
+	private readonly target: ConfigurationTarget | undefined;
 
 	public constructor(
 		public readonly id: string,
 		options: {
 			serializer?: Serializer<T>;
 			scope?: Uri;
+			target?: ConfigurationTarget;
 		} = {}
 	) {
 		this.scope = options.scope;
@@ -36,7 +38,13 @@ export class VsCodeSetting<T> {
 			deserialize: (val) => val,
 			serializer: (val) => val,
 		};
-		this.settingResource = new VsCodeSettingResource(this.id, this.scope);
+
+		this.target = options.target;
+		this.settingResource = new VsCodeSettingResource(
+			this.id,
+			this.scope,
+			this.target
+		);
 	}
 
 	public get(): T {
@@ -47,27 +55,30 @@ export class VsCodeSetting<T> {
 	public async set(value: T): Promise<void> {
 		const value2 = this.serializer.serializer(value);
 		const c = workspace.getConfiguration(undefined, this.scope);
-		const result = c.inspect(this.id);
 		let target: ConfigurationTarget;
-
-		if (
-			result &&
-			[
-				result.workspaceFolderLanguageValue,
-				result.workspaceFolderValue,
-			].some((i) => i !== undefined)
-		) {
-			target = ConfigurationTarget.WorkspaceFolder;
-		}
-		if (
-			result &&
-			[result.workspaceLanguageValue, result.workspaceValue].some(
-				(i) => i !== undefined
-			)
-		) {
-			target = ConfigurationTarget.Workspace;
+		if (this.target !== undefined) {
+			target = this.target;
 		} else {
-			target = ConfigurationTarget.Global;
+			const result = c.inspect(this.id);
+			if (
+				result &&
+				[
+					result.workspaceFolderLanguageValue,
+					result.workspaceFolderValue,
+				].some((i) => i !== undefined)
+			) {
+				target = ConfigurationTarget.WorkspaceFolder;
+			}
+			if (
+				result &&
+				[result.workspaceLanguageValue, result.workspaceValue].some(
+					(i) => i !== undefined
+				)
+			) {
+				target = ConfigurationTarget.Workspace;
+			} else {
+				target = ConfigurationTarget.Global;
+			}
 		}
 
 		await c.update(this.id, value2, target);
@@ -77,23 +88,39 @@ export class VsCodeSetting<T> {
 class VsCodeSettingResource {
 	public static onConfigChange = new EventEmitter();
 
-	private readonly resource = fromResource<any>((update) => {
-		update(this.readValue());
-		return VsCodeSettingResource.onConfigChange.sub(() => {
-			update(this.readValue());
-		});
-	}, this.readValue());
+	private readonly resource = fromResource<any>(
+		(update) => {
+			return VsCodeSettingResource.onConfigChange.sub(() => {
+				update();
+			});
+		},
+		() => this.readValue()
+	);
 
 	constructor(
 		private readonly id: string,
-		private readonly scope: Uri | undefined
+		private readonly scope: Uri | undefined,
+		private readonly target: ConfigurationTarget | undefined
 	) {}
 
 	private readValue(): any {
-		const val = workspace
-			.getConfiguration(undefined, this.scope)
-			.get(this.id);
-		return val;
+		const config = workspace.getConfiguration(undefined, this.scope);
+
+		if (this.target === undefined) {
+			return config.get(this.id);
+		} else {
+			const result = config.inspect(this.id);
+			if (!result) {
+				return undefined;
+			}
+			if (this.target === ConfigurationTarget.Global) {
+				return result.globalValue;
+			} else if (this.target === ConfigurationTarget.Workspace) {
+				return result.workspaceValue;
+			} else if (this.target === ConfigurationTarget.WorkspaceFolder) {
+				return result.workspaceFolderValue;
+			}
+		}
 	}
 
 	/**
