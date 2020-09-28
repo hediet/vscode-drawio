@@ -26,7 +26,10 @@ export class InsiderFeedbackFeature {
 						}
 
 						const result = await window.showInformationMessage(
-							`With your feedback on GitHub, the Draw.io extension version ${config.packageJson.version} can be released as stable soon!`,
+							`With your feedback on GitHub, the Draw.io extension version ${
+								config.packageJson.versionName ||
+								config.packageJson.version
+							} can be released as stable soon!`,
 							{ modal: false },
 							{
 								title: `Give Feedback ❤️`,

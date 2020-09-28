@@ -76,7 +76,7 @@ export async function run(): Promise<void> {
 	if (prerelease) {
 		Object.assign(packageJson, patchPackageJson);
 	}
-	Object.assign(packageJson, { version, feedbackUrl: prLink });
+	Object.assign(packageJson, { version, feedbackUrl: prLink, versionName });
 
 	writeFileSync(
 		join(__dirname, "../../package.json"),

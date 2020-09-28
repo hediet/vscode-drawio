@@ -23,6 +23,7 @@ export async function setContext(
 export class Config {
 	public readonly packageJson: {
 		version: string;
+		versionName: string | undefined;
 		name: string;
 		feedbackUrl?: string;
 	} = JSON.parse(readFileSync(this.packageJsonPath, { encoding: "utf-8" }));
