@@ -24,7 +24,7 @@
 		"vscode": "^1.46.0"
 	},
 	"categories": [
-		"Other"
+		"Visualization"
 	],
 	"activationEvents": [
 		"onCustomEditor:hediet.vscode-drawio",
