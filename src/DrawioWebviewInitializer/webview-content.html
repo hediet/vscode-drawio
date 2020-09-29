@@ -231,23 +231,42 @@
 				}
 
 				log("Document loaded, patching prototypes");
-				// This removes the exportAs submenu
+
 				patchFn(Menus.prototype, "addSubmenu", function (old) {
 					return function (...args) {
 						if (args[0] === "exportAs") {
 							return;
 						}
-						console.log("added submenu ", args[0]);
+						console.log("addSubmenu: ", args[0]);
 						return old.apply(this, args);
 					};
 				});
 
-				// This removes the language menu
-				patchFn(Menus.prototype, "put", function (old) {
+				patchFn(Menus.prototype, "addMenuItem", function (old) {
 					return function (...args) {
-						if (args[0] === "language") {
+						if (
+							["print", "saveAndExit", "plugins", "exit"].indexOf(
+								args[1]
+							) !== -1
+						) {
 							return;
 						}
+						console.log("addMenuItem: ", args[1]);
+						return old.apply(this, args);
+					};
+				});
+
+				// Without this, it will crash. "help" is removed.
+				Menus.prototype.defaultMenuItems = Menus.prototype.defaultMenuItems.filter(
+					(i) => i !== "help"
+				);
+
+				patchFn(Menus.prototype, "put", function (old) {
+					return function (...args) {
+						if (["language", "help"].indexOf(args[0]) !== -1) {
+							return args[1];
+						}
+						console.log("put: ", args[0]);
 						return old.apply(this, args);
 					};
 				});
