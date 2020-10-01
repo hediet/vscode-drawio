@@ -18,6 +18,7 @@ import { wait } from "@hediet/std/timer";
 import { DrawioEditorManager, DrawioEditor } from "../DrawioEditorManager";
 import { autorun, action } from "mobx";
 import { Config } from "../Config";
+import { join, relative } from "path";
 
 const toggleCodeLinkActivationCommandName =
 	"hediet.vscode-drawio.toggleCodeLinkActivation";
@@ -89,11 +90,6 @@ export class LinkCodeWithSelectedNodeService {
 
 	@action.bound
 	private linkCodeWithSelectedNode(): void {
-		if (!this.config.experimentalFeaturesEnabled) {
-			window.showErrorMessage("Feature not enabled.");
-			return;
-		}
-
 		const lastActiveDrawioEditor = this.editorManager
 			.lastActiveDrawioEditor;
 		if (!lastActiveDrawioEditor) {
@@ -114,7 +110,7 @@ export class LinkCodeWithSelectedNodeService {
 
 		const pos = new CodePosition(editor.document.uri, editor.selection);
 		lastActiveDrawioEditor.instance.linkSelectedNodeWithData(
-			pos.serialize()
+			pos.serialize(lastActiveDrawioEditor.uri)
 		);
 		this.revealSelection(pos);
 	}
@@ -141,7 +137,7 @@ export class LinkCodeWithSelectedNodeService {
 			}
 
 			if (linkedData) {
-				const pos = CodePosition.deserialize(linkedData);
+				const pos = CodePosition.deserialize(linkedData, editor.uri);
 				await this.revealSelection(pos);
 			} else {
 				const match = label.match(/#([a-zA-Z0-9_]+)/);
@@ -225,21 +221,23 @@ export class LinkCodeWithSelectedNodeService {
 }
 
 class CodePosition {
-	public static deserialize(value: unknown): CodePosition {
+	public static deserialize(value: unknown, relativeTo: Uri): CodePosition {
 		const data = value as Data;
 		function getPosition(pos: PositionData): Position {
 			return new Position(pos.line, pos.col);
 		}
 
 		return new CodePosition(
-			Uri.parse(data["uri"]),
+			relativeTo.with({
+				path: Uri.file(join(relativeTo.path, data.path)).path,
+			}),
 			new Range(getPosition(data.start), getPosition(data.end))
 		);
 	}
 
 	constructor(public readonly uri: Uri, public readonly range: Range) {}
 
-	public serialize(): unknown {
+	public serialize(relativeTo: Uri): unknown {
 		function toPosition(pos: Position): PositionData {
 			return {
 				col: pos.character,
@@ -248,7 +246,10 @@ class CodePosition {
 		}
 
 		const data: Data = {
-			uri: this.uri.toString(),
+			path: relative(relativeTo.fsPath, this.uri.fsPath).replace(
+				/\\/g,
+				"/"
+			),
 			start: toPosition(this.range.start),
 			end: toPosition(this.range.end),
 		};
@@ -257,7 +258,7 @@ class CodePosition {
 }
 
 interface Data {
-	uri: string;
+	path: string;
 	start: PositionData;
 	end: PositionData;
 }

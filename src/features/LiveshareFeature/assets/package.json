@@ -1,5 +1,6 @@
 {
 	"name": "vscode-drawio",
+	"publisher": "hediet",
 	"description": "This file bypasses vsliveshares check",
 	"private": "true"
 }

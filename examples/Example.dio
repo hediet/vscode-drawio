@@ -1,6 +1,6 @@
-<mxfile host="" modified="2020-09-28T21:33:46.750Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.46.1 Chrome/78.0.3904.130 Electron/7.3.1 Safari/537.36" etag="3LUw3IniTdBmU6tjGTA3" version="13.6.5">
+<mxfile host="9803df4a-6816-4f0b-81dd-5cea6e86e8b2" modified="2020-09-29T23:55:23.797Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.49.2 Chrome/83.0.4103.122 Electron/9.2.1 Safari/537.36" etag="4oN8mEKKnNLaotIrLzYF" version="13.6.5">
     <diagram id="ayf96gaC2YPj7m7-Xzu7" name="Page-1">
-        <mxGraphModel dx="716" dy="660" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="1" shadow="0">
+        <mxGraphModel dx="473" dy="429" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="1" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -18,6 +18,11 @@
                 <mxCell id="22" value="#Bar" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="280" y="290" width="120" height="60" as="geometry"/>
                 </mxCell>
+                <object label="" hedietLinkedDataV1_path="../demo-src/Foo.ts" hedietLinkedDataV1_start_col_x-num="6" hedietLinkedDataV1_start_line_x-num="2" hedietLinkedDataV1_end_col_x-num="16" hedietLinkedDataV1_end_line_x-num="2" id="23">
+                    <mxCell style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                        <mxGeometry x="70" y="500" width="120" height="60" as="geometry"/>
+                    </mxCell>
+                </object>
             </root>
         </mxGraphModel>
     </diagram>

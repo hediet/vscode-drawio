@@ -110,15 +110,13 @@
 			},
 			{
 				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
-				"title": "Draw.io: Link Code with Selected Node (Experimental)",
-				"enablement": "hediet.vscode-drawio.experimentalFeaturesEnabled"
+				"title": "Draw.io: Link Code with Selected Node"
 			}
 		],
 		"keybindings": [
 			{
 				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
-				"key": "shift+F3",
-				"when": "hediet.vscode-drawio.experimentalFeaturesEnabled"
+				"key": "shift+F3"
 			}
 		],
 		"configuration": {

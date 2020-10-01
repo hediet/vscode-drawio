@@ -8,7 +8,7 @@ import { sendEvent } from "./vscode";
 Draw.loadPlugin((ui) => {
 	sendEvent({ event: "pluginLoaded", pluginId: "linkSelectedNodeWithData" });
 
-	let interceptNodeClick = false;
+	let nodeSelectionEnabled = false;
 	const graph = ui.editor.graph;
 	const highlight = new mxCellHighlight(graph, "#00ff00", 8);
 
@@ -16,18 +16,19 @@ Draw.loadPlugin((ui) => {
 	let activeCell: DrawioCell | undefined = undefined;
 
 	graph.addListener(mxEvent.DOUBLE_CLICK, function (sender: any, evt: any) {
-		if (!interceptNodeClick) {
+		if (!nodeSelectionEnabled) {
 			return;
 		}
 
 		var cell: any | null = evt.getProperty("cell");
 		if (cell != null) {
+			const data = getLinkedData(cell);
 			const label = getLabelTextOfCell(cell);
-			if (!label.match(/#([a-zA-Z0-9_]+)/)) {
+
+			if (!data && !label.match(/#([a-zA-Z0-9_]+)/)) {
 				return;
 			}
 
-			const data = getLinkedData(cell);
 			sendEvent({ event: "nodeSelected", label, linkedData: data });
 			evt.consume();
 		}
@@ -114,7 +115,7 @@ Draw.loadPlugin((ui) => {
 
 		switch (data.action) {
 			case "setNodeSelectionEnabled": {
-				interceptNodeClick = data.enabled;
+				nodeSelectionEnabled = data.enabled;
 				break;
 			}
 			case "linkSelectedNodeWithData": {

@@ -5,10 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.8.0-alpha.4]
+## [0.8.0-alpha.5]
 
 ### Added
 
+-   Enhanced Liveshare support: Cursors and selections of other participants are now shown.
+-   Code Links can now refer to arbitrary code spans, not only to symbols.
 -   Supports custom drawio plugins.
 -   Other VS Code extensions can provide custom drawio plugins.
 -   Adds a status bar item to quickly change the current drawio theme.

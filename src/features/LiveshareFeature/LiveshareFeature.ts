@@ -1,9 +1,9 @@
 import { Disposable } from "@hediet/std/disposable";
-import { observable } from "mobx";
 import * as vsls from "vsls";
 import { Config } from "../../Config";
 import { DrawioEditorManager } from "../../DrawioEditorManager";
 import { autorunTrackDisposables } from "../../utils/autorunTrackDisposables";
+import { fromResource } from "../../utils/fromResource";
 import { LiveshareSession } from "./LiveshareSession";
 
 export class LiveshareFeature {
@@ -13,10 +13,6 @@ export class LiveshareFeature {
 		private readonly editorManager: DrawioEditorManager,
 		private readonly config: Config
 	) {
-		if (!config.experimentalFeaturesEnabled) {
-			return;
-		}
-
 		this.init().catch(console.error);
 	}
 
@@ -34,22 +30,29 @@ export class LiveshareFeature {
 
 class LiveshareFeatureInitialized {
 	public readonly dispose = Disposable.fn();
-	@observable private session: vsls.Session | undefined;
+
+	private session = fromResource(
+		(sink) => {
+			this.api.onDidChangeSession(() => {
+				sink();
+			});
+		},
+		() => {
+			if (this.api.session.role === vsls.Role.None) {
+				return undefined;
+			} else {
+				return Object.assign({}, this.api.session);
+			}
+		}
+	);
 
 	constructor(
 		private readonly api: vsls.LiveShare,
 		editorManager: DrawioEditorManager
 	) {
 		this.dispose.track(
-			this.api.onDidChangeSession(({ session }) => {
-				this.session = session;
-			})
-		);
-		this.session = api.session;
-
-		this.dispose.track(
 			autorunTrackDisposables(async (track) => {
-				const session = this.session;
+				const session = this.session.current();
 				if (!session) {
 					return;
 				}
