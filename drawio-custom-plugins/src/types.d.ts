@@ -1,6 +1,11 @@
 
 declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | GetVerticesAction | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction | UpdateGhostCursors | UpdateGhostSelections;
-declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent | UpdateLocalStorage | PluginLoaded | CursorChangedEvent |  SelectionChangedEvent | FocusChangedEvent;
+declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent | UpdateLocalStorage | PluginLoaded | CursorChangedEvent |  SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent;
+
+declare interface InvokeCommandEvent {
+    event: "invokeCommand";
+    command: "export" | "save" | "convert";
+}
 
 declare interface FocusChangedEvent {
     event: "focusChanged";

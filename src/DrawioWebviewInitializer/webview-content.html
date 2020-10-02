@@ -234,7 +234,10 @@
 
 				patchFn(Menus.prototype, "addSubmenu", function (old) {
 					return function (...args) {
-						if (args[0] === "exportAs") {
+						if (
+							args[0] === "exportAs" ||
+							args[0] === "importFrom"
+						) {
 							return;
 						}
 						console.log("addSubmenu: ", args[0]);

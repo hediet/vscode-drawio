@@ -10,6 +10,10 @@ declare class mxCellHighlight {
     public destroy(): void;
 }
 
+declare class mxResources {
+    static parse(value: string): void;
+}
+
 declare class mxMouseEvent {
     public readonly graphX: number;
     public readonly graphY: number;
@@ -27,7 +31,19 @@ declare const mxUtils: {
 
 
 declare interface DrawioUI {
-	editor: DrawioEditor;
+    editor: DrawioEditor;
+    actions: DrawioActions;
+    menus: DrawioMenus;
+    importLocalFile(args: boolean): void;
+}
+
+interface DrawioMenus {
+    get(name: string): any;
+    addMenuItems(menu: any, arg: any, arg2: any): void;
+}
+
+interface DrawioActions {
+    addAction(name: string, action: () => void): void;
 }
 
 declare interface DrawioEditor {

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Enhanced Liveshare support: Cursors and selections of other participants are now shown.
 -   Code Links can now refer to arbitrary code spans, not only to symbols.
+-   Adds export/convert/save entries to the drawio menu.
 -   Supports custom drawio plugins.
 -   Other VS Code extensions can provide custom drawio plugins.
 -   Adds a status bar item to quickly change the current drawio theme.

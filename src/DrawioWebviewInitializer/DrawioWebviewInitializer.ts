@@ -4,7 +4,7 @@ import { Config, DiagramConfig } from "../Config";
 import html from "./webview-content.html";
 import path = require("path");
 import { formatValue } from "../utils/formatValue";
-import { autorun, untracked } from "mobx";
+import { autorun, observable, runInAction, untracked } from "mobx";
 import { sha256 } from "js-sha256";
 import { readFileSync } from "fs";
 import { getDrawioExtensions } from "../DrawioExtensionApi";
@@ -26,9 +26,12 @@ export class DrawioWebviewInitializer {
 		webview.options = {
 			enableScripts: true,
 		};
+		const reloadId = observable({ id: 0 });
 		let i = 0;
 		autorun(
 			() => {
+				reloadId.id;
+
 				webview.html =
 					this.getHtml(config, options, webview, plugins) +
 					" ".repeat(i++);
@@ -63,6 +66,11 @@ export class DrawioWebviewInitializer {
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 				};
+			},
+			() => {
+				runInAction("Force reload", () => {
+					reloadId.id++;
+				});
 			}
 		);
 

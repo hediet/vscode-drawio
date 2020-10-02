@@ -155,23 +155,6 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 			isThisEditorSaving = true;
 			try {
 				await workspace.applyEdit(workspaceEdit);
-
-				/*
-				// This does not work until we can use the same FormattingOptions
-				// that VS Code is using
-				const formatEdits = await commands.executeCommand<TextEdit[]>(
-					"vscode.executeFormatDocumentProvider",
-					document.uri,
-					{
-						insertSpaces: true,
-						tabSize: 4,
-					} as FormattingOptions
-				);
-				if (formatEdits !== undefined) {
-					const formatWorkspaceEdit = new WorkspaceEdit();
-					formatWorkspaceEdit.set(document.uri, formatEdits);
-					await workspace.applyEdit(formatWorkspaceEdit);
-				}*/
 			} finally {
 				isThisEditorSaving = false;
 			}

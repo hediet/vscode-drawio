@@ -35,6 +35,11 @@ export class CustomDrawioInstance extends DrawioInstance<
 	}>();
 	public readonly onFocusChanged = this.onFocusChangedEmitter.asEvent();
 
+	private readonly onInvokeCommandEmitter = new EventEmitter<{
+		command: InvokeCommandEvent["command"];
+	}>();
+	public readonly onInvokeCommand = this.onInvokeCommandEmitter.asEvent();
+
 	public linkSelectedNodeWithData(linkedData: unknown) {
 		this.sendCustomAction({
 			action: "linkSelectedNodeWithData",
@@ -106,6 +111,8 @@ export class CustomDrawioInstance extends DrawioInstance<
 			this.onSelectionsChangedEmitter.emit({
 				selectedCellIds: evt.selectedCellIds,
 			});
+		} else if (evt.event === "invokeCommand") {
+			this.onInvokeCommandEmitter.emit({ command: evt.command });
 		} else {
 			await super.handleEvent(evt);
 		}

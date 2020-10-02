@@ -27,7 +27,8 @@ export class DrawioInstance<
 
 	constructor(
 		private readonly messageStream: MessageStream,
-		private readonly getConfig: () => Promise<DrawioConfig>
+		private readonly getConfig: () => Promise<DrawioConfig>,
+		public readonly reloadWebview: () => void
 	) {
 		this.dispose.track(
 			messageStream.registerMessageHandler((msg) =>
@@ -147,21 +148,6 @@ export class DrawioInstance<
 	 * This loads an xml or svg+xml Draw.io diagram.
 	 */
 	public loadXmlLike(xmlLike: string) {
-		if (xmlLike === "") {
-			// see https://github.com/jgraph/drawio/issues/915
-			xmlLike = `
-<mxfile host="localhost" modified="2020-05-14T13:54:05.771Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.45.0 Chrome/78.0.3904.130 Electron/7.2.4 Safari/537.36" etag="eoEzpxJQLkNMd8Iw5vpY" version="13.0.9">
-	<diagram id="6hGFLwfOUW9BJ-s0fimq" name="Page-1">
-		<mxGraphModel dx="606" dy="468" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
-			<root>
-				<mxCell id="0"/>
-				<mxCell id="1" parent="0"/>
-			</root>
-		</mxGraphModel>
-	</diagram>
-</mxfile>`;
-		}
-
 		this.currentXml = undefined;
 		this.sendAction({
 			action: "load",
@@ -242,6 +228,10 @@ export class DrawioInstance<
 		}
 		const base64Data = response.data.substr(start.length);
 		return Buffer.from(base64Data, "base64");
+	}
+
+	public triggerOnSave(): void {
+		this.onSaveEmitter.emit();
 	}
 }
 

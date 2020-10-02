@@ -3,12 +3,24 @@ import { EventEmitter } from "@hediet/std/events";
 import { startTimeout } from "@hediet/std/timer";
 import { autorun, computed, observable, ObservableSet } from "mobx";
 import { basename, dirname, extname, join } from "path";
-import { TextDocument, Uri, WebviewPanel, window, workspace } from "vscode";
+import {
+	commands,
+	StatusBarAlignment,
+	TextDocument,
+	Uri,
+	WebviewPanel,
+	window,
+	workspace,
+} from "vscode";
 import { Config, DiagramConfig } from "./Config";
 import { DrawioBinaryDocument } from "./DrawioEditorProviderBinary";
 import { CustomDrawioInstance } from "./DrawioInstance";
 
+const drawioChangeThemeCommand = "hediet.vscode-drawio.changeTheme";
+
 export class DrawioEditorManager {
+	public readonly dispose = Disposable.fn();
+
 	private readonly onEditorOpenedEmitter = new EventEmitter<{
 		editor: DrawioEditor;
 	}>();
@@ -26,12 +38,74 @@ export class DrawioEditorManager {
 		return this._lastActiveDrawioEditor;
 	}
 
+	private readonly statusBar = this.dispose.track(
+		window.createStatusBarItem(StatusBarAlignment.Right)
+	);
+
 	constructor(private readonly config: Config) {
 		autorun(() => {
 			const a = this.activeDrawioEditor;
 			if (a) {
 				this._lastActiveDrawioEditor = a;
 			}
+		});
+
+		this.dispose.track(
+			commands.registerCommand(drawioChangeThemeCommand, () => {
+				const activeDrawioEditor = this.activeDrawioEditor;
+				if (!activeDrawioEditor) {
+					return;
+				}
+				activeDrawioEditor.handleChangeThemeCommand();
+			})
+		);
+
+		this.dispose.track(
+			commands.registerCommand("hediet.vscode-drawio.convert", () => {
+				const activeDrawioEditor = this.activeDrawioEditor;
+				if (!activeDrawioEditor) {
+					return;
+				}
+				activeDrawioEditor.handleConvertCommand();
+			})
+		);
+
+		this.dispose.track(
+			commands.registerCommand(
+				"hediet.vscode-drawio.reload-webview",
+				() => {
+					for (const e of this.openedEditors) {
+						e.instance.reloadWebview();
+					}
+				}
+			)
+		);
+
+		this.dispose.track(
+			commands.registerCommand("hediet.vscode-drawio.export", () => {
+				const activeDrawioEditor = this.activeDrawioEditor;
+				if (!activeDrawioEditor) {
+					return;
+				}
+				activeDrawioEditor.handleExportCommand();
+			})
+		);
+
+		this.dispose.track({
+			dispose: autorun(
+				() => {
+					const activeEditor = this.activeDrawioEditor;
+					this.statusBar.command = drawioChangeThemeCommand;
+
+					if (activeEditor) {
+						this.statusBar.text = `Theme: ${activeEditor.config.theme}`;
+						this.statusBar.show();
+					} else {
+						this.statusBar.hide();
+					}
+				},
+				{ name: "Update UI" }
+			),
 		});
 	}
 
@@ -139,6 +213,16 @@ export class DrawioEditor {
 				}
 			}),
 		});
+
+		instance.onInvokeCommand.sub(({ command }) => {
+			if (command === "convert") {
+				this.handleConvertCommand();
+			} else if (command === "export") {
+				this.handleExportCommand();
+			} else if (command === "save") {
+				this.instance.triggerOnSave();
+			}
+		});
 	}
 
 	public get isActive(): boolean {
@@ -202,6 +286,81 @@ export class DrawioEditor {
 			return;
 		}
 		await workspace.fs.writeFile(targetUri, buffer);
+	}
+
+	public async handleConvertCommand(): Promise<void> {
+		const result = await window.showQuickPick(
+			[
+				{
+					label: ".drawio.svg",
+					description: "Converts the diagram to an editable SVG file",
+				},
+				{
+					label: ".drawio",
+					description: "Converts the diagram to a drawio file",
+				},
+
+				{
+					label: ".drawio.png",
+					description: "Converts the diagram to an editable png file",
+				},
+			].filter((x) => x.label !== this.fileExtension)
+		);
+
+		if (!result) {
+			return;
+		}
+		await this.convertTo(result.label);
+	}
+
+	public async handleExportCommand(): Promise<void> {
+		const result = await window.showQuickPick([
+			{
+				label: ".svg",
+				description: "Exports the diagram to a SVG file",
+			},
+			{
+				label: ".png",
+				description: "Exports the diagram to a png file",
+			},
+			{
+				label: ".drawio",
+				description: "Exports the diagram to a drawio file",
+			},
+		]);
+
+		if (!result) {
+			return;
+		}
+		await this.exportTo(result.label);
+	}
+
+	public async handleChangeThemeCommand(): Promise<void> {
+		let availableThemes = ["automatic", "min", "atlas", "dark", "Kennedy"];
+
+		const originalTheme = this.config.theme;
+		availableThemes = availableThemes.filter((t) => t !== originalTheme);
+		availableThemes.unshift(originalTheme);
+
+		const result = await window.showQuickPick(
+			availableThemes.map((theme) => ({
+				label: theme,
+				description: `Selects Theme "${theme}"`,
+				theme,
+			})),
+			{
+				onDidSelectItem: async (item) => {
+					await this.config.setTheme((item as any).theme);
+				},
+			}
+		);
+
+		if (!result) {
+			await this.config.setTheme(originalTheme);
+			return;
+		}
+
+		await this.config.setTheme(result.theme);
 	}
 }
 
