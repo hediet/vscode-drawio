@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Adds a status bar item to quickly change the current drawio theme.
 -   Adds drawio-language-mode (see [#130](https://github.com/hediet/vscode-drawio/issues/130)).
 -   Users of the Insiders Build are asked for feedback after some activity time.
+-   Users of the Stable Build are asked for sponsorship after some activity time.
 
 ### Changed
 

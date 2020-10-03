@@ -6,6 +6,7 @@ import {
 	window,
 	ColorThemeKind,
 	ConfigurationTarget,
+	Memento,
 } from "vscode";
 import { computed, autorun } from "mobx";
 import { DrawioLibraryData } from "./DrawioInstance";
@@ -50,7 +51,10 @@ export class Config {
 		);
 	}
 
-	constructor(private readonly packageJsonPath: string) {
+	constructor(
+		private readonly packageJsonPath: string,
+		private readonly globalState: Memento
+	) {
 		autorun(() => {
 			setContext(
 				experimentalFeaturesEnabled,
@@ -74,18 +78,28 @@ export class Config {
 		return this._experimentalFeatures.get();
 	}
 
-	private readonly _lastVersionAskedToTest = new VsCodeSetting<
-		string | undefined
-	>(`${extensionId}.version-asked-for-feedback`, {
-		serializer: serializerWithDefault<undefined | string>(undefined),
-	});
-
-	public get alreadyAskedToTest(): boolean {
-		return this._lastVersionAskedToTest.get() === this.packageJson.version;
+	public get canAskForFeedback(): boolean {
+		if (
+			this.getInternalConfig().versionLastAskedForFeedback ===
+			this.packageJson.version
+		) {
+			return false;
+		}
+		const secondsIn20Minutes = 60 * 20;
+		if (
+			this.getInternalConfig().thisVersionUsageTimeInSeconds <
+			secondsIn20Minutes
+		) {
+			return false;
+		}
+		return true;
 	}
 
 	public async markAskedToTest(): Promise<void> {
-		await this._lastVersionAskedToTest.set(this.packageJson.version);
+		await this.updateInternalConfig((config) => ({
+			...config,
+			versionLastAskedForFeedback: this.packageJson.version,
+		}));
 	}
 
 	private readonly _knownPlugins = new VsCodeSetting<
@@ -122,6 +136,95 @@ export class Config {
 		plugins.push({ pluginId, fingerprint, allowed });
 		await this._knownPlugins.set(plugins);
 	}
+
+	public getUsageTimeInSeconds(): number {
+		return this.getInternalConfig().totalUsageTimeInSeconds;
+	}
+
+	public getUsageTimeOfThisVersionInSeconds(): number {
+		return this.getInternalConfig().thisVersionUsageTimeInSeconds;
+	}
+
+	public addUsageTime10Seconds(): void {
+		this.updateInternalConfig((config) => {
+			if (config.currentVersion !== this.packageJson.version) {
+				config.currentVersion = this.packageJson.version;
+				config.thisVersionUsageTimeInSeconds = 0;
+			}
+
+			return {
+				...config,
+				totalUsageTimeInSeconds: config.totalUsageTimeInSeconds + 10,
+				thisVersionUsageTimeInSeconds:
+					config.thisVersionUsageTimeInSeconds + 10,
+			};
+		});
+	}
+
+	public markAskedForSponsorship(): void {
+		this.updateInternalConfig((c) => ({
+			...c,
+			dateTimeLastAskedForSponsorship: new Date().toDateString(),
+			totalUsageTimeLastAskedForSponsorshipInSeconds:
+				c.totalUsageTimeInSeconds,
+		}));
+	}
+
+	public get canAskForSponsorship(): boolean {
+		const c = this.getInternalConfig();
+		if (c.versionLastAskedForFeedback) {
+			const d = new Date(c.versionLastAskedForFeedback);
+			const msOf60Days = 1000 * 60 * 60 * 24 * 60;
+			if (new Date().getTime() - d.getTime() < msOf60Days) {
+				return false;
+			}
+		}
+		let usageTimeSinceLastAskedForSponsorship = c.totalUsageTimeInSeconds;
+		if (c.totalUsageTimeLastAskedForSponsorshipInSeconds !== undefined) {
+			usageTimeSinceLastAskedForSponsorship -=
+				c.totalUsageTimeLastAskedForSponsorshipInSeconds;
+		}
+		const secondsIn1Hr = 60 * 60;
+		if (usageTimeSinceLastAskedForSponsorship < secondsIn1Hr) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private getInternalConfig(): InternalConfig {
+		return (
+			this.globalState.get<InternalConfig>("config") || {
+				totalUsageTimeInSeconds: 0,
+				thisVersionUsageTimeInSeconds: 0,
+				versionLastAskedForFeedback: undefined,
+				dateTimeLastAskedForSponsorship: undefined,
+				currentVersion: this.packageJson.version,
+				totalUsageTimeLastAskedForSponsorshipInSeconds: 0,
+			}
+		);
+	}
+
+	private async setInternalConfig(config: InternalConfig): Promise<void> {
+		await this.globalState.update("config", config);
+	}
+
+	private async updateInternalConfig(
+		update: (oldConfig: InternalConfig) => InternalConfig
+	): Promise<void> {
+		const config = this.getInternalConfig();
+		const updated = update(config);
+		await this.setInternalConfig(updated);
+	}
+}
+
+interface InternalConfig {
+	totalUsageTimeInSeconds: number;
+	thisVersionUsageTimeInSeconds: number;
+	currentVersion: string;
+	versionLastAskedForFeedback: string | undefined;
+	dateTimeLastAskedForSponsorship: string | undefined;
+	totalUsageTimeLastAskedForSponsorshipInSeconds: number | undefined;
 }
 
 export class DiagramConfig {

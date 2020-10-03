@@ -31,6 +31,8 @@ declare const mxUtils: {
 
 
 declare interface DrawioUI {
+    hideDialog(): void;
+    showDialog(...args: any[]): void;
     editor: DrawioEditor;
     actions: DrawioActions;
     menus: DrawioMenus;

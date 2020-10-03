@@ -22,6 +22,7 @@ module.exports = {
 	},
 	module: {
 		rules: [
+			{ test: /\.css$/, loader: "style-loader!css-loader" },
 			{
 				test: /\.html$/i,
 				loader: "raw-loader",

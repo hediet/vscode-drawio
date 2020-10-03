@@ -1,22 +1,23 @@
 import { sendEvent } from "./vscode";
 
 Draw.loadPlugin((ui) => {
-	sendEvent({ event: "pluginLoaded", pluginId: "LiveShare" });
+	setTimeout(() => {
+		sendEvent({ event: "pluginLoaded", pluginId: "LiveShare" });
 
-	const graph = ui.editor.graph;
-	const selectionModel = graph.getSelectionModel();
+		const graph = ui.editor.graph;
+		const selectionModel = graph.getSelectionModel();
 
-	selectionModel.addListener(mxEvent.CHANGE, () => {
-		const cells = selectionModel.cells;
-		sendEvent({
-			event: "selectionChanged",
-			selectedCellIds: cells.map((c) => c.id),
+		selectionModel.addListener(mxEvent.CHANGE, () => {
+			const cells = selectionModel.cells;
+			sendEvent({
+				event: "selectionChanged",
+				selectedCellIds: cells.map((c) => c.id),
+			});
 		});
-	});
 
-	const theme = graph.defaultThemeName === "darkTheme" ? "dark" : "light";
+		const theme = graph.defaultThemeName === "darkTheme" ? "dark" : "light";
 
-	/*
+		/*
 	new Cursor(graph.view.canvas, "test", {
 		color: "#2965CC",
 		name: "Henning Dieterichs",
@@ -26,69 +27,73 @@ Draw.loadPlugin((ui) => {
 		y: 800,
 	});*/
 
-	const cursors = new Set<Cursor>();
-	const hightlights = new Highlights(graph);
+		const cursors = new Set<Cursor>();
+		const hightlights = new Highlights(graph);
 
-	window.addEventListener("message", (evt) => {
-		if (evt.source !== window.opener) {
-			return;
-		}
-		const data = JSON.parse(evt.data) as CustomDrawioAction;
-
-		switch (data.action) {
-			case "updateGhostCursors": {
-				for (const c of cursors) {
-					if (!data.cursors.some((c) => c.id === c.id)) {
-						cursors.delete(c);
-						c.dispose();
-					}
-				}
-				for (const c of data.cursors) {
-					const existing =
-						[...cursors].find(
-							(existingCursor) => existingCursor.id === c.id
-						) ||
-						new Cursor(graph.view.canvas, c.id, {
-							color: c.color,
-							name: c.name || "",
-							theme,
-						});
-					cursors.add(existing);
-					existing.setPosition(transform(c.position));
-				}
-				break;
+		window.addEventListener("message", (evt) => {
+			if (evt.source !== window.opener) {
+				return;
 			}
-			case "updateGhostSelections": {
-				const highlightInfos = new Array<HighlightInfo>();
-				for (const s of data.selections) {
-					for (const selectedCellId of s.selectedCellIds) {
-						const cell = graph.model.cells[selectedCellId];
-						highlightInfos.push({ cell, color: s.color });
+			const data = JSON.parse(evt.data) as CustomDrawioAction;
+
+			switch (data.action) {
+				case "updateGhostCursors": {
+					for (const c of cursors) {
+						if (!data.cursors.some((c) => c.id === c.id)) {
+							cursors.delete(c);
+							c.dispose();
+						}
 					}
+					for (const c of data.cursors) {
+						const existing =
+							[...cursors].find(
+								(existingCursor) => existingCursor.id === c.id
+							) ||
+							new Cursor(graph.view.canvas, c.id, {
+								color: c.color,
+								name: c.name || "",
+								theme,
+							});
+						cursors.add(existing);
+						existing.setPosition(transform(c.position));
+					}
+					break;
 				}
-				hightlights.updateHighlights(highlightInfos);
+				case "updateGhostSelections": {
+					const highlightInfos = new Array<HighlightInfo>();
+					for (const s of data.selections) {
+						for (const selectedCellId of s.selectedCellIds) {
+							const cell = graph.model.cells[selectedCellId];
+							highlightInfos.push({ cell, color: s.color });
+						}
+					}
+					hightlights.updateHighlights(highlightInfos);
+				}
 			}
+		});
+
+		function transform({ x, y }: { x: number; y: number }) {
+			const { scale, translate } = graph.view as any;
+			return {
+				x: (x + translate.x) * scale,
+				y: (y + translate.y) * scale,
+			};
 		}
-	});
 
-	function transform({ x, y }: { x: number; y: number }) {
-		const { scale, translate } = graph.view as any;
-		return { x: (x + translate.x) * scale, y: (y + translate.y) * scale };
-	}
+		function transformBack({ x, y }: { x: number; y: number }) {
+			const { scale, translate } = graph.view as any;
+			return { x: x / scale - translate.x, y: y / scale - translate.y };
+		}
 
-	function transformBack({ x, y }: { x: number; y: number }) {
-		const { scale, translate } = graph.view as any;
-		return { x: x / scale - translate.x, y: y / scale - translate.y };
-	}
-
-	graph.addMouseListener({
-		mouseMove: (graph: DrawioGraph, event: mxMouseEvent) => {
-			const pos = { x: event.graphX, y: event.graphY };
-			const graphPos = transformBack(pos);
-			sendEvent({ event: "cursorChanged", position: graphPos });
-		},
-		mouseDown: () => {},
-		mouseUp: () => {},
+		graph.addMouseListener({
+			mouseMove: (graph: DrawioGraph, event: mxMouseEvent) => {
+				const pos = { x: event.graphX, y: event.graphY };
+				const graphPos = transformBack(pos);
+				sendEvent({ event: "cursorChanged", position: graphPos });
+			},
+			mouseDown: () => {},
+			mouseUp: () => {},
+		});
 	});
 });
 

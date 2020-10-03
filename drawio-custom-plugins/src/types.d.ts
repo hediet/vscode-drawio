@@ -1,10 +1,12 @@
 
-declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | GetVerticesAction | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction | UpdateGhostCursors | UpdateGhostSelections;
-declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent | UpdateLocalStorage | PluginLoaded | CursorChangedEvent |  SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent;
+declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | GetVerticesAction
+    | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction | UpdateGhostCursors | UpdateGhostSelections | { action: "askForDonations" };
+declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent
+    | UpdateLocalStorage | PluginLoaded | CursorChangedEvent | SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent;
 
 declare interface InvokeCommandEvent {
     event: "invokeCommand";
-    command: "export" | "save" | "convert";
+    command: "export" | "save" | "convert" | "openDonationPage";
 }
 
 declare interface FocusChangedEvent {

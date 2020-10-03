@@ -140,8 +140,6 @@ const PrivateSymbol = Symbol();
 
 export class DrawioEditor {
 	public readonly dispose = Disposable.fn();
-	private readonly onActivityDetectedEmitter = new EventEmitter();
-	public readonly onActivityDetected = this.onActivityDetectedEmitter.asEvent();
 
 	@observable private _isActive = false;
 	@observable private _hasFocus = false;
@@ -192,27 +190,6 @@ export class DrawioEditor {
 				this._hasFocus = hasFocus;
 			})
 		);
-
-		this.dispose.track({
-			dispose: autorun(() => {
-				if (this.hasFocus) {
-					if (!this.timeout) {
-						this.timeout = this.dispose.track(
-							startTimeout(1000 * 60, () => {
-								// Activity = 1 minute of focus time
-								this.dispose.untrack(this.timeout);
-								this.onActivityDetectedEmitter.emit();
-							})
-						);
-					}
-				} else {
-					if (this.timeout) {
-						this.timeout.dispose();
-						this.timeout = undefined;
-					}
-				}
-			}),
-		});
 
 		instance.onInvokeCommand.sub(({ command }) => {
 			if (command === "convert") {

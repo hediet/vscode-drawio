@@ -95,6 +95,12 @@ export class CustomDrawioInstance extends DrawioInstance<
 		});
 	}
 
+	public askForDonations(): void {
+		this.sendCustomAction({
+			action: "askForDonations",
+		});
+	}
+
 	protected async handleEvent(evt: CustomDrawioEvent): Promise<void> {
 		if (evt.event === "nodeSelected") {
 			this.onNodeSelectedEmitter.emit({

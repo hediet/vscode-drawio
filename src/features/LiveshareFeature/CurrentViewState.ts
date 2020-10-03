@@ -1,3 +1,4 @@
+import { Disposable, Disposer } from "@hediet/std/disposable";
 import { computed } from "mobx";
 import { Uri } from "vscode";
 import { DrawioEditor, DrawioEditorManager } from "../../DrawioEditorManager";
@@ -50,19 +51,30 @@ function getCursorPositionResource(
 	drawioInstance: CustomDrawioInstance
 ): IResource<Point | undefined> {
 	return fromResource<Point | undefined>(
-		(sink) => {
-			let lastPosition: Point | undefined;
-			let timeout: any;
-			return drawioInstance.onCursorChanged.sub(({ newPosition }) => {
-				lastPosition = newPosition;
-				if (!timeout) {
-					timeout = setTimeout(() => {
-						timeout = undefined;
-						sink(lastPosition);
-					}, 1000 / 30);
-				}
-			});
-		},
+		(sink) =>
+			Disposable.fn((track) => {
+				let lastPosition: Point | undefined;
+				let timeout: any;
+
+				track(
+					drawioInstance.onFocusChanged.sub(({ hasFocus }) => {
+						if (!hasFocus) {
+							sink(undefined);
+						}
+					})
+				);
+				track(
+					drawioInstance.onCursorChanged.sub(({ newPosition }) => {
+						lastPosition = newPosition;
+						if (!timeout) {
+							timeout = setTimeout(() => {
+								timeout = undefined;
+								sink(lastPosition);
+							}, 1000 / 30);
+						}
+					})
+				);
+			}),
 		() => undefined
 	);
 }
@@ -71,13 +83,23 @@ function getSelectedCellsResource(
 	drawioInstance: CustomDrawioInstance
 ): IResource<string[]> {
 	return fromResource<string[]>(
-		(sink) => {
-			return drawioInstance.onSelectionsChanged.sub(
-				({ selectedCellIds }) => {
-					sink(selectedCellIds);
-				}
-			);
-		},
+		(sink) =>
+			Disposable.fn((track) => {
+				track(
+					drawioInstance.onFocusChanged.sub(({ hasFocus }) => {
+						if (!hasFocus) {
+							sink([]);
+						}
+					})
+				);
+				track(
+					drawioInstance.onSelectionsChanged.sub(
+						({ selectedCellIds }) => {
+							sink(selectedCellIds);
+						}
+					)
+				);
+			}),
 		() => []
 	);
 }

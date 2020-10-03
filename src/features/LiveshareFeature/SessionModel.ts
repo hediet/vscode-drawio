@@ -33,6 +33,9 @@ export class SessionModel {
 				this.viewStatesByPeerId.set(update.peerId, newVal);
 			}
 		}
+		if (update.kind === "removePeer") {
+			this.viewStatesByPeerId.delete(update.peerId);
+		}
 	}
 }
 

@@ -8,7 +8,8 @@ import { DrawioEditorManager } from "./DrawioEditorManager";
 import { LinkCodeWithSelectedNodeService } from "./features/CodeLinkFeature";
 import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
 import { LiveshareFeature } from "./features/LiveshareFeature";
-import { InsiderFeedbackFeature } from "./features/InsiderFeedbackFeature";
+import { ActivityTracking } from "./features/ActivtyTracking";
+import { join } from "path";
 
 export class Extension {
 	public readonly dispose = Disposable.fn();
@@ -16,7 +17,15 @@ export class Extension {
 		vscode.window.createOutputChannel("Drawio Integration Log")
 	);
 
-	private readonly config = new Config(this.packageJsonPath);
+	private readonly packageJsonPath = join(
+		this.context.extensionPath,
+		"package.json"
+	);
+
+	private readonly config = new Config(
+		this.packageJsonPath,
+		this.context.globalState
+	);
 	private readonly editorManager = new DrawioEditorManager(this.config);
 	private readonly linkCodeWithSelectedNodeService = this.dispose.track(
 		new LinkCodeWithSelectedNodeService(this.editorManager, this.config)
@@ -28,14 +37,14 @@ export class Extension {
 		new LiveshareFeature(this.editorManager, this.config)
 	);
 	private readonly insiderFeedbackFeature = this.dispose.track(
-		new InsiderFeedbackFeature(this.editorManager, this.config)
+		new ActivityTracking(this.editorManager, this.config)
 	);
 	private readonly drawioWebviewInitializer = new DrawioWebviewInitializer(
 		this.config,
 		this.log
 	);
 
-	constructor(private readonly packageJsonPath: string) {
+	constructor(private readonly context: vscode.ExtensionContext) {
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
 				"hediet.vscode-drawio-text",

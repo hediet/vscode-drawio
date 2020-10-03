@@ -33,17 +33,11 @@ class LiveshareFeatureInitialized {
 
 	private session = fromResource(
 		(sink) => {
-			this.api.onDidChangeSession(() => {
-				sink();
+			this.api.onDidChangeSession(({ session }) => {
+				sink(normalizeSession(session));
 			});
 		},
-		() => {
-			if (this.api.session.role === vsls.Role.None) {
-				return undefined;
-			} else {
-				return Object.assign({}, this.api.session);
-			}
-		}
+		() => normalizeSession(this.api.session)
 	);
 
 	constructor(
@@ -60,4 +54,11 @@ class LiveshareFeatureInitialized {
 			})
 		);
 	}
+}
+
+function normalizeSession(session: vsls.Session): vsls.Session | undefined {
+	if (session.role === vsls.Role.None) {
+		return undefined;
+	}
+	return { ...session };
 }

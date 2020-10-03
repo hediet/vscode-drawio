@@ -115,6 +115,7 @@ export class LiveshareSession {
 				dispose: () => this.api.unshareService("drawio"),
 			});
 			if (!svc) {
+				console.error("Could not share liveshare service");
 				return;
 			}
 			const eventEmitter = new EventEmitter<{
@@ -136,9 +137,23 @@ export class LiveshareSession {
 			svc.onNotify("action", (arg) => {
 				client.sendAction((arg as unknown) as ServerAction);
 			});
+			this.dispose.track(
+				this.api.onDidChangePeers(({ removed }) => {
+					for (const r of removed) {
+						client.sendAction({
+							action: "applyUpdate",
+							update: {
+								kind: "removePeer",
+								peerId: r.peerNumber,
+							},
+						});
+					}
+				})
+			);
 		} else {
 			const svc = await this.api.getSharedService("drawio");
 			if (!svc) {
+				console.error("Could not get liveshare service");
 				return;
 			}
 
@@ -185,5 +200,6 @@ export class LiveshareSession {
 		}
 	};
 }
+
 type ServerAction = { action: "applyUpdate"; update: SessionModelUpdate };
 type ServerEvent = { event: "applyUpdate"; update: SessionModelUpdate };
