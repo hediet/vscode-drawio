@@ -23,9 +23,10 @@ This unofficial extension integrates [Draw.io](https://app.diagrams.net/) into V
 ![](./docs/demo.gif)
 
 <br />
-<font size="6">
-Like it so far? You might also like my <a href="https://chrome.google.com/webstore/detail/monaco-markdown-editor-fo/mmpbdjdnmhgkpligeniippcgfmkgkpnf">Chrome Extension That Enhances The Markdown Editor For Github</a>!
-</font>
+<br />
+
+# Like it so far? You might also like my [open source](https://github.com/hediet/chrome-ext-github-monaco) [Chrome extension that enhances the Github markdown editor](https://chrome.google.com/webstore/detail/monaco-markdown-editor-fo/mmpbdjdnmhgkpligeniippcgfmkgkpnf)!
+
 <br />
 <br />
 
@@ -81,7 +82,6 @@ the diagram will stay visible.
         <li><p>Theme "dark"</p><img src="docs/theme-dark.png" alt="dark" width="800"></li>
     </ul>
 </details>
-<br />
 
 ## Associate `.svg` Files With The Draw.io Editor
 
