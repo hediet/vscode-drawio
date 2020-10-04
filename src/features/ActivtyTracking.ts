@@ -64,7 +64,7 @@ export class ActivityTracking {
 
 	private async showFeedbackIfApplicable(): Promise<void> {
 		const { feedbackUrl, canAskForFeedback } = this.config;
-		if (canAskForFeedback || !feedbackUrl) {
+		if (!canAskForFeedback || !feedbackUrl) {
 			return;
 		}
 		this.config.markAskedToTest();
