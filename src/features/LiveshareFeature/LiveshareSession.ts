@@ -25,8 +25,9 @@ export class LiveshareSession {
 			autorunTrackDisposables((track) =>
 				[...editorManager.openedEditors].map((e) =>
 					track([
-						autorunTrackDisposables(() => this.updateCursors(e)),
-						autorunTrackDisposables(() => this.updateSelections(e)),
+						autorunTrackDisposables(() =>
+							this.updateLiveshareOverlaysInDrawio(e)
+						),
 					])
 				)
 			)
@@ -61,46 +62,47 @@ export class LiveshareSession {
 		return { color, name };
 	}
 
-	private updateCursors(editor: DrawioEditor) {
-		const cursorInfo: Array<CursorUpdateInfo> = [
+	private updateLiveshareOverlaysInDrawio(editor: DrawioEditor) {
+		const viewStates = [
 			...this.sessionModel.viewStatesByPeerId.values(),
-		]
-			.filter(
-				(v) =>
-					v.peerId !== this.session.peerNumber &&
-					v.viewState !== undefined &&
-					v.viewState.currentCursor !== undefined &&
-					v.viewState.activeUri ===
-						this.normalizeUri(editor.document.document.uri)
-			)
+		].filter(
+			(v) =>
+				v.peerId !== this.session.peerNumber &&
+				v.viewState &&
+				v.viewState.activeUri ===
+					this.normalizeUri(editor.document.document.uri)
+		);
+
+		const selectedCells: Array<ParticipantSelectedCellsInfo> = viewStates.map(
+			(v) => ({
+				id: "" + v.peerId,
+				selectedCellIds: v.viewState!.selectedCellIds,
+				color: this.getPeerIdInformation(v.peerId).color,
+			})
+		);
+
+		const cursors: Array<ParticipantCursorInfo> = viewStates
+			.filter((v) => v.viewState && v.viewState.currentCursor)
 			.map((v) => ({
 				id: "" + v.peerId,
-				name: this.getPeerIdInformation(v.peerId).name,
+				label: this.getPeerIdInformation(v.peerId).name,
 				color: this.getPeerIdInformation(v.peerId).color,
 				position: v.viewState!.currentCursor!,
 			}));
 
-		editor.instance.updateGhostCursors(cursorInfo);
-	}
-
-	private updateSelections(editor: DrawioEditor) {
-		const cursorInfo: Array<SelectionsUpdateInfo> = [
-			...this.sessionModel.viewStatesByPeerId.values(),
-		]
-			.filter(
-				(v) =>
-					v.peerId !== this.session.peerNumber &&
-					v.viewState !== undefined &&
-					v.viewState.activeUri ===
-						this.normalizeUri(editor.document.document.uri)
-			)
+		const selectedRectangles: Array<ParticipantSelectedRectangleInfo> = viewStates
+			.filter((v) => v.viewState && v.viewState.selectedRectangle)
 			.map((v) => ({
 				id: "" + v.peerId,
-				selectedCellIds: v.viewState!.selectedCellIds,
 				color: this.getPeerIdInformation(v.peerId).color,
+				rectangle: v.viewState!.selectedRectangle!,
 			}));
 
-		editor.instance.updateGhostSelections(cursorInfo);
+		editor.instance.updateLiveshareViewState({
+			selectedCells,
+			cursors,
+			selectedRectangles,
+		});
 	}
 
 	private async init() {

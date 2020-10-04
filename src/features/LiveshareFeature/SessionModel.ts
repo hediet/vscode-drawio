@@ -12,6 +12,7 @@ export type ViewState =
 			activeUri: NormalizedUri;
 			currentCursor: Point | undefined;
 			selectedCellIds: string[];
+			selectedRectangle: Rectangle | undefined;
 	  }
 	| undefined;
 
@@ -48,9 +49,4 @@ export type SessionModelUpdate =
 	| {
 			kind: "removePeer";
 			peerId: number;
-	  }
-	| {
-			kind: "updateCursor";
-			peerId: number;
-			cursorPosition: Point | undefined;
 	  };

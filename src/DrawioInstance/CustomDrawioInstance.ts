@@ -1,6 +1,11 @@
 import { EventEmitter } from "@hediet/std/events";
 import { DrawioInstance } from "./DrawioInstance";
 
+interface Point {
+	x: number;
+	y: number;
+}
+
 /**
  * Enhances the drawio client with custom events and methods.
  * They require modifications of the official drawio source or plugins.
@@ -21,14 +26,19 @@ export class CustomDrawioInstance extends DrawioInstance<
 	public readonly onCustomPluginLoaded = this.onCustomPluginLoadedEmitter.asEvent();
 
 	private readonly onCursorChangeEmitter = new EventEmitter<{
-		newPosition: { x: number; y: number } | undefined;
+		newPosition: Point | undefined;
 	}>();
 	public readonly onCursorChanged = this.onCursorChangeEmitter.asEvent();
 
-	private readonly onSelectionsChangedEmitter = new EventEmitter<{
+	private readonly onSelectedCellsChangedEmitter = new EventEmitter<{
 		selectedCellIds: string[];
 	}>();
-	public readonly onSelectionsChanged = this.onSelectionsChangedEmitter.asEvent();
+	public readonly onSelectedCellsChanged = this.onSelectedCellsChangedEmitter.asEvent();
+
+	private readonly onSelectedRectangleChangedEmitter = new EventEmitter<{
+		rectangle: { start: Point; end: Point } | undefined;
+	}>();
+	public readonly onSelectedRectangleChanged = this.onSelectedRectangleChangedEmitter.asEvent();
 
 	private readonly onFocusChangedEmitter = new EventEmitter<{
 		hasFocus: boolean;
@@ -79,19 +89,14 @@ export class CustomDrawioInstance extends DrawioInstance<
 		});
 	}
 
-	public updateGhostCursors(cursorUpdateInfos: CursorUpdateInfo[]) {
+	public updateLiveshareViewState(update: {
+		cursors: ParticipantCursorInfo[];
+		selectedCells: ParticipantSelectedCellsInfo[];
+		selectedRectangles: ParticipantSelectedRectangleInfo[];
+	}) {
 		this.sendCustomAction({
-			action: "updateGhostCursors",
-			cursors: cursorUpdateInfos,
-		});
-	}
-
-	public updateGhostSelections(
-		selectionsUpdateInfos: SelectionsUpdateInfo[]
-	) {
-		this.sendCustomAction({
-			action: "updateGhostSelections",
-			selections: selectionsUpdateInfos,
+			action: "updateLiveshareViewState",
+			...update,
 		});
 	}
 
@@ -113,12 +118,16 @@ export class CustomDrawioInstance extends DrawioInstance<
 			this.onFocusChangedEmitter.emit({ hasFocus: evt.hasFocus });
 		} else if (evt.event === "cursorChanged") {
 			this.onCursorChangeEmitter.emit({ newPosition: evt.position });
-		} else if (evt.event === "selectionChanged") {
-			this.onSelectionsChangedEmitter.emit({
+		} else if (evt.event === "selectedCellsChanged") {
+			this.onSelectedCellsChangedEmitter.emit({
 				selectedCellIds: evt.selectedCellIds,
 			});
 		} else if (evt.event === "invokeCommand") {
 			this.onInvokeCommandEmitter.emit({ command: evt.command });
+		} else if (evt.event === "selectedRectangleChanged") {
+			this.onSelectedRectangleChangedEmitter.emit({
+				rectangle: evt.rect,
+			});
 		} else {
 			await super.handleEvent(evt);
 		}

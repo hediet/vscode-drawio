@@ -12,6 +12,7 @@ export class CurrentViewState {
 				editor: DrawioEditor;
 				cursorPos: IResource<Point | undefined>;
 				selectedCellIds: IResource<string[]>;
+				selectedRectangle: IResource<Rectangle | undefined>;
 		  }
 		| undefined {
 		const activeDrawioEditor = this.editorManager.activeDrawioEditor;
@@ -23,6 +24,9 @@ export class CurrentViewState {
 			editor: activeDrawioEditor,
 			cursorPos: getCursorPositionResource(activeDrawioEditor.instance),
 			selectedCellIds: getSelectedCellsResource(
+				activeDrawioEditor.instance
+			),
+			selectedRectangle: getSelectedRectangleResource(
 				activeDrawioEditor.instance
 			),
 		};
@@ -38,6 +42,7 @@ export class CurrentViewState {
 			activeUri,
 			currentCursor: state.cursorPos.current(),
 			selectedCellIds: state.selectedCellIds.current(),
+			selectedRectangle: state.selectedRectangle.current(),
 		};
 	}
 
@@ -45,6 +50,40 @@ export class CurrentViewState {
 		private readonly editorManager: DrawioEditorManager,
 		private readonly normalizeUri: (uri: Uri) => NormalizedUri
 	) {}
+}
+
+function getSelectedRectangleResource(
+	drawioInstance: CustomDrawioInstance
+): IResource<Rectangle | undefined> {
+	return fromResource<Rectangle | undefined>(
+		(sink) =>
+			Disposable.fn((track) => {
+				let lastRect: Rectangle | undefined;
+				let timeout: any;
+
+				track(
+					drawioInstance.onFocusChanged.sub(({ hasFocus }) => {
+						if (!hasFocus) {
+							sink(undefined);
+						}
+					})
+				);
+				track(
+					drawioInstance.onSelectedRectangleChanged.sub(
+						({ rectangle }) => {
+							lastRect = rectangle;
+							if (!timeout) {
+								timeout = setTimeout(() => {
+									timeout = undefined;
+									sink(lastRect);
+								}, 1000 / 30);
+							}
+						}
+					)
+				);
+			}),
+		() => undefined
+	);
 }
 
 function getCursorPositionResource(
@@ -93,7 +132,7 @@ function getSelectedCellsResource(
 					})
 				);
 				track(
-					drawioInstance.onSelectionsChanged.sub(
+					drawioInstance.onSelectedCellsChanged.sub(
 						({ selectedCellIds }) => {
 							sink(selectedCellIds);
 						}

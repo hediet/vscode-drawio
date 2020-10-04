@@ -1,4 +1,5 @@
 import { sendEvent } from "./vscode";
+import * as m from "mithril";
 
 Draw.loadPlugin((ui) => {
 	setTimeout(() => {
@@ -10,7 +11,7 @@ Draw.loadPlugin((ui) => {
 		selectionModel.addListener(mxEvent.CHANGE, () => {
 			const cells = selectionModel.cells;
 			sendEvent({
-				event: "selectionChanged",
+				event: "selectedCellsChanged",
 				selectedCellIds: cells.map((c) => c.id),
 			});
 		});
@@ -18,16 +19,33 @@ Draw.loadPlugin((ui) => {
 		const theme = graph.defaultThemeName === "darkTheme" ? "dark" : "light";
 
 		/*
-	new Cursor(graph.view.canvas, "test", {
-		color: "#2965CC",
-		name: "Henning Dieterichs",
-		theme,
-	}).setPosition({
-		x: 1200,
-		y: 800,
-	});*/
+		new Cursor(graph.view.canvas, "test", {
+			color: "#2965CC",
+			name: "Henning Dieterichs",
+			theme,
+		}).setPosition({
+			x: 1200,
+			y: 800,
+		});
+
+		const r = new SelectionRectangle(graph.view.canvas, "test", {
+			color: "blue",
+		});
+		
+		r.setPositions(
+			{
+				x: 1250,
+				y: 850,
+			},
+			{
+				x: 1400,
+				y: 1000,
+			}
+		);
+		*/
 
 		const cursors = new Set<Cursor>();
+		const rectangles = new Set<SelectionRectangle>();
 		const hightlights = new Highlights(graph);
 
 		window.addEventListener("message", (evt) => {
@@ -37,7 +55,7 @@ Draw.loadPlugin((ui) => {
 			const data = JSON.parse(evt.data) as CustomDrawioAction;
 
 			switch (data.action) {
-				case "updateGhostCursors": {
+				case "updateLiveshareViewState": {
 					for (const c of cursors) {
 						if (!data.cursors.some((c) => c.id === c.id)) {
 							cursors.delete(c);
@@ -51,23 +69,47 @@ Draw.loadPlugin((ui) => {
 							) ||
 							new Cursor(graph.view.canvas, c.id, {
 								color: c.color,
-								name: c.name || "",
+								name: c.label || "",
 								theme,
 							});
 						cursors.add(existing);
 						existing.setPosition(transform(c.position));
 					}
-					break;
-				}
-				case "updateGhostSelections": {
+
 					const highlightInfos = new Array<HighlightInfo>();
-					for (const s of data.selections) {
+					for (const s of data.selectedCells) {
 						for (const selectedCellId of s.selectedCellIds) {
 							const cell = graph.model.cells[selectedCellId];
 							highlightInfos.push({ cell, color: s.color });
 						}
 					}
 					hightlights.updateHighlights(highlightInfos);
+
+					for (const c of rectangles) {
+						if (
+							!data.selectedRectangles.some((c) => c.id === c.id)
+						) {
+							rectangles.delete(c);
+							c.dispose();
+						}
+					}
+					for (const c of data.selectedRectangles) {
+						const existing =
+							[...rectangles].find(
+								(existingRectangle) =>
+									existingRectangle.id === c.id
+							) ||
+							new SelectionRectangle(graph.view.canvas, c.id, {
+								color: c.color,
+							});
+						rectangles.add(existing);
+						existing.setPositions(
+							transform(c.rectangle.start),
+							transform(c.rectangle.end)
+						);
+					}
+
+					break;
 				}
 			}
 		});
@@ -94,16 +136,108 @@ Draw.loadPlugin((ui) => {
 			mouseDown: () => {},
 			mouseUp: () => {},
 		});
+
+		function patchFn(
+			clazz: any,
+			fnName: string,
+			fnFactory: (old: Function) => (this: any, ...args: any) => any
+		) {
+			const old = clazz[fnName];
+			clazz[fnName] = fnFactory(old);
+		}
+
+		patchFn(mxRubberband.prototype, "update", function (old) {
+			return function (...args: any[]) {
+				let first = { ...this.first };
+				let second = { x: args[0], y: args[1] };
+				old.apply(this, args);
+
+				if (first.x > second.x) {
+					const temp = first.x;
+					first.x = second.x;
+					second.x = temp;
+				}
+				if (first.y > second.y) {
+					const temp = first.y;
+					first.y = second.y;
+					second.y = temp;
+				}
+
+				sendEvent({
+					event: "selectedRectangleChanged",
+					rect: {
+						start: transformBack(first),
+						end: transformBack(second),
+					},
+				});
+			};
+		});
+
+		patchFn(mxRubberband.prototype, "reset", function (old) {
+			return function (...args: any[]) {
+				old.apply(this, args);
+
+				sendEvent({
+					event: "selectedRectangleChanged",
+					rect: undefined,
+				});
+			};
+		});
 	});
 });
 
+declare class mxRubberband {}
+
 const svgns = "http://www.w3.org/2000/svg";
 
-function escapeHtml(html: string): string {
-	var text = document.createTextNode(html);
-	var p = document.createElement("p");
-	p.appendChild(text);
-	return p.innerHTML;
+class SelectionRectangle {
+	private readonly g = document.createElementNS(svgns, "g");
+	private pos1: { x: number; y: number } = { x: 0, y: 0 };
+	private pos2: { x: number; y: number } = { x: 0, y: 0 };
+
+	constructor(
+		canvas: SVGElement,
+		public readonly id: string,
+		private readonly options: { color: string }
+	) {
+		canvas.appendChild(this.g);
+		this.g.setAttribute("pointer-events", "none");
+	}
+
+	public setPositions(
+		pos1: { x: number; y: number },
+		pos2: { x: number; y: number }
+	) {
+		this.pos1 = pos1;
+		this.pos2 = pos2;
+		this.render();
+	}
+
+	private render() {
+		m.render(
+			this.g,
+			m(
+				"rect",
+				{
+					x: this.pos1.x,
+					y: this.pos1.y,
+					width: this.pos2.x - this.pos1.x,
+					height: this.pos2.y - this.pos1.y,
+					style: {
+						fill: this.options.color,
+						fillOpacity: 0.08,
+						stroke: this.options.color,
+						strokeOpacity: 0.8,
+					},
+				},
+				[]
+			)
+		);
+	}
+
+	public dispose(): void {
+		this.g.remove();
+	}
 }
 
 interface CursorOptions {
@@ -123,23 +257,36 @@ class Cursor {
 	) {
 		canvas.appendChild(this.g);
 		this.g.setAttribute("pointer-events", "none");
-		// TODO don't use strings
-		this.g.innerHTML = `
-			<g>
-				<g transform="scale(0.06,0.06)">
-					<path
-						fill="${options.color}"
-						style="stroke: ${
-							options.theme === "dark" ? "white" : "black"
-						}; stroke-width: 10px"
-						d="M302.189 329.126H196.105l55.831 135.993c3.889 9.428-.555 19.999-9.444 23.999l-49.165 21.427c-9.165 4-19.443-.571-23.332-9.714l-53.053-129.136-86.664 89.138C18.729 472.71 0 463.554 0 447.977V18.299C0 1.899 19.921-6.096 30.277 5.443l284.412 292.542c11.472 11.179 3.007 31.141-12.5 31.141z"
-					/>
-				</g>
-				<text x="10" y="45" style="font-size: 12px; fill: ${
-					options.theme === "dark" ? "white" : "gray"
-				}">${escapeHtml(options.name)}</text>
-			</g>
-        `;
+
+		m.render(
+			this.g,
+			m("g", [
+				m("g", { transform: "scale(0.06,0.06)" }, [
+					m("path", {
+						fill: options.color,
+						style: {
+							stroke:
+								options.theme === "dark" ? "white" : "black",
+							strokeWidth: 10,
+						},
+						d:
+							"M302.189 329.126H196.105l55.831 135.993c3.889 9.428-.555 19.999-9.444 23.999l-49.165 21.427c-9.165 4-19.443-.571-23.332-9.714l-53.053-129.136-86.664 89.138C18.729 472.71 0 463.554 0 447.977V18.299C0 1.899 19.921-6.096 30.277 5.443l284.412 292.542c11.472 11.179 3.007 31.141-12.5 31.141z",
+					}),
+				]),
+				m(
+					"text",
+					{
+						x: 10,
+						y: 45,
+						style: {
+							fontSize: 12,
+							fill: options.theme === "dark" ? "white" : "gray",
+						},
+					},
+					[options.name]
+				),
+			])
+		);
 	}
 
 	public setPosition(pos: { x: number; y: number }) {

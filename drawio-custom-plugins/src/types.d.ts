@@ -1,8 +1,8 @@
 
 declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | GetVerticesAction
-    | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction | UpdateGhostCursors | UpdateGhostSelections | { action: "askForDonations" };
+    | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction | UpdateLiveshareViewState  | { action: "askForDonations" };
 declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent
-    | UpdateLocalStorage | PluginLoaded | CursorChangedEvent | SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent;
+    | UpdateLocalStorage | PluginLoaded | CursorChangedEvent | SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent | SelectionRectangleChangedEvent;
 
 declare interface InvokeCommandEvent {
     event: "invokeCommand";
@@ -67,30 +67,43 @@ declare interface CursorChangedEvent {
     position: { x: number, y: number } | undefined;
 }
 
-declare interface UpdateGhostCursors {
-    action: "updateGhostCursors";
-    cursors: CursorUpdateInfo[];
-}
-
 declare interface SelectionChangedEvent {
-    event: "selectionChanged";
+    event: "selectedCellsChanged";
     selectedCellIds: string[];
 }
 
-declare interface UpdateGhostSelections {
-    action: "updateGhostSelections";
-    selections: SelectionsUpdateInfo[]
+declare interface SelectionRectangleChangedEvent {
+    event: "selectedRectangleChanged";
+    rect: Rectangle | undefined;
 }
 
-declare interface CursorUpdateInfo {
-    name: string | undefined;
-    color: string;
+declare interface Rectangle {
+    start: { x: number, y: number },
+    end: { x: number, y: number },
+}
+
+declare interface UpdateLiveshareViewState {
+    action: "updateLiveshareViewState";
+    cursors: ParticipantCursorInfo[];
+    selectedCells: ParticipantSelectedCellsInfo[];
+    selectedRectangles: ParticipantSelectedRectangleInfo[];
+}
+
+declare interface ParticipantCursorInfo {
     id: string;
     position: { x: number, y: number };
+    label: string | undefined;
+    color: string;
 }
 
-declare interface SelectionsUpdateInfo {
+declare interface ParticipantSelectedCellsInfo {
     id: string;
     color: string;
     selectedCellIds: string[];
+}
+
+declare interface ParticipantSelectedRectangleInfo {
+    id: string;
+    color: string;
+    rectangle: Rectangle;
 }
