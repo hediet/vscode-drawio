@@ -44,12 +44,13 @@ If diffs are important for you, you should prefer `.drawio` and avoid `.drawio.p
 
 ## Collaboratively Edit Or Present Diagrams
 
-Use Liveshare to edit or present your Draw.io diagrams remotely!
+With version 1.0 of this extension, extensive support for [VS Code Liveshare](https://visualstudio.microsoft.com/de/services/live-share/) has been added. You can now edit or present your Draw.io diagrams remotely, while seeing each participant's cursor and selection! This can be used for discussing, reviewing or brainstorming diagrams.
+With Draw.io's freehand drawing tool and integrated LaTeX support, this extension becomes an advanced whiteboard solution that can be used for remote code interviews!
 
 ![](./docs/liveshare-demo.gif)
 
-_There might be issues if multiple users modify the diagram at the exact same time.
-Works best for discussing, reviewing or brainstorming diagrams._
+_Internally, this extension synchronizes Draw.io diagrams with text documents.
+These text documents are shared by Liveshare. As Liveshare has no understanding of the text, modification conflicts might occur on simultaneous modifications._
 
 ## Code Link Feature
 
