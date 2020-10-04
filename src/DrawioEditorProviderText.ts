@@ -132,13 +132,17 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 			if (document.uri.path.endsWith(".svg")) {
 				const svg = await drawioInstance.exportAsSvgWithEmbeddedXml();
 				newXml = svg.toString("utf-8");
-				output = formatter(newXml);
+				output = formatter(
+					// This adds a host to track which files are created by this extension and which by draw.io desktop.
+					newXml.replace(/^<svg /, () => `<svg host="65bd71144e" `)
+				);
 			} else {
-				output = formatter(newXml);
-				// This normalizes the host
-				output = output.replace(
-					/^<mxfile host="(.*?)"/,
-					() => `<mxfile host="65b1fde3-231d-4a08-91e7-d71144efe4f2"`
+				output = formatter(
+					// This normalizes the host
+					newXml.replace(
+						/^<mxfile host="(.*?)"/,
+						() => `<mxfile host="65bd71144e"`
+					)
 				);
 			}
 
