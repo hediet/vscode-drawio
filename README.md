@@ -9,16 +9,25 @@ This unofficial extension integrates [Draw.io](https://app.diagrams.net/) into V
 ## Features
 
 -   Edit `.drawio`, `.dio`, `.drawio.svg` or `.drawio.png` files in the Draw.io editor.
--   To create a new diagram, simply create an empty `*.drawio`, `*.drawio.svg` or `*.drawio.png` file and open it!
--   `.drawio.svg` are valid `.svg` files that can be embedded in Github readme files! No export needed.
--   `.drawio.png` are valid `.png` files! No export needed. You should use `.svg` though whenever possible - they look much better!
--   To convert between different formats, use the `Draw.io: Convert To...` command.
+    -   To create a new diagram, simply create an empty `*.drawio`, `*.drawio.svg` or `*.drawio.png` file and open it.
+    -   `.drawio.svg` are valid `.svg` files that can be embedded in Github readme files! No export needed.
+    -   `.drawio.png` are valid `.png` files! No export needed. You should use `.svg` though whenever possible - they look much better!
+    -   To convert between different formats, use the `Draw.io: Convert To...` command.
 -   Uses an offline version of Draw.io by default.
--   You can select a theme.
+-   Multiple Draw.io themes are available.
+-   Use liveshare to collaboratively edit a diagram with others.
+-   Nodes/edges can be linked with code spans.
 
 ## Demo
 
 ![](./docs/demo.gif)
+
+<br />
+<font size="6">
+Like it so far? You might also like my <a href="https://chrome.google.com/webstore/detail/monaco-markdown-editor-fo/mmpbdjdnmhgkpligeniippcgfmkgkpnf">Chrome Extension That Enhances The Markdown Editor For Github</a>!
+</font>
+<br />
+<br />
 
 ## Editing .drawio.svg/.drawio.png Files
 
@@ -32,6 +41,15 @@ The logo of this extension is such a `.drawio.png` file that has been created wi
 
 If diffs are important for you, you should prefer `.drawio` and avoid `.drawio.png` diagrams.
 
+## Collaboratively Edit Or Present Diagrams
+
+Use Liveshare to edit or present your Draw.io diagrams remotely!
+
+![](./docs/liveshare-demo.gif)
+
+_There might be issues if multiple users modify the diagram at the exact same time.
+Works best for discussing, reviewing or brainstorming diagrams._
+
 ## Code Link Feature
 
 In the status bar, you can enable or disable the code link feature.
@@ -40,7 +58,7 @@ you will perform a workspace search for a symbol matching the rest of the label.
 
 If you have a node labeled `#MyClass` and a class of name `MyClass`, you will jump to its source if you double click the node!
 
-**Pleaes note that you have to open at least one file of the project that contains the symbol.**
+**Please note that you have to open at least one file of the project that contains the symbol.**
 Otherwise, VS Code will not consider this project when searching for symbols.
 This file itself does not have to contain the symbol though.
 
@@ -51,11 +69,7 @@ the diagram will stay visible.
 
 ![](./docs/demo-code-link.gif)
 
-## Settings
-
-This extension contributes the following settings:
-
-![](./docs/settings.png)
+## Themes
 
 <details>
     <summary><b>Available Draw.io Themes</b></summary>
@@ -67,8 +81,9 @@ This extension contributes the following settings:
         <li><p>Theme "dark"</p><img src="docs/theme-dark.png" alt="dark" width="800"></li>
     </ul>
 </details>
+<br />
 
-## Associate `.svg` Files With This Editor
+## Associate `.svg` Files With The Draw.io Editor
 
 By default, this extension only handles `*.drawio.svg` files.
 Add this to your VS Code `settings.json` file if you want to associate it with `.svg` files:
@@ -107,6 +122,5 @@ Use the `File: Reopen With...` command to toggle between the text or the Draw.io
 
 If you like this extension, you might like [my other extensions](https://marketplace.visualstudio.com/search?term=henning%20dieterichs&target=VSCode) too:
 
--   **[Real-Time Debugging](https://marketplace.visualstudio.com/items?itemName=hediet.realtime-debugging)**: This extension visualizes how your code is being executed.
 -   **[Debug Visualizer](https://marketplace.visualstudio.com/items?itemName=hediet.debug-visualizer)**: An extension for visualizing data structures while debugging.
--   **[Tasks Statusbar](https://marketplace.visualstudio.com/items?itemName=hediet.tasks-statusbar)**: This extension adds buttons to the status bar to quickly start and kill tasks.
+-   **[Real-Time Debugging](https://marketplace.visualstudio.com/items?itemName=hediet.realtime-debugging)**: This extension visualizes how your code is being executed.
