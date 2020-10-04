@@ -135,6 +135,11 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 				output = formatter(newXml);
 			} else {
 				output = formatter(newXml);
+				// This normalizes the host
+				output = output.replace(
+					/^<mxfile host="(.*?)"/,
+					() => `<mxfile host="65b1fde3-231d-4a08-91e7-d71144efe4f2"`
+				);
 			}
 
 			const newDocument = getNormalizedDocument(output);
