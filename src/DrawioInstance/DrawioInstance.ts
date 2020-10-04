@@ -100,11 +100,9 @@ export class DrawioInstance<
 		} else if (drawioEvt.event === "init") {
 			this.onInitEmitter.emit();
 		} else if (drawioEvt.event === "autosave") {
-			const newXml = drawioEvt.xml;
 			const oldXml = this.currentXml;
-			this.currentXml = newXml;
-
-			this.onChangeEmitter.emit({ newXml, oldXml });
+			this.currentXml = drawioEvt.xml;
+			this.onChangeEmitter.emit({ newXml: this.currentXml, oldXml });
 		} else if (drawioEvt.event === "save") {
 			this.onSaveEmitter.emit();
 		} else if (drawioEvt.event === "export") {
