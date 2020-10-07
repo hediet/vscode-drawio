@@ -301,6 +301,23 @@
 									// Users should use the drawio desktop app for that.
 									return;
 								}
+								if (
+									keyEvt.key === "S" &&
+									keyEvt.shiftKey &&
+									keyEvt.altKey
+								) {
+									// See https://github.com/hediet/vscode-drawio/issues/144
+									// This shortcut destroys the diagram.
+									return;
+								}
+								if (
+									keyEvt.key === "S" &&
+									keyEvt.ctrlKey &&
+									keyEvt.shiftKey
+								) {
+									// We are handling saving ourselves. This action does not make sense.
+									return;
+								}
 
 								oldHandler(keyEvt);
 							};
