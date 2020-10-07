@@ -172,8 +172,8 @@ export class Config {
 
 	public get canAskForSponsorship(): boolean {
 		const c = this.getInternalConfig();
-		if (c.versionLastAskedForFeedback) {
-			const d = new Date(c.versionLastAskedForFeedback);
+		if (c.dateTimeLastAskedForSponsorship) {
+			const d = new Date(c.dateTimeLastAskedForSponsorship);
 			const msOf60Days = 1000 * 60 * 60 * 24 * 60;
 			if (new Date().getTime() - d.getTime() < msOf60Days) {
 				return false;
