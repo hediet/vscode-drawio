@@ -1,0 +1,53 @@
+<mxfile host="65bd71144e" modified="2020-10-06T15:43:14.948Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.49.2 Chrome/83.0.4103.122 Electron/9.2.1 Safari/537.36" etag="4BxLxIUsSF4yFq4Eyy92" version="13.6.5">
+    <diagram id="ayf96gaC2YPj7m7-Xzu7" name="Page-1">
+        <mxGraphModel dx="1672" dy="1152" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="1" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" style="locked=1;" parent="0"/>
+                <mxCell id="37" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="38" target="43">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="48" value="Untitled Layer" style="locked=1;" parent="0"/>
+                <mxCell id="35" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="48" source="38" target="40">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="48" source="38" target="47">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="48" source="40" target="43">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="48" source="42" target="44">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="48" source="47" target="43">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="48" source="47" target="44">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="Nodes" parent="0"/>
+                <mxCell id="38" value="backend" style="whiteSpace=wrap;rounded=1;glass=0;fillColor=#0050ef;strokeColor=#001DBC;fontColor=#ffffff;shadow=1;sketch=0;" vertex="1" parent="49">
+                    <mxGeometry x="200" y="40" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="@hediet/i18n-frontend" style="whiteSpace=wrap;rounded=1;glass=0;fillColor=#0050ef;strokeColor=#001DBC;fontColor=#ffffff;shadow=1;sketch=0;" vertex="1" parent="49">
+                    <mxGeometry x="50" y="120" width="190" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" value="@hediet/i18n-cli" style="whiteSpace=wrap;rounded=1;glass=0;fillColor=#0050ef;strokeColor=#001DBC;fontColor=#ffffff;shadow=1;sketch=0;" vertex="1" parent="49">
+                    <mxGeometry x="320" y="120" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="@hediet/eslint-plugin-i18n" style="whiteSpace=wrap;rounded=1;glass=0;fillColor=#0050ef;strokeColor=#001DBC;fontColor=#ffffff;shadow=1;sketch=0;" vertex="1" parent="49">
+                    <mxGeometry x="530" y="120" width="230" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="@hediet/i18n-static-analysis" style="whiteSpace=wrap;rounded=1;glass=0;strokeColor=#001DBC;fillColor=#0050ef;fontColor=#ffffff;shadow=1;sketch=0;" vertex="1" parent="49">
+                    <mxGeometry x="400" y="200" width="250" height="40" as="geometry"/>
+                </mxCell>
+                <UserObject label="@hediet/i18n-api" id="43">
+                    <mxCell style="whiteSpace=wrap;rounded=1;glass=0;fillColor=#0050ef;strokeColor=#001DBC;fontColor=#ffffff;shadow=1;sketch=0;" vertex="1" parent="49">
+                        <mxGeometry x="190" y="200" width="140" height="40" as="geometry"/>
+                    </mxCell>
+                </UserObject>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

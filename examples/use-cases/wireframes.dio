@@ -1,0 +1,142 @@
+<mxfile host="65bd71144e" modified="2020-10-06T15:47:00.681Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.49.2 Chrome/83.0.4103.122 Electron/9.2.1 Safari/537.36" etag="Dco_EtMKhQBjkrRG6BVt" version="13.6.5">
+    <diagram id="ciOWY_P3W-RI3-Z0lU_t" name="Page-1">
+        <mxGraphModel dx="1672" dy="1152" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="41" y="26" width="730" height="890" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="71" y="126" width="670" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="101" y="159" width="120" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="241" y="159" width="120" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="381" y="159" width="120" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="521" y="159" width="120" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="Page 1 (&lt;font&gt;Main.pdf)&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="1" vertex="1">
+                    <mxGeometry x="104" y="319" width="110" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="Page 2 (Main.pdf)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="1" vertex="1">
+                    <mxGeometry x="244" y="319" width="110" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="Page 3 (Main.pdf)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="1" vertex="1">
+                    <mxGeometry x="384" y="319" width="110" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="Page 4 (Main.pdf)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="1" vertex="1">
+                    <mxGeometry x="524" y="319" width="110" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="661" y="159" width="80" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="Page 5 (Main" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="1" vertex="1">
+                    <mxGeometry x="664" y="319" width="90" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="Main.pdf" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="81" y="130" width="70" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="71" y="386" width="670" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="101" y="419" width="120" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="241" y="419" width="120" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="381" y="419" width="120" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="Page 1 (Second.pdf)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="1" vertex="1">
+                    <mxGeometry x="104" y="579" width="50" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="Page 2 (Second.pdf)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="1" vertex="1">
+                    <mxGeometry x="244" y="579" width="50" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="Page 3 (Second.pdf)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="1" vertex="1">
+                    <mxGeometry x="384" y="579" width="50" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="Second.pdf" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="81" y="390" width="110" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="71" y="646" width="670" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="101" y="679" width="120" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="241" y="679" width="120" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="381" y="679" width="120" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="Page 1 (Main.pdf)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="1" vertex="1">
+                    <mxGeometry x="104" y="839" width="110" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="Page 1 (Second.pdf)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="1" vertex="1">
+                    <mxGeometry x="244" y="839" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="Page 4 (Second.pdf)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="1" vertex="1">
+                    <mxGeometry x="384" y="840" width="120" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="Output.pdf" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="81" y="650" width="110" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="Add Existing" style="rounded=1;fillColor=#0057D8;align=center;strokeColor=none;html=1;fontColor=#ffffff;fontSize=12" parent="1" vertex="1">
+                    <mxGeometry x="71" y="86" width="80" height="23" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="Add Output" style="rounded=1;fillColor=#0057D8;align=center;strokeColor=none;html=1;fontColor=#ffffff;fontSize=12" parent="1" vertex="1">
+                    <mxGeometry x="160" y="86" width="80" height="23" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="" style="html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;shadow=0;dashed=0;strokeWidth=2;shape=mxgraph.ios7.misc.scroll_(horizontal);fillColor=#a0a0a0;" parent="1" vertex="1">
+                    <mxGeometry x="101" y="348" width="160" height="6" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="Edit PDF Pages" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;fontSize=21;" parent="1" vertex="1">
+                    <mxGeometry x="71" y="41" width="160" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="Use Drag and Drop to Reorder, Merge or Split PDF pages&lt;br&gt;Hold Ctrl to duplicate pages." style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;fontSize=14;" parent="1" vertex="1">
+                    <mxGeometry x="371" y="37" width="369" height="37" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;fontSize=14;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="81" y="652" width="90" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;fontSize=14;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="79" y="392" width="90" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;fontSize=14;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="79" y="132" width="90" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="Create File" style="rounded=1;fillColor=#0057D8;align=center;strokeColor=none;html=1;fontColor=#ffffff;fontSize=12" parent="1" vertex="1">
+                    <mxGeometry x="188" y="650" width="98" height="21" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="Show Preview Of Selected Page" style="rounded=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;verticalAlign=middle;fontStyle=0;fontSize=12;labelPosition=right;verticalLabelPosition=middle;spacingLeft=10;html=1;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="543" y="91" width="12" height="12" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="Save All" style="rounded=1;fillColor=#0057D8;align=center;strokeColor=none;html=1;fontColor=#ffffff;fontSize=12" parent="1" vertex="1">
+                    <mxGeometry x="248" y="86" width="80" height="23" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="Save Changes" style="rounded=1;fillColor=#0057D8;align=center;strokeColor=none;html=1;fontColor=#ffffff;fontSize=12" parent="1" vertex="1">
+                    <mxGeometry x="188" y="390" width="97" height="21" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="Remove" style="rounded=1;fillColor=#f5f5f5;align=center;strokeColor=#666666;html=1;fontColor=#333333;fontSize=12" parent="1" vertex="1">
+                    <mxGeometry x="634" y="652" width="98" height="21" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="Remove" style="rounded=1;fillColor=#f5f5f5;align=center;strokeColor=#666666;html=1;fontColor=#333333;fontSize=12" parent="1" vertex="1">
+                    <mxGeometry x="634" y="392" width="98" height="21" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="Remove" style="rounded=1;fillColor=#f5f5f5;align=center;strokeColor=#666666;html=1;fontColor=#333333;fontSize=12" parent="1" vertex="1">
+                    <mxGeometry x="634" y="132" width="98" height="21" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
