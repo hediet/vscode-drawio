@@ -186,7 +186,12 @@ export class DrawioWebviewInitializer {
 		);
 		const customPluginsPath = webview.asWebviewUri(
 			// See webpack configuration.
-			Uri.file(path.join(this.extensionPath, "dist/custom-drawio-plugins/index.js"))
+			Uri.file(
+				path.join(
+					this.extensionPath,
+					"dist/custom-drawio-plugins/index.js"
+				)
+			)
 		);
 
 		const localStorage = untracked(() => config.localStorage);

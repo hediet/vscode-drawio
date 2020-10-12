@@ -42,7 +42,7 @@ export class Extension {
 	private readonly drawioWebviewInitializer = new DrawioWebviewInitializer(
 		this.config,
 		this.log,
-		this.context.extensionPath,
+		this.context.extensionPath
 	);
 
 	constructor(private readonly context: vscode.ExtensionContext) {
