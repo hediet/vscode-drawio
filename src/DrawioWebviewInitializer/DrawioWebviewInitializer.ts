@@ -12,7 +12,8 @@ import { getDrawioExtensions } from "../DrawioExtensionApi";
 export class DrawioWebviewInitializer {
 	constructor(
 		private readonly config: Config,
-		private readonly log: OutputChannel
+		private readonly log: OutputChannel,
+		private readonly extensionPath: string
 	) {}
 
 	public async initializeWebview(
@@ -181,11 +182,16 @@ export class DrawioWebviewInitializer {
 		plugins: { jsCode: string }[]
 	): string {
 		const vsuri = webview.asWebviewUri(
-			Uri.file(path.join(__dirname, "../../drawio/src/main/webapp"))
+			Uri.file(path.join(this.extensionPath, "drawio/src/main/webapp"))
 		);
 		const customPluginsPath = webview.asWebviewUri(
 			// See webpack configuration.
-			Uri.file(path.join(__dirname, "../custom-drawio-plugins/index.js"))
+			Uri.file(
+				path.join(
+					this.extensionPath,
+					"dist/custom-drawio-plugins/index.js"
+				)
+			)
 		);
 
 		const localStorage = untracked(() => config.localStorage);
