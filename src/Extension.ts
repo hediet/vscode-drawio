@@ -84,8 +84,15 @@ export class Extension {
 					vscode.window.showSaveDialog(options).then(fileUri => {
 						if (fileUri) {
 							var fs = require('fs');
-							fs.writeFile(fileUri.fsPath, '', function() {
-								console.log('Draw IO file created at: ' + fileUri.fsPath);
+							var emptyContent = `<mxfile version="13.7.9"><diagram name="Page-1">ddHLEoIgFAbgp2GPUE2tzWrTykVrRk7CDHoYpNF6+nSQjLFWwMcPhwvheTOcnbDqihIMYVQOhB8JY9mG7cZmkmeQA6UBaqflHFqg1C+YMcYeWkKXBD2i8dqmWGHbQuUTE85hn8buaNKqVtSwgrISZq03Lb0Kut/SxS+gaxUrZ/F+jYjhGTolJPZfxAvCc4foQ68ZcjDT48V3CetOf2Y/B3PQ+h8Lxs6y9zhIfogXbw==</diagram></mxfile>`;
+							fs.writeFile(fileUri.fsPath, emptyContent, function () {
+								vscode.window.showInformationMessage('Draw IO diagram created at: ' + fileUri.fsPath);
+								vscode.workspace.openTextDocument(fileUri).then((doc: vscode.TextDocument) => {
+									vscode.window.showTextDocument(doc);
+									vscode.window.showInformationMessage('Draw IO diagram opened');
+								}, (error: any) => {
+									console.error(error);
+								});
 							});
 						}
 					});
