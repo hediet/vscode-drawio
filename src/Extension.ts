@@ -70,5 +70,27 @@ export class Extension {
 				}
 			)
 		);
+
+		this.dispose.track(
+			vscode.commands.registerCommand(
+				"hediet.vscode-drawio.newDiagram", () => {
+					const options: vscode.SaveDialogOptions = {
+						saveLabel: 'Create',
+						filters: {
+							'Diagrams': ['drawio']
+						}
+					};
+
+					vscode.window.showSaveDialog(options).then(fileUri => {
+						if (fileUri) {
+							var fs = require('fs');
+							fs.writeFile(fileUri.fsPath, '', function() {
+								console.log('Draw IO file created at: ' + fileUri.fsPath);
+							});
+						}
+					});
+				}
+			)
+		);
 	}
 }

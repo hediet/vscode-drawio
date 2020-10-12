@@ -28,7 +28,8 @@
 	],
 	"activationEvents": [
 		"onCustomEditor:hediet.vscode-drawio",
-		"onCustomEditor:hediet.vscode-drawio-text"
+		"onCustomEditor:hediet.vscode-drawio-text",
+		"onCommand:hediet.vscode-drawio.newDiagram"
 	],
 	"repository": {
 		"url": "https://github.com/hediet/vscode-drawio.git"
@@ -111,6 +112,10 @@
 			{
 				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
 				"title": "Draw.io: Link Code with Selected Node"
+			},
+			{
+				"command": "hediet.vscode-drawio.newDiagram",
+        		"title": "Draw.io: New Draw.io Diagram"
 			}
 		],
 		"keybindings": [
