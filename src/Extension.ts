@@ -78,7 +78,7 @@ export class Extension {
 					const targetUri = await vscode.window.showSaveDialog({
 						saveLabel: "Create",
 						filters: {
-							"Diagrans": ["drawio"]
+							"Diagrams": ["drawio"]
 						}
 					});
 					if(!targetUri) { return; }
