@@ -10,7 +10,6 @@ import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
 import { LiveshareFeature } from "./features/LiveshareFeature";
 import { ActivityTracking } from "./features/ActivtyTracking";
 import { join } from "path";
-import { TextEncoder } from "util";
 
 export class Extension {
 	public readonly dispose = Disposable.fn();
@@ -74,21 +73,31 @@ export class Extension {
 
 		this.dispose.track(
 			vscode.commands.registerCommand(
-				"hediet.vscode-drawio.newDiagram", async () => {
+				"hediet.vscode-drawio.newDiagram",
+				async () => {
 					const targetUri = await vscode.window.showSaveDialog({
 						saveLabel: "Create",
 						filters: {
-							"Diagrams": ["drawio"]
-						}
+							Diagrams: ["drawio"],
+						},
 					});
-					if(!targetUri) { return; }
-					try {
-						await vscode.workspace.fs.writeFile(targetUri, new TextEncoder().encode(""));
-						await vscode.commands.executeCommand("vscode.openWith", targetUri, "hediet.vscode-drawio-text");
+					if (!targetUri) {
+						return;
 					}
-					catch(e) {
+					try {
+						await vscode.workspace.fs.writeFile(
+							targetUri,
+							new Uint8Array()
+						);
+						await vscode.commands.executeCommand(
+							"vscode.openWith",
+							targetUri,
+							"hediet.vscode-drawio-text"
+						);
+					} catch (e) {
+						console.error("Cannot create or open file", e);
 						await vscode.window.showErrorMessage(
-							`File "${targetUri.toString()}" cannot open!`
+							`Cannot create or open file "${targetUri.toString()}"!`
 						);
 					}
 				}
