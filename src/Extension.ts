@@ -10,6 +10,7 @@ import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
 import { LiveshareFeature } from "./features/LiveshareFeature";
 import { ActivityTracking } from "./features/ActivtyTracking";
 import { join } from "path";
+import { TextEncoder } from "util";
 
 export class Extension {
 	public readonly dispose = Disposable.fn();
@@ -73,29 +74,23 @@ export class Extension {
 
 		this.dispose.track(
 			vscode.commands.registerCommand(
-				"hediet.vscode-drawio.newDiagram", () => {
-					const options: vscode.SaveDialogOptions = {
-						saveLabel: 'Create',
+				"hediet.vscode-drawio.newDiagram", async () => {
+					const targetUri = await vscode.window.showSaveDialog({
+						saveLabel: "Create",
 						filters: {
-							'Diagrams': ['drawio']
-						}
-					};
-
-					vscode.window.showSaveDialog(options).then(fileUri => {
-						if (fileUri) {
-							var fs = require('fs');
-							var emptyContent = `<mxfile version="13.7.9"><diagram name="Page-1">ddHLEoIgFAbgp2GPUE2tzWrTykVrRk7CDHoYpNF6+nSQjLFWwMcPhwvheTOcnbDqihIMYVQOhB8JY9mG7cZmkmeQA6UBaqflHFqg1C+YMcYeWkKXBD2i8dqmWGHbQuUTE85hn8buaNKqVtSwgrISZq03Lb0Kut/SxS+gaxUrZ/F+jYjhGTolJPZfxAvCc4foQ68ZcjDT48V3CetOf2Y/B3PQ+h8Lxs6y9zhIfogXbw==</diagram></mxfile>`;
-							fs.writeFile(fileUri.fsPath, emptyContent, function () {
-								vscode.window.showInformationMessage('Draw IO diagram created at: ' + fileUri.fsPath);
-								vscode.workspace.openTextDocument(fileUri).then((doc: vscode.TextDocument) => {
-									vscode.window.showTextDocument(doc);
-									vscode.window.showInformationMessage('Draw IO diagram opened');
-								}, (error: any) => {
-									console.error(error);
-								});
-							});
+							"Diagrans": ["drawio"]
 						}
 					});
+					if(!targetUri) { return; }
+					try {
+						await vscode.workspace.fs.writeFile(targetUri, new TextEncoder().encode(""));
+						await vscode.commands.executeCommand("vscode.openWith", targetUri, "hediet.vscode-drawio-text");
+					}
+					catch(e) {
+						await vscode.window.showErrorMessage(
+							`File "${targetUri.toString()}" cannot open!`
+						);
+					}
 				}
 			)
 		);
