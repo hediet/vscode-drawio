@@ -115,7 +115,7 @@
 			},
 			{
 				"command": "hediet.vscode-drawio.newDiagram",
-        		"title": "Draw.io: New Draw.io Diagram"
+				"title": "Draw.io: New Draw.io Diagram"
 			}
 		],
 		"keybindings": [
