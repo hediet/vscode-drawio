@@ -88,6 +88,10 @@
 		],
 		"commands": [
 			{
+				"command": "hediet.vscode-drawio.newDiagram",
+				"title": "Draw.io: New Diagram .."
+			},
+			{
 				"command": "hediet.vscode-drawio.convert",
 				"title": "Draw.io: Convert To..."
 			},

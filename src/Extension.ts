@@ -9,7 +9,7 @@ import { LinkCodeWithSelectedNodeService } from "./features/CodeLinkFeature";
 import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
 import { LiveshareFeature } from "./features/LiveshareFeature";
 import { ActivityTracking } from "./features/ActivtyTracking";
-import { join } from "path";
+import { join, dirname } from "path";
 
 export class Extension {
 	public readonly dispose = Disposable.fn();
@@ -45,6 +45,29 @@ export class Extension {
 	);
 
 	constructor(private readonly context: vscode.ExtensionContext) {
+		this.dispose.track(
+			vscode.commands.registerCommand("hediet.vscode-drawio.newDiagram", async () => {
+				const newFileName = await vscode.window.showInputBox({
+					placeHolder: 'Enter file name'
+				});
+
+				if (newFileName) {
+					// Figure the folder to put new file
+					const openFilePath = vscode.window.activeTextEditor?.document.uri.path;
+					const activeFolderPath = openFilePath
+						? dirname(openFilePath)
+						: vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0].uri.path;
+					if (activeFolderPath) {
+						const fileUri = vscode.Uri.file(join(activeFolderPath, newFileName));
+						await vscode.workspace.fs.writeFile(fileUri, Buffer.of()); // write file with empty content
+						await vscode.commands.executeCommand('vscode.open', fileUri);
+					} else {
+						vscode.window.showErrorMessage("Failed to create new file. No active workspace found.");
+					}
+				}
+			})
+		);
+
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
 				"hediet.vscode-drawio-text",
