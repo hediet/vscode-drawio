@@ -40,6 +40,8 @@ export class DrawioWebviewInitializer {
 				// these getters triggers a reload on change
 				config.customLibraries;
 				config.customFonts;
+				config.presetColors;
+				config.customColorSchemes;
 			},
 			{ name: "Update Webview Html" }
 		);
@@ -64,6 +66,8 @@ export class DrawioWebviewInitializer {
 				return {
 					compressXml: false,
 					customFonts: config.customFonts,
+					presetColors: config.presetColors,
+					customColorSchemes: config.customColorSchemes,
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 				};

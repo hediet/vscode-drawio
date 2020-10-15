@@ -153,6 +153,41 @@
 					"title": "Draw.io Local Storage",
 					"description": "Only change this property if you know what you are doing. Manual changes to this property are not supported!"
 				},
+				"hediet.vscode-drawio.presetColors": {
+					"title": "Preset Colors",
+					"description": "Color codes for the upper palette in the color dialog.",
+					"type": "array",
+					"items": {
+						"type": "string",
+						"description": "Use hex codes without # at the beginning only (FFFFFF for absolute white, for example)."
+					}
+				},
+				"hediet.vscode-drawio.customColorSchemes": {
+					"title": "Custom Color Schemes",
+					"markdownDescription": "Available color schemes in the style section at the top of the format panel. See example [here](https://www.diagrams.net/doc/faq/custom-colours-confluence-cloud#default-colour-schemes---format-panel)",
+					"type": "array",
+					"items": {
+						"type": "array",
+						"description": "Represents a page of color schemes.",
+						"items": {
+							"type": "object",
+							"properties": {
+								"fill": {
+									"type": "string",
+									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+								},
+								"stroke": {
+									"type": "string",
+									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+								},
+								"gradient": {
+									"type": "string",
+									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+								}
+							}
+						}
+					}
+				},
 				"hediet.vscode-drawio.customFonts": {
 					"type": "array",
 					"items": {

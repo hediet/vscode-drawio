@@ -79,7 +79,7 @@ export interface DrawioConfig {
 	/**
 	 * Colour schemes to be added before defaultColorSchemes (9.2.4 and later).
 	 */
-	customColorSchemes?: string[];
+	customColorSchemes?: ColorScheme[][];
 
 	/**
 	 * Defines the initial default styles for vertices and edges (connectors).
@@ -145,6 +145,12 @@ export interface DrawioConfig {
 	 * Specifies if the XML output should be compressed. The default is true.
 	 */
 	compressXml?: boolean;
+}
+
+export interface ColorScheme {
+	fill?: string;
+	stroke?: string;
+	gradient?: string;
 }
 
 export interface DrawioLibrarySection {
