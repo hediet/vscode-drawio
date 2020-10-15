@@ -164,11 +164,11 @@
 				},
 				"hediet.vscode-drawio.customColorSchemes": {
 					"title": "Custom Color Schemes",
-					"markdownDescription": "Available color schemes in the style section at the top of the format panel. See example (here)[https://www.diagrams.net/doc/faq/custom-colours-confluence-cloud#default-colour-schemes---format-panel]",
+					"markdownDescription": "Available color schemes in the style section at the top of the format panel. See example [here](https://www.diagrams.net/doc/faq/custom-colours-confluence-cloud#default-colour-schemes---format-panel)",
 					"type": "array",
 					"items": {
 						"type": "array",
-						"description": "Represents a page of a color schemes.",
+						"description": "Represents a page of color schemes.",
 						"items": {
 							"type": "object",
 							"properties": {
