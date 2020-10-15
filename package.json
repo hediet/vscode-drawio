@@ -153,6 +153,36 @@
 					"title": "Draw.io Local Storage",
 					"description": "Only change this property if you know what you are doing. Manual changes to this property are not supported!"
 				},
+				"hediet.vscode-drawio.presetColors": {
+					"title": "Preset Colors",
+					"description": "Color codes for the upper palette in the color dialog (no leading # for the color codes).",
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"hediet.vscode-drawio.customColorSchemes": {
+					"title": "Custom Color Schemes",
+					"description": "Available color schemes in the style section at the top of the format panel (use leading # for the color codes).",
+					"type": "array",
+					"items": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"fill": {
+									"type": "string"
+								},
+								"stroke": {
+									"type": "string"
+								},
+								"gradient": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				},
 				"hediet.vscode-drawio.customFonts": {
 					"type": "array",
 					"items": {
@@ -270,14 +300,6 @@
 						"Kennedy"
 					],
 					"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
-				},
-				"hediet.vscode-drawio.presetColors": {
-					"title": "Preset Colors",
-					"description": "Color codes for the upper palette in the color dialog (no leading # for the color codes)",
-					"type": "array",
-					"items": {
-						"type": "string"
-					}
 				}
 			}
 		}

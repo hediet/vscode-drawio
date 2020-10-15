@@ -9,7 +9,7 @@ import {
 	Memento,
 } from "vscode";
 import { computed, autorun } from "mobx";
-import { DrawioLibraryData } from "./DrawioInstance";
+import { ColorScheme, DrawioLibraryData } from "./DrawioInstance";
 import {
 	VsCodeSetting,
 	serializerWithDefault,
@@ -228,7 +228,26 @@ interface InternalConfig {
 }
 
 export class DiagramConfig {
+	//#region Custom Color Schemes
+
+	private readonly _customColorSchemes = new VsCodeSetting(`${extensionId}.customColorSchemes`, {
+		scope: this.uri,
+		serializer: serializerWithDefault<ColorScheme[][]>([])
+	});
+
+	@computed
+	public get customColorSchemes(): ColorScheme[][] {
+		return this._customColorSchemes.get()
+	}
+
+	public async setСustomColorSchemes(value: ColorScheme[][]) {
+		await this._customColorSchemes.set(value)
+	}
+
+	//#endregion
+
 	//#region Preset Colors
+
 	private readonly _presetColors = new VsCodeSetting(`${extensionId}.presetColors`, {
 		scope: this.uri,
 		serializer: serializerWithDefault<string[]>([])
@@ -242,9 +261,11 @@ export class DiagramConfig {
 	public async setPresetColors(value: string[]): Promise<void> {
 		await this._presetColors.set(value);
 	}
-	//#endregion Preset Colors
+
+	//#endregion
 
 	// #region Theme
+
 	private readonly _theme = new VsCodeSetting(`${extensionId}.theme`, {
 		scope: this.uri,
 		serializer: serializerWithDefault("automatic"),

@@ -41,6 +41,7 @@ export class DrawioWebviewInitializer {
 				config.customLibraries;
 				config.customFonts;
 				config.presetColors;
+				config.customColorSchemes;
 			},
 			{ name: "Update Webview Html" }
 		);
@@ -66,6 +67,7 @@ export class DrawioWebviewInitializer {
 					compressXml: false,
 					customFonts: config.customFonts,
 					presetColors: config.presetColors,
+					customColorSchemes: config.customColorSchemes,
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 				};
