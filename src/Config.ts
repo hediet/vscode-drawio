@@ -230,28 +230,34 @@ interface InternalConfig {
 export class DiagramConfig {
 	//#region Custom Color Schemes
 
-	private readonly _customColorSchemes = new VsCodeSetting(`${extensionId}.customColorSchemes`, {
-		scope: this.uri,
-		serializer: serializerWithDefault<ColorScheme[][]>([])
-	});
+	private readonly _customColorSchemes = new VsCodeSetting(
+		`${extensionId}.customColorSchemes`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<ColorScheme[][]>([]),
+		}
+	);
 
 	@computed
 	public get customColorSchemes(): ColorScheme[][] {
-		return this._customColorSchemes.get()
+		return this._customColorSchemes.get();
 	}
 
 	public async setСustomColorSchemes(value: ColorScheme[][]) {
-		await this._customColorSchemes.set(value)
+		await this._customColorSchemes.set(value);
 	}
 
 	//#endregion
 
 	//#region Preset Colors
 
-	private readonly _presetColors = new VsCodeSetting(`${extensionId}.presetColors`, {
-		scope: this.uri,
-		serializer: serializerWithDefault<string[]>([])
-	});
+	private readonly _presetColors = new VsCodeSetting(
+		`${extensionId}.presetColors`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<string[]>([]),
+		}
+	);
 
 	@computed
 	public get presetColors(): string[] {
