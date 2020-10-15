@@ -243,10 +243,6 @@ export class DiagramConfig {
 		return this._customColorSchemes.get();
 	}
 
-	public async setСustomColorSchemes(value: ColorScheme[][]) {
-		await this._customColorSchemes.set(value);
-	}
-
 	//#endregion
 
 	//#region Preset Colors
@@ -262,10 +258,6 @@ export class DiagramConfig {
 	@computed
 	public get presetColors(): string[] {
 		return this._presetColors.get();
-	}
-
-	public async setPresetColors(value: string[]): Promise<void> {
-		await this._presetColors.set(value);
 	}
 
 	//#endregion
