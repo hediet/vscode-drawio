@@ -228,8 +228,23 @@ interface InternalConfig {
 }
 
 export class DiagramConfig {
-	// #region Theme
+	//#region Preset Colors
+	private readonly _presetColors = new VsCodeSetting(`${extensionId}.presetColors`, {
+		scope: this.uri,
+		serializer: serializerWithDefault<string[]>([])
+	});
 
+	@computed
+	public get presetColors(): string[] {
+		return this._presetColors.get();
+	}
+
+	public async setPresetColors(value: string[]): Promise<void> {
+		await this._presetColors.set(value);
+	}
+	//#endregion Preset Colors
+
+	// #region Theme
 	private readonly _theme = new VsCodeSetting(`${extensionId}.theme`, {
 		scope: this.uri,
 		serializer: serializerWithDefault("automatic"),

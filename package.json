@@ -270,6 +270,14 @@
 						"Kennedy"
 					],
 					"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
+				},
+				"hediet.vscode-drawio.presetColors": {
+					"title": "Preset Colors",
+					"description": "Color codes for the upper palette in the color dialog (no leading # for the color codes)",
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
 				}
 			}
 		}

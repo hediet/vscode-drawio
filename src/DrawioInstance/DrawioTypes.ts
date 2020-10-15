@@ -79,7 +79,7 @@ export interface DrawioConfig {
 	/**
 	 * Colour schemes to be added before defaultColorSchemes (9.2.4 and later).
 	 */
-	customColorSchemes?: string[];
+	customColorSchemes?: {fill: string, stroke: string}[][];
 
 	/**
 	 * Defines the initial default styles for vertices and edges (connectors).
