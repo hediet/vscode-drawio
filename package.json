@@ -121,7 +121,8 @@
 		"keybindings": [
 			{
 				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
-				"key": "shift+F3"
+				"key": "shift+F3",
+				"when": "!findWidgetVisible"
 			}
 		],
 		"configuration": {
