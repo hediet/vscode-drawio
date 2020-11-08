@@ -25,4 +25,13 @@ export async function run(): Promise<void> {
 		ref: `refs/tags/${gitTag}`,
 		sha: context.sha,
 	});
+
+	console.log("Uploading to open-vsx...");
+	await exec("yarn", [
+		"ovsx",
+		"publish",
+		"./vscode-drawio.vsix",
+		"-p",
+		process.env.OPEN_VSX_TOKEN!,
+	]);
 }
