@@ -25,6 +25,9 @@ const toggleCodeLinkActivationCommandName =
 const linkCodeWithSelectedNodeCommandName =
 	"hediet.vscode-drawio.linkCodeWithSelectedNode";
 
+const linkFileWithSelectedNodeCommandName =
+	"hediet.vscode-drawio.linkFileWithSelectedNode";
+
 export class LinkCodeWithSelectedNodeService {
 	public readonly dispose = Disposable.fn();
 
@@ -72,13 +75,17 @@ export class LinkCodeWithSelectedNodeService {
 			),
 			commands.registerCommand(
 				toggleCodeLinkActivationCommandName,
-				this.toggleCodeClinkEnabled
+				this.toggleCodeLinkEnabled
+			),
+			commands.registerCommand(
+				linkFileWithSelectedNodeCommandName,
+				this.linkFileWithSelectedNodeCommandName
 			),
 		]);
 	}
 
 	@action.bound
-	private async toggleCodeClinkEnabled() {
+	private async toggleCodeLinkEnabled() {
 		const activeEditor = this.editorManager.activeDrawioEditor;
 		if (!activeEditor) {
 			return;
@@ -113,6 +120,21 @@ export class LinkCodeWithSelectedNodeService {
 			pos.serialize(lastActiveDrawioEditor.uri)
 		);
 		this.revealSelection(pos);
+	}
+
+	@action.bound
+	private linkFileWithSelectedNodeCommandName(file: Uri): void {
+		const lastActiveDrawioEditor = this.editorManager
+			.lastActiveDrawioEditor;
+		if (!lastActiveDrawioEditor) {
+			window.showErrorMessage("No active drawio instance.");
+			return;
+		}
+
+		const pos = new CodePosition(file, undefined);
+		lastActiveDrawioEditor.instance.linkSelectedNodeWithData(
+			pos.serialize(lastActiveDrawioEditor.uri)
+		);
 	}
 
 	private handleDrawioEditor(editor: DrawioEditor): void {
@@ -194,29 +216,37 @@ export class LinkCodeWithSelectedNodeService {
 	private lastDecorationType: TextEditorDecorationType | undefined;
 
 	private async revealSelection(pos: CodePosition): Promise<void> {
-		const d = await workspace.openTextDocument(pos.uri);
-		const e = await window.showTextDocument(d, {
-			viewColumn: ViewColumn.One,
-			preserveFocus: true,
-		});
+		if (pos.range) {
+			const d = await workspace.openTextDocument(pos.uri);
+			const e = await window.showTextDocument(d, {
+				viewColumn: ViewColumn.One,
+				preserveFocus: true,
+			});
+			e.revealRange(pos.range, TextEditorRevealType.Default);
 
-		e.revealRange(pos.range, TextEditorRevealType.Default);
+			const highlightDecorationType = window.createTextEditorDecorationType(
+				{
+					backgroundColor: new ThemeColor(
+						"editor.stackFrameHighlightBackground"
+					),
+				}
+			);
 
-		const highlightDecorationType = window.createTextEditorDecorationType({
-			backgroundColor: new ThemeColor(
-				"editor.stackFrameHighlightBackground"
-			),
-		});
+			if (this.lastDecorationType) {
+				e.setDecorations(this.lastDecorationType, []);
+			}
+			this.lastDecorationType = highlightDecorationType;
 
-		if (this.lastDecorationType) {
-			e.setDecorations(this.lastDecorationType, []);
+			e.setDecorations(highlightDecorationType, [pos.range]);
+			wait(1000).then(() => {
+				e.setDecorations(highlightDecorationType, []);
+			});
+		} else {
+			await commands.executeCommand("vscode.open", pos.uri, {
+				viewColumn: ViewColumn.One,
+				preserveFocus: true,
+			});
 		}
-		this.lastDecorationType = highlightDecorationType;
-
-		e.setDecorations(highlightDecorationType, [pos.range]);
-		wait(1000).then(() => {
-			e.setDecorations(highlightDecorationType, []);
-		});
 	}
 }
 
@@ -231,11 +261,13 @@ class CodePosition {
 			relativeTo.with({
 				path: Uri.file(join(relativeTo.path, data.path)).path,
 			}),
-			new Range(getPosition(data.start), getPosition(data.end))
+			"start" in data
+				? new Range(getPosition(data.start), getPosition(data.end))
+				: undefined
 		);
 	}
 
-	constructor(public readonly uri: Uri, public readonly range: Range) {}
+	constructor(public readonly uri: Uri, public readonly range?: Range) {}
 
 	public serialize(relativeTo: Uri): unknown {
 		function toPosition(pos: Position): PositionData {
@@ -250,18 +282,26 @@ class CodePosition {
 				/\\/g,
 				"/"
 			),
-			start: toPosition(this.range.start),
-			end: toPosition(this.range.end),
+			...(this.range
+				? {
+						start: toPosition(this.range.start),
+						end: toPosition(this.range.end),
+				  }
+				: {}),
 		};
 		return data;
 	}
 }
 
-interface Data {
+type Data = {
 	path: string;
-	start: PositionData;
-	end: PositionData;
-}
+} & (
+	| {}
+	| {
+			start: PositionData;
+			end: PositionData;
+	  }
+);
 
 interface PositionData {
 	line: number;

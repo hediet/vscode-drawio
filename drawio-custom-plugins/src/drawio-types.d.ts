@@ -88,7 +88,7 @@ declare interface DrawioCell {
 }
 
 declare interface DrawioGraphModel {
-    setValue(c: DrawioCell, label: string): void;
+    setValue(c: DrawioCell, label: string | any): void;
     beginUpdate(): void;
     endUpdate(): void;
 	cells: Record<any, DrawioCell>;

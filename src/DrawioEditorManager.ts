@@ -48,6 +48,11 @@ export class DrawioEditorManager {
 			if (a) {
 				this._lastActiveDrawioEditor = a;
 			}
+			commands.executeCommand(
+				"setContext",
+				"hediet.vscode-drawio.active",
+				!!a
+			);
 		});
 
 		this.dispose.track(

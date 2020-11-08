@@ -117,6 +117,10 @@
 			{
 				"command": "hediet.vscode-drawio.newDiagram",
 				"title": "Draw.io: New Draw.io Diagram"
+			},
+			{
+				"command": "hediet.vscode-drawio.linkFileWithSelectedNode",
+				"title": "Draw.io: Link File With Selected Node In Active Diagram"
 			}
 		],
 		"keybindings": [
@@ -309,6 +313,15 @@
 					"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
 				}
 			}
+		},
+		"menus": {
+			"explorer/context": [
+				{
+					"when": "hediet.vscode-drawio.active",
+					"command": "hediet.vscode-drawio.linkFileWithSelectedNode",
+					"group": "Drawio"
+				}
+			]
 		}
 	},
 	"scripts": {

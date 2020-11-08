@@ -91,7 +91,9 @@ Draw.loadPlugin((ui) => {
 			newNode = cell.value.cloneNode(true);
 		}
 
-		for (const a of newNode.attributes as any) {
+		for (const a of [
+			...((newNode.attributes as any) as { name: string }[]),
+		]) {
 			if (a.name.startsWith(prefix)) {
 				newNode.attributes.removeNamedItem(a.name);
 			}
@@ -102,7 +104,8 @@ Draw.loadPlugin((ui) => {
 			newNode.setAttribute(k, v);
 		}
 
-		cell.setValue(newNode);
+		// don't use cell.setValue as it does not trigger a change
+		model.setValue(cell, newNode);
 	}
 
 	window.addEventListener("message", (evt) => {
@@ -121,7 +124,12 @@ Draw.loadPlugin((ui) => {
 			case "linkSelectedNodeWithData": {
 				if (activeCell !== undefined) {
 					log("Set linkedData to " + data.linkedData);
-					setLinkedData(activeCell, data.linkedData);
+					graph.model.beginUpdate();
+					try {
+						setLinkedData(activeCell, data.linkedData);
+					} finally {
+						graph.model.endUpdate();
+					}
 					highlight.highlight(graph.view.getState(activeCell));
 					setTimeout(() => {
 						highlight.highlight(null);
