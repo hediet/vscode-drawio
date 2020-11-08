@@ -5,29 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.4-alpha.1]
+## [1.1.0-alpha.1]
+
+### Added
+
+-   A context menu item has been added to the explorer view to link nodes to arbitrary files (see [#169](https://github.com/hediet/vscode-drawio/issues/169)).
 
 ### Fixed
 
-- `shift+f3` (find previous) is uncovered when the find-widget is visible (see [#174](https://github.com/hediet/vscode-drawio/pull/174), by [@fbehrens](https://github.com/fbehrens)).
+-   `shift+f3` (find previous) is uncovered when the find-widget is visible (see [#174](https://github.com/hediet/vscode-drawio/pull/174), by [@fbehrens](https://github.com/fbehrens)).
+-   Fixes that code link changes didn't trigger a document change.
 
 ## [1.0.3] - 2020-10-15
 
 ### Added
 
-- Add "Preset Colors" and "Custom Color Schemes" settings [#145](https://github.com/hediet/vscode-drawio/issues/145)), by [@AvroraPolnareff](https://github.com/AvroraPolnareff).
-
-## [1.0.3-alpha.1]
-
-### Added
-
-- Add "New Draw.io Diagram" to the command palette (see [#145](https://github.com/hediet/vscode-drawio/issues/145)).
+-   Add "Preset Colors" and "Custom Color Schemes" settings (see [#145](https://github.com/hediet/vscode-drawio/issues/145), by [@AvroraPolnareff](https://github.com/AvroraPolnareff)).
+-   Add "New Draw.io Diagram" to the command palette (see [#145](https://github.com/hediet/vscode-drawio/issues/145)).
 
 ## [1.0.2] - 2020-10-12
 
 ### Fixed
 
--   Fix webview error when data directory is symlink ([#152](https://github.com/hediet/vscode-drawio/pull/152), by [@jingyu9575](https://github.com/jingyu9575)
+-   Fix webview error when data directory is symlink (see [#152](https://github.com/hediet/vscode-drawio/pull/152), by [@jingyu9575](https://github.com/jingyu9575)).
 
 ## [1.0.1] - 2020-10-07
 
@@ -60,8 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 -   Fixes loss of data when changing theme in binary drawio editor with unsaved changes.
--   Fixes export/convert output to wrong directory when filepath contains '.' ([#117](https://github.com/hediet/vscode-drawio/pull/117), by [@fatalc](https://github.com/fatalc)).
--   Fixes color problem when using light drawio theme in dark vscode theme ([#129](https://github.com/hediet/vscode-drawio/issues/129)).
+-   Fixes export/convert output to wrong directory when filepath contains '.' (see [#117](https://github.com/hediet/vscode-drawio/pull/117), by [@fatalc](https://github.com/fatalc)).
+-   Fixes color problem when using light drawio theme in dark vscode theme (see [#129](https://github.com/hediet/vscode-drawio/issues/129)).
 
 ## [0.7.2] - 2020-06-28
 
@@ -90,7 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
--   Ctrl-P is now forwarded to VS Code. Resolves [#77](https://github.com/hediet/vscode-drawio/issues/77).
+-   Ctrl-P is now forwarded to VS Code (see [#77](https://github.com/hediet/vscode-drawio/issues/77)).
 
 ## [0.6.6] - 2020-05-31
 
