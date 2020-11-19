@@ -368,6 +368,7 @@
 		"mithril": "^2.0.4",
 		"mobx": "5.15.4",
 		"mobx-utils": "5.5.7",
+		"ovsx": "^0.1.0-next.e000fdb",
 		"tippy.js": "^6.2.6",
 		"vsls": "^1.0.2594",
 		"xml-formatter": "^2.0.1",
