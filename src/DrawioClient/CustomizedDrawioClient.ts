@@ -1,16 +1,11 @@
 import { EventEmitter } from "@hediet/std/events";
-import { DrawioInstance } from "./DrawioInstance";
-
-interface Point {
-	x: number;
-	y: number;
-}
+import { DrawioClient } from "./DrawioClient";
 
 /**
  * Enhances the drawio client with custom events and methods.
  * They require modifications of the official drawio source or plugins.
  */
-export class CustomDrawioInstance extends DrawioInstance<
+export class CustomizedDrawioClient extends DrawioClient<
 	CustomDrawioAction,
 	CustomDrawioEvent
 > {
@@ -132,4 +127,9 @@ export class CustomDrawioInstance extends DrawioInstance<
 			await super.handleEvent(evt);
 		}
 	}
+}
+
+interface Point {
+	x: number;
+	y: number;
 }

@@ -2,7 +2,10 @@ import { EventEmitter } from "@hediet/std/events";
 import { Disposable } from "@hediet/std/disposable";
 import { DrawioConfig, DrawioEvent, DrawioAction } from "./DrawioTypes";
 
-export class DrawioInstance<
+/**
+ * Represents a connection to an drawio iframe.
+ */
+export class DrawioClient<
 	TCustomAction extends {} = never,
 	TCustomEvent extends {} = never
 > {

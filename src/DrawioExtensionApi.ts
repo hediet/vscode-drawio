@@ -1,21 +1,13 @@
 import { Extension, extensions, Uri } from "vscode";
 
-export interface DrawioExtensionJsonManifest {
-	// Set `"isDrawioExtension": true` in your package.json
-	isDrawioExtension?: boolean;
-}
-
-// Implement this API in your public extension API.
-export interface DrawioExtensionApi {
-	drawioExtensionV1?: {
-		getDrawioPlugins?: (
-			context: DocumentContext
-		) => Promise<{ jsCode: string }[]>;
-	};
-}
-
-export interface DocumentContext {
-	uri: Uri;
+export function getDrawioExtensions(): DrawioExtension[] {
+	return extensions.all
+		.filter(
+			(e) =>
+				(e.packageJSON as DrawioExtensionJsonManifest)
+					.isDrawioExtension === true
+		)
+		.map((e) => new DrawioExtension(e));
 }
 
 export class DrawioExtension {
@@ -40,12 +32,21 @@ export class DrawioExtension {
 	}
 }
 
-export function getDrawioExtensions(): DrawioExtension[] {
-	return extensions.all
-		.filter(
-			(e) =>
-				(e.packageJSON as DrawioExtensionJsonManifest)
-					.isDrawioExtension === true
-		)
-		.map((e) => new DrawioExtension(e));
+export interface DrawioExtensionJsonManifest {
+	// Set `"isDrawioExtension": true` in your package.json
+	// so that your extension gets loaded when a draw.io file is opened.
+	isDrawioExtension?: boolean;
+}
+
+// Implement this API in your public extension API.
+export interface DrawioExtensionApi {
+	drawioExtensionV1?: {
+		getDrawioPlugins?: (
+			context: DocumentContext
+		) => Promise<{ jsCode: string }[]>;
+	};
+}
+
+export interface DocumentContext {
+	uri: Uri;
 }

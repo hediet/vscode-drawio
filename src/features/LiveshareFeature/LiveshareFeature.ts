@@ -1,7 +1,7 @@
 import { Disposable } from "@hediet/std/disposable";
 import * as vsls from "vsls";
 import { Config } from "../../Config";
-import { DrawioEditorManager } from "../../DrawioEditorManager";
+import { DrawioEditorService } from "../../DrawioEditorService";
 import { autorunTrackDisposables } from "../../utils/autorunTrackDisposables";
 import { fromResource } from "../../utils/fromResource";
 import { LiveshareSession } from "./LiveshareSession";
@@ -10,7 +10,7 @@ export class LiveshareFeature {
 	public readonly dispose = Disposable.fn();
 
 	constructor(
-		private readonly editorManager: DrawioEditorManager,
+		private readonly editorManager: DrawioEditorService,
 		private readonly config: Config
 	) {
 		this.init().catch(console.error);
@@ -42,7 +42,7 @@ class LiveshareFeatureInitialized {
 
 	constructor(
 		private readonly api: vsls.LiveShare,
-		editorManager: DrawioEditorManager
+		editorManager: DrawioEditorService
 	) {
 		this.dispose.track(
 			autorunTrackDisposables(async (track) => {

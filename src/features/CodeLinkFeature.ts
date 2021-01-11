@@ -1,4 +1,4 @@
-import { CustomDrawioInstance } from "../DrawioInstance";
+import { CustomizedDrawioClient } from "../DrawioClient";
 import { Disposable } from "@hediet/std/disposable";
 import {
 	commands,
@@ -15,7 +15,7 @@ import {
 	SymbolInformation,
 } from "vscode";
 import { wait } from "@hediet/std/timer";
-import { DrawioEditorManager, DrawioEditor } from "../DrawioEditorManager";
+import { DrawioEditorService, DrawioEditor } from "../DrawioEditorService";
 import { autorun, action } from "mobx";
 import { Config } from "../Config";
 import { join, relative } from "path";
@@ -37,7 +37,7 @@ export class LinkCodeWithSelectedNodeService {
 		window.activeTextEditor;
 
 	constructor(
-		private readonly editorManager: DrawioEditorManager,
+		private readonly editorManager: DrawioEditorService,
 		private readonly config: Config
 	) {
 		this.dispose.track([
@@ -116,7 +116,7 @@ export class LinkCodeWithSelectedNodeService {
 		}
 
 		const pos = new CodePosition(editor.document.uri, editor.selection);
-		lastActiveDrawioEditor.instance.linkSelectedNodeWithData(
+		lastActiveDrawioEditor.drawioClient.linkSelectedNodeWithData(
 			pos.serialize(lastActiveDrawioEditor.uri)
 		);
 		this.revealSelection(pos);
@@ -132,13 +132,13 @@ export class LinkCodeWithSelectedNodeService {
 		}
 
 		const pos = new CodePosition(file, undefined);
-		lastActiveDrawioEditor.instance.linkSelectedNodeWithData(
+		lastActiveDrawioEditor.drawioClient.linkSelectedNodeWithData(
 			pos.serialize(lastActiveDrawioEditor.uri)
 		);
 	}
 
 	private handleDrawioEditor(editor: DrawioEditor): void {
-		const drawioInstance = editor.instance;
+		const drawioInstance = editor.drawioClient;
 
 		drawioInstance.onCustomPluginLoaded.sub(() => {
 			drawioInstance.dispose.track({

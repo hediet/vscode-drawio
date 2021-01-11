@@ -1,23 +1,23 @@
+import { readFileSync } from "fs";
+import { autorun, computed, observable } from "mobx";
 import {
-	workspace,
-	Uri,
-	env,
-	commands,
-	window,
+	ColorTheme,
 	ColorThemeKind,
+	commands,
 	ConfigurationTarget,
+	env,
 	Memento,
+	Uri,
+	window,
+	workspace,
 } from "vscode";
-import { computed, autorun } from "mobx";
-import { ColorScheme, DrawioLibraryData } from "./DrawioInstance";
-import {
-	VsCodeSetting,
-	serializerWithDefault,
-} from "./vscode-utils/VsCodeSetting";
+import { ColorScheme, DrawioLibraryData } from "./DrawioClient";
 import { mapObject } from "./utils/mapObject";
 import { SimpleTemplate } from "./utils/SimpleTemplate";
-import { Extension } from "./Extension";
-import { readFileSync } from "fs";
+import {
+	serializerWithDefault,
+	VsCodeSetting,
+} from "./vscode-utils/VsCodeSetting";
 
 const extensionId = "hediet.vscode-drawio";
 const experimentalFeaturesEnabled = "vscode-drawio.experimentalFeaturesEnabled";
@@ -51,6 +51,13 @@ export class Config {
 		);
 	}
 
+	@observable.ref
+	private _vscodeTheme: ColorTheme;
+
+	public get vscodeTheme(): ColorTheme {
+		return this._vscodeTheme;
+	}
+
 	constructor(
 		private readonly packageJsonPath: string,
 		private readonly globalState: Memento
@@ -61,10 +68,15 @@ export class Config {
 				this.experimentalFeaturesEnabled
 			);
 		});
+
+		this._vscodeTheme = window.activeColorTheme;
+		window.onDidChangeActiveColorTheme((theme) => {
+			this._vscodeTheme = theme;
+		});
 	}
 
-	public getConfig(uri: Uri): DiagramConfig {
-		return new DiagramConfig(uri);
+	public getDiagramConfig(uri: Uri): DiagramConfig {
+		return new DiagramConfig(uri, this);
 	}
 
 	private readonly _experimentalFeatures = new VsCodeSetting(
@@ -281,7 +293,7 @@ export class DiagramConfig {
 			[ColorThemeKind.Light]: "Kennedy",
 			[ColorThemeKind.Dark]: "dark",
 			[ColorThemeKind.HighContrast]: "Kennedy",
-		}[window.activeColorTheme.kind];
+		}[this.config.vscodeTheme.kind];
 	}
 
 	public async setTheme(value: string): Promise<void> {
@@ -514,7 +526,7 @@ export class DiagramConfig {
 
 	// #endregion
 
-	constructor(public readonly uri: Uri) {}
+	constructor(public readonly uri: Uri, private readonly config: Config) {}
 
 	@computed
 	public get language(): string {

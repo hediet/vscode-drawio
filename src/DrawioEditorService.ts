@@ -1,8 +1,7 @@
 import { Disposable } from "@hediet/std/disposable";
 import { EventEmitter } from "@hediet/std/events";
-import { startTimeout } from "@hediet/std/timer";
 import { autorun, computed, observable, ObservableSet } from "mobx";
-import { basename, dirname, extname, join } from "path";
+import { extname } from "path";
 import {
 	commands,
 	StatusBarAlignment,
@@ -14,11 +13,15 @@ import {
 } from "vscode";
 import { Config, DiagramConfig } from "./Config";
 import { DrawioBinaryDocument } from "./DrawioEditorProviderBinary";
-import { CustomDrawioInstance } from "./DrawioInstance";
+import {
+	CustomizedDrawioClient,
+	DrawioClientOptions,
+	DrawioClientFactory,
+} from "./DrawioClient";
 
 const drawioChangeThemeCommand = "hediet.vscode-drawio.changeTheme";
 
-export class DrawioEditorManager {
+export class DrawioEditorService {
 	public readonly dispose = Disposable.fn();
 
 	private readonly onEditorOpenedEmitter = new EventEmitter<{
@@ -42,7 +45,10 @@ export class DrawioEditorManager {
 		window.createStatusBarItem(StatusBarAlignment.Right)
 	);
 
-	constructor(private readonly config: Config) {
+	constructor(
+		private readonly config: Config,
+		private readonly drawioClientFactory: DrawioClientFactory
+	) {
 		autorun(() => {
 			const a = this.activeDrawioEditor;
 			if (a) {
@@ -80,7 +86,7 @@ export class DrawioEditorManager {
 				"hediet.vscode-drawio.reload-webview",
 				() => {
 					for (const e of this.openedEditors) {
-						e.instance.reloadWebview();
+						e.drawioClient.reloadWebview();
 					}
 				}
 			)
@@ -114,14 +120,20 @@ export class DrawioEditorManager {
 		});
 	}
 
-	public createDrawioEditor(
+	public async createDrawioEditorInWebview(
 		webviewPanel: WebviewPanel,
-		instance: CustomDrawioInstance,
 		document:
 			| { kind: "text"; document: TextDocument }
-			| { kind: "drawio"; document: DrawioBinaryDocument }
-	): DrawioEditor {
-		const config = this.config.getConfig(document.document.uri);
+			| { kind: "drawio"; document: DrawioBinaryDocument },
+		options: DrawioClientOptions
+	): Promise<DrawioEditor> {
+		const instance = await this.drawioClientFactory.createDrawioClientInWebview(
+			document.document.uri,
+			webviewPanel,
+			options
+		);
+
+		const config = this.config.getDiagramConfig(document.document.uri);
 		const editor = new DrawioEditor(
 			PrivateSymbol,
 			webviewPanel,
@@ -143,6 +155,9 @@ export class DrawioEditorManager {
 
 const PrivateSymbol = Symbol();
 
+/**
+ * Represents a drawio editor in VS Code.
+ */
 export class DrawioEditor {
 	public readonly dispose = Disposable.fn();
 
@@ -172,12 +187,10 @@ export class DrawioEditor {
 		);
 	}
 
-	private timeout: Disposable | undefined;
-
 	constructor(
 		_constructorGuard: typeof PrivateSymbol,
 		public readonly webviewPanel: WebviewPanel,
-		public readonly instance: CustomDrawioInstance,
+		public readonly drawioClient: CustomizedDrawioClient,
 		public readonly document:
 			| { kind: "text"; document: TextDocument }
 			| { kind: "drawio"; document: DrawioBinaryDocument },
@@ -191,18 +204,18 @@ export class DrawioEditor {
 		);
 
 		this.dispose.track(
-			instance.onFocusChanged.sub(({ hasFocus }) => {
+			drawioClient.onFocusChanged.sub(({ hasFocus }) => {
 				this._hasFocus = hasFocus;
 			})
 		);
 
-		instance.onInvokeCommand.sub(({ command }) => {
+		drawioClient.onInvokeCommand.sub(({ command }) => {
 			if (command === "convert") {
 				this.handleConvertCommand();
 			} else if (command === "export") {
 				this.handleExportCommand();
 			} else if (command === "save") {
-				this.instance.triggerOnSave();
+				this.drawioClient.triggerOnSave();
 			}
 		});
 	}
@@ -244,7 +257,7 @@ export class DrawioEditor {
 			return;
 		}
 
-		const buffer = await this.instance.export(targetExtension);
+		const buffer = await this.drawioClient.export(targetExtension);
 
 		const sourceUri = this.document.document.uri;
 		const oldContent = await workspace.fs.readFile(sourceUri);
@@ -259,7 +272,7 @@ export class DrawioEditor {
 	}
 
 	public async exportTo(targetExtension: string): Promise<void> {
-		const buffer = await this.instance.export(targetExtension);
+		const buffer = await this.drawioClient.export(targetExtension);
 		const targetUri = await window.showSaveDialog({
 			defaultUri: this.getUriWithExtension(targetExtension),
 		});

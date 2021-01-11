@@ -12,10 +12,9 @@ import {
 	workspace,
 	commands,
 } from "vscode";
-import { DrawioDocumentChange, CustomDrawioInstance } from "./DrawioInstance";
+import { DrawioDocumentChange, CustomizedDrawioClient } from "./DrawioClient";
 import { extname } from "path";
-import { DrawioWebviewInitializer } from "./DrawioWebviewInitializer";
-import { DrawioEditorManager } from "./DrawioEditorManager";
+import { DrawioEditorService } from "./DrawioEditorService";
 
 export class DrawioEditorProviderBinary
 	implements CustomEditorProvider<DrawioBinaryDocument> {
@@ -27,8 +26,7 @@ export class DrawioEditorProviderBinary
 		.onDidChangeCustomDocumentEmitter.event;
 
 	public constructor(
-		private readonly drawioWebviewInitializer: DrawioWebviewInitializer,
-		private readonly drawioEditorManager: DrawioEditorManager
+		private readonly drawioEditorService: DrawioEditorService
 	) {}
 
 	public saveCustomDocument(
@@ -84,20 +82,13 @@ export class DrawioEditorProviderBinary
 		webviewPanel: WebviewPanel,
 		token: CancellationToken
 	): Promise<void> {
-		const drawioInstance = await this.drawioWebviewInitializer.initializeWebview(
-			document.uri,
-			webviewPanel.webview,
+		const editor = await this.drawioEditorService.createDrawioEditorInWebview(
+			webviewPanel,
+			{ kind: "drawio", document },
 			{ isReadOnly: false }
 		);
-		this.drawioEditorManager.createDrawioEditor(
-			webviewPanel,
-			drawioInstance,
-			{
-				kind: "drawio",
-				document,
-			}
-		);
-		document.setDrawioInstance(drawioInstance);
+
+		document.setDrawioClient(editor.drawioClient);
 	}
 }
 
@@ -108,10 +99,10 @@ export class DrawioBinaryDocument implements CustomDocument {
 	private readonly onInstanceSaveEmitter = new EventEmitter<void>();
 	public readonly onInstanceSave = this.onInstanceSaveEmitter.event;
 
-	private _drawio: CustomDrawioInstance | undefined;
+	private _drawioClient: CustomizedDrawioClient | undefined;
 
-	private get drawio(): CustomDrawioInstance {
-		return this._drawio!;
+	private get drawioClient(): CustomizedDrawioClient {
+		return this._drawioClient!;
 	}
 
 	private _isDirty = false;
@@ -126,33 +117,33 @@ export class DrawioBinaryDocument implements CustomDocument {
 		public readonly backupId: string | undefined
 	) {}
 
-	public setDrawioInstance(instance: CustomDrawioInstance): void {
-		if (this._drawio) {
-			throw new Error("Instance already set!");
+	public setDrawioClient(drawioClient: CustomizedDrawioClient): void {
+		if (this._drawioClient) {
+			throw new Error("Client already set!");
 		}
-		this._drawio = instance;
+		this._drawioClient = drawioClient;
 
-		instance.onInit.sub(async () => {
+		drawioClient.onInit.sub(async () => {
 			if (this.currentXml) {
-				this.drawio.loadXmlLike(this.currentXml);
+				this.drawioClient.loadXmlLike(this.currentXml);
 			} else if (this.backupId) {
 				const backupFile = Uri.parse(this.backupId);
 				const content = await workspace.fs.readFile(backupFile);
 				const xml = Buffer.from(content).toString("utf-8");
-				await this.drawio.loadXmlLike(xml);
+				await this.drawioClient.loadXmlLike(xml);
 				this._isDirty = true; // because of backup
 			} else {
 				this.loadFromDisk();
 			}
 		});
 
-		instance.onChange.sub((change) => {
+		drawioClient.onChange.sub((change) => {
 			this.currentXml = change.newXml;
 			this._isDirty = true;
 			this.onChangeEmitter.fire(change);
 		});
 
-		instance.onSave.sub((change) => {
+		drawioClient.onSave.sub((change) => {
 			this.onInstanceSaveEmitter.fire();
 		});
 	}
@@ -161,7 +152,7 @@ export class DrawioBinaryDocument implements CustomDocument {
 		this._isDirty = false;
 		if (this.uri.fsPath.endsWith(".png")) {
 			const buffer = await workspace.fs.readFile(this.uri);
-			await this.drawio.loadPngWithEmbeddedXml(buffer);
+			await this.drawioClient.loadPngWithEmbeddedXml(buffer);
 		} else {
 			throw new Error("Invalid file extension");
 		}
@@ -173,12 +164,12 @@ export class DrawioBinaryDocument implements CustomDocument {
 	}
 
 	public async saveAs(target: Uri): Promise<void> {
-		const buffer = await this.drawio.export(extname(target.path));
+		const buffer = await this.drawioClient.export(extname(target.path));
 		await workspace.fs.writeFile(target, buffer);
 	}
 
 	public async backup(destination: Uri): Promise<CustomDocumentBackup> {
-		const xml = await this.drawio.getXml();
+		const xml = await this.drawioClient.getXml();
 		await workspace.fs.writeFile(destination, Buffer.from(xml, "utf-8"));
 		return {
 			id: destination.toString(),
@@ -186,11 +177,13 @@ export class DrawioBinaryDocument implements CustomDocument {
 				try {
 					await workspace.fs.delete(destination);
 				} catch {
-					// noop
+					// no op
 				}
 			},
 		};
 	}
 
-	public dispose(): void {}
+	public dispose(): void {
+		// no op
+	}
 }

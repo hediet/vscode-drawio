@@ -2,7 +2,7 @@ import { Disposable } from "@hediet/std/disposable";
 import { EventEmitter, EventSource } from "@hediet/std/events";
 import { Uri } from "vscode";
 import * as vsls from "vsls";
-import { DrawioEditor, DrawioEditorManager } from "../../DrawioEditorManager";
+import { DrawioEditor, DrawioEditorService } from "../../DrawioEditorService";
 import { autorunTrackDisposables } from "../../utils/autorunTrackDisposables";
 import { CurrentViewState } from "./CurrentViewState";
 import {
@@ -19,7 +19,7 @@ export class LiveshareSession {
 	constructor(
 		private readonly api: vsls.LiveShare,
 		private readonly session: vsls.Session,
-		private readonly editorManager: DrawioEditorManager
+		private readonly editorManager: DrawioEditorService
 	) {
 		this.dispose.track(
 			autorunTrackDisposables((track) =>
@@ -98,7 +98,7 @@ export class LiveshareSession {
 				rectangle: v.viewState!.selectedRectangle!,
 			}));
 
-		editor.instance.updateLiveshareViewState({
+		editor.drawioClient.updateLiveshareViewState({
 			selectedCells,
 			cursors,
 			selectedRectangles,

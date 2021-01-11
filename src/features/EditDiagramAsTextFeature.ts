@@ -1,7 +1,7 @@
 import { Disposable } from "@hediet/std/disposable";
 import { Config } from "../Config";
 import { workspace, commands, window, ViewColumn, TextDocument } from "vscode";
-import { DrawioEditorManager, DrawioEditor } from "../DrawioEditorManager";
+import { DrawioEditorService, DrawioEditor } from "../DrawioEditorService";
 import { DrawioFileSystemController } from "../vscode-utils/VirtualFileSystemProvider";
 
 export class EditDiagramAsTextFeature {
@@ -13,7 +13,7 @@ export class EditDiagramAsTextFeature {
 	private readonly trackedDocuments = new Map<TextDocument, DrawioEditor>();
 
 	constructor(
-		private readonly editorManager: DrawioEditorManager,
+		private readonly editorManager: DrawioEditorService,
 		config: Config
 	) {
 		if (!config.experimentalFeaturesEnabled) {
@@ -29,7 +29,7 @@ export class EditDiagramAsTextFeature {
 
 				const doc = DiagramAsTextDocument.parse(e.document.getText());
 
-				drawioEditor.instance.updateVertices(doc.vertexUpdates);
+				drawioEditor.drawioClient.updateVertices(doc.vertexUpdates);
 			}),
 			workspace.onDidCloseTextDocument((e) => {
 				this.trackedDocuments.delete(e);
@@ -59,7 +59,7 @@ export class EditDiagramAsTextFeature {
 					);
 
 					const updateFile = async () => {
-						const nodes = await activeDrawioEditor.instance.getVertices();
+						const nodes = await activeDrawioEditor.drawioClient.getVertices();
 						isUpdating = true;
 						try {
 							const doc = new DiagramAsTextDocument(nodes, []);
@@ -80,7 +80,7 @@ export class EditDiagramAsTextFeature {
 								file.readString()
 							);
 							doc.removeDuplicates();
-							activeDrawioEditor.instance.addVertices(
+							activeDrawioEditor.drawioClient.addVertices(
 								doc.newVertices
 							);
 							await updateFile();

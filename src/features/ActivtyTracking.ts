@@ -2,13 +2,13 @@ import { Disposable } from "@hediet/std/disposable";
 import { startTimeout, EventTimer } from "@hediet/std/timer";
 import { env, Uri, window } from "vscode";
 import { Config } from "../Config";
-import { DrawioEditorManager } from "../DrawioEditorManager";
+import { DrawioEditorService } from "../DrawioEditorService";
 
 export class ActivityTracking {
 	public readonly dispose = Disposable.fn();
 
 	constructor(
-		editorManager: DrawioEditorManager,
+		editorManager: DrawioEditorService,
 		private readonly config: Config
 	) {
 		const timer = new EventTimer(1000 * 10, "stopped");
@@ -33,27 +33,29 @@ export class ActivityTracking {
 
 		this.dispose.track(
 			editorManager.onEditorOpened.sub(({ editor }) => {
-				editor.instance.onInit.sub(() => {
+				editor.drawioClient.onInit.sub(() => {
 					if (config.canAskForSponsorship) {
 						config.markAskedForSponsorship();
-						editor.instance.onInvokeCommand.sub(({ command }) => {
-							if (command === "openDonationPage") {
-								env.openExternal(
-									Uri.parse(
-										"https://github.com/sponsors/hediet"
-									)
-								);
+						editor.drawioClient.onInvokeCommand.sub(
+							({ command }) => {
+								if (command === "openDonationPage") {
+									env.openExternal(
+										Uri.parse(
+											"https://github.com/sponsors/hediet"
+										)
+									);
+								}
 							}
-						});
-						editor.instance.askForDonations();
+						);
+						editor.drawioClient.askForDonations();
 					}
 				});
 
 				onActivity();
-				editor.instance.onCursorChanged.sub(() => {
+				editor.drawioClient.onCursorChanged.sub(() => {
 					onActivity();
 				});
-				editor.instance.onFocusChanged.sub(({ hasFocus }) => {
+				editor.drawioClient.onFocusChanged.sub(({ hasFocus }) => {
 					if (hasFocus) {
 						onActivity();
 					}

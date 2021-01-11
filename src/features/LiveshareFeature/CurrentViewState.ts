@@ -1,8 +1,8 @@
 import { Disposable, Disposer } from "@hediet/std/disposable";
 import { computed } from "mobx";
 import { Uri } from "vscode";
-import { DrawioEditor, DrawioEditorManager } from "../../DrawioEditorManager";
-import { CustomDrawioInstance } from "../../DrawioInstance";
+import { DrawioEditor, DrawioEditorService } from "../../DrawioEditorService";
+import { CustomizedDrawioClient } from "../../DrawioClient";
 import { fromResource, IResource } from "../../utils/fromResource";
 import { Point, ViewState, NormalizedUri } from "./SessionModel";
 
@@ -22,12 +22,14 @@ export class CurrentViewState {
 
 		return {
 			editor: activeDrawioEditor,
-			cursorPos: getCursorPositionResource(activeDrawioEditor.instance),
+			cursorPos: getCursorPositionResource(
+				activeDrawioEditor.drawioClient
+			),
 			selectedCellIds: getSelectedCellsResource(
-				activeDrawioEditor.instance
+				activeDrawioEditor.drawioClient
 			),
 			selectedRectangle: getSelectedRectangleResource(
-				activeDrawioEditor.instance
+				activeDrawioEditor.drawioClient
 			),
 		};
 	}
@@ -47,13 +49,13 @@ export class CurrentViewState {
 	}
 
 	constructor(
-		private readonly editorManager: DrawioEditorManager,
+		private readonly editorManager: DrawioEditorService,
 		private readonly normalizeUri: (uri: Uri) => NormalizedUri
 	) {}
 }
 
 function getSelectedRectangleResource(
-	drawioInstance: CustomDrawioInstance
+	drawioInstance: CustomizedDrawioClient
 ): IResource<Rectangle | undefined> {
 	return fromResource<Rectangle | undefined>(
 		(sink) =>
@@ -87,7 +89,7 @@ function getSelectedRectangleResource(
 }
 
 function getCursorPositionResource(
-	drawioInstance: CustomDrawioInstance
+	drawioInstance: CustomizedDrawioClient
 ): IResource<Point | undefined> {
 	return fromResource<Point | undefined>(
 		(sink) =>
@@ -119,7 +121,7 @@ function getCursorPositionResource(
 }
 
 function getSelectedCellsResource(
-	drawioInstance: CustomDrawioInstance
+	drawioInstance: CustomizedDrawioClient
 ): IResource<string[]> {
 	return fromResource<string[]>(
 		(sink) =>

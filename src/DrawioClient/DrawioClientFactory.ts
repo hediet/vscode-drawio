@@ -1,5 +1,5 @@
-import { Webview, OutputChannel, Uri, window } from "vscode";
-import { CustomDrawioInstance, simpleDrawioLibrary } from "../DrawioInstance";
+import { Webview, OutputChannel, Uri, window, WebviewPanel } from "vscode";
+import { CustomizedDrawioClient, simpleDrawioLibrary } from ".";
 import { Config, DiagramConfig } from "../Config";
 import html from "./webview-content.html";
 import path = require("path");
@@ -9,27 +9,29 @@ import { sha256 } from "js-sha256";
 import { readFileSync } from "fs";
 import { getDrawioExtensions } from "../DrawioExtensionApi";
 
-export class DrawioWebviewInitializer {
+export class DrawioClientFactory {
 	constructor(
 		private readonly config: Config,
 		private readonly log: OutputChannel,
 		private readonly extensionPath: string
 	) {}
 
-	public async initializeWebview(
+	public async createDrawioClientInWebview(
 		uri: Uri,
-		webview: Webview,
-		options: DiagramOptions
-	): Promise<CustomDrawioInstance> {
-		const config = this.config.getConfig(uri);
+		webviewPanel: WebviewPanel,
+		options: DrawioClientOptions
+	): Promise<CustomizedDrawioClient> {
+		const config = this.config.getDiagramConfig(uri);
 		const plugins = await this.getPlugins(config);
+
+		const webview = webviewPanel.webview;
 
 		webview.options = {
 			enableScripts: true,
 		};
 		const reloadId = observable({ id: 0 });
 		let i = 0;
-		autorun(
+		const disposeAutorun = autorun(
 			() => {
 				reloadId.id;
 
@@ -46,7 +48,7 @@ export class DrawioWebviewInitializer {
 			{ name: "Update Webview Html" }
 		);
 
-		const drawioInstance = new CustomDrawioInstance(
+		const drawioClient = new CustomizedDrawioClient(
 			{
 				sendMessage: (msg) => {
 					this.log.appendLine("vscode -> drawio: " + prettify(msg));
@@ -79,14 +81,19 @@ export class DrawioWebviewInitializer {
 			}
 		);
 
-		drawioInstance.onUnknownMessage.sub(({ message }) => {
+		drawioClient.onUnknownMessage.sub(({ message }) => {
 			if (message.event === "updateLocalStorage") {
 				const newLocalStorage = message.newLocalStorage;
 				config.setLocalStorage(newLocalStorage);
 			}
 		});
 
-		return drawioInstance;
+		webviewPanel.onDidDispose(() => {
+			disposeAutorun();
+			drawioClient.dispose();
+		});
+
+		return drawioClient;
 	}
 
 	private async getPlugins(
@@ -168,7 +175,7 @@ export class DrawioWebviewInitializer {
 
 	private getHtml(
 		config: DiagramConfig,
-		options: DiagramOptions,
+		options: DrawioClientOptions,
 		webview: Webview,
 		plugins: { jsCode: string }[]
 	): string {
@@ -181,7 +188,7 @@ export class DrawioWebviewInitializer {
 
 	private getOfflineHtml(
 		config: DiagramConfig,
-		options: DiagramOptions,
+		options: DrawioClientOptions,
 		webview: Webview,
 		plugins: { jsCode: string }[]
 	): string {
@@ -260,7 +267,7 @@ export class DrawioWebviewInitializer {
 	}
 }
 
-export interface DiagramOptions {
+export interface DrawioClientOptions {
 	isReadOnly: boolean;
 }
 

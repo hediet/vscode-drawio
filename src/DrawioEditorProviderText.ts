@@ -8,15 +8,11 @@ import {
 	WorkspaceEdit,
 } from "vscode";
 import formatter = require("xml-formatter");
-import { DrawioWebviewInitializer } from "./DrawioWebviewInitializer";
-import { DrawioEditorManager } from "./DrawioEditorManager";
+import { DrawioEditorService } from "./DrawioEditorService";
 import { JSDOM } from "jsdom";
 
 export class DrawioEditorProviderText implements CustomTextEditorProvider {
-	constructor(
-		public readonly drawioWebviewInitializer: DrawioWebviewInitializer,
-		private readonly drawioEditorManager: DrawioEditorManager
-	) {}
+	constructor(private readonly drawioEditorService: DrawioEditorService) {}
 
 	public async resolveCustomTextEditor(
 		document: TextDocument,
@@ -26,19 +22,15 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 		const readonlySchemes = new Set(["git", "conflictResolution"]);
 		const isReadOnly = readonlySchemes.has(document.uri.scheme);
 
-		const drawioInstance = await this.drawioWebviewInitializer.initializeWebview(
-			document.uri,
-			webviewPanel.webview,
-			{ isReadOnly }
-		);
-		this.drawioEditorManager.createDrawioEditor(
+		const editor = await this.drawioEditorService.createDrawioEditorInWebview(
 			webviewPanel,
-			drawioInstance,
 			{
 				kind: "text",
 				document,
-			}
+			},
+			{ isReadOnly }
 		);
+		const drawioClient = editor.drawioClient;
 
 		interface NormalizedDocument {
 			equals(other: this): boolean;
@@ -122,15 +114,15 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 			}
 			lastDocument = newDocument;
 
-			await drawioInstance.mergeXmlLike(newText);
+			await drawioClient.mergeXmlLike(newText);
 		});
 
-		drawioInstance.onChange.sub(async ({ newXml }) => {
+		drawioClient.onChange.sub(async ({ newXml }) => {
 			// We format the xml so that it can be easily edited in a second text editor.
 
 			let output: string;
 			if (document.uri.path.endsWith(".svg")) {
-				const svg = await drawioInstance.exportAsSvgWithEmbeddedXml();
+				const svg = await drawioClient.exportAsSvgWithEmbeddedXml();
 				newXml = svg.toString("utf-8");
 				output = formatter(
 					// This adds a host to track which files are created by this extension and which by draw.io desktop.
@@ -169,12 +161,12 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 			}
 		});
 
-		drawioInstance.onSave.sub(async () => {
+		drawioClient.onSave.sub(async () => {
 			await document.save();
 		});
 
-		drawioInstance.onInit.sub(async () => {
-			drawioInstance.loadXmlLike(document.getText());
+		drawioClient.onInit.sub(async () => {
+			drawioClient.loadXmlLike(document.getText());
 		});
 	}
 }
