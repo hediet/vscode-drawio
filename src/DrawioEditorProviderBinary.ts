@@ -11,6 +11,7 @@ import {
 	CustomDocumentContentChangeEvent,
 	workspace,
 	commands,
+	window,
 } from "vscode";
 import { DrawioDocumentChange, CustomizedDrawioClient } from "./DrawioClient";
 import { extname } from "path";
@@ -82,13 +83,18 @@ export class DrawioEditorProviderBinary
 		webviewPanel: WebviewPanel,
 		token: CancellationToken
 	): Promise<void> {
-		const editor = await this.drawioEditorService.createDrawioEditorInWebview(
-			webviewPanel,
-			{ kind: "drawio", document },
-			{ isReadOnly: false }
-		);
+		try {
+			const editor = await this.drawioEditorService.createDrawioEditorInWebview(
+				webviewPanel,
+				{ kind: "drawio", document },
+				{ isReadOnly: false }
+			);
 
-		document.setDrawioClient(editor.drawioClient);
+			document.setDrawioClient(editor.drawioClient);
+		} catch (e) {
+			window.showErrorMessage(`Failed to open diagram: ${e}`);
+			throw e;
+		}
 	}
 }
 

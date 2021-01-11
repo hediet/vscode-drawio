@@ -157,6 +157,7 @@ const PrivateSymbol = Symbol();
 
 /**
  * Represents a drawio editor in VS Code.
+ * Wraps a `CustomizedDrawioClient` and a webview.
  */
 export class DrawioEditor {
 	public readonly dispose = Disposable.fn();

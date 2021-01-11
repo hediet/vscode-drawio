@@ -424,7 +424,7 @@ export class DiagramConfig {
 
 	public get plugins(): { file: string }[] {
 		return this._plugins.get().map((entry) => {
-			const fullFilePath = this.evaluateTemplate(entry.file);
+			const fullFilePath = this.evaluateTemplate(entry.file, "plugins");
 			return { file: fullFilePath };
 		});
 	}
@@ -462,7 +462,10 @@ export class DiagramConfig {
 					value: parseXml(lib.xml),
 				};
 			} else if ("file" in lib) {
-				const file = this.evaluateTemplate(lib.file);
+				const file = this.evaluateTemplate(
+					lib.file,
+					"custom libraries"
+				);
 				const buffer = await workspace.fs.readFile(Uri.file(file));
 				const content = Buffer.from(buffer).toString("utf-8");
 				if (file.endsWith(".json")) {
@@ -492,14 +495,14 @@ export class DiagramConfig {
 		);
 	}
 
-	private evaluateTemplate(template: string): string {
+	private evaluateTemplate(template: string, context: string): string {
 		const tpl = new SimpleTemplate(template);
 		return tpl.render({
 			workspaceFolder: () => {
 				const workspaceFolder = workspace.getWorkspaceFolder(this.uri);
 				if (!workspaceFolder) {
 					throw new Error(
-						"No workspace is opened - '${workspaceFolder} cannot be used'!"
+						`Cannot get workspace folder of opened diagram - '${template}' cannot be evaluated to load ${context}!`
 					);
 				}
 				return workspaceFolder.uri.fsPath;
