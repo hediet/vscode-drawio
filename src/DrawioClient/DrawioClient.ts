@@ -14,7 +14,9 @@ export class DrawioClient<
 	private readonly onInitEmitter = new EventEmitter();
 	public readonly onInit = this.onInitEmitter.asEvent();
 
-	private readonly onChangeEmitter = new EventEmitter<DrawioDocumentChange>();
+	protected readonly onChangeEmitter = new EventEmitter<
+		DrawioDocumentChange
+	>();
 	public readonly onChange = this.onChangeEmitter.asEvent();
 
 	private readonly onSaveEmitter = new EventEmitter();
@@ -180,20 +182,24 @@ export class DrawioClient<
 		}
 	}
 
+	protected async getXmlUncached(): Promise<string> {
+		const response = await this.sendActionWaitForResponse({
+			action: "export",
+			format: "xml",
+		});
+		if (response.event !== "export") {
+			throw new Error("Unexpected response");
+		}
+		return response.xml;
+	}
+
 	public async getXml(): Promise<string> {
 		if (!this.currentXml) {
-			const response = await this.sendActionWaitForResponse({
-				action: "export",
-				format: "xml",
-			});
-			if (response.event !== "export") {
-				throw new Error("Unexpected response");
-			}
-
+			const xml = await this.getXmlUncached();
 			if (!this.currentXml) {
 				// It might have been changed in the meantime.
 				// Always trust autosave.
-				this.currentXml = response.xml;
+				this.currentXml = xml;
 			}
 		}
 		return this.currentXml;

@@ -13,7 +13,7 @@ import {
 	commands,
 	window,
 } from "vscode";
-import { DrawioDocumentChange, CustomizedDrawioClient } from "./DrawioClient";
+import { CustomizedDrawioClient } from "./DrawioClient";
 import { extname } from "path";
 import { DrawioEditorService } from "./DrawioEditorService";
 
@@ -99,7 +99,7 @@ export class DrawioEditorProviderBinary
 }
 
 export class DrawioBinaryDocument implements CustomDocument {
-	private readonly onChangeEmitter = new EventEmitter<DrawioDocumentChange>();
+	private readonly onChangeEmitter = new EventEmitter<void>();
 	public readonly onChange = this.onChangeEmitter.event;
 
 	private readonly onInstanceSaveEmitter = new EventEmitter<void>();
@@ -146,7 +146,7 @@ export class DrawioBinaryDocument implements CustomDocument {
 		drawioClient.onChange.sub((change) => {
 			this.currentXml = change.newXml;
 			this._isDirty = true;
-			this.onChangeEmitter.fire(change);
+			this.onChangeEmitter.fire();
 		});
 
 		drawioClient.onSave.sub((change) => {

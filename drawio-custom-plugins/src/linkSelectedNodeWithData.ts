@@ -202,6 +202,4 @@ Draw.loadPlugin((ui) => {
 		evt.preventDefault();
 		evt.stopPropagation();
 	});
-
-	(window as any).hediet_DbgUi = ui;
 });

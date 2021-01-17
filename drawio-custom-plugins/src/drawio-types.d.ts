@@ -12,6 +12,7 @@ declare class mxCellHighlight {
 
 declare class mxResources {
     static parse(value: string): void;
+    static get(key: string): string;
 }
 
 declare class mxMouseEvent {
@@ -31,6 +32,7 @@ declare const mxUtils: {
 
 
 declare interface DrawioUI {
+    fileNode: Element | null;
     hideDialog(): void;
     showDialog(...args: any[]): void;
     editor: DrawioEditor;

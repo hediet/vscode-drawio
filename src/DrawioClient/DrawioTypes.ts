@@ -27,7 +27,11 @@ export type DrawioEvent =
 	  };
 
 export type DrawioAction =
-	| { action: "load"; xml: string; autosave?: 1 }
+	| {
+			action: "load";
+			xml: string;
+			autosave?: 1;
+	  }
 	| { action: "merge"; xml: string }
 	| {
 			action: "prompt";

@@ -1,3 +1,4 @@
+import { showDialog } from "./propertiesDialog";
 import { sendEvent } from "./vscode";
 
 Draw.loadPlugin((ui) => {
@@ -25,6 +26,11 @@ Draw.loadPlugin((ui) => {
 		sendEvent({ event: "invokeCommand", command: "save" });
 	});
 
+	const propertiesActionName = "properties";
+	ui.actions.addAction(propertiesActionName, () => {
+		showDialog(ui);
+	});
+
 	const menu = ui.menus.get("file");
 	const oldFunct = menu.funct;
 	menu.funct = function (menu: any, parent: any) {
@@ -32,6 +38,8 @@ Draw.loadPlugin((ui) => {
 		ui.menus.addMenuItems(
 			menu,
 			[
+				"-",
+				propertiesActionName,
 				"-",
 				importActionName,
 				exportActionName,

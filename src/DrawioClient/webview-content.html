@@ -4,6 +4,7 @@
 		<base href="$$literal-vsuri$$/index.html" />
 		<script type="text/javascript">
 			var log;
+			var editorUi;
 			(() => {
 				const api = (window.VsCodeApi = acquireVsCodeApi());
 				function sendToVsCode(msg) {
@@ -51,12 +52,43 @@
 
 				window.addEventListener("message", function (evt) {
 					if (evt.source !== fakedWindowOpener) {
+						let evtData = evt.data;
+						if (evtData) {
+							try {
+								var dataObj = JSON.parse(evtData);
+							} catch (e) {}
+						}
+
+						if (dataObj) {
+							if (
+								dataObj.action === "export" &&
+								editorUi.fileNode
+							) {
+								// fix default export settings
+
+								var scale = Number.parseFloat(
+									editorUi.fileNode.getAttribute("scale")
+								);
+								if (!Number.isNaN(scale)) {
+									dataObj.scale = scale;
+								}
+
+								var border = Number.parseFloat(
+									editorUi.fileNode.getAttribute("border")
+								);
+								if (!Number.isNaN(border)) {
+									dataObj.border = border;
+								}
+							}
+							evtData = JSON.stringify(dataObj);
+						}
+
 						// Re-emit messages with faked source, so that drawio handles the payload.
 						// If we don't do this, `evt.source === window.opener` will fail
 						// and drawio ignores the message.
 						const fakedEvt = new Event("message");
 						fakedEvt.source = fakedWindowOpener;
-						fakedEvt.data = evt.data;
+						fakedEvt.data = evtData;
 						window.dispatchEvent(fakedEvt);
 						evt.stopPropagation();
 						evt.preventDefault();
@@ -240,7 +272,7 @@
 						) {
 							return;
 						}
-						console.log("addSubmenu: ", args[0]);
+						//console.log("addSubmenu: ", args[0]);
 						return old.apply(this, args);
 					};
 				});
@@ -248,13 +280,17 @@
 				patchFn(Menus.prototype, "addMenuItem", function (old) {
 					return function (...args) {
 						if (
-							["print", "saveAndExit", "plugins", "exit"].indexOf(
-								args[1]
-							) !== -1
+							[
+								"print",
+								"saveAndExit",
+								"plugins",
+								"exit",
+								//"properties",
+							].indexOf(args[1]) !== -1
 						) {
 							return;
 						}
-						console.log("addMenuItem: ", args[1]);
+						//console.log("addMenuItem: ", args[1]);
 						return old.apply(this, args);
 					};
 				});
@@ -269,12 +305,20 @@
 						if (["language", "help"].indexOf(args[0]) !== -1) {
 							return args[1];
 						}
-						console.log("put: ", args[0]);
+						//console.log("put: ", args[0]);
 						return old.apply(this, args);
 					};
 				});
 
 				EditorUi.prototype.addEmbedButtons = () => {};
+
+				patchFn(EditorUi.prototype, "init", function (old) {
+					return function (...args) {
+						editorUi = this;
+						const result = old.apply(this, args);
+						return result;
+					};
+				});
 
 				// This prevents Draw.io from overriding VS Code commands
 				patchFn(mxEvent, "addListener", function (old) {
@@ -283,8 +327,8 @@
 						// console.log("Intercepting addListener", args);
 						if (eventName === "keydown") {
 							args[2] = (/** @type {KeyboardEvent} */ keyEvt) => {
-								console.log("Handling key", keyEvt);
-								log("Handling key", keyEvt.key);
+								//console.log("Handling key", keyEvt);
+								//log("Handling key", keyEvt.key);
 
 								// Draw.io should not override these shortcuts
 								if (keyEvt.key === "Tab" && keyEvt.ctrlKey) {
