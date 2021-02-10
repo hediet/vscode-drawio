@@ -48,6 +48,7 @@ interface DrawioMenus {
 
 interface DrawioActions {
     addAction(name: string, action: () => void): void;
+    get(name: string): { funct: () => void };
 }
 
 declare interface DrawioEditor {

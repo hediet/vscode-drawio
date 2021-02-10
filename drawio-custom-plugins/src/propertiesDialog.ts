@@ -11,9 +11,11 @@ export function showDialog(ui: DrawioUI) {
 
 	const initialScale = parseFloat(node.getAttribute("scale") || "1");
 	const initialBorder = parseFloat(node.getAttribute("border") || "0");
+	const initialLinkTarget = node.getAttribute("linkTarget");
 
 	let scale = initialScale;
 	let border = initialBorder;
+	let linkTarget = initialLinkTarget;
 
 	var div = document.createElement("div");
 	div.style.height = "100%";
@@ -98,6 +100,50 @@ export function showDialog(ui: DrawioUI) {
 								}),
 							]
 						),
+						m(
+							"div",
+							{
+								style: {
+									display: "flex",
+									flexDirection: "row",
+									paddingBottom: "4px",
+								},
+							},
+							[
+								m("div", {}, mxResources.get("links") + ":"),
+								m("div", { style: { flex: 1 } }),
+								m(
+									"select.geBtn",
+									{
+										value: linkTarget || "",
+										oninput: (e: any) => {
+											linkTarget = e.target.value;
+											console.log(
+												"linkTarget",
+												linkTarget
+											);
+										},
+									},
+									[
+										m(
+											"option",
+											{ value: "" },
+											mxResources.get("automatic")
+										),
+										m(
+											"option",
+											{ value: "_blank" },
+											mxResources.get("openInNewWindow")
+										),
+										m(
+											"option",
+											{ value: "_top" },
+											mxResources.get("openInThisWindow")
+										),
+									]
+								),
+							]
+						),
 					]
 				),
 				m("div", { style: { flex: 1 } }),
@@ -119,17 +165,21 @@ export function showDialog(ui: DrawioUI) {
 
 								if (
 									scale === initialScale &&
-									border === initialBorder
+									border === initialBorder &&
+									linkTarget === initialLinkTarget
 								) {
 									return;
 								}
 
+								if (linkTarget) {
+									node.setAttribute("linkTarget", linkTarget);
+								} else {
+									node.removeAttribute("linkTarget");
+								}
 								node.setAttribute("scale", "" + scale);
 								node.setAttribute("border", "" + border);
 
-								sendEvent({
-									event: "exportConfigChanged",
-								});
+								ui.actions.get("save").funct();
 							},
 						},
 						[mxResources.get("apply")]
@@ -139,5 +189,5 @@ export function showDialog(ui: DrawioUI) {
 		)
 	);
 
-	ui.showDialog(div, 350, 180, true, true);
+	ui.showDialog(div, 350, 200, true, true);
 }

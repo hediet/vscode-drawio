@@ -123,9 +123,6 @@ export class CustomizedDrawioClient extends DrawioClient<
 			this.onSelectedRectangleChangedEmitter.emit({
 				rectangle: evt.rect,
 			});
-		} else if (evt.event === "exportConfigChanged") {
-			const xml = await this.getXmlUncached();
-			this.onChangeEmitter.emit({ newXml: xml, oldXml: xml });
 		} else {
 			await super.handleEvent(evt);
 		}

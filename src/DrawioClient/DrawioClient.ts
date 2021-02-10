@@ -109,7 +109,18 @@ export class DrawioClient<
 			this.currentXml = drawioEvt.xml;
 			this.onChangeEmitter.emit({ newXml: this.currentXml, oldXml });
 		} else if (drawioEvt.event === "save") {
-			this.onSaveEmitter.emit();
+			const oldXml = this.currentXml;
+			this.currentXml = drawioEvt.xml;
+			if (oldXml != this.currentXml) {
+				// a little bit hacky.
+				// If "save" does trigger a change,
+				// treat save as autosave and don't actually save the file.
+				this.onChangeEmitter.emit({ newXml: this.currentXml, oldXml });
+			} else {
+				// Otherwise, the change has already
+				// been reported by autosave.
+				this.onSaveEmitter.emit();
+			}
 		} else if (drawioEvt.event === "export") {
 			// sometimes, message is not included :(
 			// this is a hack to find the request to resolve

@@ -138,12 +138,22 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 						)
 					);
 				} else {
-					output = formatter(
-						// This normalizes the host
-						newXml.replace(
+					if (newXml.startsWith('<mxfile host="')) {
+						newXml = newXml.replace(
 							/^<mxfile host="(.*?)"/,
 							() => `<mxfile host="65bd71144e"`
-						)
+						);
+					} else {
+						// in case there is no host attribute
+						newXml = newXml.replace(
+							/^<mxfile /,
+							() => `<mxfile host="65bd71144e"`
+						);
+					}
+
+					output = formatter(
+						// This normalizes the host
+						newXml
 					);
 				}
 

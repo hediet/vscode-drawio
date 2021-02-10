@@ -391,6 +391,81 @@
 
 				fix_mxUrlConverter_prototype_convert();
 
+				// Fix linkTarget export
+				// This is super hacky.
+				// See https://github.com/hediet/vscode-drawio/issues/204.
+				patchFn(Graph.prototype, "getSvg", function (old) {
+					return function (
+						background,
+						scale,
+						border,
+						nocrop,
+						crisp,
+						ignoreSelection,
+						showText,
+						imgExport,
+						linkTarget,
+						hasShadow,
+						incExtFonts,
+						keepTheme,
+						exportType,
+						...args
+					) {
+						const baseLinkTarget = editorUi.fileNode.getAttribute(
+							"linkTarget"
+						);
+						linkTarget = linkTarget || baseLinkTarget;
+
+						return old.apply(this, [
+							background,
+							scale,
+							border,
+							nocrop,
+							crisp,
+							ignoreSelection,
+							showText,
+							imgExport,
+							linkTarget,
+							hasShadow,
+							incExtFonts,
+							keepTheme,
+							exportType,
+							...args,
+						]);
+					};
+				});
+
+				// Force compact
+				patchFn(EditorUi.prototype, "createFileData", function (old) {
+					return function (
+						node,
+						graph,
+						file,
+						url,
+						forceXml,
+						forceSvg,
+						forceHtml,
+						embeddedCallback,
+						ignoreSelection,
+						compact,
+						uncompressed
+					) {
+						return old.apply(this, [
+							node,
+							graph,
+							file,
+							url,
+							forceXml,
+							forceSvg,
+							forceHtml,
+							embeddedCallback,
+							ignoreSelection,
+							/* compact */ true,
+							uncompressed,
+						]);
+					};
+				});
+
 				App.main();
 				console.log("drawio", window.Draw);
 
