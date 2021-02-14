@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.4.0-alpha.2]
+## [1.4.0-alpha.3]
 
 ### Changed
 
@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 -   SVG link targets are configurable now (see [#204](https://github.com/hediet/vscode-drawio/issues/204)).
+-   Option to disable SVG 1.1 warning
 
 ### Fixed
 

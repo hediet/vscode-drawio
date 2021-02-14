@@ -105,6 +105,13 @@
 				noSaveBtn: "1",
 				noExitBtn: "1",
 				chrome: $$chrome$$,
+				get ["svg-warning"]() {
+					return editorUi.fileNode.getAttribute(
+						"disableSvgWarning"
+					) === "true"
+						? "0"
+						: "1";
+				},
 			};
 
 			// Checks for local storage

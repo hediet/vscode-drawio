@@ -1,6 +1,5 @@
 import "./styles.css";
 import * as m from "mithril";
-import { sendEvent } from "./vscode";
 
 export function showDialog(ui: DrawioUI) {
 	const node = ui.fileNode;
@@ -12,10 +11,13 @@ export function showDialog(ui: DrawioUI) {
 	const initialScale = parseFloat(node.getAttribute("scale") || "1");
 	const initialBorder = parseFloat(node.getAttribute("border") || "0");
 	const initialLinkTarget = node.getAttribute("linkTarget");
+	const initialDisableSvgWarning =
+		node.getAttribute("disableSvgWarning") === "true";
 
 	let scale = initialScale;
 	let border = initialBorder;
 	let linkTarget = initialLinkTarget;
+	let disableSvgWarning = initialDisableSvgWarning;
 
 	var div = document.createElement("div");
 	div.style.height = "100%";
@@ -118,10 +120,6 @@ export function showDialog(ui: DrawioUI) {
 										value: linkTarget || "",
 										oninput: (e: any) => {
 											linkTarget = e.target.value;
-											console.log(
-												"linkTarget",
-												linkTarget
-											);
 										},
 									},
 									[
@@ -142,6 +140,29 @@ export function showDialog(ui: DrawioUI) {
 										),
 									]
 								),
+							]
+						),
+						m(
+							"div",
+							{
+								style: {
+									display: "flex",
+									flexDirection: "row",
+									paddingBottom: "4px",
+								},
+							},
+							[
+								m("label", {}, [
+									m("input", {
+										type: "checkbox",
+										checked: disableSvgWarning,
+										onchange: (e: any) => {
+											disableSvgWarning =
+												e.target.checked;
+										},
+									}),
+									"Disable SVG 1.1 warning",
+								]),
 							]
 						),
 					]
@@ -166,7 +187,9 @@ export function showDialog(ui: DrawioUI) {
 								if (
 									scale === initialScale &&
 									border === initialBorder &&
-									linkTarget === initialLinkTarget
+									linkTarget === initialLinkTarget &&
+									disableSvgWarning ===
+										initialDisableSvgWarning
 								) {
 									return;
 								}
@@ -178,6 +201,15 @@ export function showDialog(ui: DrawioUI) {
 								}
 								node.setAttribute("scale", "" + scale);
 								node.setAttribute("border", "" + border);
+
+								if (disableSvgWarning) {
+									node.setAttribute(
+										"disableSvgWarning",
+										"true"
+									);
+								} else {
+									node.removeAttribute("disableSvgWarning");
+								}
 
 								ui.actions.get("save").funct();
 							},
