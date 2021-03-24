@@ -105,7 +105,8 @@ You won't be able to edit arbitrary SVG files though - only those that have been
 You can open the same `*.drawio` file with the Draw.io editor and as xml file.
 They are synchronized, so you can switch between them as you like it.
 This is super pratical if you want to use find/replace to rename text or other features of VS Code to speed up your diagram creation/edit process.
-Use the `File: Reopen With...` command to toggle between the text or the Draw.io editor. You can open multiple editors for the same file.
+Use the `View: Reopen Editor With...` command to toggle between the text or the Draw.io editor. You can open multiple editors for the same file.
+This does not make much sense for SVG files though, as the draw.io diagram is stored in its metadata.
 
 ![](./docs/drawio-xml.gif)
 
