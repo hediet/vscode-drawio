@@ -8,12 +8,13 @@
 !docs/**/*
 !drawio/LICENSE
 !drawio/VERSION
-!drawio/src/main/webapp/js/PreConfig.js
-!drawio/src/main/webapp/js/app.min.js
-!drawio/src/main/webapp/js/shapes.min.js
-!drawio/src/main/webapp/js/stencils.min.js
-!drawio/src/main/webapp/js/extensions.min.js
-!drawio/src/main/webapp/js/PostConfig.js
+# !drawio/src/main/webapp/js/PreConfig.js
+# !drawio/src/main/webapp/js/app.min.js
+# !drawio/src/main/webapp/js/shapes.min.js
+# !drawio/src/main/webapp/js/stencils.min.js
+# !drawio/src/main/webapp/js/extensions.min.js
+# !drawio/src/main/webapp/js/PostConfig.js
+!drawio/src/main/webapp/js/**/*
 !drawio/src/main/webapp/connect/**/*
 !drawio/src/main/webapp/images/**/*
 !drawio/src/main/webapp/img/**/*
