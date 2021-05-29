@@ -90,12 +90,9 @@ By default, this extension only handles `*.drawio.svg` files.
 Add this to your VS Code `settings.json` file if you want to associate it with `.svg` files:
 
 ```json
-"workbench.editorAssociations": [
-    {
-        "viewType": "hediet.vscode-drawio-text",
-        "filenamePattern": "*.svg"
-    }
-]
+"workbench.editorAssociations": {
+    "*.svg": "hediet.vscode-drawio-text",
+}
 ```
 
 You won't be able to edit arbitrary SVG files though - only those that have been created with Draw.io or this extension!

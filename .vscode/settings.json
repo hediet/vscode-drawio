@@ -7,14 +7,8 @@
 	},
 	"editor.formatOnSave": true,
 	"typescript.tsc.autoDetect": "off",
-	"workbench.editorAssociations": [
-		{
-			"viewType": "default",
-			"filenamePattern": "*.drawio"
-		},
-		{
-			"viewType": "default",
-			"filenamePattern": "*.dio"
-		}
-	]
+	"workbench.editorAssociations": {
+		"*.drawio": "default",
+		"*.dio": "default"
+	}
 }
