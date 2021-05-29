@@ -332,7 +332,14 @@ export class DrawioEditor {
 	}
 
 	public async handleChangeThemeCommand(): Promise<void> {
-		let availableThemes = ["automatic", "min", "atlas", "dark", "Kennedy"];
+		let availableThemes = [
+			"automatic",
+			"min",
+			"atlas",
+			"dark",
+			"Kennedy",
+			"sketch",
+		];
 
 		const originalTheme = this.config.theme;
 		availableThemes = availableThemes.filter((t) => t !== originalTheme);
