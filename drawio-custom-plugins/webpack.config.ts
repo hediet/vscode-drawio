@@ -22,7 +22,7 @@ module.exports = {
 	},
 	module: {
 		rules: [
-			{ test: /\.css$/, loader: "style-loader!css-loader" },
+			{ test: /\.css$/, use: ["style-loader", "css-loader"] },
 			{
 				test: /\.html$/i,
 				loader: "raw-loader",
@@ -41,10 +41,5 @@ module.exports = {
 	node: {
 		__dirname: false,
 	},
-	plugins: [
-		new CleanWebpackPlugin(),
-		new webpack.EnvironmentPlugin({
-			NODE_ENV: null,
-		}),
-	],
+	plugins: [new CleanWebpackPlugin()],
 } as webpack.Configuration;
