@@ -15,7 +15,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 10.x
+          node-version: 14.17.0
       - run: yarn install --immutable
       - run: yarn lint
       - run: yarn run-script prepare-insiders-build
