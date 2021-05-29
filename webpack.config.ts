@@ -20,6 +20,10 @@ module.exports = {
 	},
 	resolve: {
 		extensions: [".ts", ".js"],
+		fallback: {
+			bufferutil: false,
+			"utf-8-validate": false,
+		},
 	},
 	module: {
 		rules: [
@@ -43,10 +47,10 @@ module.exports = {
 	},
 	plugins: [
 		new CleanWebpackPlugin(),
-		new webpack.EnvironmentPlugin({
+		/*new webpack.EnvironmentPlugin({
 			NODE_ENV: null,
-		}),
-		new webpack.IgnorePlugin(/^canvas$/),
+		}),*/
+		new webpack.IgnorePlugin({ resourceRegExp: /^canvas$/ }),
 		new CopyPlugin({
 			patterns: [
 				{ from: "./src/features/LiveshareFeature/assets", to: "." },

@@ -10,8 +10,8 @@
 				"base": "$tsc",
 				"background": {
 					"activeOnStart": true,
-					"beginsPattern": "^Hash:",
-					"endsPattern": "^Built at:"
+					"beginsPattern": "assets",
+					"endsPattern": "compiled"
 				}
 			},
 			"isBackground": true,
