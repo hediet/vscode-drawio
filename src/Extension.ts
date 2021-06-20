@@ -29,7 +29,7 @@ export class Extension {
 	private readonly drawioClientFactory = new DrawioClientFactory(
 		this.config,
 		this.log,
-		this.context.extensionPath
+		this.context.extensionUri
 	);
 	private readonly editorService = new DrawioEditorService(
 		this.config,

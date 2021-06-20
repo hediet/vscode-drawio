@@ -13,7 +13,7 @@ export class DrawioClientFactory {
 	constructor(
 		private readonly config: Config,
 		private readonly log: OutputChannel,
-		private readonly extensionPath: string
+		private readonly extensionUri: Uri
 	) {}
 
 	public async createDrawioClientInWebview(
@@ -193,15 +193,13 @@ export class DrawioClientFactory {
 		plugins: { jsCode: string }[]
 	): string {
 		const vsuri = webview.asWebviewUri(
-			Uri.file(path.join(this.extensionPath, "drawio/src/main/webapp"))
+			Uri.joinPath(this.extensionUri, "drawio/src/main/webapp")
 		);
 		const customPluginsPath = webview.asWebviewUri(
 			// See webpack configuration.
-			Uri.file(
-				path.join(
-					this.extensionPath,
-					"dist/custom-drawio-plugins/index.js"
-				)
+			Uri.joinPath(
+				this.extensionUri,
+				"dist/custom-drawio-plugins/index.js"
 			)
 		);
 
