@@ -35,7 +35,11 @@ export class Config {
 		versionName: string | undefined;
 		name: string;
 		feedbackUrl?: string;
-	} = JSON.parse(readFileSync(this.packageJsonPath, { encoding: "utf-8" }));
+	} = JSON.parse(
+		readFileSync
+			? readFileSync(this.packageJsonPath, { encoding: "utf-8" })
+			: "{}"
+	);
 
 	public get feedbackUrl(): Uri | undefined {
 		if (this.packageJson.feedbackUrl) {
