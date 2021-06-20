@@ -536,7 +536,12 @@ export class DiagramConfig {
 	constructor(public readonly uri: Uri, private readonly config: Config) {}
 
 	@computed
-	public get language(): string {
+	public get drawioLanguage(): string {
+		if (env.language.toLowerCase() === "zh-tw") {
+			// See https://github.com/hediet/vscode-drawio/issues/231.
+			// Seems to be an exception, all other language codes are just the language, not the country.
+			return "zh-tw";
+		}
 		const lang = env.language.split("-")[0].toLowerCase();
 		return lang;
 	}

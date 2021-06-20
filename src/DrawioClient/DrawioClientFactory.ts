@@ -210,7 +210,7 @@ export class DrawioClientFactory {
 		const patchedHtml = html
 			.replace(/\$\$literal-vsuri\$\$/g, vsuri.toString())
 			.replace("$$theme$$", JSON.stringify(config.theme))
-			.replace("$$lang$$", JSON.stringify(config.language))
+			.replace("$$lang$$", JSON.stringify(config.drawioLanguage))
 			.replace(
 				"$$chrome$$",
 				JSON.stringify(options.isReadOnly ? "0" : "1")
@@ -257,7 +257,7 @@ export class DrawioClientFactory {
 				<iframe src="${drawioUrl}?embed=1&ui=${encodeURIComponent(
 			config.theme
 		)}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&lang=${encodeURIComponent(
-			config.language
+			config.drawioLanguage
 		)}"></iframe>
 			</body>
 		</html>
