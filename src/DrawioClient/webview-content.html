@@ -295,9 +295,10 @@
 				});
 
 				// Without this, it will crash. "help" is removed.
-				Menus.prototype.defaultMenuItems = Menus.prototype.defaultMenuItems.filter(
-					(i) => i !== "help"
-				);
+				Menus.prototype.defaultMenuItems =
+					Menus.prototype.defaultMenuItems.filter(
+						(i) => i !== "help"
+					);
 
 				patchFn(Menus.prototype, "put", function (old) {
 					return function (...args) {
@@ -410,9 +411,8 @@
 						exportType,
 						...args
 					) {
-						const baseLinkTarget = editorUi.fileNode.getAttribute(
-							"linkTarget"
-						);
+						const baseLinkTarget =
+							editorUi.fileNode.getAttribute("linkTarget");
 						linkTarget = linkTarget || baseLinkTarget;
 
 						return old.apply(this, [

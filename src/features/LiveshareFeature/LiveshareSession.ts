@@ -36,9 +36,10 @@ export class LiveshareSession {
 		this.init();
 	}
 
-	private getPeerIdInformation(
-		peerId: number
-	): { color: string; name: string | undefined } {
+	private getPeerIdInformation(peerId: number): {
+		color: string;
+		name: string | undefined;
+	} {
 		const peer = this.api.peers.find((p) => p.peerNumber === peerId);
 		const colors = [
 			"#2965CC",
@@ -73,13 +74,12 @@ export class LiveshareSession {
 					this.normalizeUri(editor.document.document.uri)
 		);
 
-		const selectedCells: Array<ParticipantSelectedCellsInfo> = viewStates.map(
-			(v) => ({
+		const selectedCells: Array<ParticipantSelectedCellsInfo> =
+			viewStates.map((v) => ({
 				id: "" + v.peerId,
 				selectedCellIds: v.viewState!.selectedCellIds,
 				color: this.getPeerIdInformation(v.peerId).color,
-			})
-		);
+			}));
 
 		const cursors: Array<ParticipantCursorInfo> = viewStates
 			.filter((v) => v.viewState && v.viewState.currentCursor)
@@ -90,13 +90,14 @@ export class LiveshareSession {
 				position: v.viewState!.currentCursor!,
 			}));
 
-		const selectedRectangles: Array<ParticipantSelectedRectangleInfo> = viewStates
-			.filter((v) => v.viewState && v.viewState.selectedRectangle)
-			.map((v) => ({
-				id: "" + v.peerId,
-				color: this.getPeerIdInformation(v.peerId).color,
-				rectangle: v.viewState!.selectedRectangle!,
-			}));
+		const selectedRectangles: Array<ParticipantSelectedRectangleInfo> =
+			viewStates
+				.filter((v) => v.viewState && v.viewState.selectedRectangle)
+				.map((v) => ({
+					id: "" + v.peerId,
+					color: this.getPeerIdInformation(v.peerId).color,
+					rectangle: v.viewState!.selectedRectangle!,
+				}));
 
 		editor.drawioClient.updateLiveshareViewState({
 			selectedCells,
@@ -137,7 +138,7 @@ export class LiveshareSession {
 			};
 
 			svc.onNotify("action", (arg) => {
-				client.sendAction((arg as unknown) as ServerAction);
+				client.sendAction(arg as unknown as ServerAction);
 			});
 			this.dispose.track(
 				this.api.onDidChangePeers(({ removed }) => {

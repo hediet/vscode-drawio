@@ -42,24 +42,24 @@ export class EditDiagramAsTextFeature {
 			commands.registerCommand(
 				"hediet.vscode-drawio.editDiagramAsText",
 				async () => {
-					const activeDrawioEditor = this.editorManager
-						.activeDrawioEditor;
+					const activeDrawioEditor =
+						this.editorManager.activeDrawioEditor;
 					if (!activeDrawioEditor) {
 						return;
 					}
 
-					const {
-						didFileExist,
-						file,
-					} = this.drawioFsController.getOrCreateFileForUri(
-						activeDrawioEditor.uri.with({
-							scheme: this.drawioFsController.scheme,
-							path: activeDrawioEditor.uri.path + ".drawio-txt",
-						})
-					);
+					const { didFileExist, file } =
+						this.drawioFsController.getOrCreateFileForUri(
+							activeDrawioEditor.uri.with({
+								scheme: this.drawioFsController.scheme,
+								path:
+									activeDrawioEditor.uri.path + ".drawio-txt",
+							})
+						);
 
 					const updateFile = async () => {
-						const nodes = await activeDrawioEditor.drawioClient.getVertices();
+						const nodes =
+							await activeDrawioEditor.drawioClient.getVertices();
 						isUpdating = true;
 						try {
 							const doc = new DiagramAsTextDocument(nodes, []);

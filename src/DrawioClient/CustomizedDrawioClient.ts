@@ -18,7 +18,8 @@ export class CustomizedDrawioClient extends DrawioClient<
 	private readonly onCustomPluginLoadedEmitter = new EventEmitter<{
 		pluginId: string;
 	}>();
-	public readonly onCustomPluginLoaded = this.onCustomPluginLoadedEmitter.asEvent();
+	public readonly onCustomPluginLoaded =
+		this.onCustomPluginLoadedEmitter.asEvent();
 
 	private readonly onCursorChangeEmitter = new EventEmitter<{
 		newPosition: Point | undefined;
@@ -28,12 +29,14 @@ export class CustomizedDrawioClient extends DrawioClient<
 	private readonly onSelectedCellsChangedEmitter = new EventEmitter<{
 		selectedCellIds: string[];
 	}>();
-	public readonly onSelectedCellsChanged = this.onSelectedCellsChangedEmitter.asEvent();
+	public readonly onSelectedCellsChanged =
+		this.onSelectedCellsChangedEmitter.asEvent();
 
 	private readonly onSelectedRectangleChangedEmitter = new EventEmitter<{
 		rectangle: { start: Point; end: Point } | undefined;
 	}>();
-	public readonly onSelectedRectangleChanged = this.onSelectedRectangleChangedEmitter.asEvent();
+	public readonly onSelectedRectangleChanged =
+		this.onSelectedRectangleChangedEmitter.asEvent();
 
 	private readonly onFocusChangedEmitter = new EventEmitter<{
 		hasFocus: boolean;

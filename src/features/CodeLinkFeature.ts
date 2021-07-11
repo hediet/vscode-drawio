@@ -48,7 +48,8 @@ export class LinkCodeWithSelectedNodeService {
 				dispose: autorun(
 					() => {
 						const activeEditor = editorManager.activeDrawioEditor;
-						this.statusBar.command = toggleCodeLinkActivationCommandName;
+						this.statusBar.command =
+							toggleCodeLinkActivationCommandName;
 
 						if (activeEditor) {
 							this.statusBar.text = `$(link) ${
@@ -97,8 +98,8 @@ export class LinkCodeWithSelectedNodeService {
 
 	@action.bound
 	private linkCodeWithSelectedNode(): void {
-		const lastActiveDrawioEditor = this.editorManager
-			.lastActiveDrawioEditor;
+		const lastActiveDrawioEditor =
+			this.editorManager.lastActiveDrawioEditor;
 		if (!lastActiveDrawioEditor) {
 			window.showErrorMessage("No active drawio instance.");
 			return;
@@ -124,8 +125,8 @@ export class LinkCodeWithSelectedNodeService {
 
 	@action.bound
 	private linkFileWithSelectedNodeCommandName(file: Uri): void {
-		const lastActiveDrawioEditor = this.editorManager
-			.lastActiveDrawioEditor;
+		const lastActiveDrawioEditor =
+			this.editorManager.lastActiveDrawioEditor;
 		if (!lastActiveDrawioEditor) {
 			window.showErrorMessage("No active drawio instance.");
 			return;
@@ -175,7 +176,8 @@ export class LinkCodeWithSelectedNodeService {
 							getSorterBy((matchedSymbol) => {
 								let score = 0;
 
-								const uriAsString = matchedSymbol.location.uri.toString();
+								const uriAsString =
+									matchedSymbol.location.uri.toString();
 
 								const idx = window.visibleTextEditors.findIndex(
 									(e) =>
@@ -224,13 +226,12 @@ export class LinkCodeWithSelectedNodeService {
 			});
 			e.revealRange(pos.range, TextEditorRevealType.Default);
 
-			const highlightDecorationType = window.createTextEditorDecorationType(
-				{
+			const highlightDecorationType =
+				window.createTextEditorDecorationType({
 					backgroundColor: new ThemeColor(
 						"editor.stackFrameHighlightBackground"
 					),
-				}
-			);
+				});
 
 			if (this.lastDecorationType) {
 				e.setDecorations(this.lastDecorationType, []);

@@ -127,11 +127,12 @@ export class DrawioEditorService {
 			| { kind: "drawio"; document: DrawioBinaryDocument },
 		options: DrawioClientOptions
 	): Promise<DrawioEditor> {
-		const instance = await this.drawioClientFactory.createDrawioClientInWebview(
-			document.document.uri,
-			webviewPanel,
-			options
-		);
+		const instance =
+			await this.drawioClientFactory.createDrawioClientInWebview(
+				document.document.uri,
+				webviewPanel,
+				options
+			);
 
 		const config = this.config.getDiagramConfig(document.document.uri);
 		const editor = new DrawioEditor(

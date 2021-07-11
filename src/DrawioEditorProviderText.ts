@@ -24,14 +24,15 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 			const readonlySchemes = new Set(["git", "conflictResolution"]);
 			const isReadOnly = readonlySchemes.has(document.uri.scheme);
 
-			const editor = await this.drawioEditorService.createDrawioEditorInWebview(
-				webviewPanel,
-				{
-					kind: "text",
-					document,
-				},
-				{ isReadOnly }
-			);
+			const editor =
+				await this.drawioEditorService.createDrawioEditorInWebview(
+					webviewPanel,
+					{
+						kind: "text",
+						document,
+					},
+					{ isReadOnly }
+				);
 			const drawioClient = editor.drawioClient;
 
 			interface NormalizedDocument {
@@ -56,9 +57,8 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 						mxFile.setAttribute("etag", "");
 					}
 
-					const mxGraphModel = document.getElementsByTagName(
-						"mxGraphModel"
-					)[0];
+					const mxGraphModel =
+						document.getElementsByTagName("mxGraphModel")[0];
 					if (mxGraphModel !== undefined) {
 						mxGraphModel.setAttribute("dx", "");
 						mxGraphModel.setAttribute("dy", "");
