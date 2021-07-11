@@ -434,7 +434,7 @@
 					};
 				});
 
-				// Force compact
+				// Force compact to exclude noisy properties
 				patchFn(EditorUi.prototype, "createFileData", function (old) {
 					return function (
 						node,
@@ -466,7 +466,9 @@
 				});
 
 				App.main();
-				console.log("drawio", window.Draw);
+				
+				// For debugging:
+				// console.log("drawio", window.Draw);
 
 				/**
 				 * @param url {string}
