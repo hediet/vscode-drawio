@@ -23,7 +23,8 @@
 	"icon": "docs/logo.drawio.png",
 	"extensionKind": [
 		"ui",
-		"workspace"
+		"workspace",
+		"web"
 	],
 	"engines": {
 		"vscode": "^1.46.0"
