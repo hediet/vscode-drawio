@@ -184,8 +184,9 @@ export class Config {
 		const c = this.getInternalConfig();
 		if (c.dateTimeLastAskedForSponsorship) {
 			const d = new Date(c.dateTimeLastAskedForSponsorship);
-			const msOf60Days = 1000 * 60 * 60 * 24 * 60;
-			if (new Date().getTime() - d.getTime() < msOf60Days) {
+			const msPerDay = 1000 * 60 * 60 * 24;
+			const minTimeBetweenAskingMs = 120 * msPerDay;
+			if (new Date().getTime() - d.getTime() < minTimeBetweenAskingMs) {
 				return false;
 			}
 		}
@@ -195,7 +196,8 @@ export class Config {
 				c.totalUsageTimeLastAskedForSponsorshipInSeconds;
 		}
 		const secondsIn1Hr = 60 * 60;
-		if (usageTimeSinceLastAskedForSponsorship < secondsIn1Hr) {
+		const minUsageTime = secondsIn1Hr;
+		if (usageTimeSinceLastAskedForSponsorship < minUsageTime) {
 			return false;
 		}
 
