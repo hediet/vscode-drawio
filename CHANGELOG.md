@@ -5,15 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.6.0-alpha.2]
+## [1.6.0-alpha.3]
 
 ### Changed
 
 -   Updates Draw.io to 14.8.0
 
+### Fixed
+
+-   When Draw.io applies an external change to the document, it no longer emits another change (fixes [#215](https://github.com/hediet/vscode-drawio/issues/215)).
+-   Emits proper line breaks instead of &#xa; (fixes [#209](https://github.com/hediet/vscode-drawio/issues/209)).
+
 ### Added
 
 -   Uses full `zh-tw` language code (instead of just `zh`) if VS Code reports this language.
+-   Support for browsers.
 
 ## [1.5.0] - 2021-05-29
 
