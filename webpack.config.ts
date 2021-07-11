@@ -6,7 +6,6 @@ import * as CopyPlugin from "copy-webpack-plugin";
 const r = (file: string) => path.resolve(__dirname, file);
 
 module.exports = {
-	target: "node",
 	entry: r("./src/index"),
 	output: {
 		path: r("./dist/extension"),
@@ -21,8 +20,8 @@ module.exports = {
 	resolve: {
 		extensions: [".ts", ".js"],
 		fallback: {
-			bufferutil: false,
-			"utf-8-validate": false,
+			path: require.resolve("path-browserify"),
+			fs: false,
 		},
 	},
 	module: {
@@ -47,10 +46,11 @@ module.exports = {
 	},
 	plugins: [
 		new CleanWebpackPlugin(),
-		/*new webpack.EnvironmentPlugin({
-			NODE_ENV: null,
-		}),*/
-		new webpack.IgnorePlugin({ resourceRegExp: /^canvas$/ }),
+		new webpack.EnvironmentPlugin({
+			DEV: "0",
+		}),
+		// Without `as any`, I get "Excessive stack depth comparing types with TS 3.2"
+		new webpack.IgnorePlugin({ resourceRegExp: /^canvas$/ }) as any,
 		new CopyPlugin({
 			patterns: [
 				{ from: "./src/features/LiveshareFeature/assets", to: "." },

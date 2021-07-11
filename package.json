@@ -39,6 +39,7 @@
 	"repository": {
 		"url": "https://github.com/hediet/vscode-drawio.git"
 	},
+	"browser": "./dist/extension/index",
 	"main": "./dist/extension/index",
 	"capabilities": {
 		"untrustedWorkspaces": {
