@@ -9,7 +9,8 @@
 	"typescript.tsc.autoDetect": "off",
 	"workbench.editorAssociations": {
 		"*.drawio": "default",
-		"*.dio": "default"
+		"*.dio": "default",
+		"*.svg": "default"
 	},
 	"typescript.tsdk": "node_modules\\typescript\\lib"
 }
