@@ -95,10 +95,15 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 							);
 						} else {
 							// in case there is no host attribute
-							newXml = newXml.replace(
-								/^<mxfile /,
-								() => `<mxfile host="65bd71144e"`
-							);
+							newXml = newXml
+								.replace(
+									/^<mxfile /,
+									() => `<mxfile host="65bd71144e"`
+								)
+								.replace(
+									/^<mxfile>/,
+									() => `<mxfile host="65bd71144e">`
+								);
 						}
 
 						return formatter(
