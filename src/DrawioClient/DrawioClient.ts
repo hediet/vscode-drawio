@@ -30,6 +30,8 @@ export class DrawioClient<
 	// This is always up to date, except directly after calling load.
 	private currentXml: string | undefined = undefined;
 
+	private isMerging = false;
+
 	constructor(
 		private readonly messageStream: MessageStream,
 		private readonly getConfig: () => Promise<DrawioConfig>,
@@ -106,8 +108,17 @@ export class DrawioClient<
 			this.onInitEmitter.emit();
 		} else if (drawioEvt.event === "autosave") {
 			const oldXml = this.currentXml;
-			this.currentXml = drawioEvt.xml;
-			this.onChangeEmitter.emit({ newXml: this.currentXml, oldXml });
+			if (oldXml !== drawioEvt.xml) {
+				this.currentXml = drawioEvt.xml;
+
+				// Don't emit a change event if we're merging some changes in.
+				if (!this.isMerging) {
+					this.onChangeEmitter.emit({
+						newXml: this.currentXml,
+						oldXml,
+					});
+				}
+			}
 		} else if (drawioEvt.event === "save") {
 			const oldXml = this.currentXml;
 			this.currentXml = drawioEvt.xml;
@@ -145,29 +156,36 @@ export class DrawioClient<
 	}
 
 	public async mergeXmlLike(xmlLike: string): Promise<void> {
-		const evt = await this.sendActionWaitForResponse({
+		const promise = this.sendActionWaitForResponse({
 			action: "merge",
 			xml: xmlLike,
 		});
-
-		if (evt.event !== "merge") {
-			throw new Error("Invalid response");
-		}
-		if (evt.error) {
-			throw new Error(evt.error);
+		this.isMerging = true;
+		try {
+			const evt = await promise;
+			if (evt.event !== "merge") {
+				throw new Error("Invalid response");
+			}
+			if (evt.error) {
+				throw new Error(evt.error);
+			}
+		} finally {
+			this.isMerging = false;
 		}
 	}
 
 	/**
 	 * This loads an xml or svg+xml Draw.io diagram.
 	 */
-	public loadXmlLike(xmlLike: string) {
+	public async loadXmlLike(xmlLike: string): Promise<void> {
 		this.currentXml = undefined;
 		this.sendAction({
 			action: "load",
 			xml: xmlLike,
 			autosave: 1,
 		});
+		// We request the xml to detect if an autosave is a real change.
+		await this.getXml();
 	}
 
 	public async loadPngWithEmbeddedXml(png: Uint8Array): Promise<void> {
@@ -193,7 +211,7 @@ export class DrawioClient<
 		}
 	}
 
-	protected async getXmlUncached(): Promise<string> {
+	private async getXmlUncached(): Promise<string> {
 		const response = await this.sendActionWaitForResponse({
 			action: "export",
 			format: "xml",
