@@ -373,11 +373,13 @@
 		"@hediet/json-to-dictionary": "^0.2.1",
 		"@hediet/std": "0.6.0",
 		"@knuddels/mobx-logger": "^1.1.1",
+		"buffer": "^6.0.3",
 		"js-sha256": "^0.9.0",
 		"jsdom": "^16.2.2",
 		"mithril": "^2.0.4",
 		"mobx": "5.15.4",
 		"mobx-utils": "5.5.7",
+		"path-browserify": "^1.0.1",
 		"vsls": "^1.0.2594",
 		"xml-formatter": "^2.0.1",
 		"xml-parser-xo": "^3.0.0"

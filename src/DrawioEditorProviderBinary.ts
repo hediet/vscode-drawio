@@ -16,15 +16,17 @@ import {
 import { CustomizedDrawioClient } from "./DrawioClient";
 import { extname } from "path";
 import { DrawioEditorService } from "./DrawioEditorService";
+import { BufferImpl } from "./utils/buffer";
 
 export class DrawioEditorProviderBinary
-	implements CustomEditorProvider<DrawioBinaryDocument> {
+	implements CustomEditorProvider<DrawioBinaryDocument>
+{
 	private readonly onDidChangeCustomDocumentEmitter = new EventEmitter<
 		CustomDocumentContentChangeEvent<DrawioBinaryDocument>
 	>();
 
-	public readonly onDidChangeCustomDocument = this
-		.onDidChangeCustomDocumentEmitter.event;
+	public readonly onDidChangeCustomDocument =
+		this.onDidChangeCustomDocumentEmitter.event;
 
 	public constructor(
 		private readonly drawioEditorService: DrawioEditorService
@@ -84,11 +86,12 @@ export class DrawioEditorProviderBinary
 		token: CancellationToken
 	): Promise<void> {
 		try {
-			const editor = await this.drawioEditorService.createDrawioEditorInWebview(
-				webviewPanel,
-				{ kind: "drawio", document },
-				{ isReadOnly: false }
-			);
+			const editor =
+				await this.drawioEditorService.createDrawioEditorInWebview(
+					webviewPanel,
+					{ kind: "drawio", document },
+					{ isReadOnly: false }
+				);
 
 			document.setDrawioClient(editor.drawioClient);
 		} catch (e) {
@@ -135,7 +138,7 @@ export class DrawioBinaryDocument implements CustomDocument {
 			} else if (this.backupId) {
 				const backupFile = Uri.parse(this.backupId);
 				const content = await workspace.fs.readFile(backupFile);
-				const xml = Buffer.from(content).toString("utf-8");
+				const xml = BufferImpl.from(content).toString("utf-8");
 				await this.drawioClient.loadXmlLike(xml);
 				this._isDirty = true; // because of backup
 			} else {
@@ -176,7 +179,10 @@ export class DrawioBinaryDocument implements CustomDocument {
 
 	public async backup(destination: Uri): Promise<CustomDocumentBackup> {
 		const xml = await this.drawioClient.getXml();
-		await workspace.fs.writeFile(destination, Buffer.from(xml, "utf-8"));
+		await workspace.fs.writeFile(
+			destination,
+			BufferImpl.from(xml, "utf-8")
+		);
 		return {
 			id: destination.toString(),
 			delete: async () => {

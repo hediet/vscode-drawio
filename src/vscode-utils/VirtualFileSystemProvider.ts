@@ -10,6 +10,7 @@ import {
 	FileChangeType,
 } from "vscode";
 import { Disposable } from "@hediet/std/disposable";
+import { BufferImpl } from "../utils/buffer";
 
 export class DrawioFileSystemController {
 	public readonly dispose = Disposable.fn();
@@ -26,9 +27,10 @@ export class DrawioFileSystemController {
 		);
 	}
 
-	public getOrCreateFileForUri(
-		uri: Uri
-	): { file: File; didFileExist: boolean } {
+	public getOrCreateFileForUri(uri: Uri): {
+		file: File;
+		didFileExist: boolean;
+	} {
 		return this.fs.getOrCreateFile(uri);
 	}
 
@@ -129,10 +131,10 @@ export class File {
 	}
 
 	public writeString(str: string): void {
-		this.write(Uint8Array.from(Buffer.from(str, "utf-8")));
+		this.write(Uint8Array.from(BufferImpl.from(str, "utf-8")));
 	}
 
 	public readString(): string {
-		return new Buffer(this.data).toString("utf-8");
+		return BufferImpl.from(this.data).toString("utf-8");
 	}
 }

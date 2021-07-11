@@ -1,6 +1,7 @@
 import { EventEmitter } from "@hediet/std/events";
 import { Disposable } from "@hediet/std/disposable";
 import { DrawioConfig, DrawioEvent, DrawioAction } from "./DrawioTypes";
+import { BufferImpl } from "../utils/buffer";
 
 /**
  * Represents a connection to an drawio iframe.
@@ -14,9 +15,8 @@ export class DrawioClient<
 	private readonly onInitEmitter = new EventEmitter();
 	public readonly onInit = this.onInitEmitter.asEvent();
 
-	protected readonly onChangeEmitter = new EventEmitter<
-		DrawioDocumentChange
-	>();
+	protected readonly onChangeEmitter =
+		new EventEmitter<DrawioDocumentChange>();
 	public readonly onChange = this.onChangeEmitter.asEvent();
 
 	private readonly onSaveEmitter = new EventEmitter();
@@ -171,11 +171,11 @@ export class DrawioClient<
 	}
 
 	public async loadPngWithEmbeddedXml(png: Uint8Array): Promise<void> {
-		let str = Buffer.from(png).toString("base64");
+		let str = BufferImpl.from(png).toString("base64");
 		this.loadXmlLike("data:image/png;base64," + str);
 	}
 
-	public async export(extension: string): Promise<Buffer> {
+	public async export(extension: string): Promise<BufferImpl> {
 		if (extension.endsWith(".png")) {
 			return await this.exportAsPngWithEmbeddedXml();
 		} else if (
@@ -183,7 +183,7 @@ export class DrawioClient<
 			extension.endsWith(".dio")
 		) {
 			const xml = await this.getXml();
-			return Buffer.from(xml, "utf-8");
+			return BufferImpl.from(xml, "utf-8");
 		} else if (extension.endsWith(".svg")) {
 			return await this.exportAsSvgWithEmbeddedXml();
 		} else {
@@ -216,7 +216,7 @@ export class DrawioClient<
 		return this.currentXml;
 	}
 
-	public async exportAsPngWithEmbeddedXml(): Promise<Buffer> {
+	public async exportAsPngWithEmbeddedXml(): Promise<BufferImpl> {
 		const response = await this.sendActionWaitForResponse({
 			action: "export",
 			format: "xmlpng",
@@ -229,10 +229,10 @@ export class DrawioClient<
 			throw new Error("Invalid data");
 		}
 		const base64Data = response.data.substr(start.length);
-		return Buffer.from(base64Data, "base64");
+		return BufferImpl.from(base64Data, "base64");
 	}
 
-	public async exportAsSvgWithEmbeddedXml(): Promise<Buffer> {
+	public async exportAsSvgWithEmbeddedXml(): Promise<BufferImpl> {
 		const response = await this.sendActionWaitForResponse({
 			action: "export",
 			format: "xmlsvg",
@@ -245,7 +245,7 @@ export class DrawioClient<
 			throw new Error("Invalid data");
 		}
 		const base64Data = response.data.substr(start.length);
-		return Buffer.from(base64Data, "base64");
+		return BufferImpl.from(base64Data, "base64");
 	}
 
 	public triggerOnSave(): void {

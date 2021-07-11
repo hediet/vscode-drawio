@@ -12,6 +12,7 @@ import {
 	workspace,
 } from "vscode";
 import { ColorScheme, DrawioLibraryData } from "./DrawioClient";
+import { BufferImpl } from "./utils/buffer";
 import { mapObject } from "./utils/mapObject";
 import { SimpleTemplate } from "./utils/SimpleTemplate";
 import {
@@ -377,9 +378,10 @@ export class DiagramConfig {
 								: JSON.stringify(item)
 						);
 					} else {
-						const str = new Buffer(value || "", "base64").toString(
-							"utf-8"
-						);
+						const str = BufferImpl.from(
+							value || "",
+							"base64"
+						).toString("utf-8");
 						return JSON.parse(str);
 					}
 				},
@@ -400,9 +402,10 @@ export class DiagramConfig {
 						return val2;
 					}
 
-					return Buffer.from(JSON.stringify(val), "utf-8").toString(
-						"base64"
-					);
+					return BufferImpl.from(
+						JSON.stringify(val),
+						"utf-8"
+					).toString("base64");
 				},
 			},
 		}
@@ -471,7 +474,7 @@ export class DiagramConfig {
 					"custom libraries"
 				);
 				const buffer = await workspace.fs.readFile(Uri.file(file));
-				const content = Buffer.from(buffer).toString("utf-8");
+				const content = BufferImpl.from(buffer).toString("utf-8");
 				if (file.endsWith(".json")) {
 					data = {
 						kind: "value",
