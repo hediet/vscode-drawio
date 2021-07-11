@@ -3,6 +3,7 @@ import { Config } from "../Config";
 import { workspace, commands, window, ViewColumn, TextDocument } from "vscode";
 import { DrawioEditorService, DrawioEditor } from "../DrawioEditorService";
 import { DrawioFileSystemController } from "../vscode-utils/VirtualFileSystemProvider";
+import { registerFailableCommand } from "../utils/registerFailableCommand";
 
 export class EditDiagramAsTextFeature {
 	public readonly dispose = Disposable.fn();
@@ -39,7 +40,7 @@ export class EditDiagramAsTextFeature {
 		let isUpdating = false;
 
 		this.dispose.track(
-			commands.registerCommand(
+			registerFailableCommand(
 				"hediet.vscode-drawio.editDiagramAsText",
 				async () => {
 					const activeDrawioEditor =

@@ -9,6 +9,7 @@ import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
 import { LiveshareFeature } from "./features/LiveshareFeature";
 import { ActivityTracking } from "./features/ActivtyTracking";
 import { DrawioClientFactory } from "./DrawioClient";
+import { registerFailableCommand } from "./utils/registerFailableCommand";
 
 export class Extension {
 	public readonly dispose = Disposable.fn();
@@ -60,7 +61,7 @@ export class Extension {
 		);
 
 		this.dispose.track(
-			vscode.commands.registerCommand(
+			registerFailableCommand(
 				"hediet.vscode-drawio.newDiagram",
 				async () => {
 					const targetUri = await vscode.window.showSaveDialog({

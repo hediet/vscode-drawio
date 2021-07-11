@@ -1,4 +1,3 @@
-import { CustomizedDrawioClient } from "../DrawioClient";
 import { Disposable } from "@hediet/std/disposable";
 import {
 	commands,
@@ -19,6 +18,7 @@ import { DrawioEditorService, DrawioEditor } from "../DrawioEditorService";
 import { autorun, action } from "mobx";
 import { Config } from "../Config";
 import { join, relative } from "path";
+import { registerFailableCommand } from "../utils/registerFailableCommand";
 
 const toggleCodeLinkActivationCommandName =
 	"hediet.vscode-drawio.toggleCodeLinkActivation";
@@ -70,15 +70,15 @@ export class LinkCodeWithSelectedNodeService {
 					this.lastActiveTextEditor = window.activeTextEditor;
 				}
 			}),
-			commands.registerCommand(
+			registerFailableCommand(
 				linkCodeWithSelectedNodeCommandName,
 				this.linkCodeWithSelectedNode
 			),
-			commands.registerCommand(
+			registerFailableCommand(
 				toggleCodeLinkActivationCommandName,
 				this.toggleCodeLinkEnabled
 			),
-			commands.registerCommand(
+			registerFailableCommand(
 				linkFileWithSelectedNodeCommandName,
 				this.linkFileWithSelectedNodeCommandName
 			),
