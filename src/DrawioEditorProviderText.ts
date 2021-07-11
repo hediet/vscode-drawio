@@ -10,7 +10,6 @@ import {
 } from "vscode";
 import formatter = require("xml-formatter");
 import { DrawioEditorService } from "./DrawioEditorService";
-import { JSDOM } from "jsdom";
 
 export class DrawioEditorProviderText implements CustomTextEditorProvider {
 	constructor(private readonly drawioEditorService: DrawioEditorService) {}
@@ -40,64 +39,14 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 			}
 
 			function getNormalizedDocument(src: string): NormalizedDocument {
-				try {
-					var document = new JSDOM(src).window.document;
-				} catch (e) {
-					console.warn("Could not parse xml: ", e);
-					return {
-						equals: () => false,
-					};
-				}
-
-				try {
-					// If only those attributes have changed, we want to ignore this change
-					const mxFile = document.getElementsByTagName("mxfile")[0];
-					if (mxFile !== undefined) {
-						mxFile.setAttribute("modified", "");
-						mxFile.setAttribute("etag", "");
-					}
-
-					const mxGraphModel =
-						document.getElementsByTagName("mxGraphModel")[0];
-					if (mxGraphModel !== undefined) {
-						mxGraphModel.setAttribute("dx", "");
-						mxGraphModel.setAttribute("dy", "");
-					}
-				} catch (e) {
-					console.error(e);
-				}
-
-				function trimText(node: any) {
-					for (
-						node = node.firstChild;
-						node;
-						node = node.nextSibling
-					) {
-						if (node.nodeType == 3) {
-							node.textContent = node.textContent.trim();
-						} else {
-							trimText(node);
-						}
-					}
-				}
-				trimText(document);
-
-				const html = [...document.children]
-					.map((c) => c.innerHTML)
-					.join("\n");
-
-				const normalizedDoc = {
-					html,
-					equals(other: any) {
-						return other.html === html;
-					},
+				const result = {
+					src,
+					equals: (o: any) => o.src === src,
 				};
-				return normalizedDoc;
+				return result;
 			}
 
-			let lastDocument: NormalizedDocument = getNormalizedDocument(
-				document.getText()
-			);
+			let lastDocument = getNormalizedDocument(document.getText());
 			let isThisEditorSaving = false;
 
 			workspace.onDidChangeTextDocument(async (evt) => {
@@ -105,7 +54,7 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 					return;
 				}
 				if (isThisEditorSaving) {
-					// We don't want to integrate our own changes
+					// We don't want to process our own changes.
 					return;
 				}
 				if (evt.contentChanges.length === 0) {
@@ -123,40 +72,43 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 				await drawioClient.mergeXmlLike(newText);
 			});
 
-			drawioClient.onChange.sub(async ({ newXml }) => {
+			drawioClient.onChange.sub(async ({ oldXml, newXml }) => {
 				// We format the xml so that it can be easily edited in a second text editor.
+				async function getOutput(): Promise<string> {
+					if (document.uri.path.endsWith(".svg")) {
+						const svg =
+							await drawioClient.exportAsSvgWithEmbeddedXml();
+						newXml = svg.toString("utf-8");
 
-				let output: string;
-				if (document.uri.path.endsWith(".svg")) {
-					const svg = await drawioClient.exportAsSvgWithEmbeddedXml();
-					newXml = svg.toString("utf-8");
-					output = formatter(
 						// This adds a host to track which files are created by this extension and which by draw.io desktop.
-						newXml.replace(
+						newXml = newXml.replace(
 							/^<svg /,
 							() => `<svg host="65bd71144e" `
-						)
-					);
-				} else {
-					if (newXml.startsWith('<mxfile host="')) {
-						newXml = newXml.replace(
-							/^<mxfile host="(.*?)"/,
-							() => `<mxfile host="65bd71144e"`
 						);
+
+						return formatter(newXml);
 					} else {
-						// in case there is no host attribute
-						newXml = newXml.replace(
-							/^<mxfile /,
-							() => `<mxfile host="65bd71144e"`
+						if (newXml.startsWith('<mxfile host="')) {
+							newXml = newXml.replace(
+								/^<mxfile host="(.*?)"/,
+								() => `<mxfile host="65bd71144e"`
+							);
+						} else {
+							// in case there is no host attribute
+							newXml = newXml.replace(
+								/^<mxfile /,
+								() => `<mxfile host="65bd71144e"`
+							);
+						}
+
+						return formatter(
+							// This normalizes the host
+							newXml
 						);
 					}
-
-					output = formatter(
-						// This normalizes the host
-						newXml
-					);
 				}
 
+				const output = await getOutput();
 				const newDocument = getNormalizedDocument(output);
 				if (newDocument.equals(lastDocument)) {
 					return;
@@ -174,7 +126,11 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 
 				isThisEditorSaving = true;
 				try {
-					await workspace.applyEdit(workspaceEdit);
+					if (!(await workspace.applyEdit(workspaceEdit))) {
+						window.showErrorMessage(
+							"Could not apply Draw.io document changes to the underlying document. Try to save again!"
+						);
+					}
 				} finally {
 					isThisEditorSaving = false;
 				}
