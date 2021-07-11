@@ -1,4 +1,3 @@
-import { readFileSync } from "fs";
 import { autorun, computed, observable } from "mobx";
 import {
 	ColorTheme,
@@ -19,6 +18,7 @@ import {
 	serializerWithDefault,
 	VsCodeSetting,
 } from "./vscode-utils/VsCodeSetting";
+import * as packageJson from "../package.json";
 
 const extensionId = "hediet.vscode-drawio";
 const experimentalFeaturesEnabled = "vscode-drawio.experimentalFeaturesEnabled";
@@ -33,14 +33,10 @@ export async function setContext(
 export class Config {
 	public readonly packageJson: {
 		version: string;
-		versionName: string | undefined;
+		versionName?: string;
 		name: string;
 		feedbackUrl?: string;
-	} = JSON.parse(
-		readFileSync
-			? readFileSync(this.packageJsonPath, { encoding: "utf-8" })
-			: "{}"
-	);
+	} = packageJson;
 
 	public get feedbackUrl(): Uri | undefined {
 		if (this.packageJson.feedbackUrl) {
@@ -63,10 +59,7 @@ export class Config {
 		return this._vscodeTheme;
 	}
 
-	constructor(
-		private readonly packageJsonPath: string,
-		private readonly globalState: Memento
-	) {
+	constructor(private readonly globalState: Memento) {
 		autorun(() => {
 			setContext(
 				experimentalFeaturesEnabled,
@@ -429,10 +422,10 @@ export class DiagramConfig {
 		}
 	);
 
-	public get plugins(): { file: string }[] {
+	public get plugins(): { file: Uri }[] {
 		return this._plugins.get().map((entry) => {
 			const fullFilePath = this.evaluateTemplate(entry.file, "plugins");
-			return { file: fullFilePath };
+			return { file: Uri.file(fullFilePath) };
 		});
 	}
 

@@ -8,7 +8,6 @@ import { LinkCodeWithSelectedNodeService } from "./features/CodeLinkFeature";
 import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
 import { LiveshareFeature } from "./features/LiveshareFeature";
 import { ActivityTracking } from "./features/ActivtyTracking";
-import { join } from "path";
 import { DrawioClientFactory } from "./DrawioClient";
 
 export class Extension {
@@ -17,15 +16,7 @@ export class Extension {
 		vscode.window.createOutputChannel("Drawio Integration Log")
 	);
 
-	private readonly packageJsonPath = join(
-		this.context.extensionPath,
-		"package.json"
-	);
-
-	private readonly config = new Config(
-		this.packageJsonPath,
-		this.context.globalState
-	);
+	private readonly config = new Config(this.context.globalState);
 	private readonly drawioClientFactory = new DrawioClientFactory(
 		this.config,
 		this.log,

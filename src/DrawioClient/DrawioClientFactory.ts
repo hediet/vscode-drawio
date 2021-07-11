@@ -1,13 +1,19 @@
-import { Webview, OutputChannel, Uri, window, WebviewPanel } from "vscode";
+import {
+	Webview,
+	OutputChannel,
+	Uri,
+	window,
+	WebviewPanel,
+	workspace,
+} from "vscode";
 import { CustomizedDrawioClient, simpleDrawioLibrary } from ".";
 import { Config, DiagramConfig } from "../Config";
 import html from "./webview-content.html";
-import path = require("path");
 import { formatValue } from "../utils/formatValue";
 import { autorun, observable, runInAction, untracked } from "mobx";
 import { sha256 } from "js-sha256";
-import { readFileSync } from "fs";
 import { getDrawioExtensions } from "../DrawioExtensionApi";
+import { BufferImpl } from "../utils/buffer";
 
 export class DrawioClientFactory {
 	constructor(
@@ -115,7 +121,9 @@ export class DrawioClientFactory {
 		for (const p of config.plugins) {
 			let jsCode: string;
 			try {
-				jsCode = readFileSync(p.file, { encoding: "utf-8" });
+				jsCode = BufferImpl.from(
+					await workspace.fs.readFile(p.file)
+				).toString("utf-8");
 			} catch (e) {
 				window.showErrorMessage(
 					`Could not read plugin file "${p.file}"!`
@@ -124,7 +132,7 @@ export class DrawioClientFactory {
 			}
 
 			const fingerprint = sha256.hex(jsCode);
-			const pluginId = p.file;
+			const pluginId = p.file.toString();
 
 			const isAllowed = this.config.isPluginAllowed(
 				pluginId,
