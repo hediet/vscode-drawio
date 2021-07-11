@@ -10,5 +10,6 @@
 	"workbench.editorAssociations": {
 		"*.drawio": "default",
 		"*.dio": "default"
-	}
+	},
+	"typescript.tsdk": "node_modules\\typescript\\lib"
 }
