@@ -465,8 +465,17 @@
 					};
 				});
 
+				patchFn(mxUtils, "getXml", function (old) {
+					return function (node) {
+						// https://github.com/hediet/vscode-drawio/issues/209
+						const xmlSerializer = new XMLSerializer();
+						xml = xmlSerializer.serializeToString(node);
+						return xml;
+					};
+				});
+
 				App.main();
-				
+
 				// For debugging:
 				// console.log("drawio", window.Draw);
 
