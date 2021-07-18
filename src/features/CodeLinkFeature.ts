@@ -17,7 +17,7 @@ import { wait } from "@hediet/std/timer";
 import { DrawioEditorService, DrawioEditor } from "../DrawioEditorService";
 import { autorun, action } from "mobx";
 import { Config } from "../Config";
-import { join, relative } from "path";
+import { path } from "../utils/path";
 import { registerFailableCommand } from "../utils/registerFailableCommand";
 
 const toggleCodeLinkActivationCommandName =
@@ -260,7 +260,7 @@ class CodePosition {
 
 		return new CodePosition(
 			relativeTo.with({
-				path: Uri.file(join(relativeTo.path, data.path)).path,
+				path: Uri.file(path.join(relativeTo.path, data.path)).path,
 			}),
 			"start" in data
 				? new Range(getPosition(data.start), getPosition(data.end))
@@ -279,10 +279,9 @@ class CodePosition {
 		}
 
 		const data: Data = {
-			path: relative(relativeTo.fsPath, this.uri.fsPath).replace(
-				/\\/g,
-				"/"
-			),
+			path: path
+				.relative(relativeTo.fsPath, this.uri.fsPath)
+				.replace(/\\/g, "/"),
 			...(this.range
 				? {
 						start: toPosition(this.range.start),
