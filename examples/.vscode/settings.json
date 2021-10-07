@@ -5,5 +5,109 @@
 		{
 			"file": "${workspaceFolder}/tooltips-plugin.js"
 		}
+	],
+	"hediet.vscode-drawio.customColorSchemes": [
+		[
+			{
+				"fill": "#ffb3ba",
+				"stroke": "none"
+			},
+			{
+				"fill": "#ffdfba",
+				"stroke": "none"
+			},
+			{
+				"fill": "#ffffba",
+				"stroke": "none"
+			},
+			{
+				"fill": "#baffc9",
+				"stroke": "none"
+			},
+			{
+				"fill": "#bae1ff",
+				"stroke": "none"
+			},
+			{
+				"fill": "#eecbff",
+				"stroke": "none"
+			},
+			{
+				"fill": "#a2798f",
+				"stroke": "none"
+			},
+			{
+				"fill": "#8caba8",
+				"stroke": "none"
+			}
+		],
+		[
+			{
+				"fill": "#ffb3ba",
+				"stroke": "none"
+			},
+			{
+				"fill": "#ffdfba",
+				"stroke": "none"
+			},
+			{
+				"fill": "#ffffba",
+				"stroke": "none"
+			},
+			{
+				"fill": "#baffc9",
+				"stroke": "none"
+			},
+			{
+				"fill": "#bae1ff",
+				"stroke": "none"
+			},
+			{
+				"fill": "#eecbff",
+				"stroke": "none"
+			},
+			{
+				"fill": "#a2798f",
+				"stroke": "none"
+			},
+			{
+				"fill": "#8caba8",
+				"stroke": "none"
+			}
+		]
+	],
+	"hediet.vscode-drawio.presetColors": [
+		"e14d43"
+	],
+	"hediet.vscode-drawio.styles": [
+		{},
+		{
+			"commonStyle": {
+				"fontColor": "#5C5C5C",
+				"strokeColor": "#006658",
+				"fillColor": "#21C0A5"
+			}
+		},
+		{
+			"commonStyle": {
+				"fontColor": "#095C86",
+				"strokeColor": "#AF45ED",
+				"fillColor": "#F694C1"
+			},
+			"edgeStyle": {
+				"strokeColor": "#60E696"
+			}
+		},
+		{
+			"commonStyle": {
+				"fontColor": "#E4FDE1",
+				"strokeColor": "#028090",
+				"fillColor": "#F45B69"
+			},
+			"graph": {
+				"background": "#114B5F",
+				"gridColor": "#0B3240"
+			}
+		}
 	]
 }

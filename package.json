@@ -169,6 +169,41 @@
 					"title": "Draw.io Local Storage",
 					"description": "Only change this property if you know what you are doing. Manual changes to this property are not supported!"
 				},
+				"hediet.vscode-drawio.styles": {
+					"title": "Styles",
+					"description": "Defines an array of objects that contain the colours (fontColor, fillColor, strokeColor and gradientColor) for the Style tab of the format panel if the selection is empty. These objects can have a commonStyle (which is applied to both vertices and edges), vertexStyle (applied to vertices) and edgeStyle (applied to edges), and a graph with background and gridColor. An empty object means apply the default colors",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"commonStyle": {
+								"type": "object",
+								"properties": {
+									"fontColor": {
+										"type": "string"
+									},
+									"strokeColor": {
+										"type": "string"
+									},
+									"fillColor": {
+										"type": "string"
+									}
+								}
+							},
+							"graph": {
+								"type": "object",
+								"properties": {
+									"background": {
+										"type": "string"
+									},
+									"gridColor": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				},
 				"hediet.vscode-drawio.presetColors": {
 					"title": "Preset Colors",
 					"description": "Color codes for the upper palette in the color dialog.",

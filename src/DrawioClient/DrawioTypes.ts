@@ -86,6 +86,11 @@ export interface DrawioConfig {
 	customColorSchemes?: ColorScheme[][];
 
 	/**
+	 * Config for the style tab in the format panel
+	 */
+	styles?: Style[];
+
+	/**
 	 * Defines the initial default styles for vertices and edges (connectors).
 	 * Note that the styles defined here are copied to the styles of new cells, for each cell.
 	 * This means that these values override everything else that is inherited from other styles or themes
@@ -155,6 +160,22 @@ export interface ColorScheme {
 	fill?: string;
 	stroke?: string;
 	gradient?: string;
+}
+
+export interface CommonStyle {
+	fontColor?: string;
+	strokeColor?: string;
+	fillColor?: string;
+}
+
+export interface Graph {
+	background?: string;
+	gridColor?: string;
+}
+
+export interface Style {
+	commonStyle?: CommonStyle;
+	graph?: Graph;
 }
 
 export interface DrawioLibrarySection {

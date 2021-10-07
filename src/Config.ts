@@ -10,7 +10,7 @@ import {
 	window,
 	workspace,
 } from "vscode";
-import { ColorScheme, DrawioLibraryData } from "./DrawioClient";
+import { Style, ColorScheme, DrawioLibraryData } from "./DrawioClient";
 import { BufferImpl } from "./utils/buffer";
 import { mapObject } from "./utils/mapObject";
 import { SimpleTemplate } from "./utils/SimpleTemplate";
@@ -240,6 +240,25 @@ interface InternalConfig {
 }
 
 export class DiagramConfig {
+
+	//#region Styles 
+
+	private readonly _styles = new VsCodeSetting(
+		`${extensionId}.styles`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<Style[]>([]),
+		}
+	);
+
+	@computed
+	public get styles(): Style[] {
+		return this._styles.get();
+	}
+
+	//#endregion
+
+
 	//#region Custom Color Schemes
 
 	private readonly _customColorSchemes = new VsCodeSetting(
