@@ -50,6 +50,7 @@ export class DrawioClientFactory {
 				config.customFonts;
 				config.presetColors;
 				config.customColorSchemes;
+				config.styles;
 			},
 			{ name: "Update Webview Html" }
 		);
@@ -76,6 +77,7 @@ export class DrawioClientFactory {
 					customFonts: config.customFonts,
 					presetColors: config.presetColors,
 					customColorSchemes: config.customColorSchemes,
+					styles: config.styles,
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 				};
