@@ -372,6 +372,68 @@ export class DiagramConfig {
 
 	// #region Local Storage
 
+	private readonly _localStorage = new VsCodeSetting<Record<string, string>>(
+		`${extensionId}.local-storage`,
+		{
+			scope: this.uri,
+			serializer: {
+				deserialize: (value) => {
+					if (typeof value === "object") {
+						// stringify setting
+						// https://github.com/microsoft/vscode/issues/98001
+						mapObject(value, (item) =>
+							typeof item === "string"
+								? item
+								: JSON.stringify(item)
+						);
+						return mapObject(value, (item) =>
+							typeof item === "string"
+								? item
+								: JSON.stringify(item)
+						);
+					} else {
+						const str = BufferImpl.from(
+							value || "",
+							"base64"
+						).toString("utf-8");
+						return JSON.parse(str);
+					}
+				},
+				serializer: (val) => {
+					function tryJsonParse(val: string): string | any {
+						try {
+							return JSON.parse(val);
+						} catch (e) {
+							return val;
+						}
+					}
+
+					if (process.env.DEV === "1") {
+						// jsonify obj
+						const val2 = mapObject(val, (item) =>
+							tryJsonParse(item)
+						);
+						return val2;
+					}
+
+					return BufferImpl.from(
+						JSON.stringify(val),
+						"utf-8"
+					).toString("base64");
+				},
+			},
+		}
+	);
+
+	private migrateLocalStorageSettingsToMemento() {
+		const saved = this._localStorage.get();
+		if (saved.migrated) {
+			return;
+		}
+		this.setLocalStorage(saved);
+		this._localStorage.set({ migrated: new Date().toISOString() });
+	}
+
 	public get localStorage(): Record<string, string> {
 		return this.memento.get<Record<string, string>>(
 			`${extensionId}.local-storage`,
@@ -504,7 +566,9 @@ export class DiagramConfig {
 		public readonly uri: Uri,
 		private readonly config: Config,
 		private readonly memento: Memento
-	) {}
+	) {
+		this.migrateLocalStorageSettingsToMemento();
+	}
 
 	@computed
 	public get drawioLanguage(): string {
