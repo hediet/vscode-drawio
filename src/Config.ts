@@ -240,16 +240,12 @@ interface InternalConfig {
 }
 
 export class DiagramConfig {
+	//#region Styles
 
-	//#region Styles 
-
-	private readonly _styles = new VsCodeSetting(
-		`${extensionId}.styles`,
-		{
-			scope: this.uri,
-			serializer: serializerWithDefault<Style[]>([]),
-		}
-	);
+	private readonly _styles = new VsCodeSetting(`${extensionId}.styles`, {
+		scope: this.uri,
+		serializer: serializerWithDefault<Style[]>([]),
+	});
 
 	@computed
 	public get styles(): Style[] {
@@ -257,7 +253,6 @@ export class DiagramConfig {
 	}
 
 	//#endregion
-
 
 	//#region Custom Color Schemes
 
