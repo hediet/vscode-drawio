@@ -51,6 +51,8 @@ export class DrawioClientFactory {
 				config.presetColors;
 				config.customColorSchemes;
 				config.styles;
+				config.defaultVertexStyle;
+				config.defaultEdgeStyle;
 			},
 			{ name: "Update Webview Html" }
 		);
@@ -78,6 +80,8 @@ export class DrawioClientFactory {
 					presetColors: config.presetColors,
 					customColorSchemes: config.customColorSchemes,
 					styles: config.styles,
+					defaultVertexStyle: config.defaultVertexStyle,
+					defaultEdgeStyle: config.defaultEdgeStyle,
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 				};

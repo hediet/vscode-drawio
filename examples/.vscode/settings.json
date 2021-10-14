@@ -6,6 +6,25 @@
 			"file": "${workspaceFolder}/tooltips-plugin.js"
 		}
 	],
+	"hediet.vscode-drawio.defaultVertexStyle": {
+		"fontColor": "#ff0000",
+		"fontFamily": "Courier New",
+		"fontSize": 18,
+		"strokeWidth": 2,
+		"strokeColor": "#ff0000"
+	},
+	"hediet.vscode-drawio.defaultEdgeStyle": {
+		"fontColor": "#0000ff",
+		"fontFamily": "Courier New",
+		"fontSize": 18,
+		"strokeWidth": 2,
+		"strokeColor": "#0000ff",
+		"endArrow": "none",
+		"startArrow": "none",
+		"edgeStyle": "orthogonalEdgeStyle",
+		"orthogonal": 1,
+		"elbow": "vertical"
+	},
 	"hediet.vscode-drawio.customColorSchemes": [
 		[
 			{

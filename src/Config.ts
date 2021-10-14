@@ -276,6 +276,41 @@ export class DiagramConfig {
 
 	//#endregion
 
+	//#region Default Vertex Style 
+
+	private readonly _defaultVertexStyle = new VsCodeSetting(
+		`${extensionId}.defaultVertexStyle`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<Record<string, string>>({}),
+		}
+	);
+
+	@computed
+	public get defaultVertexStyle(): Record<string, string> {
+		return this._defaultVertexStyle.get();
+	}
+
+	//#endregion
+
+	//#region Default Edge Style 
+
+	private readonly _defaultEdgeStyle = new VsCodeSetting(
+		`${extensionId}.defaultEdgeStyle`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<Record<string, string>>({}),
+		}
+	);
+
+	@computed
+	public get defaultEdgeStyle(): Record<string, string> {
+		return this._defaultEdgeStyle.get();
+	}
+
+	//#endregion
+
+
 	//#region Preset Colors
 
 	private readonly _presetColors = new VsCodeSetting(
