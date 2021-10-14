@@ -9,12 +9,11 @@
 	"hediet.vscode-drawio.customColorSchemes": [
 		[
 			{
-				"fill": "#ffb3ba",
-				"stroke": "none"
-			},
-			{
-				"fill": "#ffdfba",
-				"stroke": "none"
+				"title": "Kind of pink",
+				"fill": "#00ff00",
+				"stroke": "none",
+				"font": "#ffff00",
+				"gradient": "#0000ff",
 			},
 			{
 				"fill": "#ffffba",

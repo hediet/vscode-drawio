@@ -223,6 +223,10 @@
 						"items": {
 							"type": "object",
 							"properties": {
+								"title": {
+									"type": "string",
+									"description": "Title of the color used in tooltips."
+								},
 								"fill": {
 									"type": "string",
 									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
@@ -232,6 +236,10 @@
 									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
 								},
 								"gradient": {
+									"type": "string",
+									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+								},
+								"font": {
 									"type": "string",
 									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
 								}

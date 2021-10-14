@@ -157,9 +157,11 @@ export interface DrawioConfig {
 }
 
 export interface ColorScheme {
+	title?: string;
 	fill?: string;
 	stroke?: string;
 	gradient?: string;
+	font?: string;
 }
 
 export interface CommonStyle {
