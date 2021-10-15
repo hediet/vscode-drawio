@@ -293,6 +293,24 @@ export class DiagramConfig {
 
 	//#endregion
 
+	//#region Color Names
+
+	private readonly _colorNames = new VsCodeSetting(
+		`${extensionId}.colorNames`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<Record<string, string>>({}),
+		}
+	);
+
+	@computed
+	public get colorNames(): Record<string, string> {
+		return this._colorNames.get();
+	}
+
+	//#endregion
+
+
 	//#region Default Edge Style 
 
 	private readonly _defaultEdgeStyle = new VsCodeSetting(

@@ -204,6 +204,11 @@
 						}
 					}
 				},
+				"hediet.vscode-drawio.colorNames": {
+					"title": "Color Names",
+					"description": "Names for colors, eg. {‘FFFFFF’: ‘White’, ‘000000’: ‘Black’} that are used as tooltips (uppercase, no leading # for the colour codes)",
+					"type": "object"
+				},
 				"hediet.vscode-drawio.defaultVertexStyle": {
 					"title": "Default Vertex Style",
 					"description": "Default styling of vertices (shapes).",

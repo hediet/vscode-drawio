@@ -115,6 +115,11 @@ export interface DrawioConfig {
 	defaultEdgeStyle?: Record<string, string>;
 
 	/**
+	 * Names for colors, eg. {‘FFFFFF’: ‘White’, ‘000000’: ‘Black’} that are used as tooltips (uppercase, no leading # for the colour codes).
+	 */
+	colorNames?: Record<string, string>;
+
+	/**
 	 * Defines a string with CSS rules to be used to configure the diagrams.net user interface.
 	 * For example, to change the background colour of the menu bar, use the following:
 	 * ```css

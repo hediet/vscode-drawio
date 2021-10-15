@@ -95,8 +95,13 @@
 		]
 	],
 	"hediet.vscode-drawio.presetColors": [
-		"e14d43"
+		"ff0000",
+		"00ff00"
 	],
+	"hediet.vscode-drawio.colorNames": {
+		"FF0000": "Red",
+		"00FF00": "Green",
+	},
 	"hediet.vscode-drawio.styles": [
 		{},
 		{
