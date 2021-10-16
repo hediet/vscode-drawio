@@ -240,16 +240,12 @@ interface InternalConfig {
 }
 
 export class DiagramConfig {
+	//#region Styles
 
-	//#region Styles 
-
-	private readonly _styles = new VsCodeSetting(
-		`${extensionId}.styles`,
-		{
-			scope: this.uri,
-			serializer: serializerWithDefault<Style[]>([]),
-		}
-	);
+	private readonly _styles = new VsCodeSetting(`${extensionId}.styles`, {
+		scope: this.uri,
+		serializer: serializerWithDefault<Style[]>([]),
+	});
 
 	@computed
 	public get styles(): Style[] {
@@ -257,7 +253,6 @@ export class DiagramConfig {
 	}
 
 	//#endregion
-
 
 	//#region Custom Color Schemes
 
@@ -276,7 +271,7 @@ export class DiagramConfig {
 
 	//#endregion
 
-	//#region Default Vertex Style 
+	//#region Default Vertex Style
 
 	private readonly _defaultVertexStyle = new VsCodeSetting(
 		`${extensionId}.defaultVertexStyle`,
@@ -293,7 +288,7 @@ export class DiagramConfig {
 
 	//#endregion
 
-	//#region Default Edge Style 
+	//#region Default Edge Style
 
 	private readonly _defaultEdgeStyle = new VsCodeSetting(
 		`${extensionId}.defaultEdgeStyle`,
@@ -326,8 +321,6 @@ export class DiagramConfig {
 	}
 
 	//#endregion
-
-
 
 	//#region Preset Colors
 
