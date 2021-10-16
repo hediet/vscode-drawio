@@ -419,7 +419,7 @@ export class DiagramConfig {
 
 	private migrateLocalStorageSettingsToMemento() {
 		const saved = this._localStorage.get();
-		if (!saved) {
+		if (!saved || Object.keys(saved).length === 0) {
 			return;
 		}
 		this.setLocalStorage(saved);
