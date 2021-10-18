@@ -74,7 +74,7 @@ export class Config {
 	}
 
 	public getDiagramConfig(uri: Uri): DiagramConfig {
-		return new DiagramConfig(uri, this);
+		return new DiagramConfig(uri, this, this.globalState);
 	}
 
 	private readonly _experimentalFeatures = new VsCodeSetting(
@@ -240,16 +240,12 @@ interface InternalConfig {
 }
 
 export class DiagramConfig {
+	//#region Styles
 
-	//#region Styles 
-
-	private readonly _styles = new VsCodeSetting(
-		`${extensionId}.styles`,
-		{
-			scope: this.uri,
-			serializer: serializerWithDefault<Style[]>([]),
-		}
-	);
+	private readonly _styles = new VsCodeSetting(`${extensionId}.styles`, {
+		scope: this.uri,
+		serializer: serializerWithDefault<Style[]>([]),
+	});
 
 	@computed
 	public get styles(): Style[] {
@@ -257,7 +253,6 @@ export class DiagramConfig {
 	}
 
 	//#endregion
-
 
 	//#region Custom Color Schemes
 
@@ -372,65 +367,74 @@ export class DiagramConfig {
 
 	// #region Local Storage
 
-	private readonly _localStorage = new VsCodeSetting<Record<string, string>>(
-		`${extensionId}.local-storage`,
-		{
-			scope: this.uri,
-			serializer: {
-				deserialize: (value) => {
-					if (typeof value === "object") {
-						// stringify setting
-						// https://github.com/microsoft/vscode/issues/98001
-						mapObject(value, (item) =>
-							typeof item === "string"
-								? item
-								: JSON.stringify(item)
-						);
-						return mapObject(value, (item) =>
-							typeof item === "string"
-								? item
-								: JSON.stringify(item)
-						);
-					} else {
-						const str = BufferImpl.from(
-							value || "",
-							"base64"
-						).toString("utf-8");
-						return JSON.parse(str);
-					}
-				},
-				serializer: (val) => {
-					function tryJsonParse(val: string): string | any {
-						try {
-							return JSON.parse(val);
-						} catch (e) {
-							return val;
-						}
-					}
-
-					if (process.env.DEV === "1") {
-						// jsonify obj
-						const val2 = mapObject(val, (item) =>
-							tryJsonParse(item)
-						);
-						return val2;
-					}
-
-					return BufferImpl.from(
-						JSON.stringify(val),
+	private readonly _localStorage = new VsCodeSetting<
+		Record<string, string> | undefined
+	>(`${extensionId}.local-storage`, {
+		scope: this.uri,
+		serializer: {
+			deserialize: (value) => {
+				if (value == undefined) {
+					return undefined;
+				}
+				if (typeof value === "object") {
+					// stringify setting
+					// https://github.com/microsoft/vscode/issues/98001
+					mapObject(value, (item) =>
+						typeof item === "string" ? item : JSON.stringify(item)
+					);
+					return mapObject(value, (item) =>
+						typeof item === "string" ? item : JSON.stringify(item)
+					);
+				} else {
+					const str = BufferImpl.from(value || "", "base64").toString(
 						"utf-8"
-					).toString("base64");
-				},
+					);
+					return JSON.parse(str);
+				}
 			},
+			serializer: (val) => {
+				if (val == undefined) {
+					return undefined;
+				}
+				function tryJsonParse(val: string): string | any {
+					try {
+						return JSON.parse(val);
+					} catch (e) {
+						return val;
+					}
+				}
+
+				if (process.env.DEV === "1") {
+					// jsonify obj
+					const val2 = mapObject(val, (item) => tryJsonParse(item));
+					return val2;
+				}
+
+				return BufferImpl.from(JSON.stringify(val), "utf-8").toString(
+					"base64"
+				);
+			},
+		},
+	});
+
+	private migrateLocalStorageSettingsToMemento() {
+		const saved = this._localStorage.get();
+		if (!saved || Object.keys(saved).length === 0) {
+			return;
 		}
-	);
+		this.setLocalStorage(saved);
+		this._localStorage.set(undefined);
+	}
 
 	public get localStorage(): Record<string, string> {
-		return this._localStorage.get();
+		return this.memento.get<Record<string, string>>(
+			`${extensionId}.local-storage`,
+			{}
+		);
 	}
 
 	public setLocalStorage(value: Record<string, string>): void {
-		this._localStorage.set(value);
+		this.memento.update(`${extensionId}.local-storage`, value);
 	}
 
 	//#endregion
@@ -550,7 +554,13 @@ export class DiagramConfig {
 
 	// #endregion
 
-	constructor(public readonly uri: Uri, private readonly config: Config) {}
+	constructor(
+		public readonly uri: Uri,
+		private readonly config: Config,
+		private readonly memento: Memento
+	) {
+		this.migrateLocalStorageSettingsToMemento();
+	}
 
 	@computed
 	public get drawioLanguage(): string {
