@@ -204,6 +204,21 @@
 						}
 					}
 				},
+ 				"hediet.vscode-drawio.defaultVertexStyle": {
+					"title": "Default Vertex Style",
+					"description": "Default styling of vertices (shapes).",
+					"type": "object"
+				},
+				"hediet.vscode-drawio.defaultEdgeStyle": {
+					"title": "Default Edge Style",
+					"description": "Default styling of edges.",
+					"type": "object"
+				},
+				"hediet.vscode-drawio.colorNames": {
+					"title": "Color Names",
+					"description": "Names for colors, eg. {‘FFFFFF’: ‘White’, ‘000000’: ‘Black’} that are used as tooltips (uppercase, no leading # for the colour codes)",
+					"type": "object"
+				},
 				"hediet.vscode-drawio.presetColors": {
 					"title": "Preset Colors",
 					"description": "Color codes for the upper palette in the color dialog.",
@@ -223,6 +238,10 @@
 						"items": {
 							"type": "object",
 							"properties": {
+								"title": {
+									"type": "string",
+									"description": "Title of the color used in tooltips."
+								},
 								"fill": {
 									"type": "string",
 									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
@@ -232,6 +251,10 @@
 									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
 								},
 								"gradient": {
+									"type": "string",
+									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+								},
+								"font": {
 									"type": "string",
 									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
 								}
