@@ -15,7 +15,7 @@ This unofficial extension integrates [Draw.io](https://app.diagrams.net/) (also 
     -   To convert between different formats, use the `Draw.io: Convert To...` command.
 -   Uses an offline version of Draw.io by default.
 -   Multiple Draw.io themes are available.
--   Use liveshare to collaboratively edit a diagram with others.
+-   Use Liveshare to collaboratively edit a diagram with others.
 -   Nodes/edges can be linked with code spans.
 
 ## Demo
@@ -101,7 +101,7 @@ You won't be able to edit arbitrary SVG files though - only those that have been
 
 You can open the same `*.drawio` file with the Draw.io editor and as xml file.
 They are synchronized, so you can switch between them as you like it.
-This is super pratical if you want to use find/replace to rename text or other features of VS Code to speed up your diagram creation/edit process.
+This is super practical if you want to use find/replace to rename text or other features of VS Code to speed up your diagram creation/edit process.
 Use the `View: Reopen Editor With...` command to toggle between the text or the Draw.io editor. You can open multiple editors for the same file.
 This does not make much sense for SVG files though, as the draw.io diagram is stored in its metadata.
 
