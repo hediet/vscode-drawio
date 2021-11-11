@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.6.2-alpha.2]
+## [1.6.3-alpha.1]
 
 ### Changed
 
@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   `defaultColorSchemes` setting can now have a title attribute
 -   Updates Draw.io to 14.9.9
 -   Migrates to memento for draw.io local-storage
+
+## [1.6.2]
 
 ### Fixed
 
