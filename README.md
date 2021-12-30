@@ -40,7 +40,7 @@ The logo of this extension is such a `.drawio.png` file that has been created wi
 
 ![](./docs/drawio-png.gif)
 
-If diffs are important for you, you should prefer `.drawio` and avoid `.drawio.png` diagrams.
+If diffs are important for you, you should prefer `.drawio.svg` and avoid `.drawio.png` diagrams.
 
 ## Collaboratively Edit Or Present Diagrams
 
