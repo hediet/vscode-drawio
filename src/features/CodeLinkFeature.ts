@@ -12,6 +12,10 @@ import {
 	TextEditorDecorationType,
 	TextEditor,
 	SymbolInformation,
+	QuickPickItem,
+	QuickPickOptions,
+	DocumentSymbol,
+	TextDocument
 } from "vscode";
 import { wait } from "@hediet/std/timer";
 import { DrawioEditorService, DrawioEditor } from "../DrawioEditorService";
@@ -24,9 +28,39 @@ const toggleCodeLinkActivationCommandName =
 	"hediet.vscode-drawio.toggleCodeLinkActivation";
 const linkCodeWithSelectedNodeCommandName =
 	"hediet.vscode-drawio.linkCodeWithSelectedNode";
-
+const linkSymbolWithSelectedNodeCommandName =
+	"hediet.vscode-drawio.linkSymbolWithSelectedNode";
 const linkFileWithSelectedNodeCommandName =
 	"hediet.vscode-drawio.linkFileWithSelectedNode";
+
+const symbolList = [
+	'symbol-file',
+	'symbol-module',
+	'symbol-namespace',
+	'symbol-package',
+	'symbol-class',
+	'symbol-method',
+	'symbol-property',
+	'symbol-field',
+	'symbol-constructor',
+	'symbol-enum',
+	'symbol-interface',
+	'symbol-function',
+	'symbol-variable',
+	'symbol-constant',
+	'symbol-string',
+	'symbol-number',
+	'symbol-boolean',
+	'symbol-array',
+	'symbol-object',
+	'symbol-key',
+	'symbol-null',
+	'symbol-enum-member',
+	'symbol-struct',
+	'symbol-event',
+	'symbol-operator',
+	'symbol-type-parameter'
+];
 
 export class LinkCodeWithSelectedNodeService {
 	public readonly dispose = Disposable.fn();
@@ -56,7 +90,7 @@ export class LinkCodeWithSelectedNodeService {
 								activeEditor.config.codeLinkActivated
 									? "$(circle-filled)"
 									: "$(circle-outline)"
-							} Code Link`;
+								} Code Link`;
 							this.statusBar.show();
 						} else {
 							this.statusBar.hide();
@@ -80,8 +114,12 @@ export class LinkCodeWithSelectedNodeService {
 			),
 			registerFailableCommand(
 				linkFileWithSelectedNodeCommandName,
-				this.linkFileWithSelectedNodeCommandName
+				this.linkFileWithSelectedNode
 			),
+			registerFailableCommand(
+				linkSymbolWithSelectedNodeCommandName,
+				this.linkSymbolWithSelectedNode
+			)
 		]);
 	}
 
@@ -124,7 +162,7 @@ export class LinkCodeWithSelectedNodeService {
 	}
 
 	@action.bound
-	private linkFileWithSelectedNodeCommandName(file: Uri): void {
+	private linkFileWithSelectedNode(file: Uri): void {
 		const lastActiveDrawioEditor =
 			this.editorManager.lastActiveDrawioEditor;
 		if (!lastActiveDrawioEditor) {
@@ -136,6 +174,49 @@ export class LinkCodeWithSelectedNodeService {
 		lastActiveDrawioEditor.drawioClient.linkSelectedNodeWithData(
 			pos.serialize(lastActiveDrawioEditor.uri)
 		);
+	}
+
+	@action.bound
+	private async linkSymbolWithSelectedNode() {
+		const lastActiveDrawioEditor =
+			this.editorManager.lastActiveDrawioEditor;
+		if (!lastActiveDrawioEditor) {
+			window.showErrorMessage("No active drawio instance.");
+			return;
+		}
+		const editor = window.activeTextEditor;
+		if (!editor) {
+			window.showErrorMessage("No text editor active.");
+			return;
+		}
+		const uri = editor?.document.uri;
+		const result = (await commands.executeCommand(
+			"vscode.executeDocumentSymbolProvider", uri
+		)) as DocumentSymbol[];
+		let items: QuickPickItem[] = [];
+		function recurse(symb: DocumentSymbol[], path: string) {
+			for (let x of symb) {
+				let curpath = path == "" ? x.name : `${path}.${x.name}`;
+				items.push(<QuickPickItem>{
+					label: `$(${symbolList[x.kind]}) ${x.name}`,
+					description: x.detail,
+					detail: curpath
+				});
+				recurse(x.children, curpath);
+			}
+		}
+		recurse(result, "");
+		window.showQuickPick(items, <QuickPickOptions>{
+			matchOnDescription: true,
+			matchOnDetail: true,
+			placeHolder: `Choose symbol from ${path.basename(uri.fsPath)}`
+		}).then(v => {
+			if (v == undefined) return;
+			const pos = new CodePosition(editor.document.uri, v.detail);
+			lastActiveDrawioEditor.drawioClient.linkSelectedNodeWithData(
+				pos.serialize(lastActiveDrawioEditor.uri)
+			);
+		});
 	}
 
 	private handleDrawioEditor(editor: DrawioEditor): void {
@@ -160,7 +241,7 @@ export class LinkCodeWithSelectedNodeService {
 			}
 
 			if (linkedData) {
-				const pos = CodePosition.deserialize(linkedData, editor.uri);
+				const pos = await CodePosition.deserialize(linkedData, editor.uri);
 				await this.revealSelection(pos);
 			} else {
 				const match = label.match(/#([a-zA-Z0-9_<>,]+)/);
@@ -252,23 +333,34 @@ export class LinkCodeWithSelectedNodeService {
 }
 
 class CodePosition {
-	public static deserialize(value: unknown, relativeTo: Uri): CodePosition {
+	public readonly range: Range | undefined;
+	public readonly symbol: string | undefined;
+
+	public static async deserialize(value: unknown, relativeTo: Uri): Promise<CodePosition> {
 		const data = value as Data;
 		function getPosition(pos: PositionData): Position {
 			return new Position(pos.line, pos.col);
 		}
 
-		return new CodePosition(
-			relativeTo.with({
-				path: Uri.file(path.join(relativeTo.path, data.path)).path,
-			}),
-			"start" in data
-				? new Range(getPosition(data.start), getPosition(data.end))
-				: undefined
-		);
+		let uri = relativeTo.with({
+			path: Uri.file(path.join(relativeTo.path, data.path)).path,
+		});
+		let obj: Range | undefined = undefined;
+		if ("start" in data) {
+			obj = new Range(getPosition(data.start), getPosition(data.end));
+		} else if ("symbol" in data) {
+			obj = await resolveSymbol(uri, data.symbol);
+		}
+		return new CodePosition(uri, obj);
 	}
 
-	constructor(public readonly uri: Uri, public readonly range?: Range) {}
+	constructor(public readonly uri: Uri, private obj?: Range | string) {
+		if (obj instanceof Range) {
+			this.range = obj as Range;
+		} else if (typeof obj == "string") {
+			this.symbol = obj as string;
+		}
+	}
 
 	public serialize(relativeTo: Uri): unknown {
 		function toPosition(pos: Position): PositionData {
@@ -278,16 +370,23 @@ class CodePosition {
 			};
 		}
 
+		let rangeObj = {};
+		if (this.range) {
+			rangeObj = {
+				start: toPosition(this.range.start),
+				end: toPosition(this.range.end),
+			};
+		} else if (this.symbol) {
+			rangeObj = {
+				symbol: this.symbol
+			};
+		}
+
 		const data: Data = {
 			path: path
 				.relative(relativeTo.fsPath, this.uri.fsPath)
 				.replace(/\\/g, "/"),
-			...(this.range
-				? {
-						start: toPosition(this.range.start),
-						end: toPosition(this.range.end),
-				  }
-				: {}),
+			...rangeObj
 		};
 		return data;
 	}
@@ -298,9 +397,12 @@ type Data = {
 } & (
 	| {}
 	| {
-			start: PositionData;
-			end: PositionData;
-	  }
+		start: PositionData;
+		end: PositionData;
+	}
+	| {
+		symbol: string;
+	}
 );
 
 interface PositionData {
@@ -312,4 +414,22 @@ function getSorterBy<T>(selector: (item: T) => number) {
 	return (item1: T, item2: T) => {
 		return selector(item2) - selector(item1);
 	};
+}
+
+async function resolveSymbol(uri: Uri, path: string): Promise<Range | undefined> {
+	const result = (await commands.executeCommand(
+		"vscode.executeDocumentSymbolProvider", uri
+	)) as DocumentSymbol[];
+	let treePath = path.split('.');
+	let cur: DocumentSymbol[] | undefined = result;
+	for (let i = 0; i < treePath.length; i++) {
+		if (cur == undefined)
+			break;
+		cur = cur.filter(x => x.name == treePath[i]);
+		if (i < treePath.length - 1)
+			cur = cur[0]?.children;
+	}
+	if (cur == undefined || cur.length == 0)
+		return undefined;
+	return cur[0].range;
 }
