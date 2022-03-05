@@ -1,6 +1,6 @@
-<mxfile host="65bd71144e" modified="2021-01-17T15:34:27.099Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.52.1 Chrome/83.0.4103.122 Electron/9.3.5 Safari/537.36" etag="g-AlDsFQEC4KBryF5-Xb" scale="1" border="0" version="14.2.4" type="embed">
+<mxfile host="65bd71144e" scale="1" border="0">
     <diagram id="MgYzXS6eyhghL7g_6re2" name="Page-1">
-        <mxGraphModel dx="1594" dy="1150" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="363" dy="563" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -17,6 +17,34 @@
                 <mxCell id="5" value="#Foo" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="80" y="370" width="120" height="60" as="geometry"/>
                 </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="zOhSraGW9aLSeXGnnNEO" name="Test C++ Code">
+        <mxGraphModel dx="363" dy="563" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="WdrI0oJoAQMZujuPcE8P-0"/>
+                <mxCell id="WdrI0oJoAQMZujuPcE8P-1" parent="WdrI0oJoAQMZujuPcE8P-0"/>
+                <object label="Link 1" hedietLinkedDataV1_path="../demo-src/test.cc" hedietLinkedDataV1_symbol="test()" id="WdrI0oJoAQMZujuPcE8P-2">
+                    <mxCell style="whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=18;fontColor=#ff0000;strokeColor=#ff0000;strokeWidth=2;" vertex="1" parent="WdrI0oJoAQMZujuPcE8P-1">
+                        <mxGeometry x="70" y="70" width="210" height="60" as="geometry"/>
+                    </mxCell>
+                </object>
+                <object label="Link 2" hedietLinkedDataV1_path="../demo-src/test.cc" hedietLinkedDataV1_symbol="MyClass&lt;T&gt;.method()" id="WdrI0oJoAQMZujuPcE8P-3">
+                    <mxCell style="whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=18;fontColor=#ff0000;strokeColor=#ff0000;strokeWidth=2;" vertex="1" parent="WdrI0oJoAQMZujuPcE8P-1">
+                        <mxGeometry x="70" y="170" width="210" height="60" as="geometry"/>
+                    </mxCell>
+                </object>
+                <object label="Link 3" hedietLinkedDataV1_path="../demo-src/test.cc" hedietLinkedDataV1_symbol="myFunc&lt;T&gt;(T)" id="WdrI0oJoAQMZujuPcE8P-4">
+                    <mxCell style="whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=18;fontColor=#ff0000;strokeColor=#ff0000;strokeWidth=2;" vertex="1" parent="WdrI0oJoAQMZujuPcE8P-1">
+                        <mxGeometry x="70" y="270" width="210" height="60" as="geometry"/>
+                    </mxCell>
+                </object>
+                <object label="Link 4" hedietLinkedDataV1_path="../demo-src/test.cc" hedietLinkedDataV1_symbol="MyClass&lt;T&gt;" id="WdrI0oJoAQMZujuPcE8P-5">
+                    <mxCell style="whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=18;fontColor=#ff0000;strokeColor=#ff0000;strokeWidth=2;" vertex="1" parent="WdrI0oJoAQMZujuPcE8P-1">
+                        <mxGeometry x="70" y="360" width="210" height="60" as="geometry"/>
+                    </mxCell>
+                </object>
             </root>
         </mxGraphModel>
     </diagram>
