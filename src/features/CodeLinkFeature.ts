@@ -15,7 +15,7 @@ import {
 	QuickPickItem,
 	QuickPickOptions,
 	DocumentSymbol,
-	TextDocument
+	SymbolKind
 } from "vscode";
 import { wait } from "@hediet/std/timer";
 import { DrawioEditorService, DrawioEditor } from "../DrawioEditorService";
@@ -30,10 +30,12 @@ const linkCodeWithSelectedNodeCommandName =
 	"hediet.vscode-drawio.linkCodeWithSelectedNode";
 const linkSymbolWithSelectedNodeCommandName =
 	"hediet.vscode-drawio.linkSymbolWithSelectedNode";
+const linkWsSymbolWithSelectedNodeCommandName =
+	"hediet.vscode-drawio.linkWsSymbolWithSelectedNode";
 const linkFileWithSelectedNodeCommandName =
 	"hediet.vscode-drawio.linkFileWithSelectedNode";
 
-const symbolList = [
+const symbolNameMap: Record<SymbolKind, string> = [
 	'symbol-file',
 	'symbol-module',
 	'symbol-namespace',
@@ -88,8 +90,8 @@ export class LinkCodeWithSelectedNodeService {
 						if (activeEditor) {
 							this.statusBar.text = `$(link) ${
 								activeEditor.config.codeLinkActivated
-									? "$(circle-filled)"
-									: "$(circle-outline)"
+								? "$(circle-filled)"
+								: "$(circle-outline)"
 								} Code Link`;
 							this.statusBar.show();
 						} else {
@@ -119,6 +121,10 @@ export class LinkCodeWithSelectedNodeService {
 			registerFailableCommand(
 				linkSymbolWithSelectedNodeCommandName,
 				this.linkSymbolWithSelectedNode
+			),
+			registerFailableCommand(
+				linkWsSymbolWithSelectedNodeCommandName,
+				this.linkWsSymbolWithSelectedNode
 			)
 		]);
 	}
@@ -154,7 +160,7 @@ export class LinkCodeWithSelectedNodeService {
 			return;
 		}
 
-		const pos = new CodePosition(editor.document.uri, editor.selection);
+		const pos = new DeserializedCodePosition(editor.document.uri, editor.selection);
 		lastActiveDrawioEditor.drawioClient.linkSelectedNodeWithData(
 			pos.serialize(lastActiveDrawioEditor.uri)
 		);
@@ -177,7 +183,12 @@ export class LinkCodeWithSelectedNodeService {
 	}
 
 	@action.bound
-	private async linkSymbolWithSelectedNode() {
+	private async linkWsSymbolWithSelectedNode() {
+		this.linkSymbolWithSelectedNode(true);
+	}
+
+	@action.bound
+	private async linkSymbolWithSelectedNode(storeTopLevelSymbol: boolean = false) {
 		const lastActiveDrawioEditor =
 			this.editorManager.lastActiveDrawioEditor;
 		if (!lastActiveDrawioEditor) {
@@ -185,23 +196,35 @@ export class LinkCodeWithSelectedNodeService {
 			return;
 		}
 		const editor = window.activeTextEditor;
-		if (!editor) {
+		if (editor == undefined) {
 			window.showErrorMessage("No text editor active.");
 			return;
 		}
-		const uri = editor?.document.uri;
+		const uri = editor.document.uri;
+		const hasSelection = !editor.selection.start.isEqual(editor.selection.end);
 		const result = (await commands.executeCommand(
 			"vscode.executeDocumentSymbolProvider", uri
 		)) as DocumentSymbol[];
 		let items: QuickPickItem[] = [];
 		function recurse(symb: DocumentSymbol[], path: string) {
 			for (let x of symb) {
+				// If there is a selection and we do not intersect it, omit the symbol
+				let intersectSelection = true;
+				if (hasSelection && editor) {
+					intersectSelection =
+						editor.selections.reduce((prev: boolean, cur) => {
+							return prev && cur.intersection(x.selectionRange) !== undefined;
+						}, intersectSelection);
+				}
+				// Add the symbol and descend into children
 				let curpath = path == "" ? x.name : `${path}.${x.name}`;
-				items.push(<QuickPickItem>{
-					label: `$(${symbolList[x.kind]}) ${x.name}`,
-					description: x.detail,
-					detail: curpath
-				});
+				if (intersectSelection) {
+					items.push(<QuickPickItem>{
+						label: `$(${symbolNameMap[x.kind]}) ${x.name}`,
+						description: x.detail,
+						detail: curpath
+					});
+				}
 				recurse(x.children, curpath);
 			}
 		}
@@ -210,12 +233,16 @@ export class LinkCodeWithSelectedNodeService {
 			matchOnDescription: true,
 			matchOnDetail: true,
 			placeHolder: `Choose symbol from ${path.basename(uri.fsPath)}`
-		}).then(v => {
+		}).then(async v => {
 			if (v == undefined) return;
-			const pos = new CodePosition(editor.document.uri, v.detail);
+			const pos: CodePosition = new CodePosition(storeTopLevelSymbol ? undefined : uri, v.detail);
 			lastActiveDrawioEditor.drawioClient.linkSelectedNodeWithData(
 				pos.serialize(lastActiveDrawioEditor.uri)
 			);
+			// Validate upon exist, as some languages do not export workspace symbols
+			if (storeTopLevelSymbol && v.detail && !(await resolveTopSymbol(v.detail))) {
+				window.showWarningMessage(`Cannot resolve symbol ${v.detail}. This likely means workspace symbols are not supported by your language. Try "Link Symbol With Selected Node" instead.`);
+			}
 		});
 	}
 
@@ -241,54 +268,22 @@ export class LinkCodeWithSelectedNodeService {
 			}
 
 			if (linkedData) {
-				const pos = await CodePosition.deserialize(linkedData, editor.uri);
-				await this.revealSelection(pos);
+				try {
+					const pos = await CodePosition.deserialize(linkedData, editor.uri);
+					await this.revealSelection(pos);
+				} catch (e) {
+					window.showErrorMessage((e as Error).message);
+				}
 			} else {
 				const match = label.match(/#([a-zA-Z0-9_<>,]+)/);
 				if (match) {
 					const symbolName = match[1];
-					const result = (await commands.executeCommand(
-						"vscode.executeWorkspaceSymbolProvider",
-						symbolName
-					)) as SymbolInformation[];
-					const filtered = result
-						.filter((r) => r.name === symbolName)
-						.sort(
-							getSorterBy((matchedSymbol) => {
-								let score = 0;
-
-								const uriAsString =
-									matchedSymbol.location.uri.toString();
-
-								const idx = window.visibleTextEditors.findIndex(
-									(e) =>
-										e.document.uri.toString() ===
-										uriAsString
-								);
-								if (idx !== -1) {
-									score +=
-										(window.visibleTextEditors.length -
-											idx) /
-										window.visibleTextEditors.length;
-								}
-
-								if (matchedSymbol.containerName === "") {
-									score += 10;
-								}
-								return score;
-							})
-						);
-
-					const symbolInfo = filtered[0];
-					if (symbolInfo) {
-						const pos = new CodePosition(
-							symbolInfo.location.uri,
-							symbolInfo.location.range
-						);
+					const pos = await resolveWorkspaceSymbol(symbolName);
+					if (pos) {
 						await this.revealSelection(pos);
 					} else {
 						window.showErrorMessage(
-							`No symbol found with name "${symbolName}". Maybe you need to load the project by opening at least one of its code files?`
+							`No symbol found with name "${symbolName}". Maybe you need to load the symbols by opening at least one of its code files?`
 						);
 					}
 				}
@@ -298,7 +293,7 @@ export class LinkCodeWithSelectedNodeService {
 
 	private lastDecorationType: TextEditorDecorationType | undefined;
 
-	private async revealSelection(pos: CodePosition): Promise<void> {
+	private async revealSelection(pos: DeserializedCodePosition): Promise<void> {
 		if (pos.range) {
 			const d = await workspace.openTextDocument(pos.uri);
 			const e = await window.showTextDocument(d, {
@@ -332,29 +327,47 @@ export class LinkCodeWithSelectedNodeService {
 	}
 }
 
+// CodePosition before serializing and passing to editor
 class CodePosition {
 	public readonly range: Range | undefined;
-	public readonly symbol: string | undefined;
+	private readonly symbol: string | undefined;
 
-	public static async deserialize(value: unknown, relativeTo: Uri): Promise<CodePosition> {
+	public static async deserialize(value: unknown, relativeTo: Uri): Promise<DeserializedCodePosition> {
 		const data = value as Data;
 		function getPosition(pos: PositionData): Position {
 			return new Position(pos.line, pos.col);
 		}
 
-		let uri = relativeTo.with({
-			path: Uri.file(path.join(relativeTo.path, data.path)).path,
-		});
-		let obj: Range | undefined = undefined;
-		if ("start" in data) {
-			obj = new Range(getPosition(data.start), getPosition(data.end));
+		// If data.path is defined, then
+		//	1. Either have explicit range (data.start) defined
+		//	2. Or symbol path (data.symbol) defined
+		// Otherwise, we must resolve using data.symbol only.
+		if (data.path) {
+			let uri: Uri = relativeTo.with({
+				path: Uri.file(path.join(relativeTo.path, data.path)).path,
+			});
+			if ("start" in data) {
+				let range = new Range(getPosition(data.start), getPosition(data.end));
+				return new DeserializedCodePosition(uri, range);
+			} else if ("symbol" in data) {
+				let range = await resolveSymbol(uri, data.symbol);
+				if (range == undefined)
+					throw new Error(`Cannot find symbol by path: ${data.symbol}. Maybe you need to load the symbols by opening at least one of its code files?`);
+				return new DeserializedCodePosition(uri, range);
+			}
+			return new DeserializedCodePosition(uri, undefined);
 		} else if ("symbol" in data) {
-			obj = await resolveSymbol(uri, data.symbol);
+			let pos = await resolveTopSymbol(data.symbol);
+			if (pos) return pos;
+			throw new Error(`Cannot find symbol by path: ${data.symbol}. Maybe you need to load the symbols by opening at least one of its code files?`);
 		}
-		return new CodePosition(uri, obj);
+
+		// Exceptions will be very rare in this case
+		console.error("Draw.io: Data is invalid or cannot find symbol", data);
+		throw new Error(`Malformed symbol information. Check console log.`);
 	}
 
-	constructor(public readonly uri: Uri, private obj?: Range | string) {
+	constructor(public readonly uri: Uri | undefined, private obj?: Range | string) {
 		if (obj instanceof Range) {
 			this.range = obj as Range;
 		} else if (typeof obj == "string") {
@@ -362,7 +375,7 @@ class CodePosition {
 		}
 	}
 
-	public serialize(relativeTo: Uri): unknown {
+	public serialize(relativeTo: Uri): Data {
 		function toPosition(pos: Position): PositionData {
 			return {
 				col: pos.character,
@@ -382,28 +395,41 @@ class CodePosition {
 			};
 		}
 
-		const data: Data = {
-			path: path
-				.relative(relativeTo.fsPath, this.uri.fsPath)
-				.replace(/\\/g, "/"),
-			...rangeObj
-		};
-		return data;
+		if (this.uri) {
+			return <Data>{
+				path: path
+					.relative(relativeTo.fsPath, this.uri.fsPath)
+					.replace(/\\/g, "/"),
+				...rangeObj
+			};
+		} else {
+			return <Data>{
+				...rangeObj
+			};
+		}
+	}
+}
+
+// CodePosition after deserializing (from Data object)
+class DeserializedCodePosition {
+	constructor(public readonly uri: Uri, public readonly range?: Range) { }
+	public serialize(relativeTo: Uri): Data {
+		return new CodePosition(this.uri, this.range).serialize(relativeTo);
 	}
 }
 
 type Data = {
-	path: string;
+	path: string | undefined;
 } & (
-	| {}
-	| {
-		start: PositionData;
-		end: PositionData;
-	}
-	| {
-		symbol: string;
-	}
-);
+		| {}
+		| {
+			start: PositionData;
+			end: PositionData;
+		}
+		| {
+			symbol: string;
+		}
+	);
 
 interface PositionData {
 	line: number;
@@ -431,5 +457,64 @@ async function resolveSymbol(uri: Uri, path: string): Promise<Range | undefined>
 	}
 	if (cur == undefined || cur.length == 0)
 		return undefined;
-	return cur[0].range;
+	return cur[0].selectionRange;
+}
+
+async function resolveTopSymbol(path: string): Promise<DeserializedCodePosition | undefined> {
+	let res = path.split(".");
+	if (res.length == 0) return undefined;
+	// res.length > 0
+	let symb = await resolveWorkspaceSymbol(res[0]);
+	if (!symb) return undefined;
+	if (res.length == 2) {
+		const range = await resolveSymbol(symb.uri, path);
+		if (range)
+			symb = new DeserializedCodePosition(symb.uri, range);
+	}
+	return symb;
+}
+
+async function resolveWorkspaceSymbol(symbolName: string): Promise<DeserializedCodePosition | undefined> {
+	const result = (await commands.executeCommand(
+		"vscode.executeWorkspaceSymbolProvider",
+		symbolName
+	)) as SymbolInformation[];
+	for (let x of result)
+		console.log(x.name);
+	const filtered = result
+		.filter((r) => r.name === symbolName)
+		.sort(
+			getSorterBy((matchedSymbol) => {
+				let score = 0;
+
+				const uriAsString =
+					matchedSymbol.location.uri.toString();
+
+				const idx = window.visibleTextEditors.findIndex(
+					(e) =>
+						e.document.uri.toString() ===
+						uriAsString
+				);
+				if (idx !== -1) {
+					score +=
+						(window.visibleTextEditors.length -
+							idx) /
+						window.visibleTextEditors.length;
+				}
+
+				if (matchedSymbol.containerName === "") {
+					score += 10;
+				}
+				return score;
+			})
+		);
+
+	const symbolInfo = filtered[0];
+	if (symbolInfo) {
+		return new DeserializedCodePosition(
+			symbolInfo.location.uri,
+			symbolInfo.location.range
+		);
+	}
+	return undefined;
 }

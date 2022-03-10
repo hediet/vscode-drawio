@@ -137,12 +137,17 @@
 			},
 			{
 				"command": "hediet.vscode-drawio.linkFileWithSelectedNode",
-				"title": "Draw.io: Link File With Selected Node",
+				"title": "Link File With Selected Node",
 				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.linkSymbolWithSelectedNode",
 				"title": "Link Symbol With Selected Node",
+				"category": "Draw.io"
+			},
+			{
+				"command": "hediet.vscode-drawio.linkWsSymbolWithSelectedNode",
+				"title": "Link Workspace Symbol With Selected Node",
 				"category": "Draw.io"
 			}
 		],
