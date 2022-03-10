@@ -18,9 +18,11 @@ The Code Link Feature does not work on Github though.
 
 ![](./code-link-symbol-demo.gif)
 
-Code Link supports hierarchical document symbols. First, select the node, then navigate to the document and run the "Link Symbol With Selected Node" command. Select your symbol from the dropdown.
+Code Link supports hierarchical document symbols. First, select the node, then navigate to the document and run the "Link Symbol With Selected Node" command. Select your symbol from the dropdown. This will link the node to a symbol as well as the current docment URI.
 
 Hierarchy levels are delimited by the dot "`.`" and you can choose to edit the paths by pressing "Ctrl+M" within the Draw.io editor.
+
+You can also run "Link Workspace Symbol With Selected Node" to link a symbol path without linking to the specific docment URI. This way, documents can be moved freely without breaking the code link. However, some symbol providers don't cooperate with exporting workspace symbols -- when this occurs, a warning will be shown.
 
 ## Link Screenshots with Symbols
 
