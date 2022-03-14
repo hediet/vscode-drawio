@@ -204,7 +204,7 @@
 						}
 					}
 				},
- 				"hediet.vscode-drawio.defaultVertexStyle": {
+				"hediet.vscode-drawio.defaultVertexStyle": {
 					"title": "Default Vertex Style",
 					"description": "Default styling of vertices (shapes).",
 					"type": "object"
@@ -380,6 +380,17 @@
 						"sketch"
 					],
 					"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
+				},
+				"hediet.vscode-drawio.zoomFactor": {
+					"type": "number",
+					"default": 1.2,
+					"title": "Draw.io zoom factor",
+					"description": "Defines the zoom factor for mouse wheel and trackpad zoom."
+				},
+				"hediet.vscode-drawio.globalVars": {
+					"type": "object",
+					"title": "Draw.io global variables.",
+					"description": "Defines global variables for system-wide placeholders using a JSON structure with key, value pairs. Keep the number of global variables small."
 				}
 			}
 		},

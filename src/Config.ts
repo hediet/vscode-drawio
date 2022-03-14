@@ -605,6 +605,40 @@ export class DiagramConfig {
 
 	// #endregion
 
+	// #region Zoom Factor
+
+	private readonly _zoomFactor = new VsCodeSetting<number>(
+		`${extensionId}.zoomFactor`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<number>(1.2),
+		}
+	);
+
+	@computed
+	public get zoomFactor(): number {
+		return this._zoomFactor.get();
+	}
+
+	// #endregion
+
+	// #region Global Variables
+
+	private readonly _globalVars = new VsCodeSetting<object | null>(
+		`${extensionId}.globalVars`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<object | null>(null),
+		}
+	);
+
+	@computed
+	public get globalVars(): object | null {
+		return this._globalVars.get();
+	}
+
+	// #endregion
+
 	constructor(
 		public readonly uri: Uri,
 		private readonly config: Config,
@@ -627,15 +661,15 @@ export class DiagramConfig {
 
 type DrawioCustomLibrary = (
 	| {
-			xml: string;
-	  }
+		xml: string;
+	}
 	| {
-			url: string;
-	  }
+		url: string;
+	}
 	| {
-			json: string;
-	  }
+		json: string;
+	}
 	| {
-			file: string;
-	  }
+		file: string;
+	}
 ) & { libName: string; entryId: string };
