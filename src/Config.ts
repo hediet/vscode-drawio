@@ -661,15 +661,15 @@ export class DiagramConfig {
 
 type DrawioCustomLibrary = (
 	| {
-		xml: string;
-	}
+			xml: string;
+	  }
 	| {
-		url: string;
-	}
+			url: string;
+	  }
 	| {
-		json: string;
-	}
+			json: string;
+	  }
 	| {
-		file: string;
-	}
+			file: string;
+	  }
 ) & { libName: string; entryId: string };

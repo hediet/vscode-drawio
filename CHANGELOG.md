@@ -5,13 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.6.5-alpha.1]
+## [1.6.5-alpha.2]
 
 ### Added
 
-- Two commands to allow code linking to work with hierarchical docment symbols (addresses [167](https://github.com/hediet/vscode-drawio/issues/167), [291](https://github.com/hediet/vscode-drawio/issues/291))
+- Two commands to allow code linking to work with hierarchical document symbols (addresses [#167](https://github.com/hediet/vscode-drawio/issues/167), [291](https://github.com/hediet/vscode-drawio/issues/291))
     - `linkSymbolWithSelectedNode` to link by symbol path and document URI
     - `linkWsSymbolWithSelectedNode` to link solely by symbol path
+- Add support for settings:
+    - `zoomFactor` to control trackpad and mouse wheel sensitivity (fixes [#301](https://github.com/hediet/vscode-drawio/issues/301))
+    - `globalVars` to bypass arbitrary custom plugin configuration to `Editor.globalVars` (addresses [#298](https://github.com/hediet/vscode-drawio/issues/298))
 
 ## [1.6.4] - 2021-12-21
 

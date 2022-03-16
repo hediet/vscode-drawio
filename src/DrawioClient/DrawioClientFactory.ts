@@ -20,7 +20,7 @@ export class DrawioClientFactory {
 		private readonly config: Config,
 		private readonly log: OutputChannel,
 		private readonly extensionUri: Uri
-	) { }
+	) {}
 
 	public async createDrawioClientInWebview(
 		uri: Uri,
@@ -89,7 +89,7 @@ export class DrawioClientFactory {
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 					zoomFactor: config.zoomFactor,
-					globalVars: config.globalVars
+					globalVars: config.globalVars,
 				};
 			},
 			() => {
@@ -296,6 +296,6 @@ function prettify(msg: unknown): string {
 			return formatValue(obj, process.env.DEV === "1" ? 500 : 80);
 		}
 		return formatValue(msg, process.env.DEV === "1" ? 500 : 80);
-	} catch { }
+	} catch {}
 	return "" + msg;
 }
