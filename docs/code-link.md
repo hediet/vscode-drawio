@@ -14,6 +14,16 @@ In TypeScript, symbols are functions, classes, consts, interfaces, ...
 Code Links also work for `*.drawio.png` and `*.drawio.svg` files which are plain `*.png` and `*.svg` files with embedded Draw.io metadata that can be put on Github.
 The Code Link Feature does not work on Github though.
 
+## Link Document Symbols
+
+![](./code-link-symbol-demo.gif)
+
+Code Link supports hierarchical document symbols. First, select the node, then navigate to the document and run the "Link Symbol With Selected Node" command. Select your symbol from the dropdown. This will link the node to a symbol as well as the current docment URI.
+
+Hierarchy levels are delimited by the dot "`.`" and you can choose to edit the paths by pressing "Ctrl+M" within the Draw.io editor.
+
+You can also run "Link Workspace Symbol With Selected Node" to link a symbol path without linking to the specific docment URI. This way, documents can be moved freely without breaking the code link. However, some symbol providers don't cooperate with exporting workspace symbols -- when this occurs, a warning will be shown.
+
 ## Link Screenshots with Symbols
 
 Since you can directly paste images into Draw.io diagrams, you can use this feature to connect
