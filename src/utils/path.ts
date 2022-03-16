@@ -1,6 +1,6 @@
 import * as path2 from "path";
 
-function getPath() {
+function getPath(): path2.PlatformPath {
 	try {
 		const rq = eval("req" + "uire");
 		const obj = rq("path");

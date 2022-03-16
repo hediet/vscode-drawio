@@ -101,36 +101,54 @@
 		"commands": [
 			{
 				"command": "hediet.vscode-drawio.convert",
-				"title": "Draw.io: Convert To..."
+				"title": "Convert To...",
+				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.export",
-				"title": "Draw.io: Export To..."
+				"title": "Export To...",
+				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.toggleCodeLinkActivation",
-				"title": "Draw.io: Toggle Code Link Activation"
+				"title": "Toggle Code Link Activation",
+				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.changeTheme",
-				"title": "Draw.io: Change Theme"
+				"title": "Change Theme",
+				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.editDiagramAsText",
-				"title": "Draw.io: Edit Diagram As Text (Experimental)",
-				"enablement": "hediet.vscode-drawio.experimentalFeaturesEnabled"
+				"title": "Edit Diagram As Text (Experimental)",
+				"enablement": "hediet.vscode-drawio.experimentalFeaturesEnabled",
+				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
-				"title": "Draw.io: Link Code with Selected Node"
+				"title": "Link Code with Selected Node",
+				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.newDiagram",
-				"title": "Draw.io: New Draw.io Diagram"
+				"title": "New Draw.io Diagram",
+				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.linkFileWithSelectedNode",
-				"title": "Draw.io: Link File With Selected Node In Active Diagram"
+				"title": "Link File With Selected Node",
+				"category": "Draw.io"
+			},
+			{
+				"command": "hediet.vscode-drawio.linkSymbolWithSelectedNode",
+				"title": "Link Symbol With Selected Node",
+				"category": "Draw.io"
+			},
+			{
+				"command": "hediet.vscode-drawio.linkWsSymbolWithSelectedNode",
+				"title": "Link Workspace Symbol With Selected Node",
+				"category": "Draw.io"
 			}
 		],
 		"keybindings": [
@@ -399,7 +417,13 @@
 				{
 					"when": "hediet.vscode-drawio.active",
 					"command": "hediet.vscode-drawio.linkFileWithSelectedNode",
-					"group": "Drawio"
+					"group": "Draw.io"
+				}
+			],
+			"commandPalette": [
+				{
+					"when": "false",
+					"command": "hediet.vscode-drawio.linkFileWithSelectedNode"
 				}
 			]
 		}

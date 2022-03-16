@@ -1,22 +1,75 @@
-<mxfile host="65bd71144e" modified="2021-01-17T15:34:27.099Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.52.1 Chrome/83.0.4103.122 Electron/9.3.5 Safari/537.36" etag="g-AlDsFQEC4KBryF5-Xb" scale="1" border="0" version="14.2.4" type="embed">
+<mxfile host="65bd71144e" scale="1" border="0">
     <diagram id="MgYzXS6eyhghL7g_6re2" name="Page-1">
-        <mxGraphModel dx="1594" dy="1150" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="581" dy="585" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <object label="README.md" hedietLinkedDataV1_path="../../data/dummy.pdf" id="3">
+                <object label="README.md" hedietLinkedDataV1_path="../../formats/README.md" hedietLinkedDataV1_start_col_x-num="0" hedietLinkedDataV1_start_line_x-num="2" hedietLinkedDataV1_end_col_x-num="22" hedietLinkedDataV1_end_line_x-num="4" id="3">
                     <mxCell style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                        <mxGeometry x="60" y="50" width="120" height="60" as="geometry"/>
+                        <mxGeometry x="80" y="130" width="120" height="60" as="geometry"/>
                     </mxCell>
                 </object>
-                <object label="" hedietLinkedDataV1_path="../../data/dummy.pdf" id="4">
+                <object label="PDF" hedietLinkedDataV1_path="../../data/dummy.pdf" id="4">
                     <mxCell style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;" parent="1" vertex="1">
-                        <mxGeometry x="374" y="160" width="80" height="100" as="geometry"/>
+                        <mxGeometry x="100" y="230" width="80" height="100" as="geometry"/>
                     </mxCell>
                 </object>
                 <mxCell id="5" value="#Foo" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="80" y="370" width="120" height="60" as="geometry"/>
                 </mxCell>
+                <object label="Baz.BazBar()" hedietLinkedDataV1_symbol="Baz.BazBar" id="3ADTFjXa_awMoTPGBWK0-5">
+                    <mxCell style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                        <mxGeometry x="80" y="470" width="120" height="60" as="geometry"/>
+                    </mxCell>
+                </object>
+                <mxCell id="4bzpf4HTB4W7Uhsk-uCX-6" value="File + Code highlight test" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;fontFamily=Helvetica;fontColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="145" width="210" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="4bzpf4HTB4W7Uhsk-uCX-7" value="File only test" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;fontFamily=Helvetica;fontColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="265" width="120" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="4bzpf4HTB4W7Uhsk-uCX-8" value="#Symbol syntax test" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;fontFamily=Helvetica;fontColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="385" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="4bzpf4HTB4W7Uhsk-uCX-9" value="Hierarchy path without linked document URI test" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;fontFamily=Helvetica;fontColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="485" width="400" height="30" as="geometry"/>
+                </mxCell>
+                <object label="Baz.BazBar()" hedietLinkedDataV1_path="../demo-src/Baz.ts" hedietLinkedDataV1_symbol="Baz.BazBar" id="KUhIoe1hMz0tjvnBnsYe-5">
+                    <mxCell style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                        <mxGeometry x="80" y="560" width="120" height="60" as="geometry"/>
+                    </mxCell>
+                </object>
+                <mxCell id="KUhIoe1hMz0tjvnBnsYe-6" value="Hierarchy path WITH linked document test" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;fontFamily=Helvetica;fontColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="570" width="350" height="30" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="zOhSraGW9aLSeXGnnNEO" name="Test C++ Code">
+        <mxGraphModel dx="581" dy="585" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="WdrI0oJoAQMZujuPcE8P-0"/>
+                <mxCell id="WdrI0oJoAQMZujuPcE8P-1" parent="WdrI0oJoAQMZujuPcE8P-0"/>
+                <object label="Link 1" hedietLinkedDataV1_path="../demo-src/test.cc" hedietLinkedDataV1_symbol="test()" id="WdrI0oJoAQMZujuPcE8P-2">
+                    <mxCell style="whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=18;fontColor=#ff0000;strokeWidth=2;" parent="WdrI0oJoAQMZujuPcE8P-1" vertex="1">
+                        <mxGeometry x="70" y="70" width="210" height="60" as="geometry"/>
+                    </mxCell>
+                </object>
+                <object label="Link 3" hedietLinkedDataV1_path="../demo-src/test.cc" hedietLinkedDataV1_symbol="myFunc&lt;T&gt;(T)" id="WdrI0oJoAQMZujuPcE8P-4">
+                    <mxCell style="whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=18;fontColor=#ff0000;strokeWidth=2;" parent="WdrI0oJoAQMZujuPcE8P-1" vertex="1">
+                        <mxGeometry x="70" y="270" width="210" height="60" as="geometry"/>
+                    </mxCell>
+                </object>
+                <object label="Link 4" hedietLinkedDataV1_path="../demo-src/test.cc" hedietLinkedDataV1_symbol="MyClass&lt;T&gt;" id="WdrI0oJoAQMZujuPcE8P-5">
+                    <mxCell style="whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=18;fontColor=#ff0000;strokeWidth=2;" parent="WdrI0oJoAQMZujuPcE8P-1" vertex="1">
+                        <mxGeometry x="70" y="360" width="210" height="60" as="geometry"/>
+                    </mxCell>
+                </object>
+                <object label="Link 2&lt;br&gt;" hedietLinkedDataV1_path="../demo-src/test.cc" hedietLinkedDataV1_symbol="MyClass&lt;T&gt;.method()" id="xvX_bhhY9qtDZdKVX92g-0">
+                    <mxCell style="whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=18;fontColor=#ff0000;strokeWidth=2;" parent="WdrI0oJoAQMZujuPcE8P-1" vertex="1">
+                        <mxGeometry x="70" y="170" width="210" height="60" as="geometry"/>
+                    </mxCell>
+                </object>
             </root>
         </mxGraphModel>
     </diagram>
