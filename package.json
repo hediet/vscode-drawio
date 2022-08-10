@@ -149,6 +149,11 @@
 				"command": "hediet.vscode-drawio.linkWsSymbolWithSelectedNode",
 				"title": "Link Workspace Symbol With Selected Node",
 				"category": "Draw.io"
+			},
+			{
+				"command": "hediet.vscode-drawio.linkCustomSymbolWithSelectedNode",
+				"title": "Link Custom Symbol with Selected Node",
+				"category": "Draw.io"
 			}
 		],
 		"keybindings": [
@@ -417,6 +422,13 @@
 				{
 					"when": "hediet.vscode-drawio.active",
 					"command": "hediet.vscode-drawio.linkFileWithSelectedNode",
+					"group": "Draw.io"
+				}
+			],
+			"editor/context": [
+				{
+					"when": "hediet.vscode-drawio.active",
+					"command": "hediet.vscode-drawio.linkCustomSymbolWithSelectedNode",
 					"group": "Draw.io"
 				}
 			],

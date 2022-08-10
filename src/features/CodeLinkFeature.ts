@@ -34,6 +34,8 @@ const linkWsSymbolWithSelectedNodeCommandName =
 	"hediet.vscode-drawio.linkWsSymbolWithSelectedNode";
 const linkFileWithSelectedNodeCommandName =
 	"hediet.vscode-drawio.linkFileWithSelectedNode";
+const linkCustomSymbolWithSelectedNodeCommandName =
+	"hediet.vscode-drawio.linkCustomSymbolWithSelectedNode";
 
 const symbolNameMap: Record<SymbolKind, string> = {
 	[SymbolKind.File]: "symbol-file",
@@ -125,6 +127,10 @@ export class LinkCodeWithSelectedNodeService {
 			registerFailableCommand(
 				linkWsSymbolWithSelectedNodeCommandName,
 				this.linkWsSymbolWithSelectedNode
+			),
+			registerFailableCommand(
+				linkCustomSymbolWithSelectedNodeCommandName,
+				this.linkCustomSymbolWithSelectedNode
 			),
 		]);
 	}
@@ -270,6 +276,33 @@ export class LinkCodeWithSelectedNodeService {
 			});
 	}
 
+	@action.bound
+	private linkCustomSymbolWithSelectedNode(): void {
+		const lastActiveDrawioEditor =
+			this.editorManager.lastActiveDrawioEditor;
+		if (!lastActiveDrawioEditor) {
+			window.showErrorMessage("No active drawio instance.");
+			return;
+		}
+
+		const editor = this.lastActiveTextEditor;
+		if (!editor) {
+			window.showErrorMessage("No text editor active.");
+			return;
+		}
+
+		if (!editor.selection) {
+			window.showErrorMessage("Nothing selected.");
+			return;
+		}
+		const text = editor.document.getText(editor.selection);
+		const pos = new CodePosition(editor.document.uri, text, true);
+		lastActiveDrawioEditor.drawioClient.linkSelectedNodeWithData(
+			pos.serialize(lastActiveDrawioEditor.uri)
+		);
+		// this.revealSelection(pos);
+	}
+
 	private handleDrawioEditor(editor: DrawioEditor): void {
 		const drawioInstance = editor.drawioClient;
 
@@ -385,11 +418,20 @@ class CodePosition {
 				);
 				return new DeserializedCodePosition(uri, range);
 			} else if ("symbol" in data) {
-				let range = await resolveSymbol(uri, data.symbol);
-				if (range == undefined)
-					throw new Error(
-						`Cannot find symbol by path: ${data.symbol}. Maybe you need to load the symbols by opening at least one of its code files?`
-					);
+				let range;
+				if (data.customMode) {
+					range = await resolveCustomSymbol(uri, data.symbol);
+					if (range == undefined)
+						throw new Error(
+							`Cannot find custom tag by path: ${data.symbol}.`
+						);
+				} else {
+					range = await resolveSymbol(uri, data.symbol);
+					if (range == undefined)
+						throw new Error(
+							`Cannot find symbol by path: ${data.symbol}. Maybe you need to load the symbols by opening at least one of its code files?`
+						);
+				}
 				return new DeserializedCodePosition(uri, range);
 			}
 			return new DeserializedCodePosition(uri, undefined);
@@ -408,12 +450,14 @@ class CodePosition {
 
 	constructor(
 		public readonly uri: Uri | undefined,
-		private obj?: Range | string
+		private obj?: Range | string,
+		private customMode: Boolean = false
 	) {
 		if (obj instanceof Range) {
 			this.range = obj as Range;
 		} else if (typeof obj == "string") {
 			this.symbol = obj as string;
+			this.customMode = customMode;
 		}
 	}
 
@@ -434,6 +478,7 @@ class CodePosition {
 		} else if (this.symbol) {
 			rangeObj = {
 				symbol: this.symbol,
+				customMode: this.customMode,
 			};
 		}
 
@@ -470,6 +515,7 @@ type Data = {
 	  }
 	| {
 			symbol: string;
+			customMode: Boolean;
 	  }
 );
 
@@ -556,6 +602,26 @@ async function resolveWorkspaceSymbol(
 			symbolInfo.location.uri,
 			symbolInfo.location.range
 		);
+	}
+	return undefined;
+}
+
+async function resolveCustomSymbol(
+	uri: Uri,
+	symbol: string
+): Promise<Range | undefined> {
+	const d = await workspace.openTextDocument(uri);
+	const e = await window.showTextDocument(d, {
+		viewColumn: ViewColumn.One,
+		preserveFocus: true,
+	});
+	const text = e.document.getText();
+	const index = text.indexOf(symbol);
+	if (index > -1) {
+		var startPos = e.document.positionAt(index);
+		var endPos = e.document.positionAt(index + symbol.length);
+		const range = new Range(startPos, endPos);
+		return range;
 	}
 	return undefined;
 }
