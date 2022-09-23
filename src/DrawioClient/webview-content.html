@@ -273,7 +273,10 @@
 		});
 		window.addEventListener("message", (event) => {
 			console.log('@@@@@@@@@', event);
-			window.app.$store.state.code = "B.method";
+			const data = JSON.parse(event.data);
+			if (data.action === "load" || data.action === "merge") {
+				window.app.$store.state.code = data.xml;
+			}
 		});
 	</script>
 
