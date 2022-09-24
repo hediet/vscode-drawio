@@ -56,7 +56,8 @@
 					".dio.svg",
 					".drawio.svg",
 					".drawio.png",
-					".dio.png"
+					".dio.png",
+					".zen"
 				],
 				"aliases": [
 					"Draw.io",
@@ -93,6 +94,9 @@
 					},
 					{
 						"filenamePattern": "*.drawio.svg"
+					},
+					{
+						"filenamePattern": "*.zen"
 					}
 				],
 				"priority": "default"

@@ -171,6 +171,7 @@ export class DrawioEditor {
 		".drawio",
 		".dio",
 		".drawio.svg",
+		".zen",
 		".drawio.png",
 		".dio.svg",
 		".dio.png",

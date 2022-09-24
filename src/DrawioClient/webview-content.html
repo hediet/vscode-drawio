@@ -3,6 +3,151 @@
 
 <head>
 	<base href="$$literal-vsuri$$/index.html" />
+	<style>
+		/* palette */
+
+		:root {
+			/* mostly from https://github.com/dracula/dracula-theme#color-palette */
+			--background: #282a36;
+			--hover: #44475966;
+			/* I made this up */
+			--occurance-border: #6e7191;
+			/* I made this up */
+			--border: #585b74;
+			/* I made this up */
+			--white: #f8f8f2;
+			/* the "foreground" */
+			--current: #44475a;
+			--comment: #6272a4;
+			--cyan: #8be9fd;
+			--green: #50fa7b;
+			--orange: #ffb86c;
+			--pink: #ff79c6;
+			--purple: #bd93f9;
+			--red: #ff5555;
+			--yellow: #f1fa8c;
+		}
+
+		/* boby */
+
+		body {
+			background-color: var(--background);
+		}
+
+
+		/* frame */
+
+		/*
+.frame {  
+  border-color: var(--border) !important;
+}
+.diagram-title {
+  border-color: var(--border) !important;
+}
+*/
+
+		/* participant */
+
+		body #diagram .sequence-diagram .lifeline .participant {
+			border: 1px solid var(--border);
+			border-radius: 2px;
+			background: var(--background);
+		}
+
+		body #diagram .sequence-diagram .lifeline .participant label {
+			color: var(--cyan);
+		}
+
+		body #diagram .sequence-diagram .lifeline .line {
+			background: var(--border);
+		}
+
+		/* fragment */
+
+		body #diagram .fragment>.header>.condition {
+			color: var(--white);
+			padding: 6px;
+		}
+
+		body #diagram .sequence-diagram .fragment .header label {
+			color: var(--white);
+			padding: 6px;
+		}
+
+		body #diagram .sequence-diagram .fragment .header .name {
+			border-bottom-color: var(--border);
+		}
+
+		body #diagram .sequence-diagram .fragment .header .name label {
+			color: var(--pink);
+			font-weight: 400;
+		}
+
+		body #diagram .sequence-diagram .fragment {
+			border-color: var(--border);
+		}
+
+		body #diagram .sequence-diagram .comments {
+			border: none;
+			background: transparent;
+			color: var(--comment);
+			opacity: 1;
+		}
+
+		body #diagram .sequence-diagram .fragment .segment:not(:first-child) {
+			border-top: 1px solid var(--border);
+		}
+
+		/* message */
+
+		body #diagram .sequence-diagram .message {
+			border-bottom: 1px var(--border);
+		}
+
+		body #diagram .sequence-diagram .message .name {
+			color: var(--orange);
+		}
+
+		body #diagram .sequence-diagram .message .name:hover {
+			color: var(--white);
+		}
+
+		body #diagram .sequence-diagram .message svg polyline {
+			fill: var(--border);
+			stroke: var(--border);
+		}
+
+		body #diagram .sequence-diagram .message.self svg>polyline:not(.head) {
+			fill: none;
+		}
+
+		/* occurance */
+
+		body #diagram .sequence-diagram .occurrence {
+			background-color: var(--current);
+			border: 2px solid transparent;
+			box-shadow: 0 0 0 1px var(--occurance-border);
+			border-radius: 2px;
+		}
+
+		/* divider */
+
+		body #diagram .sequence-diagram .divider .left,
+		body #diagram .sequence-diagram .divider .right {
+			background: var(--border);
+		}
+
+		body #diagram .sequence-diagram .divider .name {
+			color: var(--comment);
+		}
+
+		/* hover */
+
+		body #diagram .interaction.hover {
+			background-color: var(--hover);
+			/* 40% */
+		}
+	</style>
 	<script type="text/javascript">
 		var log;
 		var editorUi;
@@ -252,7 +397,7 @@
 </head>
 
 <body>
-	<div id="geInfo">
+	<div id="diagram">
 		<div id="mounting-point"></div>
 	</div>
 
