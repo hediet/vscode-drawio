@@ -334,11 +334,17 @@
 								if (keyEvt.key === "Tab" && keyEvt.ctrlKey) {
 									return;
 								}
-								if (keyEvt.key === "P" && (keyEvt.ctrlKey || keyEvt.metaKey)) {
+								if (
+									keyEvt.key === "P" &&
+									(keyEvt.ctrlKey || keyEvt.metaKey)
+								) {
 									// this covers ctrl+shift+p.
 									return;
 								}
-								if (keyEvt.key === "p" && (keyEvt.ctrlKey || keyEvt.metaKey)) {
+								if (
+									keyEvt.key === "p" &&
+									(keyEvt.ctrlKey || keyEvt.metaKey)
+								) {
 									// this covers ctrl+p.
 									// We don't need this keyboard shortcuts in drawio.
 									// Printing does not make sense in VS Code.
