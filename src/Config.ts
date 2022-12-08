@@ -322,6 +322,23 @@ export class DiagramConfig {
 
 	//#endregion
 
+	//#region Simple Labels
+
+	private readonly _simpleLabels = new VsCodeSetting(
+		`${extensionId}.simpleLabels`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<boolean>(false),
+		}
+	);
+
+	@computed
+	public get simpleLabels(): boolean {
+		return this._simpleLabels.get();
+	}
+
+	//#endregion
+
 	//#region Preset Colors
 
 	private readonly _presetColors = new VsCodeSetting(
@@ -661,15 +678,15 @@ export class DiagramConfig {
 
 type DrawioCustomLibrary = (
 	| {
-			xml: string;
-	  }
+		xml: string;
+	}
 	| {
-			url: string;
-	  }
+		url: string;
+	}
 	| {
-			json: string;
-	  }
+		json: string;
+	}
 	| {
-			file: string;
-	  }
+		file: string;
+	}
 ) & { libName: string; entryId: string };

@@ -102,6 +102,7 @@
 		"FF0000": "Red",
 		"00FF00": "Green",
 	},
+	"hediet.vscode-drawio.simpleLabels": false,
 	"hediet.vscode-drawio.styles": [
 		{},
 		{

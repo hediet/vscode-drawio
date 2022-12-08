@@ -232,6 +232,12 @@
 					"description": "Default styling of edges.",
 					"type": "object"
 				},
+				"hediet.vscode-drawio.simpleLabels": {
+					"type": "boolean",
+					"default": false,
+					"title": "Use SimpleLabels",
+					"description": "When enabled, no ForeignObjects are used in the svg."
+				},
 				"hediet.vscode-drawio.colorNames": {
 					"title": "Color Names",
 					"description": "Names for colors, eg. {‘FFFFFF’: ‘White’, ‘000000’: ‘Black’} that are used as tooltips (uppercase, no leading # for the colour codes)",
