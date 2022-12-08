@@ -54,6 +54,7 @@ export class DrawioClientFactory {
 				config.defaultVertexStyle;
 				config.defaultEdgeStyle;
 				config.colorNames;
+				config.simpleLabels;
 				config.zoomFactor;
 				config.globalVars;
 			},
@@ -86,6 +87,7 @@ export class DrawioClientFactory {
 					defaultVertexStyle: config.defaultVertexStyle,
 					defaultEdgeStyle: config.defaultEdgeStyle,
 					colorNames: config.colorNames,
+					simpleLabels: config.simpleLabels,
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 					zoomFactor: config.zoomFactor,
@@ -231,6 +233,7 @@ export class DrawioClientFactory {
 			.replace(/\$\$literal-vsuri\$\$/g, vsuri.toString())
 			.replace("$$theme$$", JSON.stringify(config.theme))
 			.replace("$$lang$$", JSON.stringify(config.drawioLanguage))
+			.replace("$$simpleLabels$$", JSON.stringify(config.simpleLabels))
 			.replace(
 				"$$chrome$$",
 				JSON.stringify(options.isReadOnly ? "0" : "1")
@@ -276,9 +279,9 @@ export class DrawioClientFactory {
 
 				<iframe src="${drawioUrl}?embed=1&ui=${encodeURIComponent(
 			config.theme
-		)}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&lang=${encodeURIComponent(
-			config.drawioLanguage
-		)}"></iframe>
+		)}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&simpleLabels=${encodeURIComponent(
+			config.simpleLabels
+		)}&lang=${encodeURIComponent(config.drawioLanguage)}"></iframe>
 			</body>
 		</html>
 			`;

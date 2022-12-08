@@ -32,7 +32,7 @@
 				"fill": "#00ff00",
 				"stroke": "none",
 				"font": "#ffff00",
-				"gradient": "#0000ff",
+				"gradient": "#0000ff"
 			},
 			{
 				"fill": "#ffffba",
@@ -94,14 +94,12 @@
 			}
 		]
 	],
-	"hediet.vscode-drawio.presetColors": [
-		"ff0000",
-		"00ff00"
-	],
+	"hediet.vscode-drawio.presetColors": ["ff0000", "00ff00"],
 	"hediet.vscode-drawio.colorNames": {
 		"FF0000": "Red",
-		"00FF00": "Green",
+		"00FF00": "Green"
 	},
+	"hediet.vscode-drawio.simpleLabels": false,
 	"hediet.vscode-drawio.styles": [
 		{},
 		{
