@@ -20,7 +20,7 @@ export class DrawioClientFactory {
 		private readonly config: Config,
 		private readonly log: OutputChannel,
 		private readonly extensionUri: Uri
-	) { }
+	) {}
 
 	public async createDrawioClientInWebview(
 		uri: Uri,
@@ -279,9 +279,9 @@ export class DrawioClientFactory {
 
 				<iframe src="${drawioUrl}?embed=1&ui=${encodeURIComponent(
 			config.theme
-		)}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&simpleLabels=${encodeURIComponent(config.simpleLabels)}&lang=${encodeURIComponent(
-			config.drawioLanguage
-		)}"></iframe>
+		)}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&simpleLabels=${encodeURIComponent(
+			config.simpleLabels
+		)}&lang=${encodeURIComponent(config.drawioLanguage)}"></iframe>
 			</body>
 		</html>
 			`;
@@ -299,6 +299,6 @@ function prettify(msg: unknown): string {
 			return formatValue(obj, process.env.DEV === "1" ? 500 : 80);
 		}
 		return formatValue(msg, process.env.DEV === "1" ? 500 : 80);
-	} catch { }
+	} catch {}
 	return "" + msg;
 }

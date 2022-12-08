@@ -1,55 +1,55 @@
 export type DrawioEvent =
 	| {
-		event: "merge";
-		error: string;
-		message: DrawioEvent;
-	}
+			event: "merge";
+			error: string;
+			message: DrawioEvent;
+	  }
 	| {
-		event: "init";
-	}
+			event: "init";
+	  }
 	| {
-		event: "autosave";
-		xml: string;
-	}
+			event: "autosave";
+			xml: string;
+	  }
 	| {
-		event: "save";
-		xml: string;
-	}
+			event: "save";
+			xml: string;
+	  }
 	| {
-		event: "export";
-		data: string;
-		format: DrawioFormat;
-		xml: string;
-		message?: DrawioEvent;
-	}
+			event: "export";
+			data: string;
+			format: DrawioFormat;
+			xml: string;
+			message?: DrawioEvent;
+	  }
 	| {
-		event: "configure";
-	};
+			event: "configure";
+	  };
 
 export type DrawioAction =
 	| {
-		action: "load";
-		xml: string;
-		autosave?: 1;
-	}
+			action: "load";
+			xml: string;
+			autosave?: 1;
+	  }
 	| { action: "merge"; xml: string }
 	| {
-		action: "prompt";
-	}
+			action: "prompt";
+	  }
 	| {
-		action: "template";
-	}
+			action: "template";
+	  }
 	| {
-		action: "draft";
-	}
+			action: "draft";
+	  }
 	| {
-		action: "export";
-		format: DrawioFormat;
-	}
+			action: "export";
+			format: DrawioFormat;
+	  }
 	| {
-		action: "configure";
-		config: DrawioConfig;
-	};
+			action: "configure";
+			config: DrawioConfig;
+	  };
 // See https://desk.draw.io/support/solutions/articles/16000058316-how-to-configure-draw-io-
 
 export interface DrawioConfig {
