@@ -5,22 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.6.6] - ?
+## [1.6.6-alpha.1]
 
-### Added
+### Changed
 
-- Do not let draw.io handle cmd+p/cmd+shift+p keyboard shortcuts on Mac
+-   Updates Draw.io to 20.3.0
+-   Do not let draw.io handle cmd+p/cmd+shift+p keyboard shortcuts on Mac
+
+### Fixed
+
+-   Maths not rendered when exporting diagram (address [#180](https://github.com/hediet/vscode-drawio/issues/180))
 
 ## [1.6.5] - 2022-03-16
 
 ### Added
 
-- Two commands to allow code linking to work with hierarchical document symbols (addresses [#167](https://github.com/hediet/vscode-drawio/issues/167), [291](https://github.com/hediet/vscode-drawio/issues/291))
-    - `linkSymbolWithSelectedNode` to link by symbol path and document URI
-    - `linkWsSymbolWithSelectedNode` to link solely by symbol path
-- Add support for settings:
-    - `zoomFactor` to control trackpad and mouse wheel sensitivity (fixes [#301](https://github.com/hediet/vscode-drawio/issues/301))
-    - `globalVars` to bypass arbitrary custom plugin configuration to `Editor.globalVars` (addresses [#298](https://github.com/hediet/vscode-drawio/issues/298))
+-   Two commands to allow code linking to work with hierarchical document symbols (addresses [#167](https://github.com/hediet/vscode-drawio/issues/167), [291](https://github.com/hediet/vscode-drawio/issues/291))
+    -   `linkSymbolWithSelectedNode` to link by symbol path and document URI
+    -   `linkWsSymbolWithSelectedNode` to link solely by symbol path
+-   Add support for settings:
+    -   `zoomFactor` to control trackpad and mouse wheel sensitivity (fixes [#301](https://github.com/hediet/vscode-drawio/issues/301))
+    -   `globalVars` to bypass arbitrary custom plugin configuration to `Editor.globalVars` (addresses [#298](https://github.com/hediet/vscode-drawio/issues/298))
 
 ## [1.6.4] - 2021-12-21
 

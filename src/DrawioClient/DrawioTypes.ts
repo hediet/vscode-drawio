@@ -120,6 +120,11 @@ export interface DrawioConfig {
 	colorNames?: Record<string, string>;
 
 	/**
+	 * A boolean flag to allow usage of ForeignObjects in svg output (simpleLabels=false, default) or not.
+	 */
+	simpleLabels?: boolean;
+
+	/**
 	 * Defines a string with CSS rules to be used to configure the diagrams.net user interface.
 	 * For example, to change the background colour of the menu bar, use the following:
 	 * ```css

@@ -34,6 +34,7 @@ export async function run(): Promise<void> {
 		});
 	} catch (e) {
 		if (e.toString().indexOf("Reference already exists")) {
+			console.error(e.toString());
 			throw new Error(
 				`Version "${prereleaseVersion}" has been published already!`
 			);

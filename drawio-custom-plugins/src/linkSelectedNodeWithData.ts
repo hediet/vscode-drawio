@@ -21,17 +21,17 @@ Draw.loadPlugin((ui) => {
 		}
 
 		var cell: any | null = evt.getProperty("cell");
-		if (cell != null) {
-			const data = getLinkedData(cell);
-			const label = getLabelTextOfCell(cell);
+		if (cell == null)
+			return;
+		const data = getLinkedData(cell);
+		const label = getLabelTextOfCell(cell);
 
-			if (!data && !label.match(/#([a-zA-Z0-9_]+)/)) {
-				return;
-			}
-
-			sendEvent({ event: "nodeSelected", label, linkedData: data });
-			evt.consume();
+		if (!data && !label.match(/#([a-zA-Z0-9_]+)/)) {
+			return;
 		}
+
+		sendEvent({ event: "nodeSelected", label, linkedData: data });
+		evt.consume();
 	});
 
 	function getLabelTextOfCell(cell: any): string {
