@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 -   Updates Draw.io to 20.3.0
+-   Do not let draw.io handle cmd+p/cmd+shift+p keyboard shortcuts on Mac
 
 ### Fixed
 
