@@ -40,11 +40,6 @@ export class DrawioClientFactory {
 		const disposeAutorun = autorun(
 			() => {
 				reloadId.id;
-
-				webview.html =
-					this.getHtml(config, options, webview, plugins) +
-					" ".repeat(i++);
-
 				// these getters triggers a reload on change
 				config.customLibraries;
 				config.customFonts;
@@ -57,6 +52,16 @@ export class DrawioClientFactory {
 				config.simpleLabels;
 				config.zoomFactor;
 				config.globalVars;
+				config.resizeImages;
+				const html =
+					this.getHtml(config, options, webview, plugins) +
+					" ".repeat(i++);
+
+				if (config.isResizeImageUpdating) {
+					config.isResizeImageUpdating = false;
+				} else {
+					webview.html = html;
+				}
 			},
 			{ name: "Update Webview Html" }
 		);

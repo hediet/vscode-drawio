@@ -433,75 +433,65 @@ export class DiagramConfig {
 
 	// #endregion
 
-	// #region Local Storage
-
-	private readonly _localStorage = new VsCodeSetting<
-		Record<string, string> | undefined
-	>(`${extensionId}.local-storage`, {
-		scope: this.uri,
-		serializer: {
-			deserialize: (value) => {
-				if (value == undefined) {
-					return undefined;
-				}
-				if (typeof value === "object") {
-					// stringify setting
-					// https://github.com/microsoft/vscode/issues/98001
-					mapObject(value, (item) =>
-						typeof item === "string" ? item : JSON.stringify(item)
-					);
-					return mapObject(value, (item) =>
-						typeof item === "string" ? item : JSON.stringify(item)
-					);
-				} else {
-					const str = BufferImpl.from(value || "", "base64").toString(
-						"utf-8"
-					);
-					return JSON.parse(str);
-				}
-			},
-			serializer: (val) => {
-				if (val == undefined) {
-					return undefined;
-				}
-				function tryJsonParse(val: string): string | any {
-					try {
-						return JSON.parse(val);
-					} catch (e) {
-						return val;
-					}
-				}
-
-				if (process.env.DEV === "1") {
-					// jsonify obj
-					const val2 = mapObject(val, (item) => tryJsonParse(item));
-					return val2;
-				}
-
-				return BufferImpl.from(JSON.stringify(val), "utf-8").toString(
-					"base64"
-				);
-			},
-		},
-	});
-
-	private migrateLocalStorageSettingsToMemento() {
-		const saved = this._localStorage.get();
-		if (!saved || Object.keys(saved).length === 0) {
-			return;
+	// #region resizeImages
+	private readonly _resizeImages = new VsCodeSetting(
+		`${extensionId}.resizeImages`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<boolean | undefined>(undefined),
 		}
-		this.setLocalStorage(saved);
-		this._localStorage.set(undefined);
+	);
+
+	// This is a hack to prevent a reload when we update the setting from local storage
+	public isResizeImageUpdating = false;
+
+	public get resizeImages(): boolean | undefined {
+		const result = this._resizeImages.get();
+		if (result === null) {
+			return undefined;
+		}
+		return result;
 	}
 
+	public setResizeImages(value: boolean | undefined): Promise<void> {
+		return this._resizeImages.set(value);
+	}
+
+	// #endregion
+
+	// #region Local Storage
+
 	public get localStorage(): Record<string, string> {
-		return this.memento.get<Record<string, string>>(
+		const localStorage = this.memento.get<Record<string, string>>(
 			`${extensionId}.local-storage`,
 			{}
 		);
+
+		const resizeImages = this.resizeImages;
+
+		try {
+			const drawioConfig = JSON.parse(localStorage[".drawio-config"]);
+			drawioConfig.resizeImages = resizeImages;
+			localStorage[".drawio-config"] = JSON.stringify(drawioConfig);
+		} catch (e) {
+			console.error(e);
+		}
+
+		return localStorage;
 	}
 
 	public setLocalStorage(value: Record<string, string>): void {
+		try {
+			const drawioConfig = JSON.parse(value[".drawio-config"]) as {
+				resizeImages?: boolean;
+			};
+			if (drawioConfig.resizeImages !== this.resizeImages) {
+				this.isResizeImageUpdating = true;
+				this.setResizeImages(drawioConfig.resizeImages);
+			}
+		} catch (e) {
+			console.error(e);
+		}
 		this.memento.update(`${extensionId}.local-storage`, value);
 	}
 
@@ -660,9 +650,7 @@ export class DiagramConfig {
 		public readonly uri: Uri,
 		private readonly config: Config,
 		private readonly memento: Memento
-	) {
-		this.migrateLocalStorageSettingsToMemento();
-	}
+	) {}
 
 	@computed
 	public get drawioLanguage(): string {

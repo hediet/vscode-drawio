@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Updates Draw.io to 20.8.3
 -   Do not let draw.io handle cmd+p/cmd+shift+p keyboard shortcuts on Mac
 
+### Added
+
+-   Introduces setting `hediet.vscode-drawio.resizeImages` (fixes [#360](https://github.com/hediet/vscode-drawio/issues/360))
+
 ### Fixed
 
 -   Maths not rendered when exporting diagram (address [#180](https://github.com/hediet/vscode-drawio/issues/180))

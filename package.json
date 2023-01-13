@@ -415,6 +415,15 @@
 					"type": "object",
 					"title": "Draw.io global variables.",
 					"description": "Defines global variables for system-wide placeholders using a JSON structure with key, value pairs. Keep the number of global variables small."
+				},
+				"hediet.vscode-drawio.resizeImages": {
+					"type": [
+						"boolean",
+						"null"
+					],
+					"title": "Draw.io resize images.",
+					"description": "If set to true, images are resized automatically on paste. If not defined, the user will be asked to confirm the resize.",
+					"default": null
 				}
 			}
 		},
