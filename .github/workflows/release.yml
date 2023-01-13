@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - "releases/**"
+      - "pending-releases/**"
 
 jobs:
   build:
