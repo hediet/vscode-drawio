@@ -22,6 +22,26 @@
 				"kind": "build",
 				"isDefault": true
 			}
+		},
+		{
+			"type": "npm",
+			"script": "dev-drawio-plugins",
+			"problemMatcher": {
+				"base": "$tsc",
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "assets",
+					"endsPattern": "compiled"
+				}
+			},
+			"isBackground": true,
+			"presentation": {
+				"reveal": "never"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
 		}
 	]
 }
