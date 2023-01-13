@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.6.6-alpha.5]
+## [1.6.6-alpha.6]
 
 ### Changed
 
@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 -   Maths not rendered when exporting diagram (address [#180](https://github.com/hediet/vscode-drawio/issues/180))
+-   Shapes not loading (BPMN + general) (fixes [#354](https://github.com/hediet/vscode-drawio/issues/354))
 
 ## [1.6.5] - 2022-03-16
 
