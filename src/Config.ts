@@ -185,7 +185,7 @@ export class Config {
 		if (c.dateTimeLastAskedForSponsorship) {
 			const d = new Date(c.dateTimeLastAskedForSponsorship);
 			const msPerDay = 1000 * 60 * 60 * 24;
-			const minTimeBetweenAskingMs = 120 * msPerDay;
+			const minTimeBetweenAskingMs = 180 * msPerDay;
 			if (new Date().getTime() - d.getTime() < minTimeBetweenAskingMs) {
 				return false;
 			}
