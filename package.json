@@ -428,10 +428,10 @@
 			}
 		},
 		"configurationDefaults": {
-    			"workbench.editorAssociations": {
-      				"{git,gitlens}:/**/*.{drawio,dio,dio.svg,drawio.svg}": "default"
-    			}
-  		},
+			"workbench.editorAssociations": {
+				"{git,gitlens}:/**/*.{drawio,dio,dio.svg,drawio.svg}": "default"
+			}
+		},
 		"menus": {
 			"explorer/context": [
 				{
