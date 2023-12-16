@@ -20,7 +20,11 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 		token: CancellationToken
 	): Promise<void> {
 		try {
-			const readonlySchemes = new Set(["git", "conflictResolution"]);
+			const readonlySchemes = new Set([
+				"git",
+				"conflictResolution",
+				"gitlens",
+			]);
 			const isReadOnly = readonlySchemes.has(document.uri.scheme);
 
 			const editor =
