@@ -411,6 +411,12 @@
 					"title": "Draw.io zoom factor",
 					"description": "Defines the zoom factor for mouse wheel and trackpad zoom."
 				},
+				"hediet.vscode-drawio.zoomWheel": {
+					"type": "boolean",
+					"default": false,
+					"title": "Draw.io zoom wheel option",
+					"description": "Defines whether zoom is possible without meta key, i.e. only using mouse wheel without Ctrl/Alt/Cmd."
+				},
 				"hediet.vscode-drawio.globalVars": {
 					"type": "object",
 					"title": "Draw.io global variables.",

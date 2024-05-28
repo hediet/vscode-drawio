@@ -629,6 +629,23 @@ export class DiagramConfig {
 
 	// #endregion
 
+	// #region Zoom Wheel
+
+	private readonly _zoomWheel = new VsCodeSetting<boolean>(
+		`${extensionId}.zoomWheel`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<boolean>(false),
+		}
+	);
+
+	@computed
+	public get zoomWheel(): boolean {
+		return this._zoomWheel.get();
+	}
+
+	// #endregion
+
 	// #region Global Variables
 
 	private readonly _globalVars = new VsCodeSetting<object | null>(

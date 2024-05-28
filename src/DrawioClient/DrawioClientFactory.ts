@@ -96,6 +96,7 @@ export class DrawioClientFactory {
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 					zoomFactor: config.zoomFactor,
+					zoomWheel: config.zoomWheel,
 					globalVars: config.globalVars,
 				};
 			},
