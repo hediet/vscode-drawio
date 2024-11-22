@@ -158,275 +158,303 @@
 				"when": "!findWidgetVisible"
 			}
 		],
-		"configuration": {
-			"title": "Draw.io Integration",
-			"properties": {
-				"hediet.vscode-drawio.offline": {
-					"type": "boolean",
-					"default": true,
-					"title": "Use Offline Mode",
-					"description": "When enabled, the bundled instance of Draw.io is used."
-				},
-				"hediet.vscode-drawio.codeLinkActivated": {
-					"type": "boolean",
-					"default": false,
-					"title": "Code Link Enabled",
-					"description": "When activated, selecting a node will navigate to an associated code section."
-				},
-				"hediet.vscode-drawio.local-storage": {
-					"anyOf": [
-						{
-							"type": "object"
-						},
-						{
-							"type": "string"
-						}
-					],
-					"default": {},
-					"readOnly": true,
-					"title": "Draw.io Local Storage",
-					"description": "Only change this property if you know what you are doing. Manual changes to this property are not supported!"
-				},
-				"hediet.vscode-drawio.styles": {
-					"title": "Styles",
-					"description": "Defines an array of objects that contain the colours (fontColor, fillColor, strokeColor and gradientColor) for the Style tab of the format panel if the selection is empty. These objects can have a commonStyle (which is applied to both vertices and edges), vertexStyle (applied to vertices) and edgeStyle (applied to edges), and a graph with background and gridColor. An empty object means apply the default colors",
-					"type": "array",
-					"items": {
-						"type": "object",
-						"properties": {
-							"commonStyle": {
-								"type": "object",
-								"properties": {
-									"fontColor": {
-										"type": "string"
-									},
-									"strokeColor": {
-										"type": "string"
-									},
-									"fillColor": {
-										"type": "string"
-									}
-								}
-							},
-							"graph": {
-								"type": "object",
-								"properties": {
-									"background": {
-										"type": "string"
-									},
-									"gridColor": {
-										"type": "string"
-									}
-								}
-							}
-						}
-					}
-				},
-				"hediet.vscode-drawio.defaultVertexStyle": {
-					"title": "Default Vertex Style",
-					"description": "Default styling of vertices (shapes).",
-					"type": "object"
-				},
-				"hediet.vscode-drawio.defaultEdgeStyle": {
-					"title": "Default Edge Style",
-					"description": "Default styling of edges.",
-					"type": "object"
-				},
-				"hediet.vscode-drawio.simpleLabels": {
-					"type": "boolean",
-					"default": false,
-					"title": "Use SimpleLabels",
-					"description": "When enabled, no ForeignObjects are used in the svg."
-				},
-				"hediet.vscode-drawio.colorNames": {
-					"title": "Color Names",
-					"description": "Names for colors, eg. {‘FFFFFF’: ‘White’, ‘000000’: ‘Black’} that are used as tooltips (uppercase, no leading # for the colour codes)",
-					"type": "object"
-				},
-				"hediet.vscode-drawio.presetColors": {
-					"title": "Preset Colors",
-					"description": "Color codes for the upper palette in the color dialog.",
-					"type": "array",
-					"items": {
+		"configuration": [
+			{
+				"title": "General",
+				"order": 10,
+				"properties": {
+					"hediet.vscode-drawio.offline": {
+						"type": "boolean",
+						"default": true,
+						"title": "Use Offline Mode",
+						"description": "When enabled, the bundled instance of Draw.io is used.",
+						"order": 10
+					},
+					"hediet.vscode-drawio.online-url": {
 						"type": "string",
-						"description": "Use hex codes without # at the beginning only (FFFFFF for absolute white, for example)."
+						"default": "https://embed.diagrams.net/",
+						"title": "Online URL",
+						"description": "The app to use when offline mode is disabled.",
+						"order": 11
+					},
+					"hediet.vscode-drawio.codeLinkActivated": {
+						"type": "boolean",
+						"default": false,
+						"title": "Code Link Enabled",
+						"description": "When activated, selecting a node will navigate to an associated code section.",
+						"order": 20
+					},
+					"hediet.vscode-drawio.local-storage": {
+						"anyOf": [
+							{
+								"type": "object"
+							},
+							{
+								"type": "string"
+							}
+						],
+						"default": {},
+						"readOnly": true,
+						"title": "Draw.io Local Storage",
+						"description": "Only change this property if you know what you are doing. Manual changes to this property are not supported!",
+						"order": 30
+					},
+					"hediet.vscode-drawio.simpleLabels": {
+						"type": "boolean",
+						"default": false,
+						"title": "Use SimpleLabels",
+						"description": "When enabled, no ForeignObjects are used in the svg.",
+						"order": 40
+					},
+					"hediet.vscode-drawio.zoomFactor": {
+						"type": "number",
+						"default": 1.2,
+						"title": "Draw.io zoom factor",
+						"description": "Defines the zoom factor for mouse wheel and trackpad zoom.",
+						"order": 50
+					},
+					"hediet.vscode-drawio.globalVars": {
+						"type": "object",
+						"title": "Draw.io global variables.",
+						"description": "Defines global variables for system-wide placeholders using a JSON structure with key, value pairs. Keep the number of global variables small.",
+						"order": 60
+					},
+					"hediet.vscode-drawio.resizeImages": {
+						"type": [
+							"boolean",
+							"null"
+						],
+						"title": "Draw.io resize images.",
+						"description": "If set to true, images are resized automatically on paste. If not defined, the user will be asked to confirm the resize.",
+						"default": null,
+						"order": 70
 					}
-				},
-				"hediet.vscode-drawio.customColorSchemes": {
-					"title": "Custom Color Schemes",
-					"markdownDescription": "Available color schemes in the style section at the top of the format panel. See example [here](https://www.diagrams.net/doc/faq/custom-colours-confluence-cloud#default-colour-schemes---format-panel)",
-					"type": "array",
-					"items": {
+				}
+			},
+			{
+				"title": "Plugins",
+				"order": 20,
+				"properties": {
+					"hediet.vscode-drawio.plugins": {
 						"type": "array",
-						"description": "Represents a page of color schemes.",
+						"items": {
+							"anyOf": [
+								{
+									"type": "object",
+									"properties": {
+										"file": {
+											"type": "string",
+											"description": "The file path to the library. Must be absolute. You can use `${workspaceFolder}`."
+										}
+									}
+								}
+							]
+						},
+						"default": [],
+						"title": "Plugins",
+						"markdownDescription": "Loads Draw.io plugins from the local filesystem.  See description of the `file` property. See [plugins documentation](https://github.com/hediet/vscode-drawio/blob/master/docs/plugins.md).",
+						"order": 10
+					},
+					"hediet.vscode-drawio.knownPlugins": {
+						"type": "array",
 						"items": {
 							"type": "object",
 							"properties": {
-								"title": {
-									"type": "string",
-									"description": "Title of the color used in tooltips."
+								"pluginId": {
+									"type": "string"
 								},
-								"fill": {
-									"type": "string",
-									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+								"fingerprint": {
+									"type": "string"
 								},
-								"stroke": {
-									"type": "string",
-									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
-								},
-								"gradient": {
-									"type": "string",
-									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
-								},
-								"font": {
-									"type": "string",
-									"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+								"allowed": {
+									"type": "boolean"
 								}
-							}
-						}
-					}
-				},
-				"hediet.vscode-drawio.customFonts": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [],
-					"title": "Custom Fonts",
-					"description": "Configures the Draw.io editor to use custom fonts."
-				},
-				"hediet.vscode-drawio.customLibraries": {
-					"type": "array",
-					"items": {
-						"type": "object",
-						"properties": {
-							"entryId": {
-								"type": "string",
-								"description": "The id of the entry. A specfic entry can be enabled or deactivated in the editor."
-							},
-							"libName": {
-								"type": "string",
-								"description": "The name of the library in the shape overview."
 							}
 						},
-						"anyOf": [
-							{
-								"type": "object",
-								"properties": {
-									"url": {
-										"type": "string"
-									}
-								}
-							},
-							{
-								"type": "object",
-								"properties": {
-									"xml": {
-										"type": "string"
-									}
-								}
-							},
-							{
-								"type": "object",
-								"properties": {
-									"json": {}
-								}
-							},
-							{
-								"type": "object",
-								"properties": {
-									"file": {
-										"type": "string",
-										"description": "The file path to the library. Must be absolute. You can use ${workspaceFolder}."
-									}
-								}
-							}
-						]
+						"default": [],
+						"title": "Known Plugins",
+						"markdownDescription": "List of allowed or denied plugins. The extension will read and write to this list based on what the used decides when loading specific plugins. See [plugins documentation](https://github.com/hediet/vscode-drawio/blob/master/docs/plugins.md).",
+						"scope": "application",
+						"order": 15
 					},
-					"default": [],
-					"title": "Custom Libraries",
-					"description": "Configures the Draw.io editor to use custom libraries."
-				},
-				"hediet.vscode-drawio.plugins": {
-					"type": "array",
-					"items": {
-						"anyOf": [
-							{
-								"type": "object",
-								"properties": {
-									"file": {
-										"type": "string",
-										"description": "The file path to the library. Must be absolute. You can use ${workspaceFolder}."
+					"hediet.vscode-drawio.customLibraries": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"entryId": {
+									"type": "string",
+									"description": "The id of the entry. A specfic entry can be enabled or deactivated in the editor."
+								},
+								"libName": {
+									"type": "string",
+									"description": "The name of the library in the shape overview."
+								}
+							},
+							"anyOf": [
+								{
+									"type": "object",
+									"properties": {
+										"url": {
+											"type": "string"
+										}
+									}
+								},
+								{
+									"type": "object",
+									"properties": {
+										"xml": {
+											"type": "string"
+										}
+									}
+								},
+								{
+									"type": "object",
+									"properties": {
+										"json": {}
+									}
+								},
+								{
+									"type": "object",
+									"properties": {
+										"file": {
+											"type": "string",
+											"description": "The file path to the library. Must be absolute. You can use ${workspaceFolder}."
+										}
 									}
 								}
-							}
-						]
-					},
-					"default": [],
-					"title": "Plugins",
-					"description": "Loads Draw.io plugins."
-				},
-				"hediet.vscode-drawio.knownPlugins": {
-					"type": "array",
-					"items": {
-						"type": "object",
-						"properties": {
-							"pluginId": {
-								"type": "string"
-							},
-							"fingerprint": {
-								"type": "string"
-							},
-							"allowed": {
-								"type": "boolean"
+							]
+						},
+						"default": [],
+						"title": "Custom Libraries",
+						"description": "Configures the Draw.io editor to use custom libraries.",
+						"order": 50
+					}
+				}
+			},
+			{
+				"title": "Theme and styles",
+				"order": 30,
+				"properties": {
+					"hediet.vscode-drawio.styles": {
+						"title": "Styles",
+						"description": "Defines an array of objects that contain the colours (fontColor, fillColor, strokeColor and gradientColor) for the Style tab of the format panel if the selection is empty. These objects can have a commonStyle (which is applied to both vertices and edges), vertexStyle (applied to vertices) and edgeStyle (applied to edges), and a graph with background and gridColor. An empty object means apply the default colors",
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"commonStyle": {
+									"type": "object",
+									"properties": {
+										"fontColor": {
+											"type": "string"
+										},
+										"strokeColor": {
+											"type": "string"
+										},
+										"fillColor": {
+											"type": "string"
+										}
+									}
+								},
+								"graph": {
+									"type": "object",
+									"properties": {
+										"background": {
+											"type": "string"
+										},
+										"gridColor": {
+											"type": "string"
+										}
+									}
+								}
 							}
 						}
 					},
-					"default": [],
-					"title": "Known Plugins"
-				},
-				"hediet.vscode-drawio.online-url": {
-					"type": "string",
-					"default": "https://embed.diagrams.net/",
-					"title": "Online URL",
-					"description": "The app to use when offline mode is disabled."
-				},
-				"hediet.vscode-drawio.theme": {
-					"title": "Draw.io Theme",
-					"type": "string",
-					"default": "automatic",
-					"enum": [
-						"automatic",
-						"min",
-						"atlas",
-						"dark",
-						"Kennedy",
-						"sketch"
-					],
-					"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
-				},
-				"hediet.vscode-drawio.zoomFactor": {
-					"type": "number",
-					"default": 1.2,
-					"title": "Draw.io zoom factor",
-					"description": "Defines the zoom factor for mouse wheel and trackpad zoom."
-				},
-				"hediet.vscode-drawio.globalVars": {
-					"type": "object",
-					"title": "Draw.io global variables.",
-					"description": "Defines global variables for system-wide placeholders using a JSON structure with key, value pairs. Keep the number of global variables small."
-				},
-				"hediet.vscode-drawio.resizeImages": {
-					"type": [
-						"boolean",
-						"null"
-					],
-					"title": "Draw.io resize images.",
-					"description": "If set to true, images are resized automatically on paste. If not defined, the user will be asked to confirm the resize.",
-					"default": null
+					"hediet.vscode-drawio.defaultVertexStyle": {
+						"title": "Default Vertex Style",
+						"description": "Default styling of vertices (shapes).",
+						"type": "object"
+					},
+					"hediet.vscode-drawio.defaultEdgeStyle": {
+						"title": "Default Edge Style",
+						"description": "Default styling of edges.",
+						"type": "object"
+					},
+					"hediet.vscode-drawio.colorNames": {
+						"title": "Color Names",
+						"description": "Names for colors, eg. {‘FFFFFF’: ‘White’, ‘000000’: ‘Black’} that are used as tooltips (uppercase, no leading # for the colour codes)",
+						"type": "object"
+					},
+					"hediet.vscode-drawio.presetColors": {
+						"title": "Preset Colors",
+						"description": "Color codes for the upper palette in the color dialog.",
+						"type": "array",
+						"items": {
+							"type": "string",
+							"description": "Use hex codes without # at the beginning only (FFFFFF for absolute white, for example)."
+						}
+					},
+					"hediet.vscode-drawio.customColorSchemes": {
+						"title": "Custom Color Schemes",
+						"markdownDescription": "Available color schemes in the style section at the top of the format panel. See example [here](https://www.diagrams.net/doc/faq/custom-colours-confluence-cloud#default-colour-schemes---format-panel)",
+						"type": "array",
+						"items": {
+							"type": "array",
+							"description": "Represents a page of color schemes.",
+							"items": {
+								"type": "object",
+								"properties": {
+									"title": {
+										"type": "string",
+										"description": "Title of the color used in tooltips."
+									},
+									"fill": {
+										"type": "string",
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+									},
+									"stroke": {
+										"type": "string",
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+									},
+									"gradient": {
+										"type": "string",
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+									},
+									"font": {
+										"type": "string",
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+									}
+								}
+							}
+						}
+					},
+					"hediet.vscode-drawio.customFonts": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"default": [],
+						"title": "Custom Fonts",
+						"description": "Configures the Draw.io editor to use custom fonts."
+					},
+					"hediet.vscode-drawio.theme": {
+						"title": "Draw.io Theme",
+						"type": "string",
+						"default": "automatic",
+						"enum": [
+							"automatic",
+							"min",
+							"atlas",
+							"dark",
+							"Kennedy",
+							"sketch"
+						],
+						"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
+					}
 				}
 			}
-		},
+		],
 		"menus": {
 			"explorer/context": [
 				{
@@ -441,54 +469,54 @@
 					"command": "hediet.vscode-drawio.linkFileWithSelectedNode"
 				}
 			]
+		},
+		"scripts": {
+			"run-script": "node ./scripts/run-script",
+			"lint": "yarn run-script check-version && prettier --check ./src",
+			"build": "yarn pre-build && vsce package --yarn --out ./vscode-drawio.vsix",
+			"pre-build": "webpack --mode production && webpack --mode production --config ./drawio-custom-plugins/webpack.config.ts",
+			"dev": "webpack --mode development --watch",
+			"dev-drawio-plugins": "webpack --mode development --watch --config ./drawio-custom-plugins/webpack.config.ts",
+			"dev-drawio-plugins-web": "webpack-dev-server --hot --config ./drawio-custom-plugins/webpack.config.ts"
+		},
+		"devDependencies": {
+			"@actions/exec": "^1.0.4",
+			"@actions/github": "^2.2.0",
+			"@hediet/semver": "^0.2.1",
+			"@types/copy-webpack-plugin": "^8.0.1",
+			"@types/mithril": "^2.0.4",
+			"@types/node": "^13.13.5",
+			"@types/vscode": "1.46.0",
+			"@types/xml-formatter": "^1.1.0",
+			"clean-webpack-plugin": "^4.0.0-alpha.0",
+			"copy-webpack-plugin": "^9.0.1",
+			"css-loader": "^3.4.2",
+			"ovsx": "^0.1.0-next.e000fdb",
+			"prettier": "^2.3.2",
+			"raw-loader": "^4.0.1",
+			"style-loader": "^1.1.3",
+			"ts-loader": "^9.2.3",
+			"ts-node": "^10.1.0",
+			"tslint": "^6.1.2",
+			"typescript": "^4.3.5",
+			"vsce": "^1.95.1",
+			"webpack": "^5.44.0",
+			"webpack-cli": "^4.7.2",
+			"webpack-dev-server": "^3.11.2"
+		},
+		"dependencies": {
+			"@hediet/json-to-dictionary": "^0.2.1",
+			"@hediet/std": "0.6.0",
+			"@knuddels/mobx-logger": "^1.1.1",
+			"buffer": "^6.0.3",
+			"js-sha256": "^0.9.0",
+			"mithril": "^2.0.4",
+			"mobx": "5.15.4",
+			"mobx-utils": "5.5.7",
+			"path-browserify": "^1.0.1",
+			"vsls": "^1.0.3015",
+			"xml-formatter": "^2.0.1",
+			"xml-parser-xo": "^3.0.0"
 		}
-	},
-	"scripts": {
-		"run-script": "node ./scripts/run-script",
-		"lint": "yarn run-script check-version && prettier --check ./src",
-		"build": "yarn pre-build && vsce package --yarn --out ./vscode-drawio.vsix",
-		"pre-build": "webpack --mode production && webpack --mode production --config ./drawio-custom-plugins/webpack.config.ts",
-		"dev": "webpack --mode development --watch",
-		"dev-drawio-plugins": "webpack --mode development --watch --config ./drawio-custom-plugins/webpack.config.ts",
-		"dev-drawio-plugins-web": "webpack-dev-server --hot --config ./drawio-custom-plugins/webpack.config.ts"
-	},
-	"devDependencies": {
-		"@actions/exec": "^1.0.4",
-		"@actions/github": "^2.2.0",
-		"@hediet/semver": "^0.2.1",
-		"@types/copy-webpack-plugin": "^8.0.1",
-		"@types/mithril": "^2.0.4",
-		"@types/node": "^13.13.5",
-		"@types/vscode": "1.46.0",
-		"@types/xml-formatter": "^1.1.0",
-		"clean-webpack-plugin": "^4.0.0-alpha.0",
-		"copy-webpack-plugin": "^9.0.1",
-		"css-loader": "^3.4.2",
-		"ovsx": "^0.1.0-next.e000fdb",
-		"prettier": "^2.3.2",
-		"raw-loader": "^4.0.1",
-		"style-loader": "^1.1.3",
-		"ts-loader": "^9.2.3",
-		"ts-node": "^10.1.0",
-		"tslint": "^6.1.2",
-		"typescript": "^4.3.5",
-		"vsce": "^1.95.1",
-		"webpack": "^5.44.0",
-		"webpack-cli": "^4.7.2",
-		"webpack-dev-server": "^3.11.2"
-	},
-	"dependencies": {
-		"@hediet/json-to-dictionary": "^0.2.1",
-		"@hediet/std": "0.6.0",
-		"@knuddels/mobx-logger": "^1.1.1",
-		"buffer": "^6.0.3",
-		"js-sha256": "^0.9.0",
-		"mithril": "^2.0.4",
-		"mobx": "5.15.4",
-		"mobx-utils": "5.5.7",
-		"path-browserify": "^1.0.1",
-		"vsls": "^1.0.3015",
-		"xml-formatter": "^2.0.1",
-		"xml-parser-xo": "^3.0.0"
 	}
 }
