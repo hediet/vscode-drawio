@@ -337,10 +337,8 @@ export class DrawioEditor {
 		let availableThemes = [
 			"automatic",
 			"min",
-			"atlas",
 			"dark",
-			"Kennedy",
-			"sketch",
+			"kennedy"
 		];
 
 		const originalTheme = this.config.theme;

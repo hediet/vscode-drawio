@@ -237,6 +237,7 @@ export class DrawioClientFactory {
 		const patchedHtml = html
 			.replace(/\$\$literal-vsuri\$\$/g, vsuri.toString())
 			.replace("$$theme$$", JSON.stringify(config.theme))
+			.replace("$$appearance$$", JSON.stringify(config.appearance))
 			.replace("$$lang$$", JSON.stringify(config.drawioLanguage))
 			.replace("$$simpleLabels$$", JSON.stringify(config.simpleLabels))
 			.replace(
