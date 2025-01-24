@@ -7,7 +7,6 @@ import { DrawioEditorService } from "./DrawioEditorService";
 import { LinkCodeWithSelectedNodeService } from "./features/CodeLinkFeature";
 import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
 import { LiveshareFeature } from "./features/LiveshareFeature";
-import { ActivityTracking } from "./features/ActivtyTracking";
 import { DrawioClientFactory } from "./DrawioClient";
 import { registerFailableCommand } from "./utils/registerFailableCommand";
 
@@ -35,9 +34,6 @@ export class Extension {
 	);
 	private readonly liveshareFeature = this.dispose.track(
 		new LiveshareFeature(this.editorService, this.config)
-	);
-	private readonly insiderFeedbackFeature = this.dispose.track(
-		new ActivityTracking(this.editorService, this.config)
 	);
 
 	constructor(private readonly context: vscode.ExtensionContext) {
