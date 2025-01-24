@@ -7,7 +7,7 @@ export function registerFailableCommand(
 	return commands.registerCommand(commandName, async (...args: any[]) => {
 		try {
 			return await commandFn(...args);
-		} catch (e) {
+		} catch (e : any) {
 			window.showErrorMessage("The command failed: " + e.message);
 			return false;
 		}

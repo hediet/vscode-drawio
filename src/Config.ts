@@ -372,9 +372,20 @@ export class DiagramConfig {
 		}
 
 		return {
-			[ColorThemeKind.Light]: "Kennedy",
+			[ColorThemeKind.Light]: "kennedy",
 			[ColorThemeKind.Dark]: "dark",
-			[ColorThemeKind.HighContrast]: "Kennedy",
+			[ColorThemeKind.HighContrast]: "dark",
+			[ColorThemeKind.HighContrastLight]: "kennedy"
+		}[this.config.vscodeTheme.kind];
+	}
+
+	@computed
+	public get appearance(): string {
+		return {
+			[ColorThemeKind.Light]: "0",
+			[ColorThemeKind.Dark]: "1",
+			[ColorThemeKind.HighContrastLight]: "2",
+			[ColorThemeKind.HighContrast]: "3"
 		}[this.config.vscodeTheme.kind];
 	}
 
