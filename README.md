@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/twitter/follow/hediet_dev.svg?style=social)](https://twitter.com/intent/follow?screen_name=hediet_dev)
 
-This unofficial extension integrates [Draw.io](https://app.diagrams.net/) (also known as [diagrams.net](diagrams.net)) into VS Code.  
+This unofficial extension integrates [Draw.io](https://app.diagrams.net/) (also known as [diagrams.net](https://www.diagrams.net/)) into VS Code.  
 Mentioned in the official diagrams.net [blog](https://www.diagrams.net/blog/embed-diagrams-vscode).
 
 ## Features
