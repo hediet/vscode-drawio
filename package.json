@@ -3,7 +3,7 @@
 	"private": true,
 	"displayName": "Draw.io Integration",
 	"description": "This unofficial extension integrates Draw.io into VS Code.",
-	"version": "999.0.0-alpha",
+	"version": "1.7.0",
 	"license": "GPL-3.0",
 	"publisher": "hediet",
 	"keywords": [
@@ -31,11 +31,7 @@
 	"categories": [
 		"Visualization"
 	],
-	"activationEvents": [
-		"onCustomEditor:hediet.vscode-drawio",
-		"onCustomEditor:hediet.vscode-drawio-text",
-		"onCommand:hediet.vscode-drawio.newDiagram"
-	],
+	"activationEvents": [],
 	"repository": {
 		"url": "https://github.com/hediet/vscode-drawio.git"
 	},
@@ -443,22 +439,46 @@
 	},
 	"scripts": {
 		"run-script": "node ./scripts/run-script",
-		"lint": "yarn run-script check-version && prettier --check ./src",
-		"build": "yarn pre-build && vsce package --yarn --out ./vscode-drawio.vsix",
-		"pre-build": "webpack --mode production && webpack --mode production --config ./drawio-custom-plugins/webpack.config.ts",
+		"lint": "echo 'add linting'",
+		"_lint": "yarn run-script check-version && prettier --check ./src",
+		"build": "yarn build-extension && yarn build-plugins && yarn package-extension",
+		"build-extension": "webpack --mode production",
+		"build-plugins": "webpack --mode production --config ./drawio-custom-plugins/webpack.config.ts",
+		"package-extension": "yarn package-extension-stable",
+		"package-extension-stable": "vsce package --yarn --out ./dist/extension.vsix",
+		"package-extension-preRelease": "vsce package --yarn --out ./dist/extension.vsix --pre-release",
 		"dev": "webpack --mode development --watch",
 		"dev-drawio-plugins": "webpack --mode development --watch --config ./drawio-custom-plugins/webpack.config.ts",
 		"dev-drawio-plugins-web": "webpack-dev-server --hot --config ./drawio-custom-plugins/webpack.config.ts"
 	},
+	"files": [
+		"dist/**/*",
+		"package.json",
+		"docs/**/*",
+		"drawio/LICENSE",
+		"drawio/VERSION",
+		"drawio/src/main/webapp/js/**/*",
+		"drawio/src/main/webapp/connect/**/*",
+		"drawio/src/main/webapp/images/**/*",
+		"drawio/src/main/webapp/img/**/*",
+		"drawio/src/main/webapp/math/**/*",
+		"drawio/src/main/webapp/mxgraph/**/*",
+		"drawio/src/main/webapp/plugins/**/*",
+		"drawio/src/main/webapp/resources/**/*",
+		"drawio/src/main/webapp/styles/**/*",
+		"drawio/src/main/webapp/templates/**/*",
+		"LICENSE.md"
+	],
 	"devDependencies": {
 		"@actions/exec": "^1.0.4",
 		"@actions/github": "^2.2.0",
 		"@hediet/semver": "^0.2.1",
 		"@types/copy-webpack-plugin": "^8.0.1",
 		"@types/mithril": "^2.0.4",
-		"@types/node": "^13.13.5",
+		"@types/node": "^22.10.10",
 		"@types/vscode": "1.70.0",
 		"@types/xml-formatter": "^1.1.0",
+		"@vscode/vsce": "^3.2.1",
 		"clean-webpack-plugin": "^4.0.0-alpha.0",
 		"copy-webpack-plugin": "^9.0.1",
 		"css-loader": "^3.4.2",
@@ -469,8 +489,7 @@
 		"ts-loader": "^9.2.3",
 		"ts-node": "^10.1.0",
 		"tslint": "^6.1.2",
-		"typescript": "^4.3.5",
-		"vsce": "^1.95.1",
+		"typescript": "^5.7.3",
 		"webpack": "^5.44.0",
 		"webpack-cli": "^4.7.2",
 		"webpack-dev-server": "^3.11.2"

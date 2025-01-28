@@ -19,7 +19,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: "14"
+          node-version: "22"
       - run: yarn install --frozen-lockfile
       - run: yarn lint
       - run: yarn build

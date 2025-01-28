@@ -14,27 +14,9 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
-				"--disable-extension=hediet.vscode-drawio-insiders-build",
+				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--enable-proposed-api hediet.vscode-drawio",
 				"${workspaceFolder}/examples"
-			],
-			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
-			"preLaunchTask": "npm: dev",
-			"env": {
-				"DEV": "1"
-			}
-		},
-		{
-			"name": "Extension (dev) 2",
-			"type": "extensionHost",
-			"request": "launch",
-			"runtimeExecutable": "${execPath}",
-			"args": [
-				"--disable-extension=hediet.vscode-drawio-insiders-build",
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--enable-proposed-api hediet.vscode-drawio",
-				"${workspaceFolder}/docs"
 			],
 			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
 			"preLaunchTask": "npm: dev",
@@ -50,7 +32,6 @@
 			"args": [
 				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--enable-proposed-api hediet.vscode-drawio",
 				"${workspaceFolder}/examples"
 			],
 			"outFiles": ["${workspaceFolder}/dist/**/*.js"],

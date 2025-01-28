@@ -1,0 +1,30 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Install Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "22"
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn run-script build-and-publish
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          VSCE_TOKEN_DISABLED: ${{ secrets.MARKETPLACE_TOKEN }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+      - name: Upload Extension
+        uses: actions/upload-artifact@v2
+        with:
+          name: extension
+          path: dist/extension.vsix
