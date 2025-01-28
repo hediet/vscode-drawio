@@ -444,7 +444,7 @@
 		"build": "yarn build-extension && yarn build-plugins && yarn package-extension",
 		"build-extension": "webpack --mode production",
 		"build-plugins": "webpack --mode production --config ./drawio-custom-plugins/webpack.config.ts",
-		"package-extension": "yarn package-extension-stable",
+		"package-extension": "yarn package-extension-preRelease",
 		"package-extension-stable": "vsce package --yarn --out ./dist/extension.vsix",
 		"package-extension-preRelease": "vsce package --yarn --out ./dist/extension.vsix --pre-release",
 		"dev": "webpack --mode development --watch",
@@ -452,7 +452,8 @@
 		"dev-drawio-plugins-web": "webpack-dev-server --hot --config ./drawio-custom-plugins/webpack.config.ts"
 	},
 	"files": [
-		"dist/**/*",
+		"dist/custom-drawio-plugins/**/*",
+		"dist/extension/**/*",
 		"package.json",
 		"docs/**/*",
 		"drawio/LICENSE",

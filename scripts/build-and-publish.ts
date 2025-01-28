@@ -31,7 +31,8 @@ export async function run(): Promise<void> {
 	}
 
 	const runNumber = process.env.GITHUB_RUN_NUMBER;
-	const previewVersion = stableVersion.with({ patch: Number(runNumber) });
+	const preReleaseNumber = `${new Date().toISOString().replace(/[^0-9]/g, '')}0${runNumber}`;
+	const previewVersion = stableVersion.with({ patch: Number(preReleaseNumber) });
 
 	const previewTag = `v${previewVersion}`;
 	if (!await gh.tagExists(context.repo, previewTag)) {
