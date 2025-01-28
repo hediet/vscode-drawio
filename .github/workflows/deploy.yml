@@ -20,7 +20,7 @@ jobs:
       - run: yarn lint
       - run: yarn run-script build-and-publish
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VSCE_PAT: ${{ secrets.MARKETPLACE_TOKEN }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
       - name: Upload Artifacts
