@@ -24,7 +24,7 @@ jobs:
           VSCE_TOKEN_DISABLED: ${{ secrets.MARKETPLACE_TOKEN }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
       - name: Upload Extension
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: extension
           path: dist/extension.vsix
