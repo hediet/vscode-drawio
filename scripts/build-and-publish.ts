@@ -42,8 +42,8 @@ export async function run(): Promise<void> {
 	}
 
 	const runNumber = process.env.GITHUB_RUN_NUMBER;
-	const preReleaseNumber = `${formatDate(new Date())}0${Number(runNumber)}`;
-	const previewVersion = stableVersion.with({ patch: Number(preReleaseNumber) });
+	const preReleaseNumber = getPreReleasePatchNumber(Number(runNumber));
+	const previewVersion = stableVersion.with({ patch: preReleaseNumber });
 
 	const previewTag = `v${previewVersion}`;
 
@@ -78,17 +78,20 @@ async function buildAndPublish(releaseType: 'stable' | 'preRelease', version: Se
 	);
 }
 
-
-function padN(num: number, n: number): string {
-	return num.toString().padStart(n, '0');
+function getPreReleasePatchNumber(runNumber: number): number {
+	return Number(`${formatDate(new Date())}${padN(Number(runNumber) % 1000, 3)}`);
 }
 
 function formatDate(date: Date): string {
-	const year = date.getUTCFullYear();
+	const year = date.getUTCFullYear() % 100;
 	const month = date.getUTCMonth() + 1;
 	const day = date.getUTCDate();
 
 	return `${year}${padN(month, 2)}${padN(day, 2)}`;
+}
+
+function padN(num: number, n: number): string {
+	return num.toString().padStart(n, '0');
 }
 
 interface IRepo {
@@ -109,7 +112,7 @@ class GitHubClient {
 			},
 		});
 		if (!response.ok) {
-			throw new Error(`GitHub API request failed: ${response.statusText}`);
+			throw new Error(`GitHub API request failed: ${response.statusText}, ${await response.text()}`);
 		}
 		return response.json();
 	}
