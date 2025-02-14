@@ -4,7 +4,7 @@
 	"displayName": "Draw.io Integration",
 	"description": "This unofficial extension integrates Draw.io into VS Code.",
 	"version": "1.7.0",
-	"preRelease": true,
+	"preRelease": false,
 	"license": "GPL-3.0",
 	"publisher": "hediet",
 	"keywords": [
