@@ -12,7 +12,6 @@ import {
 } from "vscode";
 import { Style, ColorScheme, DrawioLibraryData } from "./DrawioClient";
 import { BufferImpl } from "./utils/buffer";
-import { mapObject } from "./utils/mapObject";
 import { SimpleTemplate } from "./utils/SimpleTemplate";
 import {
 	serializerWithDefault,
@@ -360,37 +359,65 @@ export class DiagramConfig {
 
 	private readonly _theme = new VsCodeSetting(`${extensionId}.theme`, {
 		scope: this.uri,
-		serializer: serializerWithDefault("automatic"),
+		serializer: serializerWithDefault("kennedy"),
 	});
+
+	private readonly _appearance = new VsCodeSetting(`${extensionId}.appearance`, {
+		scope: this.uri,
+		serializer: serializerWithDefault<
+			"automatic" |
+			"light" |
+			"dark" |
+			"highContrastLight" |
+			"highContrast"
+		>("automatic"),
+	});
+
+	public get resolvedTheme(): ResolvedDrawioTheme {
+		const themeName = this._theme.get().toLowerCase();
+
+		// handle 'dark' and 'automatic' for backwards compat
+		if (themeName === 'dark') {
+			return new ResolvedDrawioTheme('kennedy', ColorThemeKind.Dark);
+		}
+		if (themeName === 'automatic') {
+			return new ResolvedDrawioTheme('kennedy', this.config.vscodeTheme.kind);
+		}
+
+		const appearance = this._appearance.get().toLowerCase();
+
+		let resolvedAppearance = themeKindFromString(appearance);
+		if (!resolvedAppearance) {
+			resolvedAppearance = this.config.vscodeTheme.kind;
+		}
+
+		return new ResolvedDrawioTheme(themeName, resolvedAppearance);
+	}
+
+	public getVsCodeAppearance(): string {
+		return themeKindToString(this.config.vscodeTheme.kind);
+	}
 
 	@computed
 	public get theme(): string {
-		const theme = this._theme.get();
-
-		if (theme !== "automatic") {
-			return theme;
+		const t = this._theme.get().toLowerCase();
+		if (t === 'dark' || t === 'automatic') {
+			return 'kennedy';
 		}
-
-		return {
-			[ColorThemeKind.Light]: "kennedy",
-			[ColorThemeKind.Dark]: "dark",
-			[ColorThemeKind.HighContrast]: "dark",
-			[ColorThemeKind.HighContrastLight]: "kennedy"
-		}[this.config.vscodeTheme.kind];
+		return t;
 	}
 
 	@computed
 	public get appearance(): string {
-		return {
-			[ColorThemeKind.Light]: "0",
-			[ColorThemeKind.Dark]: "1",
-			[ColorThemeKind.HighContrastLight]: "2",
-			[ColorThemeKind.HighContrast]: "3"
-		}[this.config.vscodeTheme.kind];
+		return this._appearance.get().toLowerCase();
 	}
 
-	public async setTheme(value: string): Promise<void> {
-		await this._theme.set(value);
+	public async setTheme(themeName: string): Promise<void> {
+		await this._theme.set(themeName);
+	}
+
+	public async setAppearance(appearance: string): Promise<void> {
+		await this._appearance.set(appearance as any);
 	}
 
 	// #endregion
@@ -661,7 +688,7 @@ export class DiagramConfig {
 		public readonly uri: Uri,
 		private readonly config: Config,
 		private readonly memento: Memento
-	) {}
+	) { }
 
 	@computed
 	public get drawioLanguage(): string {
@@ -677,15 +704,67 @@ export class DiagramConfig {
 
 type DrawioCustomLibrary = (
 	| {
-			xml: string;
-	  }
+		xml: string;
+	}
 	| {
-			url: string;
-	  }
+		url: string;
+	}
 	| {
-			json: string;
-	  }
+		json: string;
+	}
 	| {
-			file: string;
-	  }
+		file: string;
+	}
 ) & { libName: string; entryId: string };
+
+export class ResolvedDrawioTheme {
+	public static getThemeNames(): string[] {
+		return [
+			"min",
+			"kennedy",
+		];
+	}
+
+	constructor(
+		public readonly themeName: string,
+		public readonly appearance: ColorThemeKind,
+	) { }
+
+	getAppearanceDrawioValue(): string {
+		return {
+			[ColorThemeKind.Light]: "0",
+			[ColorThemeKind.Dark]: "1",
+			[ColorThemeKind.HighContrastLight]: "2",
+			[ColorThemeKind.HighContrast]: "3"
+		}[this.appearance];
+	}
+
+	getAppearanceStringValue(): string {
+		return themeKindToString(this.appearance);
+	}
+
+	toString(): string {
+		if (this.appearance === ColorThemeKind.Light) {
+			return this.themeName;
+		}
+		return `${this.themeName} - ${this.getAppearanceStringValue()}`;
+	}
+}
+
+function themeKindToString(themeKind: ColorThemeKind): string {
+	return {
+		[ColorThemeKind.Light]: "light",
+		[ColorThemeKind.Dark]: "dark",
+		[ColorThemeKind.HighContrastLight]: "high-contrast-light",
+		[ColorThemeKind.HighContrast]: "high-contrast"
+	}[themeKind];
+}
+
+function themeKindFromString(themeKind: string): ColorThemeKind | undefined {
+	return {
+		"light": ColorThemeKind.Light,
+		"dark": ColorThemeKind.Dark,
+		"high-contrast-light": ColorThemeKind.HighContrastLight,
+		"high-contrast": ColorThemeKind.HighContrast
+	}[themeKind];
+}

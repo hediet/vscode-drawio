@@ -236,8 +236,8 @@ export class DrawioClientFactory {
 		// Prevent injection attacks by using JSON.stringify.
 		const patchedHtml = html
 			.replace(/\$\$literal-vsuri\$\$/g, vsuri.toString())
-			.replace("$$theme$$", JSON.stringify(config.theme))
-			.replace("$$appearance$$", JSON.stringify(config.appearance))
+			.replace("$$theme$$", JSON.stringify(config.resolvedTheme.themeName))
+			.replace("$$appearance$$", JSON.stringify(config.resolvedTheme.getAppearanceDrawioValue()))
 			.replace("$$lang$$", JSON.stringify(config.drawioLanguage))
 			.replace("$$simpleLabels$$", JSON.stringify(config.simpleLabels))
 			.replace(
@@ -284,7 +284,7 @@ export class DrawioClientFactory {
 				</script>
 
 				<iframe src="${drawioUrl}?embed=1&ui=${encodeURIComponent(
-			config.theme
+			config.resolvedTheme.themeName
 		)}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&simpleLabels=${encodeURIComponent(
 			config.simpleLabels
 		)}&lang=${encodeURIComponent(config.drawioLanguage)}"></iframe>

@@ -4,20 +4,20 @@ import { autorun, computed, observable, ObservableSet } from "mobx";
 import { extname } from "path";
 import {
 	commands,
-	StatusBarAlignment,
+	QuickPickItem, QuickPickItemKind, StatusBarAlignment,
 	TextDocument,
 	Uri,
 	WebviewPanel,
 	window,
-	workspace,
+	workspace
 } from "vscode";
-import { Config, DiagramConfig } from "./Config";
-import { DrawioBinaryDocument } from "./DrawioEditorProviderBinary";
+import { Config, DiagramConfig, ResolvedDrawioTheme } from "./Config";
 import {
 	CustomizedDrawioClient,
-	DrawioClientOptions,
 	DrawioClientFactory,
+	DrawioClientOptions,
 } from "./DrawioClient";
+import { DrawioBinaryDocument } from "./DrawioEditorProviderBinary";
 import { registerFailableCommand } from "./utils/registerFailableCommand";
 
 const drawioChangeThemeCommand = "hediet.vscode-drawio.changeTheme";
@@ -110,7 +110,7 @@ export class DrawioEditorService {
 					this.statusBar.command = drawioChangeThemeCommand;
 
 					if (activeEditor) {
-						this.statusBar.text = `Theme: ${activeEditor.config.theme}`;
+						this.statusBar.text = `Theme: ${activeEditor.config.resolvedTheme.toString()}`;
 						this.statusBar.show();
 					} else {
 						this.statusBar.hide();
@@ -334,37 +334,52 @@ export class DrawioEditor {
 	}
 
 	public async handleChangeThemeCommand(): Promise<void> {
-		let availableThemes = [
-			"automatic",
-			"min",
-			"dark",
-			"kennedy"
-		];
-
 		const originalTheme = this.config.theme;
-		availableThemes = availableThemes.filter((t) => t !== originalTheme);
-		availableThemes.unshift(originalTheme);
+		const originalAppearance = this.config.appearance;
+		const availableThemes = withFirstUnique(ResolvedDrawioTheme.getThemeNames(), originalTheme);
 
+		const availableOptions: (QuickPickItem & { onSelect?: (preview: boolean) => void })[] = [];
+
+		const curVsCodeAppearance = this.config.getVsCodeAppearance();
+
+		const appearances = withFirstUnique(["automatic", "light", "dark"], originalAppearance);
+		for (const appearance of appearances) {
+			const appearanceLabel = appearance === "automatic" ? `always match VS Code theme '${curVsCodeAppearance}'` : appearance;
+
+			availableOptions.push({
+				kind: QuickPickItemKind.Separator,
+				label: appearanceLabel,
+			});
+			for (const theme of availableThemes) {
+				availableOptions.push({
+					label: `${theme} - ${appearance}`,
+					onSelect: () => {
+						this.config.setTheme(theme);
+						this.config.setAppearance(appearance);
+					}
+				});
+			}
+		}
 		const result = await window.showQuickPick(
-			availableThemes.map((theme) => ({
-				label: theme,
-				description: `Selects Theme "${theme}"`,
-				theme,
-			})),
+			availableOptions,
 			{
 				onDidSelectItem: async (item) => {
-					await this.config.setTheme((item as any).theme);
+					(item as any).onSelect(true);
 				},
 			}
 		);
-
-		if (!result) {
+		if (!result || !result.onSelect) {
 			await this.config.setTheme(originalTheme);
+			await this.config.setAppearance(originalAppearance);
 			return;
 		}
-
-		await this.config.setTheme(result.theme);
+		result.onSelect(false);
 	}
+}
+
+function withFirstUnique<T>(items: T[], firstItem: T): T[] {
+	const filtered = items.filter(t => t !== firstItem);
+	return [firstItem, ...filtered];
 }
 
 async function fileExists(uri: Uri): Promise<boolean> {

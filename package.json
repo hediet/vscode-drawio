@@ -3,7 +3,7 @@
 	"private": true,
 	"displayName": "Draw.io Integration",
 	"description": "This unofficial extension integrates Draw.io into VS Code.",
-	"version": "1.7.0",
+	"version": "1.8.0",
 	"preRelease": false,
 	"license": "GPL-3.0",
 	"publisher": "hediet",
@@ -438,14 +438,25 @@
 					"hediet.vscode-drawio.theme": {
 						"title": "Draw.io Theme",
 						"type": "string",
+						"default": "kennedy",
+						"enum": [
+							"kennedy",
+							"min"
+						],
+						"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
+					},
+					"hediet.vscode-drawio.appearance": {
+						"title": "Draw.io Appearance",
+						"type": "string",
 						"default": "automatic",
 						"enum": [
 							"automatic",
-							"min",
+							"light",
 							"dark",
-							"kennedy"
+							"high-contrast-light",
+							"high-contrast"
 						],
-						"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
+						"description": "The appearance to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
 					}
 				}
 			}
