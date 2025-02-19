@@ -370,7 +370,7 @@ export class DiagramConfig {
 			"dark" |
 			"highContrastLight" |
 			"highContrast"
-		>("automatic"),
+		>("light"),
 	});
 
 	public get resolvedTheme(): ResolvedDrawioTheme {
