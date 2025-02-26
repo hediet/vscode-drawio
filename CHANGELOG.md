@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Reverts change to automatically follow VS Code dark/light theme [#456](https://github.com/hediet/vscode-drawio/issues/457)
+- Reverts change to automatically follow VS Code dark/light theme [#457](https://github.com/hediet/vscode-drawio/issues/457)
 
 
 ## [1.8.0]
