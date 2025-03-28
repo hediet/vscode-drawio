@@ -50,6 +50,7 @@ export class DrawioClientFactory {
 				config.defaultEdgeStyle;
 				config.colorNames;
 				config.simpleLabels;
+				config.enableLightDarkColors;
 				config.zoomFactor;
 				config.globalVars;
 				config.resizeImages;
@@ -93,6 +94,7 @@ export class DrawioClientFactory {
 					defaultEdgeStyle: config.defaultEdgeStyle,
 					colorNames: config.colorNames,
 					simpleLabels: config.simpleLabels,
+					enableLightDarkColors: config.enableLightDarkColors,
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 					zoomFactor: config.zoomFactor,
@@ -241,6 +243,10 @@ export class DrawioClientFactory {
 			.replace("$$lang$$", JSON.stringify(config.drawioLanguage))
 			.replace("$$simpleLabels$$", JSON.stringify(config.simpleLabels))
 			.replace(
+				"$$enableLightDarkColors$$",
+				JSON.stringify(config.enableLightDarkColors)
+			)
+			.replace(
 				"$$chrome$$",
 				JSON.stringify(options.isReadOnly ? "0" : "1")
 			)
@@ -287,6 +293,8 @@ export class DrawioClientFactory {
 			config.resolvedTheme.themeName
 		)}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&simpleLabels=${encodeURIComponent(
 			config.simpleLabels
+		)}&enableLightDarkColors=${encodeURIComponent(
+			config.enableLightDarkColors
 		)}&lang=${encodeURIComponent(config.drawioLanguage)}"></iframe>
 			</body>
 		</html>

@@ -125,6 +125,11 @@ export interface DrawioConfig {
 	simpleLabels?: boolean;
 
 	/**
+	 * Specifies if the `light-dark` color function should be used for colors. The default is true.
+	 */
+	enableLightDarkColors?: boolean;
+
+	/**
 	 * Defines a string with CSS rules to be used to configure the diagrams.net user interface.
 	 * For example, to change the background colour of the menu bar, use the following:
 	 * ```css

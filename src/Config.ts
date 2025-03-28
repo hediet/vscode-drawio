@@ -338,6 +338,23 @@ export class DiagramConfig {
 
 	//#endregion
 
+	//#region Enable Light Dark Colors
+
+	private readonly _enableLightDarkColors = new VsCodeSetting(
+		`${extensionId}.enableLightDarkColors`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<boolean>(true),
+		}
+	);
+
+	@computed
+	public get enableLightDarkColors(): boolean {
+		return this._enableLightDarkColors.get();
+	}
+
+	//#endregion
+
 	//#region Preset Colors
 
 	private readonly _presetColors = new VsCodeSetting(
