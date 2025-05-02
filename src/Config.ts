@@ -571,7 +571,29 @@ export class DiagramConfig {
 			function parseXml(xml: string): unknown {
 				const parse = require("xml-parser-xo");
 				const parsedXml = parse(xml);
-				return JSON.parse(parsedXml.root.children[0].content);
+				const unescapeHtml = (str: string): string => {
+					const htmlEntities: { [key: string]: string } = {
+							"&amp;": "&",
+							"&lt;": "<",
+							"&gt;": ">",
+							"&quot;": '"',
+							"&#39;": "'",
+					};
+					return str.replace(/&amp;|&lt;|&gt;|&quot;|&#39;/g, (match) => htmlEntities[match]);
+				};
+				const parsedJson = JSON.parse(
+					parsedXml.root.children[0].content
+				);
+				for (let index = 0; index < parsedJson.length; index++) {
+					const element = parsedJson[index];
+					if (element.xml.startsWith("&lt;")) {
+						// This is the default export format
+						let xmlContent = element.xml;
+						xmlContent = unescapeHtml(xmlContent);
+						element.xml = xmlContent;
+					}
+				}
+				return parsedJson;
 			}
 
 			let data: DrawioLibraryData["data"];
