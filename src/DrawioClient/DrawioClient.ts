@@ -238,6 +238,7 @@ export class DrawioClient<
 		const response = await this.sendActionWaitForResponse({
 			action: "export",
 			format: "xmlpng",
+			currentPage: true,
 		});
 		if (response.event !== "export") {
 			throw new Error("Unexpected response");
@@ -254,6 +255,7 @@ export class DrawioClient<
 		const response = await this.sendActionWaitForResponse({
 			action: "export",
 			format: "xmlsvg",
+			currentPage: true,
 		});
 		if (response.event !== "export") {
 			throw new Error("Unexpected response");
