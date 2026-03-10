@@ -133,60 +133,40 @@ Draw.loadPlugin((ui) => {
 				const graphPos = transformBack(pos);
 				sendEvent({ event: "cursorChanged", position: graphPos });
 			},
-			mouseDown: () => {},
-			mouseUp: () => {},
+			mouseDown: () => { },
+			mouseUp: () => { },
 		});
 
-		function patchFn(
-			clazz: any,
-			fnName: string,
-			fnFactory: (old: Function) => (this: any, ...args: any) => any
-		) {
-			const old = clazz[fnName];
-			clazz[fnName] = fnFactory(old);
-		}
+		// Listen for rubberband events
+		const rubberband = graph.getRubberband();
 
-		patchFn(mxRubberband.prototype, "update", function (old) {
-			return function (...args: any[]) {
-				let first = { ...this.first };
-				let second = { x: args[0], y: args[1] };
-				old.apply(this, args);
-
-				if (first.x > second.x) {
-					const temp = first.x;
-					first.x = second.x;
-					second.x = temp;
-				}
-				if (first.y > second.y) {
-					const temp = first.y;
-					first.y = second.y;
-					second.y = temp;
-				}
+		if (rubberband != null) {
+			rubberband.addListener(mxEvent.UPDATE, (sender: any, evt: any) => {
+				const x = evt.getProperty("x");
+				const y = evt.getProperty("y");
+				const w = evt.getProperty("width");
+				const h = evt.getProperty("height");
 
 				sendEvent({
 					event: "selectedRectangleChanged",
 					rect: {
-						start: transformBack(first),
-						end: transformBack(second),
+						start: transformBack({ x: x, y: y }),
+						end: transformBack({ x: x + w, y: y + h }),
 					},
 				});
-			};
-		});
+			});
 
-		patchFn(mxRubberband.prototype, "reset", function (old) {
-			return function (...args: any[]) {
-				old.apply(this, args);
-
+			rubberband.addListener(mxEvent.RESET, () => {
 				sendEvent({
 					event: "selectedRectangleChanged",
 					rect: undefined,
 				});
-			};
-		});
+			});
+		}
 	});
 });
 
-declare class mxRubberband {}
+declare class mxRubberband { }
 
 const svgns = "http://www.w3.org/2000/svg";
 
@@ -309,7 +289,7 @@ class Highlights {
 		{ info: HighlightInfo; instance: mxCellHighlight }
 	>();
 
-	constructor(private readonly graph: DrawioGraph) {}
+	constructor(private readonly graph: DrawioGraph) { }
 
 	private highlightInfoToStr(info: HighlightInfo): string {
 		return JSON.stringify({ color: info.color, cell: info.cell.id });
