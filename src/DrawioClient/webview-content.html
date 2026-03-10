@@ -14,10 +14,6 @@
 					sendToVsCode({ event: "log", body: msg });
 				};
 
-				Object.defineProperty(window, "mxIsElectron", {
-					value: false,
-				});
-
 				// Fix draw.io tries to access unavailable localStorage
 				// Replace it with a bridged version
 				const storage = $$localStorage$$;
@@ -46,16 +42,22 @@
 				// Fix draw.io tries to access unavailable cookie prop
 				Object.defineProperty(document, "cookie", { value: "" });
 
-				// See EditorUI.js:10675
-				const fakedWindowOpener = {
+				// Create a message bridge object that draw.io will use
+				// as its embedMessageSource for both receiving and sending
+				// messages. This replaces the old window.opener fake +
+				// message re-dispatch hack.
+				const vscodeBridge = {
 					postMessage: (msg) => api.postMessage(msg),
 				};
+
+				// Set as window.opener for backward compatibility with
+				// plugins that check evt.source === window.opener
 				Object.defineProperty(window, "opener", {
-					value: fakedWindowOpener,
+					value: vscodeBridge,
 				});
 
 				window.addEventListener("message", function (evt) {
-					if (evt.source !== fakedWindowOpener) {
+					if (evt.source !== vscodeBridge) {
 						let evtData = evt.data;
 						if (evtData) {
 							try {
@@ -87,25 +89,12 @@
 							evtData = JSON.stringify(dataObj);
 						}
 
-						// Re-emit messages with faked source, so that drawio handles the payload.
-						// If we don't do this, `evt.source === window.opener` will fail
-						// and drawio ignores the message.
+						// Re-emit messages with the bridge as source
 						const fakedEvt = new Event("message");
-						fakedEvt.source = fakedWindowOpener;
+						fakedEvt.source = vscodeBridge;
 						fakedEvt.data = evtData;
 
-						// When loading a document, dispatchEvent would indirectly call window.focus.
-						// This is not recommended behavior in VS Code, so we disable it.
-						const origFocus = window.focus;
-						window.focus = function () {
-							/* NOOP */
-						};
-
-						try {
-							window.dispatchEvent(fakedEvt);
-						} finally {
-							window.focus = origFocus;
-						}
+						window.dispatchEvent(fakedEvt);
 
 						evt.stopPropagation();
 						evt.preventDefault();
@@ -316,53 +305,6 @@
 
 				log("Document loaded, patching prototypes");
 
-				patchFn(Menus.prototype, "addSubmenu", function (old) {
-					return function (...args) {
-						if (
-							args[0] === "exportAs" ||
-							args[0] === "importFrom"
-						) {
-							return;
-						}
-						//console.log("addSubmenu: ", args[0]);
-						return old.apply(this, args);
-					};
-				});
-
-				patchFn(Menus.prototype, "addMenuItem", function (old) {
-					return function (...args) {
-						if (
-							[
-								"print",
-								"saveAndExit",
-								"plugins",
-								"exit",
-								//"properties",
-							].indexOf(args[1]) !== -1
-						) {
-							return;
-						}
-						//console.log("addMenuItem: ", args[1]);
-						return old.apply(this, args);
-					};
-				});
-
-				// Without this, it will crash. "help" is removed.
-				Menus.prototype.defaultMenuItems =
-					Menus.prototype.defaultMenuItems.filter(
-						(i) => i !== "help"
-					);
-
-				patchFn(Menus.prototype, "put", function (old) {
-					return function (...args) {
-						if (["language", "help"].indexOf(args[0]) !== -1) {
-							return args[1];
-						}
-						//console.log("put: ", args[0]);
-						return old.apply(this, args);
-					};
-				});
-
 				EditorUi.prototype.addEmbedButtons = () => {};
 
 				patchFn(EditorUi.prototype, "init", function (old) {
@@ -377,12 +319,8 @@
 				patchFn(mxEvent, "addListener", function (old) {
 					return function (...args) {
 						const [target, eventName, oldHandler] = args;
-						// console.log("Intercepting addListener", args);
 						if (eventName === "keydown") {
 							args[2] = (/** @type {KeyboardEvent} */ keyEvt) => {
-								//console.log("Handling key", keyEvt);
-								//log("Handling key", keyEvt.key);
-
 								// Draw.io should not override these shortcuts
 								if (keyEvt.key === "Tab" && keyEvt.ctrlKey) {
 									return;
@@ -399,9 +337,6 @@
 									(keyEvt.ctrlKey || keyEvt.metaKey)
 								) {
 									// this covers ctrl+p.
-									// We don't need this keyboard shortcuts in drawio.
-									// Printing does not make sense in VS Code.
-									// Users should use the drawio desktop app for that.
 									return;
 								}
 								if (
@@ -418,7 +353,7 @@
 									keyEvt.ctrlKey &&
 									keyEvt.shiftKey
 								) {
-									// We are handling saving ourselves. This action does not make sense.
+									// We are handling saving ourselves.
 									return;
 								}
 
@@ -431,112 +366,22 @@
 				});
 
 				/**
-				 * See https://github.com/jgraph/mxgraph/blob/master/javascript/src/js/util/mxUrlConverter.js
-				 * for non minified version.
-				 * Fixes https://github.com/hediet/vscode-drawio/issues/53 and
-				 * https://github.com/hediet/vscode-drawio/issues/74.
+				 * Fix URL resolution for VS Code webview URIs.
+				 * The isRelativeUrl fix is now built into draw.io, but we
+				 * still need to set the base URL for the webview context.
 				 */
-				function fix_mxUrlConverter_prototype_convert() {
-					mxUrlConverter.prototype.baseUrl = "$$literal-vsuri$$/";
-					mxUrlConverter.prototype.updateBaseUrl = function () {
-						this.baseDomain = "$$literal-vsuri$$";
-						this.baseUrl = "$$literal-vsuri$$/";
-					};
-					const RX_IS_ABS_URL = /^(\/\/|[a-zA-Z][a-zA-Z\d+\-.]*:)/;
-					mxUrlConverter.prototype.isRelativeUrl = function (url) {
-						return url != null && !RX_IS_ABS_URL.test(url);
-					};
-				}
+				mxUrlConverter.prototype.baseUrl = "$$literal-vsuri$$/";
+				mxUrlConverter.prototype.updateBaseUrl = function () {
+					this.baseDomain = "$$literal-vsuri$$";
+					this.baseUrl = "$$literal-vsuri$$/";
+				};
 
-				fix_mxUrlConverter_prototype_convert();
-
-				// Fix linkTarget export
-				// This is super hacky.
-				// See https://github.com/hediet/vscode-drawio/issues/204.
-				patchFn(Graph.prototype, "getSvg", function (old) {
-					return function (
-						background,
-						scale,
-						border,
-						nocrop,
-						crisp,
-						ignoreSelection,
-						showText,
-						imgExport,
-						linkTarget,
-						hasShadow,
-						incExtFonts,
-						keepTheme,
-						exportType,
-						...args
-					) {
-						const baseLinkTarget =
-							editorUi.fileNode.getAttribute("linkTarget");
-						linkTarget = linkTarget || baseLinkTarget;
-
-						return old.apply(this, [
-							background,
-							scale,
-							border,
-							nocrop,
-							crisp,
-							ignoreSelection,
-							showText,
-							imgExport,
-							linkTarget,
-							hasShadow,
-							incExtFonts,
-							keepTheme,
-							exportType,
-							...args,
-						]);
-					};
-				});
-
-				// Force compact to exclude noisy properties
-				patchFn(EditorUi.prototype, "createFileData", function (old) {
-					return function (
-						node,
-						graph,
-						file,
-						url,
-						forceXml,
-						forceSvg,
-						forceHtml,
-						embeddedCallback,
-						ignoreSelection,
-						compact,
-						uncompressed
-					) {
-						return old.apply(this, [
-							node,
-							graph,
-							file,
-							url,
-							forceXml,
-							forceSvg,
-							forceHtml,
-							embeddedCallback,
-							ignoreSelection,
-							/* compact */ true,
-							uncompressed,
-						]);
-					};
-				});
-
-				patchFn(mxUtils, "getXml", function (old) {
-					return function (node) {
-						// https://github.com/hediet/vscode-drawio/issues/209
-						const xmlSerializer = new XMLSerializer();
-						xml = xmlSerializer.serializeToString(node);
-						return xml;
-					};
-				});
+				// Set the embed message source so draw.io natively
+				// accepts messages from VS Code without re-dispatching.
+				// window.opener was set to the vscodeBridge in the head script.
+				EditorUi.prototype.embedMessageSource = window.opener;
 
 				App.main();
-
-				// For debugging:
-				// console.log("drawio", window.Draw);
 
 				/**
 				 * @param url {string}
