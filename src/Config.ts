@@ -720,8 +720,11 @@ type DrawioCustomLibrary = (
 export class ResolvedDrawioTheme {
 	public static getThemeNames(): string[] {
 		return [
+			"auto",
 			"min",
 			"kennedy",
+			"simple",
+			"sketch"
 		];
 	}
 
