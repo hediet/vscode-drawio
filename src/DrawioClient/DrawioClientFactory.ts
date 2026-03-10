@@ -97,6 +97,11 @@ export class DrawioClientFactory {
 					libraries: simpleDrawioLibrary(libs),
 					zoomFactor: config.zoomFactor,
 					globalVars: config.globalVars,
+					compact: true,
+					noAutoFocus: true,
+					hideMenuItems: ["exportAs", "importFrom", "print",
+						"saveAndExit", "plugins", "exit"],
+					hideMenus: ["language", "help"],
 				};
 			},
 			() => {

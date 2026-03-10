@@ -164,6 +164,36 @@ export interface DrawioConfig {
 	 * Specifies if the XML output should be compressed. The default is true.
 	 */
 	compressXml?: boolean;
+
+	/**
+	 * If true, strips extra metadata from file data output (e.g. for embedding).
+	 */
+	compact?: boolean;
+
+	/**
+	 * If true, suppresses auto-focusing the editor window on load.
+	 */
+	noAutoFocus?: boolean;
+
+	/**
+	 * Array of menu item names to hide (e.g. ["exportAs", "plugins", "exit"]).
+	 */
+	hideMenuItems?: string[];
+
+	/**
+	 * Array of top-level menu names to hide (e.g. ["language", "help"]).
+	 */
+	hideMenus?: string[];
+
+	/**
+	 * The zoom factor for the editor. Must be > 1.
+	 */
+	zoomFactor?: number;
+
+	/**
+	 * Global variables for use in labels and tooltips.
+	 */
+	globalVars?: Record<string, string>;
 }
 
 export interface ColorScheme {
