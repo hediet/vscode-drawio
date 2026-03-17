@@ -166,7 +166,9 @@ Draw.loadPlugin((ui) => {
 	});
 });
 
-declare class mxRubberband { }
+declare class mxRubberband {
+	addListener(event: string, handler: (sender: any, evt: any) => void): void;
+}
 
 const svgns = "http://www.w3.org/2000/svg";
 

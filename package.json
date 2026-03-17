@@ -505,7 +505,7 @@
 		"drawio/src/main/webapp/connect/**/*",
 		"drawio/src/main/webapp/images/**/*",
 		"drawio/src/main/webapp/img/**/*",
-		"drawio/src/main/webapp/math/**/*",
+		"drawio/src/main/webapp/math4/**/*",
 		"drawio/src/main/webapp/mxgraph/**/*",
 		"drawio/src/main/webapp/plugins/**/*",
 		"drawio/src/main/webapp/resources/**/*",

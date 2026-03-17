@@ -96,7 +96,7 @@ export class DrawioClientFactory {
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 					zoomFactor: config.zoomFactor,
-					globalVars: config.globalVars,
+					globalVars: (config.globalVars as Record<string, string>) ?? undefined,
 					compact: true,
 					noAutoFocus: true,
 					hideMenuItems: ["exportAs", "importFrom", "print",
