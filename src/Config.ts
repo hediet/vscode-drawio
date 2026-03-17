@@ -684,6 +684,57 @@ export class DiagramConfig {
 
 	// #endregion
 
+	// #region Show Tooltip Icons
+
+	private readonly _showTooltipIcons = new VsCodeSetting(
+		`${extensionId}.showTooltipIcons`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<boolean>(false),
+		}
+	);
+
+	@computed
+	public get showTooltipIcons(): boolean {
+		return this._showTooltipIcons.get();
+	}
+
+	// #endregion
+
+	// #region Show Link Icons
+
+	private readonly _showLinkIcons = new VsCodeSetting(
+		`${extensionId}.showLinkIcons`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<boolean>(false),
+		}
+	);
+
+	@computed
+	public get showLinkIcons(): boolean {
+		return this._showLinkIcons.get();
+	}
+
+	// #endregion
+
+	// #region Show Connect Handle
+
+	private readonly _showConnectHandle = new VsCodeSetting(
+		`${extensionId}.showConnectHandle`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<boolean>(false),
+		}
+	);
+
+	@computed
+	public get showConnectHandle(): boolean {
+		return this._showConnectHandle.get();
+	}
+
+	// #endregion
+
 	constructor(
 		public readonly uri: Uri,
 		private readonly config: Config,

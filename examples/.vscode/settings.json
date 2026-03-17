@@ -1,11 +1,7 @@
 {
 	"hediet.vscode-drawio.enableExperimentalFeatures": true,
 	"hediet.vscode-drawio.offline": true,
-	"hediet.vscode-drawio.plugins": [
-		{
-			"file": "${workspaceFolder}/tooltips-plugin.js"
-		}
-	],
+	"hediet.vscode-drawio.showTooltipIcons": true,
 	"hediet.vscode-drawio.defaultVertexStyle": {
 		"fontColor": "#ff0000",
 		"fontFamily": "Courier New",

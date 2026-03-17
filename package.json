@@ -225,6 +225,27 @@
 						"description": "If set to true, images are resized automatically on paste. If not defined, the user will be asked to confirm the resize.",
 						"default": null,
 						"order": 70
+					},
+					"hediet.vscode-drawio.showTooltipIcons": {
+						"type": "boolean",
+						"default": false,
+						"title": "Show Tooltip Icons",
+						"description": "Specifies whether tooltip icons are shown.",
+						"order": 80
+					},
+					"hediet.vscode-drawio.showLinkIcons": {
+						"type": "boolean",
+						"default": false,
+						"title": "Show Link Icons",
+						"description": "Specifies whether link icons are shown.",
+						"order": 90
+					},
+					"hediet.vscode-drawio.showConnectHandle": {
+						"type": "boolean",
+						"default": false,
+						"title": "Show Connect Handle",
+						"description": "Specifies whether the connect handle is shown on selected vertices.",
+						"order": 100
 					}
 				}
 			},

@@ -194,6 +194,21 @@ export interface DrawioConfig {
 	 * Global variables for use in labels and tooltips.
 	 */
 	globalVars?: Record<string, string>;
+
+	/**
+	 * Specifies whether tooltip icons are shown. Default is false.
+	 */
+	showTooltipIcons?: boolean;
+
+	/**
+	 * Specifies whether link icons are shown. Default is false.
+	 */
+	showLinkIcons?: boolean;
+
+	/**
+	 * Specifies whether the connect handle is shown on selected vertices. Default is false.
+	 */
+	showConnectHandle?: boolean;
 }
 
 export interface ColorScheme {
