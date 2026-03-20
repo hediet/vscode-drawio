@@ -1,0 +1,12 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Document outline -->
+  <rect x="1" y="1" width="14" height="14" rx="1.5" stroke="#424242" stroke-width="1.2" fill="none"/>
+  <!-- Draw.io logo: top node (wide) -->
+  <rect x="5.75" y="2.5" width="4.5" height="3.5" rx="0.75" fill="#424242"/>
+  <!-- Branching connectors -->
+  <path d="M8 5.5L4.75 9M8 5.5L11.25 9" stroke="#424242" stroke-width="1"/>
+  <!-- Bottom-left node (square) -->
+  <rect x="2.5" y="9" width="4.5" height="3.5" rx="0.75" fill="#424242"/>
+  <!-- Bottom-right node (square) -->
+  <rect x="9" y="9" width="4.5" height="3.5" rx="0.75" fill="#424242"/>
+</svg>

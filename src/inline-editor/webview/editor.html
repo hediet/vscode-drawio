@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'none'; frame-src https://test.draw.io https://*.draw.io https://*.diagrams.net http://127.0.0.1:* http://localhost:*; script-src 'nonce-{{nonce}}'; style-src 'nonce-{{nonce}}';">
+  <style nonce="{{nonce}}">
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: var(--vscode-font-family);
+      background: var(--vscode-editor-background);
+      color: var(--vscode-editor-foreground);
+    }
+    #editor-frame {
+      width: 100%;
+      height: 100vh;
+      border: 0;
+    }
+    #loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100vh;
+      font-size: 14px;
+      color: var(--vscode-descriptionForeground);
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="loading">Loading draw.io editor...</div>
+  <iframe id="editor-frame" class="hidden" src="{{iframeSrc}}"></iframe>
+
+  <script nonce="{{nonce}}">
+    (function()
+    {
+      const vscode = acquireVsCodeApi();
+      const frame = document.getElementById('editor-frame');
+      const loading = document.getElementById('loading');
+
+      let currentXml = '';
+      let modified = false;
+      let editorReady = false;
+      let mode = 'modal'; // 'modal' (save & close) or 'customEditor' (autosave)
+      let autosaveTimer = null;
+      let mermaidDescriptor = null; // set when loading from mermaid source
+      let sourceMetadata = null; // optional metadata to store on model root
+      let showTemplatePicker = false; // show template dialog after loading blank diagram
+
+      // Receive initial data from the extension
+      window.addEventListener('message', function(event)
+      {
+        const msg = event.data;
+
+        if (msg.type === 'loadDiagram')
+        {
+          currentXml = msg.xml;
+          mermaidDescriptor = null;
+          sourceMetadata = null;
+          showTemplatePicker = msg.isBlank || false;
+          if (msg.mode === 'customEditor')
+          {
+            mode = 'customEditor';
+          }
+          if (msg.devMode != null) devMode = msg.devMode;
+          loadEditorFrame(msg.editorUrl, msg.isDark);
+        }
+        else if (msg.type === 'loadMermaid')
+        {
+          currentXml = '';
+          mermaidDescriptor = {
+            format: 'mermaid',
+            data: msg.mermaidSource,
+          };
+          if (msg.sourceMetadataKey)
+          {
+            sourceMetadata = {
+              key: msg.sourceMetadataKey,
+              value: msg.mermaidSource,
+            };
+          }
+          if (msg.devMode != null) devMode = msg.devMode;
+          loadEditorFrame(msg.editorUrl, msg.isDark);
+        }
+      });
+
+      var devMode = true; // default, overridden by extension message
+
+      function loadEditorFrame(editorUrl, isDark)
+      {
+        // The iframe src is pre-set in the HTML by the extension for faster
+        // startup.  Only set it here as a fallback (e.g. if the placeholder
+        // wasn't replaced).
+        if (!frame.getAttribute('src') || frame.getAttribute('src') === '{{iframeSrc}}')
+        {
+          editorUrl = editorUrl || 'https://test.draw.io';
+          let url = editorUrl + '/?embed=1&proto=json&spin=1&configure=1&libraries=1&saveAndExit=1';
+          if (devMode) url += '&dev=1&test=1';
+          if (isDark) url += '&dark=1';
+          frame.setAttribute('src', url);
+        }
+      }
+
+      // Forward intercepted VS Code shortcuts from the draw.io iframe
+      // to the extension so it can execute the corresponding command.
+      window.addEventListener('message', function(event)
+      {
+        if (event.data && event.data.type === 'vscodeShortcut' && event.data.command)
+        {
+          vscode.postMessage({ type: 'vscodeShortcut', command: event.data.command });
+        }
+      });
+
+      // Handle messages from draw.io iframe
+      window.addEventListener('message', function(event)
+      {
+        if (event.source !== frame.contentWindow) return;
+
+        let msg;
+        try
+        {
+          msg = JSON.parse(event.data);
+        }
+        catch (e)
+        {
+          return;
+        }
+
+        if (!msg || !msg.event) return;
+
+        switch (msg.event)
+        {
+          case 'configure':
+            frame.contentWindow.postMessage(JSON.stringify({
+              action: 'configure',
+              config: {
+                compact: true,
+                darkColor: '#1e1e1e',
+                showTooltipIcons: true,
+                showConnectHandle: true,
+                preserveViewState: true,
+                settingsName: 'vscode-editor',
+                useInternalClipboard: true // TODO: Add native clipboard support
+              }
+            }), '*');
+            break;
+
+          case 'init':
+            editorReady = true;
+            loading.classList.add('hidden');
+            frame.classList.remove('hidden');
+            // Defer the load message until after the browser has reflowed.
+            // The iframe was just unhidden — without this, draw.io reads
+            // stale (zero) dimensions and computes a tiny zoom level.
+            requestAnimationFrame(function()
+            {
+              if (mermaidDescriptor)
+              {
+                var loadMsg = {
+                  action: 'load',
+                  autosave: 1,
+                  descriptor: mermaidDescriptor,
+                  title: '',
+                };
+                if (sourceMetadata)
+                {
+                  loadMsg.sourceMetadata = sourceMetadata;
+                }
+                frame.contentWindow.postMessage(JSON.stringify(loadMsg), '*');
+              }
+              else
+              {
+                frame.contentWindow.postMessage(JSON.stringify({
+                  action: 'load',
+                  autosave: 1,
+                  xml: currentXml,
+                  title: '',
+                }), '*');
+              }
+            });
+            break;
+
+          case 'load':
+            if (showTemplatePicker)
+            {
+              showTemplatePicker = false;
+              frame.contentWindow.postMessage(JSON.stringify({
+                action: 'template',
+                noExitOnCancel: 1
+              }), '*');
+            }
+            break;
+
+          case 'autosave':
+            currentXml = msg.xml;
+            if (!modified)
+            {
+              modified = true;
+              frame.contentWindow.postMessage(JSON.stringify({
+                action: 'status',
+                messageKey: 'unsavedChanges',
+                modified: true
+              }), '*');
+            }
+            if (mode === 'customEditor')
+            {
+              // Debounced autosave to disk
+              if (autosaveTimer) clearTimeout(autosaveTimer);
+              autosaveTimer = setTimeout(function()
+              {
+                vscode.postMessage({ type: 'autosave', xml: currentXml });
+              }, 500);
+            }
+            break;
+
+          case 'save':
+            currentXml = msg.xml;
+            if (!modified)
+            {
+              modified = true;
+              frame.contentWindow.postMessage(JSON.stringify({
+                action: 'status',
+                messageKey: 'unsavedChanges',
+                modified: true
+              }), '*');
+            }
+            if (mode === 'customEditor')
+            {
+              vscode.postMessage({ type: 'autosave', xml: currentXml });
+            }
+            else if (msg.exit)
+            {
+              // Save & Exit button: save and close the panel
+              saveAndClose();
+            }
+            else
+            {
+              // Save to file but keep editor open
+              vscode.postMessage({ type: 'save', xml: currentXml });
+              modified = false;
+              frame.contentWindow.postMessage(JSON.stringify({
+                action: 'status',
+                messageKey: 'allChangesSaved',
+                modified: false
+              }), '*');
+            }
+            break;
+
+          case 'exit':
+            if (mode === 'customEditor')
+            {
+              // No-op: user closes the tab via VS Code
+            }
+            else
+            {
+              // Exit without saving — discards unsaved changes
+              vscode.postMessage({ type: 'cancel' });
+            }
+            break;
+        }
+      });
+
+      function saveAndClose()
+      {
+        vscode.postMessage({
+          type: 'saveAndClose',
+          xml: currentXml
+        });
+      }
+
+      // Tell the extension we're ready
+      vscode.postMessage({ type: 'webviewReady' });
+    })();
+  </script>
+</body>
+</html>

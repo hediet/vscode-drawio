@@ -1,0 +1,3476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none';
+             img-src ${cspSource} https: data:;
+             script-src 'nonce-${nonce}' https://viewer.diagrams.net;
+             style-src 'unsafe-inline';
+             frame-src https://embed.diagrams.net https://*.diagrams.net https://test.draw.io https://*.draw.io http://127.0.0.1:* http://localhost:*;
+             connect-src https:;
+             font-src https: data:;">
+  <style>
+    body {
+      font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif);
+      font-size: 14px;
+      color: var(--vscode-editor-foreground);
+      background: var(--vscode-editor-background);
+      padding: 20px 50px;
+      line-height: 1.6;
+      position: relative;
+    }
+
+    /* Markdown styling using VS Code theme variables */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      color: var(--vscode-editor-foreground);
+      margin-top: 24px;
+      margin-bottom: 16px;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-top: 0;
+      border-bottom: 1px solid var(--vscode-editorGroup-border);
+      padding-bottom: 0.3em;
+    }
+
+    h2 {
+      font-size: 1.5em;
+      border-bottom: 1px solid var(--vscode-editorGroup-border);
+      padding-bottom: 0.3em;
+    }
+
+    h3 {
+      font-size: 1.25em;
+    }
+
+    h4 {
+      font-size: 1em;
+    }
+
+    h5 {
+      font-size: 0.875em;
+    }
+
+    h6 {
+      font-size: 0.85em;
+    }
+
+    p {
+      margin: 0.5em 0;
+    }
+
+    a {
+      color: var(--vscode-textLink-foreground);
+    }
+
+    a:hover {
+      color: var(--vscode-textLink-activeForeground);
+    }
+
+    code {
+      font-family: var(--vscode-editor-font-family, monospace);
+      font-size: 0.9em;
+      background: var(--vscode-textCodeBlock-background);
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+
+    pre {
+      background: var(--vscode-textCodeBlock-background);
+      padding: 12px 16px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: var(--vscode-editor-font-family, monospace);
+      font-size: 14px;
+      line-height: 1.4;
+      white-space: pre;
+    }
+
+    pre code {
+      padding: 0;
+      background: none;
+      font-size: inherit;
+    }
+
+    blockquote {
+      border-left: 3px solid var(--vscode-textBlockQuote-border);
+      margin: 0.5em 0;
+      padding: 0.5em 1em;
+      color: var(--vscode-textBlockQuote-foreground);
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 0.5em 0;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--vscode-editorGroup-border);
+      padding: 6px 12px;
+    }
+
+    th {
+      background: var(--vscode-editorGroupHeader-tabsBackground);
+    }
+
+    img {
+      max-width: 100%;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--vscode-editorGroup-border);
+      margin: 1.5em 0;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 2em;
+    }
+
+    ul>li {
+      position: relative;
+    }
+
+    ul>li::before {
+      content: '–';
+      position: absolute;
+      left: -1.4em;
+    }
+
+    /* ── Page toolbar ── */
+    #toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 36px;
+      padding: 0 50px;
+      margin: -20px -50px 0px -50px;
+      background: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-editor-background));
+      border-bottom: 1px solid var(--vscode-editorGroup-border);
+    }
+
+    #toolbar button {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 28px;
+      padding: 0 12px;
+      border: 1px solid var(--vscode-button-border, var(--vscode-editorGroup-border));
+      border-radius: 4px;
+      background: var(--vscode-button-secondaryBackground, transparent);
+      color: var(--vscode-button-secondaryForeground, var(--vscode-editor-foreground));
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    #toolbar button:hover {
+      background: var(--vscode-button-secondaryHoverBackground, rgba(128, 128, 128, 0.15));
+    }
+
+    #toolbar .spacer {
+      flex: 1;
+    }
+
+    /* ── Editable text section ── */
+    .text-section {
+      outline: none;
+      padding: 2px 4px 2px 12px;
+      margin: -2px -4px;
+      border-left: 3px solid transparent;
+      transition: border-color 0.15s ease;
+    }
+
+    .text-section:hover {
+      border-left-color: var(--vscode-editorGroup-border);
+    }
+
+    /* ── Outer container (toolbar + editor frame) ── */
+    .drawio-editor-outer {
+      margin: 8px 0;
+      position: relative;
+      max-width: 100%;
+      overflow: visible;
+      /* keep toolbar row visible above the wrapper */
+    }
+
+    /* ── Inline editor wrapper (unlocked diagrams) ── */
+    .drawio-editor-wrapper {
+      position: relative;
+      border: 1px solid var(--vscode-editorGroup-border);
+      border-radius: 4px;
+      overflow: hidden;
+      background: transparent;
+      min-height: 20px;
+      max-width: 100%;
+    }
+
+    .drawio-editor-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 12px);
+      border: none;
+    }
+
+    .drawio-editor-wrapper .preview-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 12px);
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .drawio-editor-wrapper .preview-layer .preview-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--vscode-descriptionForeground);
+      font-size: 13px;
+    }
+
+    .drawio-editor-wrapper .preview-layer svg {
+      max-width: 100%;
+      height: auto !important;
+    }
+
+    .drawio-editor-wrapper .preview-layer,
+    .drawio-editor-wrapper .preview-layer * {
+      cursor: pointer !important;
+    }
+
+    .drawio-editor-wrapper .preview-layer .preview-loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--vscode-editor-background, rgba(30, 30, 30, 0.6));
+      opacity: 0.7;
+      z-index: 1;
+    }
+
+    .drawio-editor-wrapper .preview-layer .preview-loading-overlay span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--vscode-editor-foreground);
+      font-size: 13px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .drawio-editor-wrapper .preview-layer .preview-loading-overlay .spinner {
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+
+    .drawio-editor-wrapper .loading-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--vscode-descriptionForeground);
+      font-size: 13px;
+    }
+
+    /* Active inline editor highlight */
+    .drawio-editor-wrapper.active {}
+
+    /* Inline toolbar (floats above diagram, outside wrapper) */
+    .drawio-toolbar-row {
+      position: absolute;
+      top: -32px;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: flex-end;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      /* don't steal mouseenter from the sibling above */
+    }
+
+    .drawio-editor-outer.toolbar-visible .drawio-toolbar-row {
+      opacity: 0.8;
+      pointer-events: auto;
+      /* re-enable once this container's toolbar is shown */
+    }
+
+    .drawio-toolbar-row:hover {
+      opacity: 1 !important;
+    }
+
+    .drawio-inline-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid var(--vscode-editorGroup-border);
+      border-radius: 4px;
+      background: var(--vscode-editor-background);
+      overflow: hidden;
+    }
+
+    .drawio-inline-toolbar button {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-right: 1px solid var(--vscode-editorGroup-border);
+      background: transparent;
+      color: var(--vscode-editor-foreground);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .drawio-inline-toolbar button:last-child {
+      border-right: none;
+    }
+
+    .drawio-inline-toolbar button:hover {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+    }
+
+    .drawio-inline-toolbar button svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+
+    .drawio-inline-toolbar button[title]::after {
+      content: attr(title);
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--vscode-editorWidget-background, #252526);
+      color: var(--vscode-editorWidget-foreground, #ccc);
+      border: 1px solid var(--vscode-editorWidget-border, #454545);
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease 0.5s;
+      z-index: 100;
+    }
+
+    .drawio-inline-toolbar button[title]:hover::after {
+      opacity: 1;
+    }
+
+    /* ── Resize handles ── */
+    .drawio-resize-handle {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 12px;
+      cursor: ns-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      background: transparent;
+      scroll-margin: 40px;
+    }
+
+    .drawio-resize-handle::after {
+      content: '';
+      width: 40px;
+      height: 4px;
+      background: var(--vscode-editorGroup-border);
+      border-radius: 2px;
+      opacity: 0.5;
+    }
+
+    .drawio-resize-handle:hover::after {
+      opacity: 1;
+    }
+
+    /* Hide resize handles when editor is not active */
+    .drawio-editor-wrapper:not(.active)>.drawio-resize-handle,
+    .drawio-editor-wrapper:not(.active)>.drawio-corner-resize-handle {
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    .drawio-corner-resize-handle {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 16px;
+      height: 16px;
+      cursor: nwse-resize;
+      z-index: 6;
+      background: transparent;
+      scroll-margin: 40px;
+    }
+
+    .drawio-corner-resize-handle::after {
+      content: '';
+      position: absolute;
+      bottom: 3px;
+      right: 3px;
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid var(--vscode-editorGroup-border);
+      border-bottom: 2px solid var(--vscode-editorGroup-border);
+      opacity: 0.5;
+    }
+
+    .drawio-corner-resize-handle:hover::after {
+      opacity: 1;
+    }
+
+    /* ── Locked diagram ── */
+    .drawio-locked-container {
+      position: relative;
+      border: 1px solid var(--vscode-editorGroup-border);
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--vscode-editor-background);
+      min-height: 80px;
+    }
+
+    /* ── Mermaid block ── */
+    .drawio-mermaid-container {
+      position: relative;
+      border: 1px solid var(--vscode-editorGroup-border);
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--vscode-textCodeBlock-background);
+    }
+
+    .drawio-mermaid-container pre {
+      margin: 0;
+      padding: 12px 16px;
+      font-family: var(--vscode-editor-font-family, monospace);
+      font-size: var(--vscode-editor-font-size, 13px);
+      line-height: 1.4;
+      color: var(--vscode-editor-foreground);
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .drawio-mermaid-container pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .drawio-mermaid-label {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground);
+      background: var(--vscode-badge-background, rgba(128, 128, 128, 0.15));
+      border-radius: 3px;
+      margin-left: 16px;
+      margin-top: 8px;
+    }
+
+    /* ── Viewport overlay (Quip-style full editor) ── */
+    #editor-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 10000;
+      background: var(--vscode-editor-background);
+      flex-direction: column;
+    }
+
+    #editor-overlay.active {
+      display: flex;
+    }
+
+    #editor-overlay iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* ── Lightbox overlay (read-only full-window diagram view) ── */
+    #lightbox-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 10000;
+      background: var(--vscode-editor-background);
+      flex-direction: column;
+    }
+
+    #lightbox-overlay.active {
+      display: flex;
+    }
+
+    #lightbox-overlay .lightbox-toolbar {
+      display: flex;
+      align-items: center;
+      padding: 0 50px;
+      gap: 8px;
+      height: 36px;
+      background: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-editor-background));
+      border-bottom: 1px solid var(--vscode-editorGroup-border);
+      flex-shrink: 0;
+    }
+
+    #lightbox-overlay .lightbox-toolbar .lightbox-spacer {
+      flex: 1;
+    }
+
+    #lightbox-overlay .lightbox-toolbar button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      height: 28px;
+      padding: 0 12px;
+      border: 1px solid var(--vscode-button-border, var(--vscode-editorGroup-border));
+      border-radius: 4px;
+      background: var(--vscode-button-secondaryBackground, transparent);
+      color: var(--vscode-button-secondaryForeground, var(--vscode-editor-foreground));
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    #lightbox-overlay .lightbox-toolbar button:hover {
+      background: var(--vscode-button-secondaryHoverBackground, rgba(128, 128, 128, 0.15));
+    }
+
+    #lightbox-overlay .lightbox-toolbar button svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+
+    #lightbox-overlay iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+    }
+
+    #lightbox-loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--vscode-descriptionForeground, #888);
+      font-family: var(--vscode-font-family, sans-serif);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    #lightbox-loading.hidden {
+      display: none;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div id="toolbar">
+    <button id="btn-insert">+ Diagram</button>
+    <div class="spacer"></div>
+    <button id="btn-refresh" title="Reload page">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 2v6h-6" />
+        <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+        <path d="M3 22v-6h6" />
+        <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+      </svg>
+    </button>
+  </div>
+  <div id="markdown-content"></div>
+
+  <!-- Viewport overlay for full-screen diagram editing (Quip-style) -->
+  <div id="editor-overlay">
+    <iframe id="editor-overlay-frame"></iframe>
+  </div>
+
+  <!-- Lightbox overlay for non-editable full-window diagram view -->
+  <div id="lightbox-overlay">
+    <div class="lightbox-toolbar">
+      <button id="lightbox-zoom-in" title="Zoom in">
+        <svg viewBox="0 0 16 16">
+          <path
+            d="M7 1a6 6 0 1 0 3.5 10.9l3.3 3.3a.75.75 0 1 0 1.06-1.06l-3.3-3.3A6 6 0 0 0 7 1ZM2.5 7a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM7 4a.75.75 0 0 1 .75.75v1.5h1.5a.75.75 0 0 1 0 1.5h-1.5v1.5a.75.75 0 0 1-1.5 0v-1.5h-1.5a.75.75 0 0 1 0-1.5h1.5v-1.5A.75.75 0 0 1 7 4Z" />
+        </svg>
+      </button>
+      <button id="lightbox-zoom-out" title="Zoom out">
+        <svg viewBox="0 0 16 16">
+          <path
+            d="M7 1a6 6 0 1 0 3.5 10.9l3.3 3.3a.75.75 0 1 0 1.06-1.06l-3.3-3.3A6 6 0 0 0 7 1ZM2.5 7a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM4.25 6.25a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5Z" />
+        </svg>
+      </button>
+      <button id="lightbox-fit" title="Fit to window">
+        <svg viewBox="0 0 16 16">
+          <path
+            d="M2 2.5A.5.5 0 0 1 2.5 2h3a.5.5 0 0 1 0 1H3v2.5a.5.5 0 0 1-1 0v-3Zm0 11a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 0-1H3v-2.5a.5.5 0 0 0-1 0v3Zm12 0a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H13v-2.5a.5.5 0 0 1 1 0v3Zm0-11a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0 0 1H13v2.5a.5.5 0 0 0 1 0v-3Z" />
+        </svg>
+      </button>
+      <div class="lightbox-spacer"></div>
+      <button id="lightbox-close-btn" class="lightbox-close" title="Close (Esc)">
+        <svg viewBox="0 0 16 16">
+          <path
+            d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z" />
+        </svg>
+        Close
+      </button>
+    </div>
+    <div id="lightbox-loading">Loading diagram…</div>
+    <iframe id="lightbox-frame"></iframe>
+  </div>
+
+  <script nonce="${nonce}">
+    (function () {
+      var vscode = acquireVsCodeApi();
+
+      // Forward intercepted VS Code shortcuts from draw.io iframes.
+      // This is a dedicated listener that doesn't depend on iframe source
+      // matching, because VS Code's webview iframe nesting can make
+      // evt.source !== iframe.contentWindow.
+      window.addEventListener('message', function(evt) {
+        if (evt.data && typeof evt.data === 'object' && evt.data.type === 'vscodeShortcut' && evt.data.command) {
+          console.log('[inlinePreview] relaying vscodeShortcut to extension:', evt.data.command);
+          vscode.postMessage({ type: 'vscodeShortcut', command: evt.data.command });
+        }
+      });
+
+      var contentEl = document.getElementById('markdown-content');
+      var btnInsert = document.getElementById('btn-insert');
+      var btnRefresh = document.getElementById('btn-refresh');
+
+      // Overlay elements
+      var overlayEl = document.getElementById('editor-overlay');
+      var overlayFrame = document.getElementById('editor-overlay-frame');
+
+      // Lightbox elements
+      var lightboxEl = document.getElementById('lightbox-overlay');
+      var lightboxFrame = document.getElementById('lightbox-frame');
+      var lightboxLoading = document.getElementById('lightbox-loading');
+      document.getElementById('lightbox-close-btn').addEventListener('click', closeLightbox);
+      document.getElementById('lightbox-zoom-in').addEventListener('click', function () {
+        if (lightboxState.initialized)
+          lightboxFrame.contentWindow.postMessage(JSON.stringify({ action: 'invokeAction', actionName: 'zoomIn' }), '*');
+      });
+      document.getElementById('lightbox-zoom-out').addEventListener('click', function () {
+        if (lightboxState.initialized)
+          lightboxFrame.contentWindow.postMessage(JSON.stringify({ action: 'invokeAction', actionName: 'zoomOut' }), '*');
+      });
+      document.getElementById('lightbox-fit').addEventListener('click', function () {
+        if (lightboxState.initialized)
+          lightboxFrame.contentWindow.postMessage(JSON.stringify({ action: 'invokeAction', actionName: 'smartFit' }), '*');
+      });
+
+      // ── Configuration ──
+      var DIAGRAM_SAVE_DEBOUNCE_MS = 500;
+      var TEXT_SAVE_DEBOUNCE_MS = 1000;
+
+      // ── State ──
+      var editorUrl = 'http://localhost:8888';
+      var devMode = true;
+      var isDark = document.body.classList.contains('vscode-dark');
+      var minimalUI = true;
+      var diagramPadding = 28;
+
+      var imageBaseUri = '';
+      var diagramBlocks = [];
+      var mermaidCount = 0;
+
+      // Returns true if the XML has no actual shapes (only the two root mxCells).
+      function isBlankDiagramXml(xml) {
+        if (!xml) return true;
+        var cells = xml.match(/<mxCell\b/g);
+        return !cells || cells.length <= 2;
+      }
+      var editorStates = new Map(); // blockIndex -> EditorState
+      var textSections = [];
+      var activeEditorIndex = -1;
+      var _lastInteractedEndLine = null; // endLine of the last clicked/focused/typed section
+      var diagramSaveTimers = {};
+      var textSaveTimer = null;
+      var focusPollTimer = null;
+
+      // ── Singleton inline editor iframe (overlays diagrams on hover via position:fixed) ──
+      var _singletonIframe = null;
+      var _singletonReady = false; // true after configure → init → load cycle completes
+      var _singletonActiveState = null; // editor state the singleton is currently serving
+      var _pendingAttachState = null; // state queued for attach while singleton was still loading
+      var _pendingScrollToBlock = null; // block index queued for scroll-into-view after render
+      var _pendingScrollIsNew = false; // whether the pending scroll is for a newly inserted diagram
+
+      // ── Scroll guard: prevent browser auto-scroll when clicking inside iframes ──
+      // Clicking inside a draw.io iframe causes the browser to scroll the page
+      // (auto-scroll-to-focus). We block that by reverting scroll events that
+      // happen while the mouse is over an editor iframe, UNLESS the scroll was
+      // explicitly allowed (draw.io scrollWheel message or user wheel/interaction).
+      var _scrollGuardX = window.scrollX;
+      var _scrollGuardY = window.scrollY;
+      var _scrollAllowed = false;
+      var _scrollAllowedTimer = null;
+      var _mouseOverEditorIframe = false;
+      var _mouseOverDiagramOuter = false;
+      var _toolbarVisibleOuter = null; // the .drawio-editor-outer currently showing its toolbar
+      var _toolbarHideTimer = null; // pending delayed toolbar hide
+      var _resizeDragging = false; // true while a resize handle is being dragged
+      var _fitAppliedState = null; // set to the state object when _doFitDiagramToContainer runs while singleton is active
+      var _toolbarPaddingOuter = 10; // px padding around diagram container
+      var _toolbarPaddingToolbar = 4; // px padding around the toolbar row itself
+
+
+      /** Show the toolbar for a given outer container, hiding any previously visible one.
+       *  Cancels any pending delayed hide. */
+      function showToolbarFor(outer) {
+        if (_toolbarHideTimer) { clearTimeout(_toolbarHideTimer); _toolbarHideTimer = null; }
+        if (_toolbarVisibleOuter === outer) return;
+        if (_toolbarVisibleOuter) _toolbarVisibleOuter.classList.remove('toolbar-visible');
+        _toolbarVisibleOuter = outer;
+        if (outer) outer.classList.add('toolbar-visible');
+      }
+
+      /** Hide the currently visible toolbar immediately. */
+      function hideToolbar() {
+        if (_toolbarHideTimer) { clearTimeout(_toolbarHideTimer); _toolbarHideTimer = null; }
+        if (_toolbarVisibleOuter) {
+          _toolbarVisibleOuter.classList.remove('toolbar-visible');
+          _toolbarVisibleOuter = null;
+        }
+      }
+
+      /** Schedule toolbar hide after a 1-second delay (fade-out via CSS transition). */
+      function scheduleToolbarHide() {
+        if (_toolbarHideTimer) return; // already scheduled
+        _toolbarHideTimer = setTimeout(function () {
+          _toolbarHideTimer = null;
+          if (_toolbarVisibleOuter) {
+            _toolbarVisibleOuter.classList.remove('toolbar-visible');
+            _toolbarVisibleOuter = null;
+          }
+        }, 1000);
+      }
+
+      /** Check if a point is within the padded bounding box of an element. */
+      function isNearElement(el, x, y, pad) {
+        var r = el.getBoundingClientRect();
+        return x >= r.left - pad && x <= r.right + pad &&
+          y >= r.top - pad && y <= r.bottom + pad;
+      }
+
+      // ── Proximity-based toolbar visibility ──
+      // Track mouse position globally and show/hide toolbar based on
+      // proximity to the active singleton editor's outer container.
+      document.addEventListener('mousemove', function (e) {
+        if (!_singletonActiveState) return;
+        var outer = _singletonActiveState.wrapper.parentElement;
+        if (!outer) return;
+
+        if (isBlankDiagramXml(_singletonActiveState.currentXml)) return;
+
+        var toolbarRow = outer.querySelector('.drawio-toolbar-row');
+        var overOuter = isNearElement(outer, e.clientX, e.clientY, 0);
+        var nearOuter = isNearElement(outer, e.clientX, e.clientY, _toolbarPaddingOuter);
+        var nearToolbar = toolbarRow && isNearElement(toolbarRow, e.clientX, e.clientY, _toolbarPaddingToolbar);
+
+        if (_toolbarVisibleOuter === outer) {
+          // Toolbar already visible — keep it if within padded zone
+          if (!nearOuter && !nearToolbar) scheduleToolbarHide();
+        }
+        else {
+          // Toolbar hidden — only reactivate when directly over the container
+          if (overOuter) showToolbarFor(outer);
+        }
+      });
+
+      function allowScrollBriefly(duration) {
+        _scrollAllowed = true;
+        clearTimeout(_scrollAllowedTimer);
+        _scrollAllowedTimer = setTimeout(function () {
+          _scrollAllowed = false;
+          _scrollGuardX = window.scrollX;
+          _scrollGuardY = window.scrollY;
+        }, duration || 200);
+      }
+
+      window.addEventListener('scroll', function () {
+        if (_scrollAllowed || !_mouseOverEditorIframe) {
+          _scrollGuardX = window.scrollX;
+          _scrollGuardY = window.scrollY;
+          return;
+        }
+        window.scrollTo(_scrollGuardX, _scrollGuardY);
+      });
+
+      // ── Window resize: reposition singleton iframe and refit diagram containers ──
+      var _resizeTimer = null;
+      var _resizeRafId = null;
+
+      // Recalculate wrapper dimensions for all diagrams.  This is cheap DOM
+      // work (read computed style, write width/height) and must happen before
+      // the next paint so the user never sees stale wrapper heights after
+      // markdown reflow.
+      function refitContainerSizes() {
+        editorStates.forEach(function (st) {
+          var outerEl = st.wrapper.parentElement;
+          if (!outerEl || !st.diagramBounds) return;
+
+          var wrapperCS = window.getComputedStyle(st.wrapper);
+          var wrapperChrome = (parseFloat(wrapperCS.borderLeftWidth) || 0) +
+            (parseFloat(wrapperCS.borderRightWidth) || 0) +
+            (parseFloat(wrapperCS.paddingLeft) || 0) +
+            (parseFloat(wrapperCS.paddingRight) || 0);
+
+          if (st.explicitWidth) {
+            // Explicit width: keep the outer width as-is (CSS max-width: 100%
+            // handles viewport clamping).  Recalculate only the height so
+            // the container fits the diagram at its current rendered width.
+            var availW = outerEl.clientWidth;
+            var fitSize = calcFitSize(st.diagramBounds, availW, wrapperChrome);
+            st.wrapper.style.height = fitSize.height + 'px';
+          }
+          else {
+            // Clear stale inline width on wrapper (corner resize sets both outer + wrapper)
+            st.wrapper.style.width = '';
+            var availW = outerEl.parentElement ? outerEl.parentElement.clientWidth : outerEl.clientWidth;
+            var contentW = st.diagramBounds.width + 1;
+            var natW = contentW + 2 * diagramPadding + wrapperChrome;
+
+            if (natW <= availW) {
+              // Diagram fits at scale 1 — shrink to natural size
+              var fitSize = calcFitSize(st.diagramBounds, availW, wrapperChrome);
+              outerEl.style.width = fitSize.width + 'px';
+              st.wrapper.style.height = fitSize.height + 'px';
+            }
+            else {
+              // Diagram wider than available — scale down to fill
+              outerEl.style.width = '';
+              var fitSize = calcFitSize(st.diagramBounds, availW, wrapperChrome);
+              st.wrapper.style.height = fitSize.height + 'px';
+            }
+          }
+        });
+
+        // Reposition the singleton iframe after all heights have been updated
+        updateSingletonPosition();
+      }
+
+      window.addEventListener('resize', function () {
+        // Reposition the singleton iframe immediately (before heights change,
+        // this handles the common case where only the wrapper moves due to
+        // text reflow without any height change).
+        updateSingletonPosition();
+
+        // Recalculate wrapper heights on the next animation frame — before the
+        // browser paints — so the user never sees stale wrapper heights after
+        // markdown reflow.  This replaces the previous 150ms debounce for
+        // container sizing.
+        if (!_resizeRafId) {
+          _resizeRafId = requestAnimationFrame(function () {
+            _resizeRafId = null;
+            refitContainerSizes();
+          });
+        }
+
+        // Debounce the iframe fit message to avoid thrashing the draw.io
+        // editor during continuous drag-resize.
+        clearTimeout(_resizeTimer);
+        _resizeTimer = setTimeout(function () {
+          if (_singletonActiveState && _singletonActiveState.iframe && _singletonActiveState.initialized) {
+            updateSingletonPosition();
+            _singletonActiveState.iframe.contentWindow.postMessage(JSON.stringify({ action: 'fit', border: diagramPadding, maxScale: 1 }), '*');
+          }
+        }, 150);
+      });
+
+      // ── Overlay state (singleton iframe for full Quip-style editing) ──
+      var overlayState = {
+        active: false,
+        initialized: false,
+        blockIndex: -1,
+        currentXml: '',
+        diagramId: null,
+        dirty: false,
+      };
+
+      // ── Lightbox state (singleton iframe for read-only full-window view) ──
+      var lightboxState = {
+        active: false,
+        initialized: false,
+        currentXml: '',
+      };
+
+      // ── Mermaid conversion helpers ──
+
+      // Check if a draw.io load event is a response to a mermaid descriptor load.
+      function isMermaidLoadResponse(msg) {
+        return msg.message && msg.message.descriptor && msg.message.descriptor.format === 'mermaid';
+      }
+
+      // Complete a mermaid conversion: send the converted XML to the extension
+      // to replace the mermaid block with a drawio block. No explicit dimensions
+      // are set — the re-rendered diagram block will calculate its size from the
+      // XML bounds, just like any other inline diagram.
+      function completeMermaidConversion(state, xml) {
+        state.currentXml = xml;
+        state.mermaidConversion = false;
+        vscode.postMessage({
+          type: 'diagramEdited',
+          blockIndex: state.blockIndex,
+          xml: xml,
+          mermaidIndex: state.mermaidIndex,
+        });
+      }
+
+      // Handle the extension's response after saving mermaid conversion.
+      // Replaces the mermaid editor in-place with a normal diagram block,
+      // preserving scroll position for a smooth transition.
+      function handleMermaidConverted(msg) {
+        var stateKey = 'mermaid-' + msg.mermaidIndex;
+        var state = editorStates.get(stateKey);
+        if (!state) return;
+
+        var outerElement = state.wrapper && state.wrapper.closest('.drawio-editor-outer');
+
+        // Pin the outer element height before any DOM mutations so that
+        // removing the iframe doesn't cause layout shifts.
+        if (outerElement) {
+          outerElement.style.height = outerElement.offsetHeight + 'px';
+          outerElement.style.overflow = 'hidden';
+        }
+
+        // Clean up the mermaid conversion iframe
+        if (state.iframe) {
+          state.iframe.remove();
+        }
+        editorStates.delete(stateKey);
+
+        // Register the new diagram block data
+        var section = {
+          type: 'diagram',
+          blockIndex: msg.blockIndex,
+          xml: msg.xml,
+          locked: msg.locked,
+          height: msg.height,
+          width: msg.width,
+          startLine: msg.startLine,
+          endLine: msg.endLine,
+          format: msg.format,
+          diagramId: msg.diagramId,
+        };
+        diagramBlocks[msg.blockIndex] = section;
+        mermaidCount = Math.max(0, mermaidCount - 1);
+
+        // Replace the mermaid outer element with the rendered diagram block.
+        // The element height was already pinned above, so the document layout
+        // stays stable and the vertical scroll position doesn't jump.
+        if (outerElement) {
+          // Clear contents but keep the pinned shell in the DOM
+          outerElement.innerHTML = '';
+
+          // Build the placeholder inside the pinned shell so renderDiagramBlock
+          // can replace it without changing the document flow.
+          var ph = document.createElement('div');
+          ph.className = 'drawio-inline-placeholder';
+          ph.setAttribute('data-block-index', msg.blockIndex);
+          outerElement.appendChild(ph);
+          renderDiagramBlock(ph, msg.blockIndex);
+
+          // renderDiagramBlock replaced ph with a new .drawio-editor-outer inside
+          // our shell. Unwrap it: move the new outer out to replace the shell.
+          var newOuter = outerElement.firstElementChild;
+          if (newOuter) {
+            outerElement.parentNode.replaceChild(newOuter, outerElement);
+          }
+
+          // Set up the new diagram block for editing
+          var newState = editorStates.get(msg.blockIndex);
+          if (newState) {
+            // Register hover handlers; immediately attach singleton to show editor
+            setupHoverLoad(newState);
+            singletonAttach(newState);
+          }
+        }
+      }
+
+      // ── Sizing helpers ──
+      // Calculate the appropriate container size for a diagram given its natural
+      // bounds and the available width. If the diagram fits at scale 1, use its
+      // natural dimensions (container shrinks to fit); otherwise scale down
+      // proportionally to fit within availableWidth.
+      // wrapperChrome accounts for wrapper border/padding that reduces the
+      // content area available for the diagram inside the outer container.
+      function calcFitSize(bounds, availableWidth, wrapperChrome) {
+        wrapperChrome = wrapperChrome || 0;
+        var padding = diagramPadding; // fixed-pixel padding (CSS, not scaled)
+        var resizeBar = 12; // space reserved for the bottom resize handle
+        var contentW = bounds.width + 1; // SVG viewBox width (content only, +1 for rounding)
+        var contentH = bounds.height + 1; // SVG viewBox height (content only)
+        // Natural width at scale 1: content + fixed padding on both sides
+        var natW = contentW + 2 * padding;
+        var contentAvail = availableWidth - 2 * padding - wrapperChrome;
+        var resultW, resultH;
+        var scale;
+        if (contentW <= contentAvail) {
+          // Fits at scale 1: container = content + padding + chrome
+          scale = 1;
+          resultW = Math.ceil(natW) + wrapperChrome;
+          resultH = Math.max(20, Math.ceil(contentH + 2 * padding + resizeBar));
+        }
+        else {
+          // Scale down: padding stays fixed, only content scales
+          scale = contentAvail / contentW;
+          resultW = availableWidth;
+          resultH = Math.max(20, Math.ceil(contentH * scale + 2 * padding + resizeBar));
+        }
+        return { width: resultW, height: resultH, scale: scale };
+      }
+
+      // Backwards-compatible helper that returns only the height.
+      function calcFitHeight(bounds, containerWidth, wrapperChrome) {
+        return calcFitSize(bounds, containerWidth, wrapperChrome).height;
+      }
+
+      // Performs a fit operation on a diagram: sizes the container using maxScale=1
+      // semantics, re-renders the SVG preview, and optionally notifies the extension
+      // to update the code block attributes.
+      // If notifyExtension is true, sends a diagramFitted message to update
+      // width and height in the code block. When scale < 1, both are kept;
+      // when scale = 1, both are removed.
+      function fitDiagramToContainer(state, notifyExtension) {
+        if (!state) return;
+
+        // When the inline editor is actively attached to this diagram, request
+        // fresh XML and model-space bounds from draw.io so that fit reflects the
+        // current diagram content (including unsaved edits), not stale state.
+        if (_singletonActiveState === state && state.iframe && state.initialized) {
+          state._pendingFitNotify = notifyExtension;
+          state.iframe.contentWindow.postMessage(JSON.stringify({ action: 'export', format: 'xml' }), '*');
+          return;
+        }
+
+        _doFitDiagramToContainer(state, notifyExtension);
+      }
+
+      // Inner fit logic — called directly when no editor is active, or from
+      // the export response handler after fresh XML and bounds arrive.
+      function _doFitDiagramToContainer(state, notifyExtension) {
+        if (!state) return;
+
+        // Re-render SVG preview and use the fresh bounds for sizing so that
+        // fit always reflects the current diagram content, not stale bounds.
+        if (state.previewLayer) {
+          var freshBounds = renderSvgPreview(state.previewLayer, state.currentXml);
+          if (freshBounds) state.diagramBounds = freshBounds;
+
+        }
+
+        var fitBounds = state.diagramBounds || getBoundsFromXml(state.currentXml);
+        if (!fitBounds) return;
+        var outerEl = state.wrapper.parentElement;
+        if (!outerEl) return;
+
+        // Clear explicit width on both outer and wrapper so we can measure
+        // true available space.  The corner resize handle sets inline width
+        // on both elements; we must clear both to allow the fit to expand.
+        outerEl.style.width = '';
+        state.wrapper.style.width = '';
+
+        var mw = outerEl.parentElement ? outerEl.parentElement.clientWidth : (outerEl.clientWidth || state.wrapper.clientWidth);
+
+        var wrapperCS = window.getComputedStyle(state.wrapper);
+        var wrapperChrome = (parseFloat(wrapperCS.borderLeftWidth) || 0) +
+          (parseFloat(wrapperCS.borderRightWidth) || 0) +
+          (parseFloat(wrapperCS.paddingLeft) || 0) +
+          (parseFloat(wrapperCS.paddingRight) || 0);
+
+        // maxScale=1 logic: behave like an image that scales down but never up
+        var padding = diagramPadding;
+        var aw = fitBounds.width + 1; // +1 for rounding, consistent with calcFitSize
+        var naturalContainerW = Math.ceil(aw + 2 * padding) + wrapperChrome;
+
+        var w = state.blockWidth; // optional width from code block
+        var keepWidth = false;
+        var effectiveAvailW;
+
+        if (w && w <= naturalContainerW) {
+          // Block width is narrower than or equal to natural diagram — keep it.
+          // Use block width as the max width constraint.
+          keepWidth = true;
+          effectiveAvailW = Math.min(w, mw);
+        }
+        else {
+          // No block width, or block width > natural width (diagram is smaller
+          // than the specified width, so the constraint is unnecessary) — remove it.
+          keepWidth = false;
+          effectiveAvailW = mw;
+        }
+
+        var fitSize = calcFitSize(fitBounds, effectiveAvailW, wrapperChrome);
+
+        // Set the outer width first so the SVG can reflow to the correct width
+        outerEl.style.width = fitSize.width + 'px';
+
+        // Measure the actual rendered SVG height instead of relying on the
+        // mathematical formula alone. This accounts for any differences in
+        // how GraphViewer handles padding/border in the viewBox vs CSS.
+        var resizeBar = 12;
+        var measuredHeight = fitSize.height; // fallback to formula
+        var svgEl = state.previewLayer ? state.previewLayer.querySelector('svg') : null;
+        if (svgEl) {
+          // Force reflow so the SVG has adapted to the new container width
+          var svgRect = svgEl.getBoundingClientRect();
+          var layerRect = state.previewLayer.getBoundingClientRect();
+          // The SVG is inside GraphViewer's container (which may have CSS
+          // padding for the diagram border).  Measure from the top of the
+          // preview layer to the bottom of the SVG, then add the same
+          // padding below, plus space for the resize handle.
+          var svgTop = svgRect.top - layerRect.top;
+          measuredHeight = Math.max(20, Math.ceil(svgTop + svgRect.height + padding + resizeBar));
+        }
+        state.wrapper.style.height = measuredHeight + 'px';
+
+        // renderSvgPreview strips all inline styles (including display:none)
+        // from the container. If the singleton editor iframe is active for
+        // this diagram, re-hide the preview layer so it doesn't show through.
+        if (_singletonActiveState === state && state.previewLayer) {
+          state.previewLayer.style.display = 'none';
+        }
+
+        // Update state — fit always removes height (it will be computed
+        // from the diagram bounds and width constraint automatically).
+        state.explicitHeight = false;
+        state.explicitWidth = keepWidth;
+        if (!keepWidth) state.blockWidth = null;
+
+        // Reposition singleton iframe before sending fit so draw.io sees the new size
+        if (_singletonActiveState === state) {
+          updateSingletonPosition();
+          // Mark that a fit was just applied while the singleton is active.
+          // singletonDetach will skip its own height recalculation and use
+          // the dimensions set by this fit instead.
+          _fitAppliedState = state;
+        }
+
+        // Tell draw.io to fit within the (now correctly sized) container.
+        // Use double-rAF to ensure the iframe has processed the CSS resize
+        // before draw.io reads container dimensions for the fit calculation.
+        if (state.iframe && state.initialized) {
+          var fitIframe = state.iframe;
+          var fitPadding = padding;
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              fitIframe.contentWindow.postMessage(JSON.stringify({ action: 'fit', border: fitPadding, maxScale: 1 }), '*');
+            });
+          });
+        }
+
+        // Notify extension to update code block attributes
+        if (notifyExtension) {
+          vscode.postMessage({
+            type: 'diagramFitted',
+            blockIndex: state.blockIndex,
+            diagramId: state.diagramId,
+            width: keepWidth ? w : null,
+            height: null,
+          });
+        }
+      }
+
+      // Compute diagram content bounding box from mxfile XML by scanning mxGeometry elements.
+      function getBoundsFromXml(xml) {
+        if (!xml || !xml.trim()) return null;
+        try {
+          var doc = (typeof mxUtils !== 'undefined') ? mxUtils.parseXml(xml) : new DOMParser().parseFromString(xml, 'text/xml');
+          var geos = doc.getElementsByTagName('mxGeometry');
+          if (!geos.length) return null;
+          var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+          for (var i = 0; i < geos.length; i++) {
+            var g = geos[i];
+            // Skip relative geometries (edge waypoints)
+            if (g.getAttribute('relative') === '1') continue;
+            if (g.getAttribute('as') !== 'geometry') continue;
+            var x = parseFloat(g.getAttribute('x')) || 0;
+            var y = parseFloat(g.getAttribute('y')) || 0;
+            var w = parseFloat(g.getAttribute('width')) || 0;
+            var h = parseFloat(g.getAttribute('height')) || 0;
+            if (w === 0 && h === 0) continue;
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x + w > maxX) maxX = x + w;
+            if (y + h > maxY) maxY = y + h;
+          }
+          if (minX === Infinity) return null;
+          return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+        }
+        catch (e) { return null; }
+      }
+
+      // ── CSS injected into inline editor iframes (hide chrome for inline mode) ──
+      function buildResizeHideCSS() {
+        var cursors = ['nw-resize', 'ne-resize', 'sw-resize', 'se-resize',
+          'n-resize', 's-resize', 'e-resize', 'w-resize'];
+        var rules = [];
+        cursors.forEach(function (c) {
+          rules.push('.geDiagramContainer > div[style*="cursor: ' + c + '"] { display:none !important; }');
+          rules.push('.geDiagramContainer > div[style*="cursor:' + c + '"] { display:none !important; }');
+          rules.push('.geDiagramContainer div[style*="cursor: ' + c + '"] { display:none !important; }');
+          rules.push('.geDiagramContainer div[style*="cursor:' + c + '"] { display:none !important; }');
+        });
+        return rules.join('\n');
+      }
+
+      var RESIZE_HIDE_CSS = buildResizeHideCSS();
+
+      var EDITOR_CSS = [
+        '.geMenubarContainer { display:none !important; }',
+        '.geFooterContainer { display:none !important; }',
+        '.geSidebar { display:none !important; }',
+        '.geFormatContainer { display:none !important; }',
+        '.geTabContainer { display:none !important; }',
+        'body { background: transparent !important; }',
+        '.geDiagramBackdrop { background: transparent !important; }',
+        '.geBackgroundPage { box-shadow:none !important; background:transparent !important; border:none !important; }',
+        '.geDiagramContainer { background: transparent !important; }',
+        RESIZE_HIDE_CSS,
+      ].join('\n');
+
+      var EDITOR_CSS_MINIMAL = [
+        '.geMenubarContainer { display:none !important; }',
+        '.geFooterContainer { display:none !important; }',
+        '.geSidebar { display:none !important; }',
+        '.geFormatContainer { display:none !important; }',
+        '.geTabContainer { display:none !important; }',
+        '.mxWindow { display:none !important; }',
+        '::-webkit-scrollbar { display:none !important; }',
+        'body { background: transparent !important; overflow: hidden !important; }',
+        '.geDiagramBackdrop { background: transparent !important; }',
+        '.geBackgroundPage { box-shadow:none !important; background:transparent !important; border:none !important; }',
+        '.geDiagramContainer { background: transparent !important; overflow: hidden !important; }',
+        RESIZE_HIDE_CSS,
+      ].join('\n');
+
+      var LIGHTBOX_CSS = [
+        '.geMenubarContainer { display:none !important; }',
+        '.geFooterContainer { display:none !important; }',
+        '.geSidebar { display:none !important; }',
+        '.geFormatContainer { display:none !important; }',
+        '.geTabContainer { display:none !important; }',
+        '.mxWindow { display:none !important; }',
+        'body { background: transparent !important; }',
+        '.geDiagramBackdrop { background: transparent !important; }',
+        '.geBackgroundPage { box-shadow:none !important; background:transparent !important; border:none !important; }',
+        '.geDiagramContainer { background: transparent !important; }',
+        RESIZE_HIDE_CSS,
+      ].join('\n');
+
+      // ── Toolbar buttons ──
+      // Track the afterLine before click steals focus from the active section
+      var _insertAfterLine = null;
+      btnInsert.addEventListener('mousedown', function () {
+        _insertAfterLine = null;
+        var active = document.activeElement;
+
+        // Check if a text section is focused
+        for (var i = 0; i < textSections.length; i++) {
+          if (textSections[i].element === active || textSections[i].element.contains(active)) {
+            _insertAfterLine = textSections[i].endLine;
+            return;
+          }
+        }
+
+        // Check if a diagram editor is active
+        if (activeEditorIndex >= 0) {
+          var block = diagramBlocks[activeEditorIndex];
+          if (block) _insertAfterLine = block.endLine;
+        }
+
+        // Check if singleton is attached to a diagram
+        if (_insertAfterLine == null && _singletonActiveState) {
+          var sBlock = diagramBlocks[_singletonActiveState.blockIndex];
+          if (sBlock) {
+            _insertAfterLine = sBlock.endLine;
+          }
+        }
+
+        // Use last interacted section (click/focus/keydown on any text or diagram block)
+        if (_insertAfterLine == null && _lastInteractedEndLine != null) {
+          _insertAfterLine = _lastInteractedEndLine;
+        }
+
+        // Fallback: find the section closest to the viewport center.
+        // This handles the case where the user was just scrolling/reading
+        // without focusing on any specific element.
+        if (_insertAfterLine == null) {
+          var vpCenter = window.innerHeight / 2;
+          var bestDist = Infinity;
+          var bestEndLine = null;
+
+          for (var ti = 0; ti < textSections.length; ti++) {
+            var rect = textSections[ti].element.getBoundingClientRect();
+            var mid = (rect.top + rect.bottom) / 2;
+            var dist = Math.abs(mid - vpCenter);
+            if (dist < bestDist) { bestDist = dist; bestEndLine = textSections[ti].endLine; }
+          }
+
+          // Also check diagram blocks
+          editorStates.forEach(function (st) {
+            if (!st.wrapper) return;
+            var rect = st.wrapper.getBoundingClientRect();
+            var mid = (rect.top + rect.bottom) / 2;
+            var dist = Math.abs(mid - vpCenter);
+            var blk = diagramBlocks[st.blockIndex];
+            if (dist < bestDist && blk) { bestDist = dist; bestEndLine = blk.endLine; }
+          });
+
+          if (bestEndLine != null) {
+            _insertAfterLine = bestEndLine;
+          }
+        }
+
+      });
+      btnInsert.addEventListener('click', function () {
+        vscode.postMessage({ type: 'insertDiagram', afterLine: _insertAfterLine });
+      });
+
+      btnRefresh.addEventListener('click', function () {
+        cleanupAllEditors();
+        contentEl.innerHTML = '';
+        editorStates.clear();
+        vscode.postMessage({ type: 'requestRefresh' });
+      });
+
+      // ── Overlay controls ──
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && lightboxEl.classList.contains('active')) closeLightbox();
+        else if (e.key === 'Escape' && overlayState.active) closeOverlay();
+      });
+
+      // ──────────────────────────────────────────────────────────────
+      // Singleton inline editor iframe
+      // ──────────────────────────────────────────────────────────────
+      function buildEditorUrl() {
+        var url = editorUrl + '/?embed=1&proto=json&dark=auto&ui=simple'
+          + '&configure=1&libraries=1&pv=0&grid=0&transparent=1&embedInline=1';
+        if (devMode) url += '&dev=1&test=1';
+
+        return url;
+      }
+
+      function createSingletonIframe() {
+        if (_singletonIframe) return;
+
+        var url = buildEditorUrl();
+
+        var iframe = document.createElement('iframe');
+        // position:absolute in body — scrolls naturally with content, no scroll tracking needed.
+        // Never moved between DOM parents (that reloads iframes). Overlays wrappers via coordinates.
+        iframe.style.cssText = 'position:absolute;left:0;top:0;width:400px;height:300px;border:none;z-index:3;visibility:hidden;pointer-events:none;';
+        iframe.addEventListener('mouseenter', function () {
+          _mouseOverEditorIframe = true;
+        });
+        iframe.addEventListener('mouseleave', function () {
+          _mouseOverEditorIframe = false;
+        });
+        iframe.src = url;
+
+        _singletonIframe = iframe;
+        _singletonReady = false;
+        document.body.appendChild(iframe);
+      }
+
+      function destroySingletonIframe() {
+        _pendingAttachState = null;
+        if (_singletonActiveState) singletonDetach();
+        if (_singletonIframe) {
+          _singletonIframe.remove();
+          _singletonIframe = null;
+          _singletonReady = false;
+        }
+      }
+
+      function showSingletonToolbar() {
+        if (!_singletonActiveState) return;
+        // Don't show toolbar for blank/empty diagrams (template picker is shown instead)
+        if (isBlankDiagramXml(_singletonActiveState.currentXml)) return;
+        var outer = _singletonActiveState.wrapper.parentElement;
+        if (outer) showToolbarFor(outer);
+      }
+
+      function hideSingletonToolbar() {
+        if (!_singletonActiveState) return;
+        var outer = _singletonActiveState.wrapper.parentElement;
+        if (outer && _toolbarVisibleOuter === outer) hideToolbar();
+      }
+
+      function updateSingletonPosition() {
+        if (!_singletonActiveState || !_singletonIframe) return;
+        // Body-relative coordinates (body has position:relative, iframe is position:absolute)
+        // Use content box (inside border) to match preview-layer positioning
+        var wrapper = _singletonActiveState.wrapper;
+        var wrapperRect = wrapper.getBoundingClientRect();
+        var bodyRect = document.body.getBoundingClientRect();
+        var cs = window.getComputedStyle(wrapper);
+        var borderL = parseFloat(cs.borderLeftWidth) || 0;
+        var borderT = parseFloat(cs.borderTopWidth) || 0;
+        var borderR = parseFloat(cs.borderRightWidth) || 0;
+        var borderB = parseFloat(cs.borderBottomWidth) || 0;
+        _singletonIframe.style.left = (wrapperRect.left - bodyRect.left + borderL + 1) + 'px';
+        _singletonIframe.style.top = (wrapperRect.top - bodyRect.top + borderT + 1) + 'px';
+        _singletonIframe.style.width = (wrapperRect.width - borderL - borderR) + 'px';
+        _singletonIframe.style.height = (wrapperRect.height - borderT - borderB - 12) + 'px'; // leave room for resize handle
+      }
+
+      function singletonAttach(state) {
+        // Never attach the inline editor while a resize handle is being
+        // dragged — the iframe would steal pointer events and break the drag.
+        if (_resizeDragging) {
+          return;
+        }
+
+        if (!_singletonIframe) { return; }
+        if (!_singletonReady) {
+          // Remove loading overlay from previously pending diagram (if different)
+          if (_pendingAttachState && _pendingAttachState !== state && _pendingAttachState.previewLayer) {
+            var oldOverlay = _pendingAttachState.previewLayer.querySelector('.preview-loading-overlay');
+            if (oldOverlay) oldOverlay.remove();
+          }
+          // Queue this state so it attaches once the singleton finishes loading
+          _pendingAttachState = state;
+          // Show loading overlay on top of the SVG preview
+          if (state.previewLayer && !state.previewLayer.querySelector('.preview-loading-overlay')) {
+            var overlay = document.createElement('div');
+            overlay.className = 'preview-loading-overlay';
+            overlay.innerHTML = '<span>'
+              + '<svg class="spinner" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">'
+              + '<circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="30 12" />'
+              + '</svg>'
+              + 'Loading editor\u2026'
+              + '</span>';
+            state.previewLayer.appendChild(overlay);
+          }
+          return;
+        }
+        if (_singletonActiveState === state) { return; }
+
+        // Remove any loading overlay left from the pending-attach phase
+        if (state.previewLayer) {
+          var loadingOvl = state.previewLayer.querySelector('.preview-loading-overlay');
+          if (loadingOvl) loadingOvl.remove();
+        }
+
+        // Detach from previous diagram first
+        if (_singletonActiveState) singletonDetach();
+
+        _singletonActiveState = state;
+        state.iframe = _singletonIframe;
+        state.initialized = true;
+
+        // Mark the wrapper as active so resize handles become visible
+        activateEditor(state);
+
+        // Show toolbar if mouse is over the diagram area
+        if (_mouseOverDiagramOuter || _mouseOverEditorIframe) showSingletonToolbar();
+
+        // Position the absolute iframe over the wrapper — no DOM move, scrolls naturally
+        _singletonIframe.style.visibility = 'hidden';
+        _singletonIframe.style.pointerEvents = 'auto';
+        updateSingletonPosition();
+
+
+        // Defer the load message until after the browser has reflowed.
+        // Without this, graph.fit() in draw.io reads the iframe's OLD
+        // dimensions (from the previous diagram) because CSS changes
+        // haven't been applied yet.
+        var xml = state.currentXml;
+        requestAnimationFrame(function () {
+          // Verify we're still attached to the same state
+          if (_singletonActiveState !== state) return;
+
+
+          _singletonIframe.contentWindow.postMessage(JSON.stringify({
+            action: 'load',
+            autosave: 1,
+            xml: xml,
+            title: '',
+            border: diagramPadding,
+            fit: 1,
+            maxFitScale: 1
+          }), '*');
+        });
+      }
+
+      function singletonDetach() {
+        if (!_singletonActiveState) { return; }
+        var state = _singletonActiveState;
+
+        // Flush pending saves
+        if (state.dirty) flushDiagramSave(state);
+
+        // Dismiss menus, stop editing, and clear selection before detaching
+        if (_singletonIframe) {
+          _singletonIframe.contentWindow.postMessage(JSON.stringify({
+            action: 'resetEditor'
+          }), '*');
+        }
+
+        // Show SVG preview with latest XML and refit container height.
+        // Compensate scroll position only when the wrapper is entirely above
+        // the viewport — its height change shifts everything we see.
+        //
+        // If _fitAppliedState matches this state, a fit/actual-size operation
+        // just ran and set the correct outer width + wrapper height.  In that
+        // case, skip the height recalculation — just re-render the SVG preview
+        // at the already-correct container size.
+        var skipRefit = (_fitAppliedState === state);
+        _fitAppliedState = null;
+
+        if (state.previewLayer) {
+          var oldH = state.wrapper.offsetHeight;
+          var wrapperTop = state.wrapper.getBoundingClientRect().top + window.scrollY;
+          var wrapperBottom = wrapperTop + oldH;
+          var scrollYBefore = window.scrollY;
+
+          state.previewLayer.style.display = '';
+          renderSvgPreview(state.previewLayer, state.currentXml);
+
+          // Measure the actual SVG preview height. Even when skipRefit is true
+          // (fit was applied while editor was active), the SVG preview may render
+          // at a different height than the editor iframe, so always measure.
+          var newH = oldH; // default: keep current height
+          if (!skipRefit) state.explicitHeight = false;
+          var svgEl = state.previewLayer.querySelector('svg');
+          if (svgEl) {
+            var svgRect = svgEl.getBoundingClientRect();
+            var layerRect = state.previewLayer.getBoundingClientRect();
+            var svgTop = svgRect.top - layerRect.top;
+            var resizeBar = 12;
+            newH = Math.max(20, Math.ceil(svgTop + svgRect.height + diagramPadding + resizeBar));
+          }
+          else if (state.diagramBounds) {
+            var outer = state.wrapper.parentElement;
+            var availW = outer && outer.parentElement ? outer.parentElement.clientWidth : state.wrapper.clientWidth;
+            var cs = window.getComputedStyle(state.wrapper);
+            var chrome = (parseFloat(cs.borderLeftWidth) || 0) + (parseFloat(cs.borderRightWidth) || 0) +
+              (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+            newH = calcFitSize(state.diagramBounds, availW, chrome).height;
+          }
+          state.wrapper.style.height = newH + 'px';
+
+          // Compensate scroll when the viewport is at or past the wrapper
+          // top.  The wrapper top is the pivot — it never moves.  If we're
+          // looking below it, the wrapper's height change shifts everything
+          // we see.  If we're above it, the wrapper top anchors the view.
+          var heightDelta = newH - oldH;
+          if (heightDelta !== 0 && scrollYBefore >= wrapperTop) {
+            allowScrollBriefly(100);
+            window.scrollBy(0, heightDelta);
+            _scrollGuardX = window.scrollX;
+            _scrollGuardY = window.scrollY;
+          }
+        }
+
+        // Remove toolbar highlight from outer container
+        var outer = state.wrapper.parentElement;
+        if (outer && _toolbarVisibleOuter === outer) hideToolbar();
+
+        // Hide resize handles
+        deactivateEditor(state);
+
+        // Dissociate state from singleton
+        state.iframe = null;
+        state.loaded = false;
+        state.initialized = false;
+
+        // Hide iframe overlay (stays in body, position:absolute)
+        _singletonIframe.style.visibility = 'hidden';
+        _singletonIframe.style.pointerEvents = 'none';
+
+        _singletonActiveState = null;
+
+      }
+
+      function handleSingletonMessage(msg) {
+
+        // ── Active: singleton is attached to a diagram ──
+        if (_singletonActiveState) {
+          var state = _singletonActiveState;
+          switch (msg.event) {
+            case 'load':
+              state.loaded = true;
+              state._blockAutosave = false;
+              // Don't recalculate size here — the container was already
+              // correctly sized during initial render using mxGraph-rendered
+              // bounds from the SVG preview. Recalculating would cause a
+              // size jump if XML-parsed bounds differ from rendered bounds.
+
+              // Update overlay position (wrapper may have resized), then show
+              updateSingletonPosition();
+              if (state.previewLayer) state.previewLayer.style.display = 'none';
+              _singletonIframe.style.visibility = 'visible';
+
+              // Show template picker whenever the diagram is blank (empty).
+              // This covers both newly inserted diagrams and re-activation
+              // of diagrams the user left empty.
+              if (state._needsTemplatePicker || isBlankDiagramXml(state.currentXml)) {
+                state._needsTemplatePicker = false;
+                _singletonIframe.contentWindow.postMessage(JSON.stringify({
+                  action: 'template',
+                  noExitOnCancel: 1
+                }), '*');
+              }
+              break;
+
+            case 'autosave':
+            case 'save':
+              if (msg.xml) {
+                state.currentXml = msg.xml;
+                state.dirty = true;
+                debouncedDiagramSave(state);
+              }
+              break;
+
+            case 'exit':
+              // Reload diagram to prevent draw.io from clearing the canvas
+              if (state.currentXml) {
+                state._blockAutosave = true;
+                _singletonIframe.contentWindow.postMessage(JSON.stringify({
+                  action: 'load',
+                  autosave: 1,
+                  xml: state.currentXml,
+                  title: '',
+                  border: diagramPadding,
+                  fit: 1,
+                  maxFitScale: 1
+                }), '*');
+              }
+              break;
+
+            case 'export':
+              // Export response with fresh XML and model-space bounds — complete the deferred fit.
+              if (state._pendingFitNotify != null && msg.format == 'xml') {
+                if (msg.xml) state.currentXml = msg.xml;
+                if (msg.modelBounds) state.diagramBounds = msg.modelBounds;
+                _doFitDiagramToContainer(state, !!state._pendingFitNotify);
+                delete state._pendingFitNotify;
+              }
+              break;
+
+            case 'fit':
+              // Do NOT update state.diagramBounds from fit response.
+              // draw.io's getGraphBounds() returns view coordinates (scaled),
+              // which fluctuate with zoom level and cause sizing oscillation.
+              // diagramBounds uses stable XML-parsed model coordinates.
+              updateSingletonPosition();
+              break;
+
+            case 'resize':
+              if (msg.rect && !state.explicitHeight) {
+                state.wrapper.style.height = Math.max(20, Math.ceil(msg.rect.height) + 20) + 'px';
+              }
+              break;
+
+            case 'scrollWheel':
+              allowScrollBriefly();
+              window.scrollBy(msg.deltaX || 0, msg.deltaY || 0);
+              break;
+          }
+          return;
+        }
+
+        // ── Warm-up phase: no diagram attached yet ──
+        switch (msg.event) {
+          case 'configure':
+            _singletonIframe.contentWindow.postMessage(JSON.stringify({
+              action: 'configure',
+              config: {
+                compact: true,
+                css: minimalUI ? EDITOR_CSS_MINIMAL : EDITOR_CSS,
+                darkColor: '#1e1e1e',
+                showTooltipIcons: true,
+                showConnectHandle: true,
+                defaultConnectionArrowsEnabled: false,
+                defaultConnectable: false,
+                defaultFoldingEnabled: false,
+                settingsName: 'vscode-inline-editor',
+                noAutoFocus: true,
+                passiveScroll: true,
+                preserveViewState: true,
+                noResizers: true,
+                useInternalClipboard: true,
+                fitDiagramOnLoad: false,
+                fitDiagramOnPage: false
+              }
+            }), '*');
+            break;
+
+          case 'init':
+            _singletonIframe.contentWindow.postMessage(JSON.stringify({
+              action: 'load',
+              autosave: 0,
+              xml: '<mxfile><diagram name="Page-1"><mxGraphModel><root><mxCell id="0"/><mxCell id="1" parent="0"/></root></mxGraphModel></diagram></mxfile>',
+              title: '',
+            }), '*');
+            break;
+
+          case 'load':
+            _singletonReady = true;
+            // If a diagram was hovered while the singleton was still loading, attach now
+            if (_pendingAttachState) {
+              var pending = _pendingAttachState;
+              _pendingAttachState = null;
+              singletonAttach(pending);
+            }
+            break;
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Message routing
+      // ──────────────────────────────────────────────────────────────
+      window.addEventListener('message', function (evt) {
+        // VS Code extension messages
+        if (evt.data && evt.data.type) {
+          handleExtensionMessage(evt.data);
+          return;
+        }
+
+        // Overlay iframe messages
+        if (overlayState.active && evt.source === overlayFrame.contentWindow) {
+          var msg;
+          try { msg = JSON.parse(evt.data); } catch (e) { return; }
+          if (msg && msg.event) handleOverlayMessage(msg);
+          return;
+        }
+
+        // Lightbox iframe messages
+        if (lightboxState.active && lightboxFrame.contentWindow && evt.source === lightboxFrame.contentWindow) {
+          var msg;
+          try { msg = JSON.parse(evt.data); } catch (e) { return; }
+          if (msg && msg.event) handleLightboxMessage(msg);
+          return;
+        }
+
+        // Singleton inline editor messages (checked before per-editor routing)
+        if (_singletonIframe && evt.source === _singletonIframe.contentWindow) {
+          // Forward intercepted VS Code shortcuts to the extension
+          if (evt.data && typeof evt.data === 'object' && evt.data.type === 'vscodeShortcut' && evt.data.command) {
+
+            vscode.postMessage({ type: 'vscodeShortcut', command: evt.data.command });
+            return;
+          }
+          var msg;
+          try { msg = JSON.parse(evt.data); } catch (e) { return; }
+          if (msg && msg.event) handleSingletonMessage(msg);
+          return;
+        }
+
+        // Inline editor iframe messages — route by source
+        var sourceState = null;
+        editorStates.forEach(function (state) {
+          if (state.iframe && evt.source === state.iframe.contentWindow) {
+            sourceState = state;
+          }
+        });
+        if (!sourceState) return;
+
+        // Forward intercepted VS Code shortcuts to the extension
+        if (evt.data && typeof evt.data === 'object' && evt.data.type === 'vscodeShortcut' && evt.data.command) {
+          console.log('[inlinePreview] relaying vscodeShortcut to extension:', evt.data.command);
+          vscode.postMessage({ type: 'vscodeShortcut', command: evt.data.command });
+          return;
+        }
+
+        var msg;
+        try { msg = JSON.parse(evt.data); } catch (e) { return; }
+        if (msg && msg.event) {
+          handleInlineEditorMessage(sourceState, msg);
+        }
+      });
+
+      function handleExtensionMessage(msg) {
+        switch (msg.type) {
+          case 'updateContent':
+            if (msg.imageBaseUri) imageBaseUri = msg.imageBaseUri;
+            renderContent(msg.sections);
+            break;
+          case 'scrollToAndEdit':
+            scrollToAndEditDiagram(msg.blockIndex, msg.isNew);
+            break;
+          case 'setEditorUrl':
+            {
+              var urlChanged = editorUrl !== msg.url;
+              editorUrl = msg.url;
+              // If the URL changed (e.g. local ↔ online switch), recreate.
+              if (urlChanged && _singletonIframe) destroySingletonIframe();
+              // Start loading the singleton iframe immediately so draw.io boots
+              // in parallel with content rendering (instead of waiting for hover).
+              createSingletonIframe();
+              break;
+            }
+          case 'setDarkMode':
+            isDark = msg.dark;
+            break;
+          case 'setDevMode':
+            devMode = msg.devMode;
+            break;
+          case 'setMinimalUI':
+            minimalUI = msg.minimalUI;
+            break;
+          case 'setDiagramPadding':
+            diagramPadding = msg.padding;
+            break;
+          case 'mermaidConverted':
+            handleMermaidConverted(msg);
+            break;
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Inline editor iframe messages (draw.io embed protocol)
+      // ──────────────────────────────────────────────────────────────
+      function handleInlineEditorMessage(state, msg) {
+        switch (msg.event) {
+          case 'configure':
+            state.iframe.contentWindow.postMessage(JSON.stringify({
+              action: 'configure',
+              config: {
+                compact: true,
+                css: minimalUI ? EDITOR_CSS_MINIMAL : EDITOR_CSS,
+                darkColor: '#1e1e1e',
+                showTooltipIcons: true,
+                showConnectHandle: true,
+                defaultConnectionArrowsEnabled: false,
+                defaultConnectable: false,
+                defaultFoldingEnabled: false,
+                settingsName: 'vscode-inline-editor',
+                noAutoFocus: true,
+                passiveScroll: true,
+                preserveViewState: true,
+                noResizers: true,
+                useInternalClipboard: true, // TODO: Add native clipboard support
+                fitDiagramOnLoad: false,
+                fitDiagramOnPage: false
+              }
+            }), '*');
+            break;
+
+          case 'init':
+            state.initialized = true;
+
+            // Always use fit mode with the same border as the fit button
+            // so SVG preview, editor load, and fit button all match.
+            if (state.mermaidConversion) {
+              state.iframe.contentWindow.postMessage(JSON.stringify({
+                action: 'load',
+                autosave: 1,
+                descriptor: { format: 'mermaid', data: state.mermaidSource },
+                title: '',
+                border: diagramPadding,
+                fit: 1,
+                maxFitScale: 1,
+                sourceMetadata: { key: 'mermaidSource', value: state.mermaidSource }
+              }), '*');
+            }
+            else {
+              state.iframe.contentWindow.postMessage(JSON.stringify({
+                action: 'load',
+                autosave: 1,
+                xml: state.currentXml,
+                title: '',
+                border: diagramPadding,
+                fit: 1,
+                maxFitScale: 1
+              }), '*');
+            }
+            break;
+
+          case 'load':
+            state.loaded = true;
+            state._blockAutosave = false;
+            // Hide SVG preview, show iframe
+            if (state.previewLayer) state.previewLayer.style.display = 'none';
+            var placeholder = state.wrapper.querySelector('.loading-placeholder');
+            if (placeholder) placeholder.remove();
+            state.iframe.style.visibility = 'visible';
+
+
+            // Don't recalculate size here — the container was already
+            // correctly sized during initial render using mxGraph-rendered
+            // bounds from the SVG preview.
+            // Mermaid conversion: the load response includes the converted XML.
+            if (state.mermaidConversion && isMermaidLoadResponse(msg)) {
+              if (msg.xml) {
+                completeMermaidConversion(state, msg.xml);
+              }
+              else {
+                console.error('drawio-inline-editor: mermaid conversion load response missing xml');
+              }
+            }
+            break;
+
+          case 'resize':
+            if (msg.rect && !state.explicitHeight) {
+              var newH = Math.max(20, Math.ceil(msg.rect.height) + 20);
+              state.wrapper.style.height = newH + 'px';
+            }
+            break;
+
+          case 'autosave':
+            if (msg.xml && !state._blockAutosave) {
+              if (state.mermaidConversion) {
+                completeMermaidConversion(state, msg.xml);
+              }
+              else {
+                state.currentXml = msg.xml;
+                state.dirty = true;
+                debouncedDiagramSave(state);
+              }
+            }
+            break;
+
+          case 'save':
+            if (msg.xml && !state._blockAutosave) {
+              if (state.mermaidConversion) {
+                completeMermaidConversion(state, msg.xml);
+              }
+              else {
+                state.currentXml = msg.xml;
+                state.dirty = true;
+                debouncedDiagramSave(state);
+              }
+            }
+            break;
+
+          case 'exit':
+            // Exit triggered in inline editor — reload diagram to prevent clearing
+            if (state.initialized && state.currentXml) {
+              state._blockAutosave = true;
+              state.iframe.contentWindow.postMessage(JSON.stringify({
+                action: 'load',
+                autosave: 1,
+                xml: state.currentXml,
+                title: '',
+                border: diagramPadding,
+                fit: 1,
+                maxFitScale: 1
+              }), '*');
+            }
+            break;
+
+          case 'scrollWheel':
+            allowScrollBriefly();
+            window.scrollBy(msg.deltaX || 0, msg.deltaY || 0);
+            break;
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Overlay messages (Quip-style full editor — no chrome hiding)
+      // ──────────────────────────────────────────────────────────────
+      function handleOverlayMessage(msg) {
+        switch (msg.event) {
+          case 'configure':
+            // Full UI — no CSS to hide chrome
+            overlayFrame.contentWindow.postMessage(JSON.stringify({
+              action: 'configure',
+              config: {
+                compact: true,
+                darkColor: '#1e1e1e',
+                showTooltipIcons: true,
+                showConnectHandle: true,
+                preserveViewState: true,
+                settingsName: 'vscode-overlay-editor',
+                useInternalClipboard: true
+              }
+            }), '*');
+            break;
+
+          case 'init':
+            overlayState.initialized = true;
+            overlayFrame.contentWindow.postMessage(JSON.stringify({
+              action: 'load',
+              autosave: 1,
+              xml: overlayState.currentXml,
+              title: '',
+            }), '*');
+            break;
+
+          case 'load':
+            break;
+
+          case 'autosave':
+            // Track changes in memory but do NOT save to file
+            if (msg.xml) {
+              overlayState.currentXml = msg.xml;
+              if (!overlayState.dirty) {
+                overlayState.dirty = true;
+                overlayFrame.contentWindow.postMessage(JSON.stringify({
+                  action: 'status',
+                  messageKey: 'unsavedChanges',
+                  modified: true
+                }), '*');
+              }
+            }
+            if (msg.modelBounds) overlayState.modelBounds = msg.modelBounds;
+            break;
+
+          case 'save':
+            // Explicit save by user (Ctrl+S) — write to file
+            if (msg.xml) {
+              overlayState.currentXml = msg.xml;
+              if (!overlayState.dirty) {
+                overlayState.dirty = true;
+              }
+            }
+            if (msg.modelBounds) overlayState.modelBounds = msg.modelBounds;
+            if (msg.exit) {
+              closeOverlay();
+            }
+            else {
+              // Save to file immediately
+              saveOverlayToFile();
+            }
+            break;
+
+          case 'exit':
+            closeOverlay();
+            break;
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Scroll to a diagram and open its full overlay editor
+      // ──────────────────────────────────────────────────────────────
+      function scrollToAndEditDiagram(blockIndex, isNew) {
+        var state = editorStates.get(blockIndex);
+        if (!state || !state.wrapper) {
+          // Content not rendered yet — queue for after render completes
+          _pendingScrollToBlock = blockIndex;
+          _pendingScrollIsNew = !!isNew;
+          return;
+        }
+
+        _pendingScrollToBlock = null;
+        _pendingScrollIsNew = false;
+        if (isNew) state._needsTemplatePicker = true;
+        // Defer scroll until after layout so element positions are final
+        requestAnimationFrame(function () {
+          var s = editorStates.get(blockIndex);
+          if (s && s.wrapper) {
+            allowScrollBriefly(1500);
+            s.wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            singletonAttach(s);
+          }
+        });
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Overlay management (Quip-style viewport-level full editor)
+      // ──────────────────────────────────────────────────────────────
+      function openOverlay(blockIndex) {
+        var state = editorStates.get(blockIndex);
+        if (!state) return;
+
+        // Flush any pending inline edits first
+        if (state.dirty) flushDiagramSave(state);
+
+        overlayState.active = true;
+        overlayState.blockIndex = blockIndex;
+        overlayState.currentXml = state.currentXml;
+        overlayState.diagramId = state.diagramId;
+        overlayState.dirty = false;
+        overlayState.modelBounds = null;
+
+        overlayEl.classList.add('active');
+
+        // Full UI URL — saveAndExit=1 adds draw.io's built-in "Save & Exit" button
+        var url = editorUrl + '/?embed=1&proto=json&spin=1&configure=1&libraries=1'
+          + '&saveAndExit=1';
+        if (devMode) url += '&dev=1&test=1';
+        if (window.innerWidth < 1200) url += '&format=0&sidebar=0';
+        url += '&dark=auto';
+
+        if (overlayState.initialized && overlayFrame.src && overlayFrame.src.indexOf(editorUrl) >= 0) {
+          // Reuse existing iframe
+          overlayFrame.contentWindow.postMessage(JSON.stringify({
+            action: 'load',
+            autosave: 1,
+            xml: overlayState.currentXml,
+            title: '',
+          }), '*');
+        }
+        else {
+          overlayState.initialized = false;
+          overlayFrame.src = url;
+        }
+
+        document.body.style.overflow = 'hidden';
+      }
+
+      // Save overlay diagram to file and update inline preview
+      function saveOverlayToFile() {
+        var state = editorStates.get(overlayState.blockIndex);
+        if (!state) return;
+
+        state.currentXml = overlayState.currentXml;
+
+        // Use model-space bounds from the overlay editor if available —
+        // these are authoritative and reflect the latest edits.
+        if (overlayState.modelBounds) {
+          state.diagramBounds = overlayState.modelBounds;
+        }
+
+        // Update the inline editor if it exists
+        if (state.iframe && state.initialized) {
+          state.iframe.contentWindow.postMessage(JSON.stringify({
+            action: 'load',
+            autosave: 1,
+            xml: state.currentXml,
+            title: 'Diagram',
+            border: diagramPadding, fit: 1, maxFitScale: 1
+          }), '*');
+        }
+        // Update SVG preview
+        if (state.previewLayer) {
+          var newBounds = renderSvgPreview(state.previewLayer, state.currentXml);
+          if (newBounds) state.diagramBounds = newBounds;
+        }
+
+        // Save to file
+        vscode.postMessage({
+          type: 'diagramEdited',
+          blockIndex: overlayState.blockIndex,
+          xml: overlayState.currentXml,
+          diagramId: overlayState.diagramId,
+        });
+
+        overlayState.dirty = false;
+        overlayFrame.contentWindow.postMessage(JSON.stringify({
+          action: 'status',
+          messageKey: 'allChangesSaved',
+          modified: false
+        }), '*');
+      }
+
+      function closeOverlay() {
+        if (!overlayState.active) return;
+
+        var savedBlockIndex = overlayState.blockIndex;
+
+        // Save any unsaved changes before closing
+        if (overlayState.dirty) {
+          saveOverlayToFile();
+        }
+
+        overlayState.active = false;
+        overlayState.blockIndex = -1;
+        overlayState.dirty = false;
+        overlayEl.classList.remove('active');
+        document.body.style.overflow = '';
+
+        // Implicit fit after closing the overlay editor — re-size container to
+        // match the (potentially edited) diagram with maxScale=1 semantics.
+        // Use _doFitDiagramToContainer directly because state already has fresh
+        // XML and bounds from the overlay, and the singleton may be mid-reload.
+        var state = editorStates.get(savedBlockIndex);
+        if (state) _doFitDiagramToContainer(state, true);
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Lightbox messages (read-only iframe — ignore edit events)
+      // ──────────────────────────────────────────────────────────────
+      function handleLightboxMessage(msg) {
+        switch (msg.event) {
+          case 'configure':
+            lightboxFrame.contentWindow.postMessage(JSON.stringify({
+              action: 'configure',
+              config: {
+                compact: true,
+                css: LIGHTBOX_CSS,
+                darkColor: '#1e1e1e',
+                settingsName: 'vscode-lightbox',
+                noAutoFocus: true,
+                noResizers: true,
+              }
+            }), '*');
+            break;
+
+          case 'init':
+            lightboxLoading.classList.add('hidden');
+            lightboxState.initialized = true;
+            lightboxFrame.contentWindow.postMessage(JSON.stringify({
+              action: 'load',
+              autosave: 0,
+              xml: lightboxState.currentXml,
+              title: '',
+            }), '*');
+            break;
+
+          case 'load':
+            break;
+
+          // Ignore edit events — lightbox is read-only
+          case 'autosave':
+          case 'save':
+          case 'exit':
+            break;
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Lightbox management (non-editable full-window diagram view)
+      // ──────────────────────────────────────────────────────────────
+      function openLightbox(xml) {
+        if (!xml || !xml.trim()) return;
+
+        lightboxState.active = true;
+        lightboxState.currentXml = xml;
+        lightboxEl.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        var url = editorUrl + '/?lightbox=1&toolbar=0&configure=1&embed=1'
+          + '&proto=json&spin=1&pv=0&grid=0&transparent=1&border=60';
+        if (devMode) url += '&dev=1&test=1';
+        if (isDark) url += '&dark=1';
+
+        if (lightboxState.initialized && lightboxFrame.src && lightboxFrame.src.indexOf(editorUrl) >= 0) {
+          // Reuse existing iframe — no loading needed
+          lightboxLoading.classList.add('hidden');
+          lightboxFrame.contentWindow.postMessage(JSON.stringify({
+            action: 'load',
+            autosave: 0,
+            xml: lightboxState.currentXml,
+            title: '',
+          }), '*');
+        }
+        else {
+          // Fresh load — show loading message
+          lightboxLoading.classList.remove('hidden');
+          lightboxState.initialized = false;
+          lightboxFrame.src = url;
+        }
+      }
+
+      function closeLightbox() {
+        lightboxState.active = false;
+        lightboxEl.classList.remove('active');
+        if (!overlayState.active) document.body.style.overflow = '';
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Override GraphViewer dark-mode colors to use VS Code theme variables
+      // instead of the hardcoded #121212.  Must run before any GraphViewer
+      // instance is created (initCss bakes darkBackgroundColor into a <style>).
+      var _graphViewerDarkConfigured = false;
+      function ensureGraphViewerDarkConfig() {
+        if (_graphViewerDarkConfigured || typeof GraphViewer === 'undefined') return;
+        _graphViewerDarkConfigured = true;
+        GraphViewer.darkBackgroundColor = 'var(--vscode-editor-background)';
+        document.documentElement.style.setProperty('--ge-dark-color',
+          'var(--vscode-editor-background)');
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // SVG Preview rendering using GraphViewer.
+      // Returns the mxGraph-rendered bounds { width, height } extracted from
+      // the SVG viewBox, or null if rendering failed. These bounds are more
+      // accurate than getBoundsFromXml() because mxGraph accounts for edge
+      // routing, labels, and other elements that extend beyond mxGeometry.
+      function renderSvgPreview(container, xml) {
+        // GraphViewer sets inline styles (padding, overflow, etc.) on the
+        // container.  When re-rendering after the container was display:none
+        // (while the singleton iframe was active), these stale inline styles
+        // can cause the absolutely-positioned container to collapse to its
+        // padding width (e.g. 57px = 2×28px padding + 1px min-width).
+        // Reset inline styles so the CSS class rules (width:100%, etc.) apply.
+        container.removeAttribute('style');
+        container.innerHTML = '';
+
+        if (!xml || !xml.trim()) {
+          container.innerHTML = '<div class="preview-empty">Empty diagram</div>';
+          return null;
+        }
+
+        try {
+          if (typeof GraphViewer !== 'undefined') {
+            ensureGraphViewerDarkConfig();
+
+            // GraphViewer applies border as fixed-pixel CSS padding on the
+            // container, matching graph.fit(border) in the inline editor.
+            var config = {
+              highlight: '#0000ff',
+              responsive: true,
+              lightbox: false,
+              nav: false,
+              border: diagramPadding
+            };
+
+            config['responsive-max-scale'] = 1;
+            config['dark-mode'] = 'auto';
+
+            var xmlDoc = mxUtils.parseXml(xml);
+            new GraphViewer(container, xmlDoc.documentElement, config);
+
+            // Extract actual rendered bounds from the SVG viewBox.
+            // viewBox = (x, y, graphW+1, graphH+1) — border is CSS padding, not in viewBox
+            var svgEl = container.querySelector('svg');
+            if (svgEl) {
+              var vb = svgEl.getAttribute('viewBox');
+              var renderedBounds = null;
+
+              if (vb) {
+                var vbParts = vb.split(/[\s,]+/).map(Number);
+                if (vbParts.length === 4 && vbParts[2] > 0) {
+                  // Reverse the viewBox formula to get graph bounds
+                  renderedBounds = {
+                    width: vbParts[2] - 1,
+                    height: vbParts[3] - 1
+                  };
+                }
+              }
+
+              // Empty diagram (valid XML but no visible shapes) — show placeholder
+              // viewBox "0 0 1 1" produces bounds {width:0, height:0} for empty diagrams
+              if (!renderedBounds || (renderedBounds.width <= 0 && renderedBounds.height <= 0)) {
+                container.removeAttribute('style');
+                container.innerHTML = '<div class="preview-empty">Empty diagram</div>';
+                return null;
+              }
+
+              return renderedBounds;
+            }
+            else {
+              // GraphViewer produced no SVG — show placeholder
+              container.removeAttribute('style');
+              container.innerHTML = '<div class="preview-empty">Empty diagram</div>';
+              return null;
+            }
+          }
+          else {
+            container.innerHTML = '<div class="preview-loading">Rendering...</div>';
+          }
+        }
+        catch (e) {
+          container.innerHTML = '<div class="preview-loading" style="color:var(--vscode-errorForeground)">Preview error</div>';
+        }
+        return null;
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Content rendering
+      // ──────────────────────────────────────────────────────────────
+      function renderContent(sections) {
+        if (!sections || !sections.length) return;
+        if (editorStates.size > 0) {
+          if (tryIncrementalUpdate(sections)) {
+            return;
+          }
+        }
+
+        fullRender(sections);
+      }
+
+      function fullRender(sections) {
+        cleanupAllEditors();
+        contentEl.innerHTML = '';
+        diagramBlocks = [];
+        mermaidCount = sections.filter(function (s) { return s.type === 'mermaid'; }).length;
+        textSections = [];
+        _lastInteractedEndLine = null;
+
+        for (var i = 0; i < sections.length; i++) {
+          var section = sections[i];
+
+          if (section.type === 'text') {
+            renderTextSection(section);
+          }
+          else if (section.type === 'diagram') {
+            diagramBlocks[section.blockIndex] = section;
+            var ph = document.createElement('div');
+            ph.className = 'drawio-inline-placeholder';
+            ph.setAttribute('data-block-index', section.blockIndex);
+            contentEl.appendChild(ph);
+            renderDiagramBlock(ph, section.blockIndex);
+          }
+          else if (section.type === 'mermaid') {
+            renderMermaidBlock(section);
+          }
+        }
+
+        startFocusPolling();
+        setupLazyLoading();
+
+        // After all content is rendered, a scrollbar may have appeared, changing
+        // the available width. Schedule a refit pass so diagram heights match
+        // what the fit button would compute with the current layout.
+        requestAnimationFrame(function () {
+          editorStates.forEach(function (st) {
+            if (st.explicitWidth || st.explicitHeight) return;
+            var outerEl = st.wrapper.parentElement;
+            if (!outerEl || !st.diagramBounds) return;
+
+            var availW = outerEl.parentElement ? outerEl.parentElement.clientWidth : outerEl.clientWidth;
+            var wrapperCS = window.getComputedStyle(st.wrapper);
+            var wrapperChrome = (parseFloat(wrapperCS.borderLeftWidth) || 0) +
+              (parseFloat(wrapperCS.borderRightWidth) || 0) +
+              (parseFloat(wrapperCS.paddingLeft) || 0) +
+              (parseFloat(wrapperCS.paddingRight) || 0);
+
+            var fitSize = calcFitSize(st.diagramBounds, availW, wrapperChrome);
+            outerEl.style.width = fitSize.width + 'px';
+
+            // Use measurement-based height for consistency with fitDiagramToContainer
+            var resizeBar = 12;
+            var targetH = fitSize.height;
+            var svgEl = st.previewLayer ? st.previewLayer.querySelector('svg') : null;
+            if (svgEl) {
+              var svgRect = svgEl.getBoundingClientRect();
+              var layerRect = st.previewLayer.getBoundingClientRect();
+              var svgTop = svgRect.top - layerRect.top;
+              targetH = Math.max(20, Math.ceil(svgTop + svgRect.height + diagramPadding + resizeBar));
+            }
+
+            var currentH = parseInt(st.wrapper.style.height, 10);
+            if (currentH !== targetH) {
+              st.wrapper.style.height = targetH + 'px';
+            }
+          });
+
+          // Flush any pending scroll-to-block that arrived before/during render
+          if (_pendingScrollToBlock != null) {
+            var idx = _pendingScrollToBlock;
+            var isNew = _pendingScrollIsNew;
+            _pendingScrollToBlock = null;
+            _pendingScrollIsNew = false;
+            var s = editorStates.get(idx);
+            if (s && s.wrapper) {
+              if (isNew) s._needsTemplatePicker = true;
+              allowScrollBriefly(1500);
+              s.wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              singletonAttach(s);
+            }
+          }
+        });
+      }
+
+      function tryIncrementalUpdate(sections) {
+        var newMermaidCount = sections.filter(function (s) { return s.type === 'mermaid'; }).length;
+        if (newMermaidCount !== mermaidCount) return false;
+
+        var newDiagrams = sections.filter(function (s) { return s.type === 'diagram'; });
+        if (newDiagrams.length !== diagramBlocks.length) return false;
+
+        for (var i = 0; i < newDiagrams.length; i++) {
+          var nd = newDiagrams[i];
+          var od = diagramBlocks[nd.blockIndex];
+          if (!od) return false;
+          if (nd.locked !== od.locked) return false;
+          if (nd.diagramId !== od.diagramId) return false;
+        }
+
+        for (var i = 0; i < newDiagrams.length; i++) {
+          var nd = newDiagrams[i];
+          var state = editorStates.get(nd.blockIndex);
+          if (state && state.iframe && state.initialized) {
+            if (state.currentXml !== nd.xml) {
+              if (state.dirty) {
+                // Merge external changes to preserve unsaved inline edits;
+                // the merged result will come back via autosave
+                state.iframe.contentWindow.postMessage(JSON.stringify({
+                  action: 'merge',
+                  xml: nd.xml
+                }), '*');
+              }
+              else {
+                state.currentXml = nd.xml;
+                state.iframe.contentWindow.postMessage(JSON.stringify({
+                  action: 'load', autosave: 1, xml: nd.xml, title: '',
+                  border: diagramPadding, fit: 1, maxFitScale: 1
+                }), '*');
+              }
+            }
+          }
+          else if (state && state.previewLayer) {
+            if (state.currentXml !== nd.xml) {
+              state.currentXml = nd.xml;
+              var newBounds = renderSvgPreview(state.previewLayer, nd.xml);
+              if (newBounds) state.diagramBounds = newBounds;
+            }
+          }
+
+          // Merge external changes into the open overlay editor
+          if (overlayState.active && overlayState.blockIndex === nd.blockIndex
+            && overlayState.initialized && nd.xml !== overlayState.currentXml) {
+            overlayFrame.contentWindow.postMessage(JSON.stringify({
+              action: 'merge',
+              xml: nd.xml
+            }), '*');
+          }
+
+          diagramBlocks[nd.blockIndex] = nd;
+        }
+
+        var newTexts = sections.filter(function (s) { return s.type === 'text'; });
+        if (newTexts.length !== textSections.length) return false;
+        for (var i = 0; i < newTexts.length; i++) {
+          var ts = textSections[i];
+          var el = ts.element;
+          if (el === document.activeElement || el.contains(document.activeElement)) {
+            ts.startLine = newTexts[i].startLine;
+            ts.endLine = newTexts[i].endLine;
+            continue;
+          }
+          el.innerHTML = newTexts[i].html;
+          ts.startLine = newTexts[i].startLine;
+          ts.endLine = newTexts[i].endLine;
+        }
+
+        return true;
+      }
+
+      // ── Text section rendering ──
+      function renderTextSection(section) {
+        var div = document.createElement('div');
+        div.className = 'text-section';
+        div.setAttribute('contenteditable', 'true');
+        div.setAttribute('data-start-line', section.startLine);
+        div.setAttribute('data-end-line', section.endLine);
+        div.innerHTML = section.html;
+        contentEl.appendChild(div);
+
+        var sectionInfo = { element: div, startLine: section.startLine, endLine: section.endLine };
+        textSections.push(sectionInfo);
+        div.addEventListener('input', function () { debouncedTextSave(sectionInfo); });
+        // Track last interacted section for "+ Diagram" insertion position
+        function trackTextInteraction() { _lastInteractedEndLine = sectionInfo.endLine; }
+        div.addEventListener('click', trackTextInteraction);
+        div.addEventListener('focus', trackTextInteraction);
+        div.addEventListener('keydown', trackTextInteraction);
+      }
+
+      // ── Diagram block rendering ──
+      function renderDiagramBlock(placeholder, index) {
+        var block = diagramBlocks[index];
+        if (!block) return;
+
+        if (block.locked) {
+          renderLockedDiagram(placeholder, block, index);
+        }
+        else {
+          renderEditorDiagram(placeholder, block, index);
+        }
+      }
+
+      // ── Locked diagrams ──
+      function renderLockedDiagram(placeholder, block, index) {
+        var outer = document.createElement('div');
+        outer.className = 'drawio-editor-outer';
+
+        // Toolbar row (same style as editor, with lock icon instead of expand)
+        var toolbarRow = document.createElement('div');
+        toolbarRow.className = 'drawio-toolbar-row';
+
+        var inlineToolbar = document.createElement('div');
+        inlineToolbar.className = 'drawio-inline-toolbar';
+
+        var lightboxBtn = document.createElement('button');
+        lightboxBtn.title = 'Preview';
+        lightboxBtn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M8 3.5C4.136 3.5 1.093 6.314.158 7.7a.75.75 0 0 0 0 .6C1.093 9.686 4.136 12.5 8 12.5s6.907-2.814 7.842-4.2a.75.75 0 0 0 0-.6C14.907 6.314 11.864 3.5 8 3.5ZM8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-1.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>';
+        lightboxBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          openLightbox(block.xml);
+        });
+        inlineToolbar.appendChild(lightboxBtn);
+
+        var lockBtn = document.createElement('button');
+        lockBtn.title = 'Locked';
+        lockBtn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M8 1a3.5 3.5 0 0 0-3.5 3.5V6H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-.5V4.5A3.5 3.5 0 0 0 8 1Zm2 5H6V4.5a2 2 0 1 1 4 0V6Z"/></svg>';
+        lockBtn.style.cursor = 'default';
+        lockBtn.style.opacity = '0.6';
+        inlineToolbar.appendChild(lockBtn);
+
+        toolbarRow.appendChild(inlineToolbar);
+        outer.appendChild(toolbarRow);
+
+        var container = document.createElement('div');
+        container.className = 'drawio-locked-container';
+        container.setAttribute('data-block-index', index);
+
+        var viewerDiv = document.createElement('div');
+        container.appendChild(viewerDiv);
+
+        outer.appendChild(container);
+        placeholder.parentNode.replaceChild(outer, placeholder);
+
+        // Track last interacted diagram for "+ Diagram" insertion position
+        (function (blk) {
+          outer.addEventListener('click', function () { _lastInteractedEndLine = blk.endLine; });
+          outer.addEventListener('mousedown', function () { _lastInteractedEndLine = blk.endLine; });
+        })(block);
+
+        // Toolbar visibility on hover (same as unlocked diagrams)
+        outer.addEventListener('mouseenter', function () { showToolbarFor(outer); });
+        outer.addEventListener('mouseleave', function () { scheduleToolbarHide(); });
+
+        try {
+          if (typeof GraphViewer !== 'undefined') {
+            ensureGraphViewerDarkConfig();
+
+            var config = {
+              highlight: '#0000ff',
+              responsive: true,
+              lightbox: false,
+              nav: false,
+              border: diagramPadding
+            };
+
+            config['responsive-max-scale'] = 1;
+            config['dark-mode'] = 'auto';
+
+            var xmlDoc = mxUtils.parseXml(block.xml);
+            new GraphViewer(viewerDiv, xmlDoc.documentElement, config);
+
+            // Compute fit width from rendered SVG bounds (same as unlocked previews)
+            var svgEl = viewerDiv.querySelector('svg');
+            if (svgEl) {
+              var vb = svgEl.getAttribute('viewBox');
+              if (vb) {
+                var vbParts = vb.split(/[\s,]+/).map(Number);
+                if (vbParts.length === 4 && vbParts[2] > 0) {
+                  var renderedBounds = { width: vbParts[2] - 1, height: vbParts[3] - 1 };
+                  var containerCS = window.getComputedStyle(container);
+                  var containerChrome = (parseFloat(containerCS.borderLeftWidth) || 0) +
+                    (parseFloat(containerCS.borderRightWidth) || 0) +
+                    (parseFloat(containerCS.paddingLeft) || 0) +
+                    (parseFloat(containerCS.paddingRight) || 0);
+                  var availW = outer.parentElement ? outer.parentElement.clientWidth : outer.clientWidth;
+                  var fitSize = calcFitSize(renderedBounds, availW, containerChrome);
+                  outer.style.width = fitSize.width + 'px';
+                }
+              }
+            }
+          }
+        }
+        catch (e) {
+          viewerDiv.innerHTML = '<div style="padding:8px;color:var(--vscode-errorForeground);">Render error: ' + e.message + '</div>';
+        }
+      }
+
+      // ── Mermaid blocks: code preview + convert toolbar ──
+      function renderMermaidBlock(section) {
+        var outer = document.createElement('div');
+        outer.className = 'drawio-editor-outer';
+
+        // Toolbar row
+        var toolbarRow = document.createElement('div');
+        toolbarRow.className = 'drawio-toolbar-row';
+
+        var inlineToolbar = document.createElement('div');
+        inlineToolbar.className = 'drawio-inline-toolbar';
+
+        var convertBtn = document.createElement('button');
+        convertBtn.title = 'Convert to draw.io';
+        convertBtn.style.width = 'auto';
+        convertBtn.style.padding = '0 8px';
+        convertBtn.style.gap = '4px';
+        // Arrow-swap icon + text label
+        convertBtn.innerHTML = '<svg viewBox="0 0 16 16" style="flex-shrink:0"><path d="M2.5 2a.5.5 0 0 0 0 1h8.793L9.146 5.146a.5.5 0 1 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L11.293 2H2.5Zm11 12a.5.5 0 0 0 0-1H4.707l2.147-2.146a.5.5 0 0 0-.708-.708l-3 3a.5.5 0 0 0 0 .708l3 3a.5.5 0 0 0 .708-.708L4.707 14H13.5Z"/></svg>'
+          + '<span style="font-size:11px">Convert to draw.io</span>';
+        var mIdx = section.mermaidIndex;
+        convertBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          convertMermaidInline(outer, section);
+        });
+        inlineToolbar.appendChild(convertBtn);
+
+        toolbarRow.appendChild(inlineToolbar);
+        outer.appendChild(toolbarRow);
+
+        var container = document.createElement('div');
+        container.className = 'drawio-mermaid-container';
+
+        var label = document.createElement('span');
+        label.className = 'drawio-mermaid-label';
+        label.textContent = 'mermaid';
+        container.appendChild(label);
+
+        var pre = document.createElement('pre');
+        var code = document.createElement('code');
+        code.textContent = section.source;
+        pre.appendChild(code);
+        container.appendChild(pre);
+
+        outer.appendChild(container);
+        // Toolbar visibility on hover
+        outer.addEventListener('mouseenter', function () { showToolbarFor(outer); });
+        outer.addEventListener('mouseleave', function () { scheduleToolbarHide(); });
+        contentEl.appendChild(outer);
+      }
+
+      // ── Mermaid inline conversion: replace mermaid block with inline editor ──
+      function convertMermaidInline(outerElement, section) {
+        var stateKey = 'mermaid-' + section.mermaidIndex;
+
+        // Clear existing mermaid content
+        outerElement.innerHTML = '';
+
+        // Toolbar row with status label
+        var toolbarRow = document.createElement('div');
+        toolbarRow.className = 'drawio-toolbar-row';
+        var inlineToolbar = document.createElement('div');
+        inlineToolbar.className = 'drawio-inline-toolbar';
+        var statusBtn = document.createElement('button');
+        statusBtn.style.width = 'auto';
+        statusBtn.style.padding = '0 8px';
+        statusBtn.style.cursor = 'default';
+        statusBtn.innerHTML = '<span style="font-size:11px">Converting mermaid\u2026</span>';
+        inlineToolbar.appendChild(statusBtn);
+        toolbarRow.appendChild(inlineToolbar);
+        outerElement.appendChild(toolbarRow);
+
+        // Editor wrapper
+        var wrapper = document.createElement('div');
+        wrapper.className = 'drawio-editor-wrapper';
+        wrapper.setAttribute('data-block-index', stateKey);
+        wrapper.style.height = '20px'; // min-height; will be corrected on load
+
+        var loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading-placeholder';
+        loadingDiv.textContent = 'Converting mermaid to draw.io\u2026';
+        wrapper.appendChild(loadingDiv);
+
+        var resizeHandle = document.createElement('div');
+        resizeHandle.className = 'drawio-resize-handle';
+        wrapper.appendChild(resizeHandle);
+
+        outerElement.appendChild(wrapper);
+
+        // Create editor state
+        var state = {
+          blockIndex: stateKey,
+          wrapper: wrapper,
+          previewLayer: null,
+          iframe: null,
+          loaded: false,
+          initialized: false,
+          isActive: false,
+          dirty: false,
+          currentXml: '',
+          diagramId: null,
+          explicitHeight: false,
+          explicitWidth: false,
+          mermaidConversion: true,
+          mermaidSource: section.source,
+          mermaidIndex: section.mermaidIndex,
+        };
+        editorStates.set(stateKey, state);
+
+        // Create iframe immediately (no lazy loading for conversion)
+        var iframe = document.createElement('iframe');
+        iframe.className = 'drawio-editor-iframe';
+        iframe.style.visibility = 'hidden';
+        iframe.addEventListener('mouseenter', function () { _mouseOverEditorIframe = true; });
+        iframe.addEventListener('mouseleave', function () { _mouseOverEditorIframe = false; });
+        iframe.src = buildEditorUrl();
+
+        state.iframe = iframe;
+        wrapper.insertBefore(iframe, resizeHandle);
+      }
+
+      // ── Unlocked diagrams: SVG preview + inline editor iframe ──
+      function renderEditorDiagram(placeholder, block, index) {
+        var explicitWidth = !!block.width;
+        var xmlBounds = getBoundsFromXml(block.xml);
+        // For empty diagrams (no XML bounds), use default 800x600 size
+        var isEmptyDiagram = !xmlBounds;
+        var containerHeight = isEmptyDiagram ? 600 : 20;
+
+        // Outer container for toolbar + editor
+        var outer = document.createElement('div');
+        outer.className = 'drawio-editor-outer';
+        if (block.width) outer.style.width = block.width + 'px';
+        else if (isEmptyDiagram) outer.style.width = '800px';
+
+        // Toolbar row (above the frame)
+        var toolbarRow = document.createElement('div');
+        toolbarRow.className = 'drawio-toolbar-row';
+
+        var inlineToolbar = document.createElement('div');
+        inlineToolbar.className = 'drawio-inline-toolbar';
+
+        // Zoom buttons removed — replaced by lightbox view
+        // var zoomInBtn = document.createElement('button');
+        // zoomInBtn.title = 'Zoom in';
+        // ...
+        // var zoomOutBtn = document.createElement('button');
+        // zoomOutBtn.title = 'Zoom out';
+        // ...
+
+        // Lightbox button — opens non-editable full-window view
+        var lightboxBtn = document.createElement('button');
+        lightboxBtn.title = 'Preview';
+        // Eye icon
+        lightboxBtn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M8 3.5C4.136 3.5 1.093 6.314.158 7.7a.75.75 0 0 0 0 .6C1.093 9.686 4.136 12.5 8 12.5s6.907-2.814 7.842-4.2a.75.75 0 0 0 0-.6C14.907 6.314 11.864 3.5 8 3.5ZM8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-1.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>';
+        lightboxBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var st = editorStates.get(index);
+          if (st) openLightbox(st.currentXml);
+        });
+        inlineToolbar.appendChild(lightboxBtn);
+
+        var fitBtn = document.createElement('button');
+        fitBtn.title = 'Fit diagram';
+        fitBtn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M2 2.5A.5.5 0 0 1 2.5 2h3a.5.5 0 0 1 0 1H3v2.5a.5.5 0 0 1-1 0v-3Zm0 11a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 0-1H3v-2.5a.5.5 0 0 0-1 0v3Zm12 0a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H13v-2.5a.5.5 0 0 1 1 0v3Zm0-11a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0 0 1H13v2.5a.5.5 0 0 0 1 0v-3Z"/></svg>';
+        fitBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var st = editorStates.get(index);
+          if (st) fitDiagramToContainer(st, true);
+        });
+        inlineToolbar.appendChild(fitBtn);
+
+        var actualSizeBtn = document.createElement('button');
+        actualSizeBtn.title = 'Actual size (1:1)';
+        actualSizeBtn.innerHTML = '<svg viewBox="0 0 16 16"><text x="8" y="12" text-anchor="middle" font-size="11" font-weight="bold" fill="currentColor" font-family="sans-serif">1:1</text></svg>';
+        actualSizeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var st = editorStates.get(index);
+          if (!st) return;
+          // Clear explicit dimensions so fit uses the diagram's natural size
+          st.blockWidth = null;
+          st.explicitWidth = false;
+          st.explicitHeight = false;
+          fitDiagramToContainer(st, true);
+        });
+        inlineToolbar.appendChild(actualSizeBtn);
+
+        var expandBtn = document.createElement('button');
+        expandBtn.title = 'Edit Diagram';
+        // Arrow pointing out of box — distinct from fit icon
+        expandBtn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M9 2a.75.75 0 0 1 0-1.5h5.25a.75.75 0 0 1 .75.75V6.5a.75.75 0 0 1-1.5 0V3.06l-4.72 4.72a.75.75 0 0 1-1.06-1.06L12.44 2H9ZM2.5 4A.5.5 0 0 1 3 3.5h3.25a.75.75 0 0 0 0-1.5H3A2 2 0 0 0 1 4v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V9.75a.75.75 0 0 0-1.5 0V13a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4Z"/></svg>';
+        expandBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          openOverlay(index);
+        });
+        inlineToolbar.appendChild(expandBtn);
+
+        toolbarRow.appendChild(inlineToolbar);
+        outer.appendChild(toolbarRow);
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'drawio-editor-wrapper';
+        wrapper.setAttribute('data-block-index', index);
+        wrapper.style.height = containerHeight + 'px';
+
+        // SVG preview layer (shown initially, hidden when iframe loads)
+        var previewLayer = document.createElement('div');
+        previewLayer.className = 'preview-layer';
+        wrapper.appendChild(previewLayer);
+
+        // Loading placeholder (shown between SVG preview and iframe load)
+        var loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading-placeholder';
+        loadingDiv.textContent = 'Loading diagram editor...';
+        loadingDiv.style.display = 'none'; // Hidden initially; SVG preview shows first
+        wrapper.appendChild(loadingDiv);
+
+        // Resize handles
+        var resizeHandle = document.createElement('div');
+        resizeHandle.className = 'drawio-resize-handle';
+        wrapper.appendChild(resizeHandle);
+        setupResizeHandle(resizeHandle, wrapper, index);
+
+        var cornerHandle = document.createElement('div');
+        cornerHandle.className = 'drawio-corner-resize-handle';
+        wrapper.appendChild(cornerHandle);
+        setupCornerResizeHandle(cornerHandle, wrapper, index);
+
+        outer.appendChild(wrapper);
+        placeholder.parentNode.replaceChild(outer, placeholder);
+
+        // Track last interacted diagram for "+ Diagram" insertion position
+        (function (blk) {
+          outer.addEventListener('click', function () { _lastInteractedEndLine = blk.endLine; });
+          outer.addEventListener('mousedown', function () { _lastInteractedEndLine = blk.endLine; });
+        })(block);
+
+        // Render SVG preview first — this gives us mxGraph's actual rendered
+        // bounds which are more accurate than getBoundsFromXml() (edge labels,
+        // routing, etc. can extend beyond mxGeometry elements).
+        var renderedBounds = renderSvgPreview(previewLayer, block.xml);
+
+        // Use rendered bounds if available, fall back to XML-parsed bounds
+        var effectiveBounds = renderedBounds || xmlBounds;
+
+        // Now that the element is in the DOM, compute correct size from bounds
+        if (effectiveBounds) {
+          // When explicit width is set, use it as the available width so that
+          // the height is computed for the actual container constraint.
+          // Otherwise use the parent's content width.
+          var availW = explicitWidth
+            ? outer.clientWidth
+            : (outer.parentElement ? outer.parentElement.clientWidth : (outer.clientWidth || wrapper.clientWidth));
+
+          var wrapperCS = window.getComputedStyle(wrapper);
+          var wrapperChrome = (parseFloat(wrapperCS.borderLeftWidth) || 0) +
+            (parseFloat(wrapperCS.borderRightWidth) || 0) +
+            (parseFloat(wrapperCS.paddingLeft) || 0) +
+            (parseFloat(wrapperCS.paddingRight) || 0);
+
+          var fitSize = calcFitSize(effectiveBounds, availW, wrapperChrome);
+
+          if (!explicitWidth) {
+            outer.style.width = fitSize.width + 'px';
+          }
+
+          // Measure the actual rendered SVG height rather than relying solely
+          // on the mathematical formula, so the container exactly fits the
+          // diagram after GraphViewer applies scaling + padding.
+          containerHeight = fitSize.height; // fallback
+          var svgEl = previewLayer.querySelector('svg');
+          if (svgEl) {
+            var svgRect = svgEl.getBoundingClientRect();
+            var layerRect = previewLayer.getBoundingClientRect();
+            var svgTop = svgRect.top - layerRect.top;
+            var resizeBar = 12;
+            var measured = Math.max(20, Math.ceil(svgTop + svgRect.height + diagramPadding + resizeBar));
+            containerHeight = measured;
+          }
+          wrapper.style.height = containerHeight + 'px';
+        }
+
+        // Create editor state — use rendered bounds for consistency with graph.fit
+        var state = {
+          blockIndex: index,
+          wrapper: wrapper,
+          previewLayer: previewLayer,
+          iframe: null,
+          loaded: false,
+          initialized: false,
+          isActive: false,
+          dirty: false,
+          currentXml: block.xml,
+          diagramId: block.diagramId || null,
+          explicitHeight: false,
+          explicitWidth: explicitWidth,
+          diagramBounds: effectiveBounds,
+          blockWidth: block.width || null,
+        };
+        editorStates.set(index, state);
+        setupHoverLoad(state);
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Lazy loading – singleton editor attaches on hover
+      // ──────────────────────────────────────────────────────────────
+      function setupHoverLoad(state) {
+        var outer = state.wrapper.parentElement;
+        state.wrapper.addEventListener('mouseenter', function () {
+          singletonAttach(state);
+        });
+        // Track mouse over the outer container (includes toolbar row above wrapper)
+        if (outer) {
+          outer.addEventListener('mouseenter', function () {
+            _mouseOverDiagramOuter = true;
+          });
+          outer.addEventListener('mouseleave', function () {
+            _mouseOverDiagramOuter = false;
+          });
+        }
+      }
+
+      function setupLazyLoading() {
+        createSingletonIframe();
+        editorStates.forEach(function (state) {
+          setupHoverLoad(state);
+        });
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Focus management
+      // ──────────────────────────────────────────────────────────────
+      function activateEditor(state) {
+        if (state.isActive) return;
+
+        if (activeEditorIndex >= 0) {
+          var prevState = editorStates.get(activeEditorIndex);
+          if (prevState) {
+            prevState.isActive = false;
+            prevState.wrapper.classList.remove('active');
+          }
+        }
+
+        state.isActive = true;
+        activeEditorIndex = state.blockIndex;
+        state.wrapper.classList.add('active');
+      }
+
+      function deactivateEditor(state) {
+        if (!state.isActive) return;
+        state.isActive = false;
+        state.wrapper.classList.remove('active');
+
+        if (activeEditorIndex === state.blockIndex) activeEditorIndex = -1;
+        if (state.dirty) flushDiagramSave(state);
+      }
+
+      function deactivateAllEditors() {
+        editorStates.forEach(function (state) { deactivateEditor(state); });
+        activeEditorIndex = -1;
+      }
+
+      function startFocusPolling() {
+        if (focusPollTimer) clearInterval(focusPollTimer);
+        focusPollTimer = setInterval(checkToolbarFocus, 300);
+      }
+
+      var _singletonHadFocus = false;
+
+      function checkToolbarFocus() {
+        var active = document.activeElement;
+        var singletonHasFocus = (active && active === _singletonIframe);
+
+        // Check if focus is on a toolbar button inside the active diagram's
+        // outer container.  Clicking toolbar buttons (e.g. fit) briefly moves
+        // focus away from the iframe — we should not treat this as a real
+        // focus-loss that clears the draw.io selection state.
+        var focusInActiveToolbar = false;
+        if (!singletonHasFocus && _singletonActiveState && active) {
+          var outer = _singletonActiveState.wrapper.parentElement;
+          if (outer && outer.contains(active) && active !== _singletonIframe) {
+            focusInActiveToolbar = true;
+          }
+        }
+
+        // When the singleton iframe loses focus, reset the editor UI state
+        // — but not when focus merely moved to a toolbar button in the same diagram.
+        if (_singletonHadFocus && !singletonHasFocus && !focusInActiveToolbar && _singletonActiveState && _singletonIframe) {
+          _singletonIframe.contentWindow.postMessage(JSON.stringify({
+            action: 'resetEditor'
+          }), '*');
+        }
+
+        // When the singleton iframe gains focus, clear any text selection in the page
+        if (!_singletonHadFocus && singletonHasFocus) {
+          var sel = window.getSelection();
+          if (sel) sel.removeAllRanges();
+        }
+
+        _singletonHadFocus = singletonHasFocus || focusInActiveToolbar;
+
+        // The .active class (which shows resize handles) is managed by
+        // singletonAttach / singletonDetach.  Only deactivate here when
+        // no singleton is attached — otherwise the focus poll would
+        // remove .active every time the user hasn't clicked the iframe.
+        if (!_singletonActiveState) {
+          if (active && active.tagName === 'IFRAME') {
+            var found = false;
+            editorStates.forEach(function (state) {
+              if (state.iframe === active) {
+                if (!state.isActive) activateEditor(state);
+                found = true;
+              }
+            });
+            if (!found && activeEditorIndex >= 0) deactivateAllEditors();
+          }
+          else {
+            if (activeEditorIndex >= 0) deactivateAllEditors();
+          }
+        }
+        else if (focusInActiveToolbar) {
+          // Focus is on a toolbar button in the active diagram — return
+          // focus to the iframe so the next poll sees it focused again.
+          _singletonIframe.focus();
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Diagram autosave debouncing
+      // ──────────────────────────────────────────────────────────────
+      function debouncedDiagramSave(state) {
+        var key = state.blockIndex;
+        if (diagramSaveTimers[key]) clearTimeout(diagramSaveTimers[key]);
+        diagramSaveTimers[key] = setTimeout(function () {
+          delete diagramSaveTimers[key];
+          flushDiagramSave(state);
+        }, DIAGRAM_SAVE_DEBOUNCE_MS);
+      }
+
+      function flushDiagramSave(state) {
+        var key = state.blockIndex;
+        if (diagramSaveTimers[key]) {
+          clearTimeout(diagramSaveTimers[key]);
+          delete diagramSaveTimers[key];
+        }
+        state.dirty = false;
+        vscode.postMessage({
+          type: 'diagramEdited',
+          blockIndex: state.blockIndex,
+          xml: state.currentXml,
+          diagramId: state.diagramId,
+        });
+      }
+
+      function flushAllPendingSaves() {
+        // Flush overlay
+        if (overlayState.active && overlayState.dirty) {
+          vscode.postMessage({
+            type: 'diagramEdited',
+            blockIndex: overlayState.blockIndex,
+            xml: overlayState.currentXml,
+            diagramId: overlayState.diagramId,
+          });
+          overlayState.dirty = false;
+        }
+
+        // Flush inline editors
+        editorStates.forEach(function (state) {
+          if (state.dirty) flushDiagramSave(state);
+        });
+        if (textSaveTimer) {
+          clearTimeout(textSaveTimer);
+          textSaveTimer = null;
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Text section editing
+      // ──────────────────────────────────────────────────────────────
+      function debouncedTextSave(sectionInfo) {
+        if (textSaveTimer) clearTimeout(textSaveTimer);
+        textSaveTimer = setTimeout(function () {
+          textSaveTimer = null;
+          var markdown = htmlToMarkdown(sectionInfo.element);
+          vscode.postMessage({
+            type: 'textEdited',
+            startLine: sectionInfo.startLine,
+            endLine: sectionInfo.endLine,
+            markdown: markdown,
+          });
+        }, TEXT_SAVE_DEBOUNCE_MS);
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Resize handle logic
+      // ──────────────────────────────────────────────────────────────
+
+      // During drag-resize, disable pointer-events on ALL iframes so mouse
+      // events always reach the parent document.  This covers both the
+      // wrapper-internal iframes AND the singleton iframe (which lives in
+      // document.body and would otherwise swallow mousemove/mouseup).
+      function disableIframePointerEvents(wrapper) {
+        var iframes = wrapper.querySelectorAll('iframe');
+        for (var i = 0; i < iframes.length; i++) iframes[i].style.pointerEvents = 'none';
+        if (_singletonIframe) _singletonIframe.style.pointerEvents = 'none';
+      }
+      function restoreIframePointerEvents(wrapper) {
+        var iframes = wrapper.querySelectorAll('iframe');
+        for (var i = 0; i < iframes.length; i++) iframes[i].style.pointerEvents = '';
+        if (_singletonIframe && _singletonActiveState) _singletonIframe.style.pointerEvents = 'auto';
+      }
+
+      function addResizePadding() {
+        document.body.style.paddingBottom = '50vh';
+      }
+
+      function removeResizePadding() {
+        // Removing padding can shrink the scrollable area.  If the current
+        // scroll position would exceed the new max scroll, the browser
+        // clamps it — causing a visible jump.  Compensate by clamping
+        // ourselves before removing the padding.
+        var beforeScroll = window.scrollY;
+        var beforeScrollH = document.body.scrollHeight;
+        document.body.style.paddingBottom = '';
+        var afterScrollH = document.body.scrollHeight;
+        var maxScroll = Math.max(0, afterScrollH - window.innerHeight);
+        if (beforeScroll > maxScroll) {
+          allowScrollBriefly(100);
+          window.scrollTo(window.scrollX, maxScroll);
+        }
+      }
+
+      // Keep the resize handle visible during drag by scrolling it into view.
+      // Uses scroll-margin CSS (40px) to trigger scroll before the handle
+      // reaches the viewport edge.  We call this AFTER applyHeight so the
+      // handle's bounding rect reflects the new wrapper size.
+      // Keep the resize handle visible during drag by scrolling it into view.
+      // Returns the number of pixels actually scrolled so the caller can
+      // compensate startScroll (our own scroll must not inflate the height).
+      var RESIZE_SCROLL_MARGIN = 40; // px buffer before viewport edge
+      function scrollHandleIntoView(handle) {
+        var rect = handle.getBoundingClientRect();
+        var vh = window.innerHeight;
+        var beforeY = window.scrollY;
+        if (rect.bottom + RESIZE_SCROLL_MARGIN > vh) {
+          var overshoot = rect.bottom + RESIZE_SCROLL_MARGIN - vh;
+          window.scrollBy(0, overshoot);
+        }
+        else if (rect.top - RESIZE_SCROLL_MARGIN < 0) {
+          var undershoot = rect.top - RESIZE_SCROLL_MARGIN;
+          window.scrollBy(0, undershoot);
+        }
+        return window.scrollY - beforeY;
+      }
+
+      function setupResizeHandle(handle, wrapper, blockIndex) {
+        var startY = 0, startH = 0, startScroll = 0, dragging = false;
+
+        function applyHeight() {
+          var scrollDelta = window.scrollY - startScroll;
+          wrapper.style.height = Math.max(20, startH + (_lastClientY - startY) + scrollDelta) + 'px';
+          updateSingletonPosition();
+        }
+
+        var _lastClientY = 0;
+
+        handle.addEventListener('mousedown', function (e) {
+          e.preventDefault();
+          dragging = true;
+          _resizeDragging = true;
+          startY = e.clientY;
+          _lastClientY = e.clientY;
+          startH = wrapper.offsetHeight;
+          startScroll = window.scrollY;
+          addResizePadding();
+          _scrollAllowed = true;
+          disableIframePointerEvents(wrapper);
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+          if (!dragging) return;
+          _lastClientY = e.clientY;
+          var scrollDelta = window.scrollY - startScroll;
+          var newH = Math.max(20, startH + (_lastClientY - startY) + scrollDelta);
+          applyHeight();
+          scrollHandleIntoView(handle);
+        }
+
+        function onMouseUp() {
+          if (!dragging) return;
+          dragging = false;
+          _resizeDragging = false;
+          removeResizePadding();
+          _scrollAllowed = false;
+          _scrollGuardX = window.scrollX;
+          _scrollGuardY = window.scrollY;
+          restoreIframePointerEvents(wrapper);
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          updateSingletonPosition();
+
+          var state = editorStates.get(blockIndex);
+          if (state) state.explicitHeight = true;
+
+          vscode.postMessage({
+            type: 'diagramResized',
+            blockIndex: blockIndex,
+            height: Math.max(20, wrapper.offsetHeight),
+            diagramId: state ? state.diagramId : null,
+          });
+        }
+      }
+
+      function setupCornerResizeHandle(handle, wrapper, blockIndex) {
+        var startX = 0, startY = 0, startW = 0, startH = 0, startScroll = 0, dragging = false;
+        var _lastClientY = 0;
+
+        function applySize() {
+          var scrollDelta = window.scrollY - startScroll;
+          wrapper.style.height = Math.max(20, startH + (_lastClientY - startY) + scrollDelta) + 'px';
+          updateSingletonPosition();
+        }
+
+        handle.addEventListener('mousedown', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dragging = true;
+          _resizeDragging = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          _lastClientY = e.clientY;
+          startW = wrapper.offsetWidth;
+          startH = wrapper.offsetHeight;
+          startScroll = window.scrollY;
+          addResizePadding();
+          _scrollAllowed = true;
+          disableIframePointerEvents(wrapper);
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+          if (!dragging) return;
+          _lastClientY = e.clientY;
+          var newW = Math.max(20, startW + (e.clientX - startX));
+          wrapper.style.width = newW + 'px';
+          if (wrapper.parentElement) wrapper.parentElement.style.width = newW + 'px';
+          applySize();
+          scrollHandleIntoView(handle);
+        }
+
+        function onMouseUp() {
+          if (!dragging) return;
+          dragging = false;
+          _resizeDragging = false;
+          removeResizePadding();
+          _scrollAllowed = false;
+          _scrollGuardX = window.scrollX;
+          _scrollGuardY = window.scrollY;
+          restoreIframePointerEvents(wrapper);
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          updateSingletonPosition();
+
+          var state = editorStates.get(blockIndex);
+          var newWidth = Math.max(20, wrapper.offsetWidth);
+          if (state) {
+            state.explicitHeight = true;
+            state.explicitWidth = true;
+            state.blockWidth = newWidth;
+          }
+
+          vscode.postMessage({
+            type: 'diagramResized',
+            blockIndex: blockIndex,
+            height: Math.max(20, wrapper.offsetHeight),
+            width: newWidth,
+            diagramId: state ? state.diagramId : null,
+          });
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // HTML → Markdown converter
+      // ──────────────────────────────────────────────────────────────
+      function htmlToMarkdown(container) {
+        var md = '';
+        for (var i = 0; i < container.childNodes.length; i++)
+          md += nodeToMarkdown(container.childNodes[i]);
+        return md.replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
+      }
+
+      function nodeToMarkdown(node) {
+        if (node.nodeType === Node.TEXT_NODE) return node.textContent;
+        if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+        var el = node, tag = el.tagName.toLowerCase();
+        var inner = childrenToMarkdown(el);
+
+        switch (tag) {
+          case 'h1': return '# ' + inner.trim() + '\n\n';
+          case 'h2': return '## ' + inner.trim() + '\n\n';
+          case 'h3': return '### ' + inner.trim() + '\n\n';
+          case 'h4': return '#### ' + inner.trim() + '\n\n';
+          case 'h5': return '##### ' + inner.trim() + '\n\n';
+          case 'h6': return '###### ' + inner.trim() + '\n\n';
+          case 'p': return inner + '\n\n';
+          case 'strong': case 'b': return '**' + inner + '**';
+          case 'em': case 'i': return '*' + inner + '*';
+          case 'a': return '[' + inner + '](' + (el.getAttribute('href') || '') + ')';
+          case 'img':
+            {
+              var imgSrc = el.getAttribute('src') || '';
+              if (imageBaseUri && imgSrc.indexOf(imageBaseUri + '/') === 0) {
+                imgSrc = imgSrc.substring(imageBaseUri.length + 1);
+              }
+              return '![' + (el.getAttribute('alt') || '') + '](' + imgSrc + ')';
+            }
+          case 'code':
+            if (el.parentElement && el.parentElement.tagName === 'PRE') return inner;
+            return '`' + inner + '`';
+          case 'pre':
+            var codeEl = el.querySelector('code'), lang = '';
+            if (codeEl) {
+              var m = (codeEl.className || '').match(/language-(\w+)/);
+              if (m) lang = m[1];
+              inner = codeEl.textContent;
+            }
+            return '```' + lang + '\n' + inner + '\n```\n\n';
+          case 'blockquote': return '> ' + inner.trim() + '\n\n';
+          case 'ul': return inner + '\n';
+          case 'ol': return inner + '\n';
+          case 'li': return '- ' + inner.trim() + '\n';
+          case 'hr': return '---\n\n';
+          case 'br': return '\n';
+          case 'div':
+            if (inner.trim()) return inner + '\n';
+            return '';
+          default: return inner;
+        }
+      }
+
+      function childrenToMarkdown(el) {
+        var result = '';
+        for (var i = 0; i < el.childNodes.length; i++)
+          result += nodeToMarkdown(el.childNodes[i]);
+        return result;
+      }
+
+      // ──────────────────────────────────────────────────────────────
+      // Cleanup
+      // ──────────────────────────────────────────────────────────────
+      function cleanupAllEditors(destroySingleton) {
+        if (focusPollTimer) { clearInterval(focusPollTimer); focusPollTimer = null; }
+        // Detach the singleton from the old diagram state but keep the iframe
+        // alive so draw.io doesn't have to reload on every content update.
+        if (_singletonActiveState) singletonDetach();
+        if (destroySingleton) destroySingletonIframe();
+        for (var key in diagramSaveTimers) clearTimeout(diagramSaveTimers[key]);
+        diagramSaveTimers = {};
+        if (textSaveTimer) { clearTimeout(textSaveTimer); textSaveTimer = null; }
+        editorStates.clear();
+        textSections = [];
+        _lastInteractedEndLine = null;
+        activeEditorIndex = -1;
+      }
+
+      // Tell the extension we're ready
+      vscode.postMessage({ type: 'previewReady' });
+    })();
+  </script>
+</body>
+
+</html>
