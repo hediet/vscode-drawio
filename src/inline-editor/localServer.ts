@@ -18,7 +18,8 @@ const KEYBOARD_OVERRIDE_SCRIPT = `<script>
 		{ key: "P",   ctrl: true,  shift: true,  alt: false, command: "workbench.action.showCommands" },
 		{ key: "p",   ctrl: true,  shift: false, alt: false, command: "workbench.action.quickOpen" },
 		{ key: "S",   ctrl: false, shift: true,  alt: true,  command: null },
-		{ key: "S",   ctrl: true,  shift: true,  alt: false, command: "workbench.action.files.saveAll" },
+		{ key: "s",   ctrl: true,  shift: false, alt: false, command: "workbench.action.files.save" },
+		{ key: "S",   ctrl: true,  shift: true,  alt: false, command: "workbench.action.files.saveAs" },
 		{ key: "F1",  ctrl: false, shift: false, alt: false, command: "workbench.action.showCommands" }
 	];
 
