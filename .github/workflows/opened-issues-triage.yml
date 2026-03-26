@@ -8,7 +8,7 @@ jobs:
   automate-project-columns:
     runs-on: ubuntu-latest
     steps:
-      - uses: alex-page/github-project-automation-plus@v0.2.3
+      - uses: alex-page/github-project-automation-plus@0a4f775fa2e62ac007a561cd051628689dbce33d # v0.2.3
         with:
           project: Backlog
           column: Triage
