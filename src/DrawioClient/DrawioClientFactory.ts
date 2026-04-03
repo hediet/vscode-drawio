@@ -261,7 +261,7 @@ export class DrawioClientFactory {
 			<html>
 			<head>
 			<meta charset="UTF-8">
-			<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline'; worker-src * data: 'unsafe-inline' 'unsafe-eval'; font-src * 'unsafe-inline' 'unsafe-eval';">
+			<meta http-equiv="Content-Security-Policy" content="default-src 'none' 'unsafe-inline' 'unsafe-eval'; script-src https://embed.diagrams.net; connect-src https://embed.diagrams.net https://*.draw.io https://*.diagrams.net 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src https://embed.diagrams.net; style-src * 'unsafe-inline'; worker-src * data: 'unsafe-inline' 'unsafe-eval'; font-src * 'unsafe-inline' 'unsafe-eval';">
 			<style>
 				html { height: 100%; width: 100%; padding: 0; margin: 0; }
 				body { height: 100%; width: 100%; padding: 0; margin: 0; }
