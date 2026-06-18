@@ -130,5 +130,9 @@
 				"gridColor": "#0B3240"
 			}
 		}
-	]
+	],
+	"hediet.vscode-drawio.globalVars": {
+		"workspaceFolder": "${workspaceFolder}",
+		"filePath": "${filePath}",
+	}
 }

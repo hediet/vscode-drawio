@@ -14,6 +14,8 @@ import { autorun, observable, runInAction, untracked } from "mobx";
 import { sha256 } from "js-sha256";
 import { getDrawioExtensions } from "../DrawioExtensionApi";
 import { BufferImpl } from "../utils/buffer";
+import { SimpleTemplate } from "../utils/SimpleTemplate";
+import { mapObject } from "../utils/mapObject";
 
 export class DrawioClientFactory {
 	constructor(
@@ -96,7 +98,7 @@ export class DrawioClientFactory {
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 					zoomFactor: config.zoomFactor,
-					globalVars: config.globalVars,
+					globalVars: this.expandGlobalVars(config.globalVars, uri),
 				};
 			},
 			() => {
@@ -198,6 +200,27 @@ export class DrawioClientFactory {
 
 		await Promise.all(promises);
 		return pluginsToLoad;
+	}
+
+	private expandGlobalVars(globalVars: object | null, uri: Uri): object | null {
+		if (!globalVars) { return globalVars; }
+
+		const workspaceFolder = workspace.getWorkspaceFolder(uri)?.uri.fsPath;
+		const filePath = workspace.asRelativePath(uri)
+		if (!workspaceFolder || !filePath) {
+			console.warn(`Cannot get workspace information to expand globalVars`)
+			return globalVars
+		}
+
+		const expandedVars = mapObject(globalVars, (value: string) => {
+			const tpl = new SimpleTemplate(value);
+			return tpl.render({
+				filePath: () => filePath,
+				workspaceFolder: () => workspaceFolder
+			})
+		})
+
+		return expandedVars
 	}
 
 	private getHtml(
