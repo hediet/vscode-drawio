@@ -27,6 +27,7 @@ export class DrawioClientFactory {
 		webviewPanel: WebviewPanel,
 		options: DrawioClientOptions
 	): Promise<CustomizedDrawioClient> {
+		this.logEnvironment();
 		const config = this.config.getDiagramConfig(uri);
 		const plugins = await this.getPlugins(config);
 
@@ -291,6 +292,20 @@ export class DrawioClientFactory {
 			</body>
 		</html>
 			`;
+	}
+
+	private logEnvironment(): void {
+		const isWsl =
+			process.platform === "linux" && process.env.WSL_DISTRO_NAME;
+		const isWindows = process.platform === "win32";
+		const wslDistro = process.env.WSL_DISTRO_NAME || "Unknown";
+		this.log.appendLine(
+			`[Drawio] Environment: WSL=${isWsl}, Windows=${isWindows}, WSL_DISTRO_NAME=${wslDistro}`
+		);
+
+		const workspaceRootUri = workspace.workspaceFolders?.[0]?.uri;
+		const workspaceRoot = workspaceRootUri ? workspaceRootUri.fsPath : ".";
+		this.log.appendLine(`[Drawio] Workspace root: ${workspaceRoot}`);
 	}
 }
 

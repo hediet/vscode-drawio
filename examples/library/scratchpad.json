@@ -1,0 +1,14 @@
+[
+  {
+    "xml": "<mxGraphModel><root><mxCell id=\"0\"\/><mxCell id=\"1\" parent=\"0\"\/><mxCell id=\"2\" value=\"JSON lib 1\" style=\"whiteSpace=wrap;html=1;\" vertex=\"1\" parent=\"1\"><mxGeometry width=\"120\" height=\"60\" as=\"geometry\"\/><\/mxCell><\/root><\/mxGraphModel>",
+    "w": 120,
+    "h": 60,
+    "aspect": "fixed"
+  },
+  {
+    "xml": "<mxGraphModel><root><mxCell id=\"0\"\/><mxCell id=\"1\" parent=\"0\"\/><mxCell id=\"2\" value=\"JSON lib 2\" style=\"whiteSpace=wrap;html=1;\" vertex=\"1\" parent=\"1\"><mxGeometry width=\"120\" height=\"60\" as=\"geometry\"\/><\/mxCell><\/root><\/mxGraphModel>",
+    "w": 120,
+    "h": 60,
+    "aspect": "fixed"
+  }
+]

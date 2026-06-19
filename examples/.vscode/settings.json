@@ -6,6 +6,18 @@
 			"file": "${workspaceFolder}/tooltips-plugin.js"
 		}
 	],
+	"hediet.vscode-drawio.customLibraries": [
+		{
+			"file": "${workspaceFolder}/library/scratchpad.xml",
+			"libName": "xml_lib",
+			"entryId": "xml_lib"
+		},
+		{
+			"file": "${workspaceFolder}/library/scratchpad.json",
+			"libName": "json_lib",
+			"entryId": "json_lib"
+		}
+	],
 	"hediet.vscode-drawio.defaultVertexStyle": {
 		"fontColor": "#ff0000",
 		"fontFamily": "Courier New",
