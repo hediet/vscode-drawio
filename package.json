@@ -203,6 +203,13 @@
 						"description": "When enabled, no ForeignObjects are used in the svg.",
 						"order": 40
 					},
+					"hediet.vscode-drawio.enableLightDarkColors": {
+						"type": "boolean",
+						"default": true,
+						"title": "Enable light-dark Colors",
+						"description": "Specifies if the light-dark color function should be used for colors.",
+						"order": 45
+					},
 					"hediet.vscode-drawio.zoomFactor": {
 						"type": "number",
 						"default": 1.2,

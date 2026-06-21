@@ -100,6 +100,7 @@
 		"00FF00": "Green"
 	},
 	"hediet.vscode-drawio.simpleLabels": false,
+	"hediet.vscode-drawio.enableLightDarkColors": true,
 	"hediet.vscode-drawio.styles": [
 		{},
 		{
