@@ -2,13 +2,6 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch Drawio To Debug Plugins",
-			"request": "launch",
-			"type": "pwa-chrome",
-			"url": "https://app.diagrams.net/",
-			"webRoot": "${workspaceFolder}/drawio-custom-plugins/src"
-		},
-		{
 			"name": "Extension (dev)",
 			"type": "extensionHost",
 			"request": "launch",
@@ -36,6 +29,13 @@
 			],
 			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
 			"preLaunchTask": "npm: dev"
+		},
+		{
+			"name": "Launch Drawio To Debug Plugins",
+			"request": "launch",
+			"type": "pwa-chrome",
+			"url": "https://app.diagrams.net/",
+			"webRoot": "${workspaceFolder}/drawio-custom-plugins/src"
 		}
 	]
 }

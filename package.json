@@ -1,8 +1,8 @@
 {
 	"name": "vscode-drawio",
 	"private": true,
-	"displayName": "Draw.io Integration",
-	"description": "This unofficial extension integrates Draw.io into VS Code.",
+	"displayName": "%displayName%",
+	"description": "%description%",
 	"version": "1.9.0",
 	"preRelease": false,
 	"license": "GPL-3.0",
@@ -44,6 +44,31 @@
 		}
 	},
 	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "drawio-explorer",
+					"title": "%viewsContainers.activitybar.drawio-explorer.title%",
+					"icon": "media/drawio-activity-bar.svg"
+				}
+			]
+		},
+		"views": {
+			"drawio-explorer": [
+				{
+					"id": "drawio-welcome",
+					"name": "%views.drawio-explorer.drawio-welcome.name%",
+					"visibility": "visible",
+					"initialSize": 1
+				}
+			]
+		},
+		"viewsWelcome": [
+			{
+				"view": "drawio-welcome",
+				"contents": "%viewsWelcome.drawio-welcome.contents%"
+			}
+		],
 		"languages": [
 			{
 				"id": "drawio",
@@ -64,7 +89,7 @@
 		"customEditors": [
 			{
 				"viewType": "hediet.vscode-drawio",
-				"displayName": "Draw.io (Binary)",
+				"displayName": "%customEditors.drawio.displayName%",
 				"selector": [
 					{
 						"filenamePattern": "*.drawio.png"
@@ -77,7 +102,7 @@
 			},
 			{
 				"viewType": "hediet.vscode-drawio-text",
-				"displayName": "Draw.io",
+				"displayName": "%customEditors.drawio-text.displayName%",
 				"selector": [
 					{
 						"filenamePattern": "*.drawio"
@@ -98,54 +123,71 @@
 		"commands": [
 			{
 				"command": "hediet.vscode-drawio.convert",
-				"title": "Convert To...",
+				"title": "%commands.convert.title%",
 				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.export",
-				"title": "Export To...",
+				"title": "%commands.export.title%",
 				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.toggleCodeLinkActivation",
-				"title": "Toggle Code Link Activation",
+				"title": "%commands.toggleCodeLinkActivation.title%",
 				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.changeTheme",
-				"title": "Change Theme",
+				"title": "%commands.changeTheme.title%",
 				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.editDiagramAsText",
-				"title": "Edit Diagram As Text (Experimental)",
+				"title": "%commands.editDiagramAsText.title%",
 				"enablement": "hediet.vscode-drawio.experimentalFeaturesEnabled",
 				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
-				"title": "Link Code with Selected Node",
+				"title": "%commands.linkCodeWithSelectedNode.title%",
 				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.newDiagram",
-				"title": "New Draw.io Diagram",
+				"title": "%commands.newDiagram.title%",
+				"category": "Draw.io"
+			},
+			{
+				"command": "hediet.vscode-drawio.openDiagram",
+				"title": "%commands.openDiagram.title%",
 				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.linkFileWithSelectedNode",
-				"title": "Link File With Selected Node",
+				"title": "%commands.linkFileWithSelectedNode.title%",
 				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.linkSymbolWithSelectedNode",
-				"title": "Link Symbol With Selected Node",
+				"title": "%commands.linkSymbolWithSelectedNode.title%",
 				"category": "Draw.io"
 			},
 			{
 				"command": "hediet.vscode-drawio.linkWsSymbolWithSelectedNode",
-				"title": "Link Workspace Symbol With Selected Node",
+				"title": "%commands.linkWsSymbolWithSelectedNode.title%",
 				"category": "Draw.io"
+			},
+			{
+				"command": "hediet.vscode-drawio.openAsText",
+				"title": "%commands.openAsText.title%",
+				"category": "Draw.io",
+				"icon": "$(go-to-file)"
+			},
+			{
+				"command": "hediet.vscode-drawio.openAsDiagram",
+				"title": "%commands.openAsDiagram.title%",
+				"category": "Draw.io",
+				"icon": "$(preview)"
 			}
 		],
 		"keybindings": [
@@ -157,28 +199,28 @@
 		],
 		"configuration": [
 			{
-				"title": "General",
+				"title": "%configuration.general.title%",
 				"order": 10,
 				"properties": {
 					"hediet.vscode-drawio.offline": {
 						"type": "boolean",
 						"default": true,
-						"title": "Use Offline Mode",
-						"description": "When enabled, the bundled instance of Draw.io is used.",
+						"title": "%configuration.offline.title%",
+						"description": "%configuration.offline.description%",
 						"order": 10
 					},
 					"hediet.vscode-drawio.online-url": {
 						"type": "string",
 						"default": "https://embed.diagrams.net/",
-						"title": "Online URL",
-						"description": "The app to use when offline mode is disabled.",
+						"title": "%configuration.online-url.title%",
+						"description": "%configuration.online-url.description%",
 						"order": 11
 					},
 					"hediet.vscode-drawio.codeLinkActivated": {
 						"type": "boolean",
 						"default": false,
-						"title": "Code Link Enabled",
-						"description": "When activated, selecting a node will navigate to an associated code section.",
+						"title": "%configuration.codeLinkActivated.title%",
+						"description": "%configuration.codeLinkActivated.description%",
 						"order": 20
 					},
 					"hediet.vscode-drawio.local-storage": {
@@ -192,28 +234,28 @@
 						],
 						"default": {},
 						"readOnly": true,
-						"title": "Draw.io Local Storage",
-						"description": "Only change this property if you know what you are doing. Manual changes to this property are not supported!",
+						"title": "%configuration.local-storage.title%",
+						"description": "%configuration.local-storage.description%",
 						"order": 30
 					},
 					"hediet.vscode-drawio.simpleLabels": {
 						"type": "boolean",
 						"default": false,
-						"title": "Use SimpleLabels",
-						"description": "When enabled, no ForeignObjects are used in the svg.",
+						"title": "%configuration.simpleLabels.title%",
+						"description": "%configuration.simpleLabels.description%",
 						"order": 40
 					},
 					"hediet.vscode-drawio.zoomFactor": {
 						"type": "number",
 						"default": 1.2,
-						"title": "Draw.io zoom factor",
-						"description": "Defines the zoom factor for mouse wheel and trackpad zoom.",
+						"title": "%configuration.zoomFactor.title%",
+						"description": "%configuration.zoomFactor.description%",
 						"order": 50
 					},
 					"hediet.vscode-drawio.globalVars": {
 						"type": "object",
-						"title": "Draw.io global variables.",
-						"description": "Defines global variables for system-wide placeholders using a JSON structure with key, value pairs. Keep the number of global variables small.",
+						"title": "%configuration.globalVars.title%",
+						"description": "%configuration.globalVars.description%",
 						"order": 60
 					},
 					"hediet.vscode-drawio.resizeImages": {
@@ -221,15 +263,15 @@
 							"boolean",
 							"null"
 						],
-						"title": "Draw.io resize images.",
-						"description": "If set to true, images are resized automatically on paste. If not defined, the user will be asked to confirm the resize.",
+						"title": "%configuration.resizeImages.title%",
+						"description": "%configuration.resizeImages.description%",
 						"default": null,
 						"order": 70
 					}
 				}
 			},
 			{
-				"title": "Plugins",
+				"title": "%configuration.plugins.section.title%",
 				"order": 20,
 				"properties": {
 					"hediet.vscode-drawio.plugins": {
@@ -248,8 +290,8 @@
 							]
 						},
 						"default": [],
-						"title": "Plugins",
-						"markdownDescription": "Loads Draw.io plugins from the local filesystem.  See description of the `file` property. See [plugins documentation](https://github.com/hediet/vscode-drawio/blob/master/docs/plugins.md).",
+						"title": "%configuration.plugins.title%",
+						"markdownDescription": "%configuration.plugins.description%",
 						"order": 10
 					},
 					"hediet.vscode-drawio.knownPlugins": {
@@ -269,8 +311,8 @@
 							}
 						},
 						"default": [],
-						"title": "Known Plugins",
-						"markdownDescription": "List of allowed or denied plugins. The extension will read and write to this list based on what the used decides when loading specific plugins. See [plugins documentation](https://github.com/hediet/vscode-drawio/blob/master/docs/plugins.md).",
+						"title": "%configuration.knownPlugins.title%",
+						"markdownDescription": "%configuration.knownPlugins.description%",
 						"scope": "application",
 						"order": 15
 					},
@@ -323,19 +365,19 @@
 							]
 						},
 						"default": [],
-						"title": "Custom Libraries",
-						"description": "Configures the Draw.io editor to use custom libraries.",
+						"title": "%configuration.customLibraries.title%",
+						"description": "%configuration.customLibraries.description%",
 						"order": 50
 					}
 				}
 			},
 			{
-				"title": "Theme and styles",
+				"title": "%configuration.themeAndStyles.title%",
 				"order": 30,
 				"properties": {
 					"hediet.vscode-drawio.styles": {
-						"title": "Styles",
-						"description": "Defines an array of objects that contain the colours (fontColor, fillColor, strokeColor and gradientColor) for the Style tab of the format panel if the selection is empty. These objects can have a commonStyle (which is applied to both vertices and edges), vertexStyle (applied to vertices) and edgeStyle (applied to edges), and a graph with background and gridColor. An empty object means apply the default colors",
+						"title": "%configuration.styles.title%",
+						"description": "%configuration.styles.description%",
 						"type": "array",
 						"items": {
 							"type": "object",
@@ -369,23 +411,23 @@
 						}
 					},
 					"hediet.vscode-drawio.defaultVertexStyle": {
-						"title": "Default Vertex Style",
-						"description": "Default styling of vertices (shapes).",
+						"title": "%configuration.defaultVertexStyle.title%",
+						"description": "%configuration.defaultVertexStyle.description%",
 						"type": "object"
 					},
 					"hediet.vscode-drawio.defaultEdgeStyle": {
-						"title": "Default Edge Style",
-						"description": "Default styling of edges.",
+						"title": "%configuration.defaultEdgeStyle.title%",
+						"description": "%configuration.defaultEdgeStyle.description%",
 						"type": "object"
 					},
 					"hediet.vscode-drawio.colorNames": {
-						"title": "Color Names",
-						"description": "Names for colors, eg. {‘FFFFFF’: ‘White’, ‘000000’: ‘Black’} that are used as tooltips (uppercase, no leading # for the colour codes)",
+						"title": "%configuration.colorNames.title%",
+						"description": "%configuration.colorNames.description%",
 						"type": "object"
 					},
 					"hediet.vscode-drawio.presetColors": {
-						"title": "Preset Colors",
-						"description": "Color codes for the upper palette in the color dialog.",
+						"title": "%configuration.presetColors.title%",
+						"description": "%configuration.presetColors.description%",
 						"type": "array",
 						"items": {
 							"type": "string",
@@ -393,8 +435,8 @@
 						}
 					},
 					"hediet.vscode-drawio.customColorSchemes": {
-						"title": "Custom Color Schemes",
-						"markdownDescription": "Available color schemes in the style section at the top of the format panel. See example [here](https://www.diagrams.net/doc/faq/custom-colours-confluence-cloud#default-colour-schemes---format-panel)",
+						"title": "%configuration.customColorSchemes.title%",
+						"markdownDescription": "%configuration.customColorSchemes.description%",
 						"type": "array",
 						"items": {
 							"type": "array",
@@ -432,21 +474,21 @@
 							"type": "string"
 						},
 						"default": [],
-						"title": "Custom Fonts",
-						"description": "Configures the Draw.io editor to use custom fonts."
+						"title": "%configuration.customFonts.title%",
+						"description": "%configuration.customFonts.description%"
 					},
 					"hediet.vscode-drawio.theme": {
-						"title": "Draw.io Theme",
+						"title": "%configuration.theme.title%",
 						"type": "string",
 						"default": "kennedy",
 						"enum": [
 							"kennedy",
 							"min"
 						],
-						"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
+						"description": "%configuration.theme.description%"
 					},
 					"hediet.vscode-drawio.appearance": {
-						"title": "Draw.io Appearance",
+						"title": "%configuration.appearance.title%",
 						"type": "string",
 						"default": "light",
 						"enum": [
@@ -456,7 +498,7 @@
 							"high-contrast-light",
 							"high-contrast"
 						],
-						"description": "The appearance to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
+						"description": "%configuration.appearance.description%"
 					}
 				}
 			}
@@ -473,6 +515,18 @@
 				{
 					"when": "false",
 					"command": "hediet.vscode-drawio.linkFileWithSelectedNode"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "hediet.vscode-drawio.openAsText",
+					"when": "activeCustomEditorId == 'hediet.vscode-drawio-text' || activeCustomEditorId == 'hediet.vscode-drawio'",
+					"group": "navigation"
+				},
+				{
+					"command": "hediet.vscode-drawio.openAsDiagram",
+					"when": "!activeCustomEditorId && resourceFilename =~ /\\.(drawio|dio)(\\.svg|\\.png)?$/",
+					"group": "navigation"
 				}
 			]
 		}
@@ -495,6 +549,9 @@
 		"dist/custom-drawio-plugins/**/*",
 		"dist/extension/**/*",
 		"package.json",
+		"package.nls.json",
+		"package.nls.*.json",
+		"media/**/*",
 		"docs/**/*",
 		"drawio/LICENSE",
 		"drawio/VERSION",
@@ -502,10 +559,12 @@
 		"drawio/src/main/webapp/connect/**/*",
 		"drawio/src/main/webapp/images/**/*",
 		"drawio/src/main/webapp/img/**/*",
-		"drawio/src/main/webapp/math/**/*",
+		"drawio/src/main/webapp/math4/**/*",
 		"drawio/src/main/webapp/mxgraph/**/*",
 		"drawio/src/main/webapp/plugins/**/*",
 		"drawio/src/main/webapp/resources/**/*",
+		"drawio/src/main/webapp/shapes/**/*",
+		"drawio/src/main/webapp/stencils/**/*",
 		"drawio/src/main/webapp/styles/**/*",
 		"drawio/src/main/webapp/templates/**/*",
 		"LICENSE.md"

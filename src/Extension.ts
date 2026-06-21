@@ -7,6 +7,8 @@ import { DrawioEditorService } from "./DrawioEditorService";
 import { LinkCodeWithSelectedNodeService } from "./features/CodeLinkFeature";
 import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
 import { LiveshareFeature } from "./features/LiveshareFeature";
+import { ToggleEditorFeature } from "./features/ToggleEditorFeature";
+import { ActivityBarFeature } from "./features/ActivityBarFeature";
 import { DrawioClientFactory } from "./DrawioClient";
 import { registerFailableCommand } from "./utils/registerFailableCommand";
 
@@ -34,6 +36,12 @@ export class Extension {
 	);
 	private readonly liveshareFeature = this.dispose.track(
 		new LiveshareFeature(this.editorService, this.config)
+	);
+	private readonly toggleEditorFeature = this.dispose.track(
+		new ToggleEditorFeature()
+	);
+	private readonly activityBarFeature = this.dispose.track(
+		new ActivityBarFeature()
 	);
 
 	constructor(private readonly context: vscode.ExtensionContext) {
@@ -85,6 +93,54 @@ export class Extension {
 							`Cannot create or open file "${targetUri.toString()}"!`
 						);
 					}
+				}
+			)
+		);
+
+		this.dispose.track(
+			registerFailableCommand(
+				"hediet.vscode-drawio.openDiagram",
+				async () => {
+					const uris = await vscode.window.showOpenDialog({
+						canSelectMany: false,
+						filters: {
+							"Draw.io Diagrams": [
+								"drawio",
+								"dio",
+								"drawio.svg",
+								"dio.svg",
+								"drawio.png",
+								"dio.png",
+							],
+						},
+					});
+					if (!uris || uris.length === 0) {
+						return;
+					}
+					const targetUri = uris[0];
+
+					// Custom editors require the file to be inside a
+					// workspace folder. If it isn't, add the parent
+					// folder to the workspace so VS Code can resolve it.
+					if (!vscode.workspace.getWorkspaceFolder(targetUri)) {
+						const parentUri = vscode.Uri.joinPath(targetUri, "..");
+						const added = vscode.workspace.updateWorkspaceFolders(
+							vscode.workspace.workspaceFolders?.length ?? 0,
+							0,
+							{ uri: parentUri }
+						);
+						if (!added) {
+							await vscode.window.showErrorMessage(
+								"Cannot open the file: failed to add its folder to the workspace."
+							);
+							return;
+						}
+					}
+
+					await vscode.commands.executeCommand(
+						"vscode.open",
+						targetUri
+					);
 				}
 			)
 		);

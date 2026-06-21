@@ -1,0 +1,16 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Top box -->
+  <rect x="8" y="2" width="8" height="6" rx="1" fill="#C2C2C2"/>
+  <!-- Bottom-left box -->
+  <rect x="1" y="15" width="8" height="6" rx="1" fill="#C2C2C2"/>
+  <!-- Bottom-right box -->
+  <rect x="15" y="15" width="8" height="6" rx="1" fill="#C2C2C2"/>
+  <!-- Line from top box center-bottom to junction -->
+  <line x1="12" y1="8" x2="12" y2="12" stroke="#C2C2C2" stroke-width="1.5"/>
+  <!-- Horizontal line connecting the two paths -->
+  <line x1="5" y1="12" x2="19" y2="12" stroke="#C2C2C2" stroke-width="1.5"/>
+  <!-- Line down to bottom-left box -->
+  <line x1="5" y1="12" x2="5" y2="15" stroke="#C2C2C2" stroke-width="1.5"/>
+  <!-- Line down to bottom-right box -->
+  <line x1="19" y1="12" x2="19" y2="15" stroke="#C2C2C2" stroke-width="1.5"/>
+</svg>

@@ -86,7 +86,10 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 							() => `<svg host="65bd71144e" `
 						);
 
-						return formatter(newXml);
+						// Use collapseContent to keep text nodes inline with their parent elements.
+						// Without this, xml-formatter adds whitespace inside <text>, <tspan> and
+						// <foreignObject> elements, which breaks SVG text rendering.
+						return formatter(newXml, { collapseContent: true });
 					} else {
 						if (newXml.startsWith('<mxfile host="')) {
 							newXml = newXml.replace(
