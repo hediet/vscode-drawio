@@ -684,6 +684,36 @@ export class DiagramConfig {
 
 	// #endregion
 
+	// #region Grid and Page View
+
+	private readonly _enableGrid = new VsCodeSetting<boolean>(
+		`${extensionId}.enableGrid`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<boolean>(true),
+		}
+	);
+
+	@computed
+	public get enableGrid(): boolean {
+		return this._enableGrid.get();
+	}
+
+	private readonly _enablePageView = new VsCodeSetting<boolean>(
+		`${extensionId}.enablePageView`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<boolean>(true),
+		}
+	);
+
+	@computed
+	public get enablePageView(): boolean {
+		return this._enablePageView.get();
+	}
+
+	// #endregion
+
 	constructor(
 		public readonly uri: Uri,
 		private readonly config: Config,

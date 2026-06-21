@@ -164,6 +164,22 @@ export interface DrawioConfig {
 	 * Specifies if the XML output should be compressed. The default is true.
 	 */
 	compressXml?: boolean;
+
+	/**
+	 * Specifies the initial width of the sidebar (shapes panel).
+	 * Set to 0 to hide the sidebar by default.
+	 */
+	sidebarWidth?: number;
+
+	/**
+	 * Specifies whether the page view is visible by default.
+	 */
+	defaultPageVisible?: boolean;
+
+	/**
+	 * Specifies whether the grid is enabled by default.
+	 */
+	defaultGridEnabled?: boolean;
 }
 
 export interface ColorScheme {

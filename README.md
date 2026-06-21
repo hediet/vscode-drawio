@@ -99,6 +99,16 @@ This does not make much sense for SVG files though, as the draw.io diagram is st
 
 ![](./docs/drawio-xml.gif)
 
+## Build from Source
+
+To build and install the extension from source:
+
+```bash
+git clone --recurse-submodules https://github.com/hediet/vscode-drawio.git && cd vscode-drawio && yarn install && yarn build && code --install-extension ./dist/extension.vsix
+```
+
+Then reload VS Code to activate the extension.
+
 ## Contributors
 
 -   Henning Dieterichs, [hediet](https://github.com/hediet) on Github (Main Contributor / Author)

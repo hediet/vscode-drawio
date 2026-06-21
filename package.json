@@ -225,6 +225,20 @@
 						"description": "If set to true, images are resized automatically on paste. If not defined, the user will be asked to confirm the resize.",
 						"default": null,
 						"order": 70
+					},
+					"hediet.vscode-drawio.enableGrid": {
+						"type": "boolean",
+						"default": true,
+						"title": "Enable Grid by Default",
+						"description": "When enabled, new diagrams will show the grid by default.",
+						"order": 80
+					},
+					"hediet.vscode-drawio.enablePageView": {
+						"type": "boolean",
+						"default": true,
+						"title": "Enable Page View by Default",
+						"description": "When enabled, new diagrams will show the page view (page boundaries) by default.",
+						"order": 81
 					}
 				}
 			},
@@ -478,6 +492,7 @@
 		}
 	},
 	"scripts": {
+		"postinstall": "git submodule update --init --recursive",
 		"run-script": "node ./scripts/run-script",
 		"lint": "echo 'add linting'",
 		"_lint": "yarn run-script check-version && prettier --check ./src",
