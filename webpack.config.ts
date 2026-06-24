@@ -14,15 +14,15 @@ module.exports = {
 		devtoolModuleFilenameTemplate: "../../[resource-path]",
 	},
 	devtool: "source-map",
+	target: "node",
 	externals: {
 		vscode: "commonjs vscode",
+		fs: "commonjs fs",
+		path: "commonjs path",
+		http: "commonjs http",
 	},
 	resolve: {
 		extensions: [".ts", ".js"],
-		fallback: {
-			path: require.resolve("path-browserify"),
-			fs: false,
-		},
 	},
 	module: {
 		rules: [

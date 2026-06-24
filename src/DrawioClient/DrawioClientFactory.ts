@@ -52,6 +52,9 @@ export class DrawioClientFactory {
 				config.simpleLabels;
 				config.zoomFactor;
 				config.globalVars;
+				config.showTooltipIcons;
+				config.showLinkIcons;
+				config.showConnectHandle;
 				config.resizeImages;
 				const html =
 					this.getHtml(config, options, webview, plugins) +
@@ -96,7 +99,15 @@ export class DrawioClientFactory {
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
 					zoomFactor: config.zoomFactor,
-					globalVars: config.globalVars,
+					globalVars: (config.globalVars as Record<string, string>) ?? undefined,
+					showTooltipIcons: config.showTooltipIcons || undefined,
+					showLinkIcons: config.showLinkIcons || undefined,
+					showConnectHandle: config.showConnectHandle || undefined,
+					compact: true,
+					noAutoFocus: true,
+					hideMenuItems: ["exportAs", "importFrom", "print",
+						"saveAndExit", "plugins", "exit"],
+					hideMenus: ["language", "help"],
 				};
 			},
 			() => {

@@ -32,7 +32,10 @@
 	"categories": [
 		"Visualization"
 	],
-	"activationEvents": [],
+	"activationEvents": [
+		"onLanguage:markdown",
+		"onUri"
+	],
 	"repository": {
 		"url": "https://github.com/hediet/vscode-drawio.git"
 	},
@@ -93,6 +96,23 @@
 					}
 				],
 				"priority": "default"
+			},
+			{
+				"viewType": "drawio-inline-editor.drawioEditor",
+				"displayName": "Draw.io Inline Editor",
+				"selector": [
+					{ "filenamePattern": "*.drawio" },
+					{ "filenamePattern": "*.dio" }
+				],
+				"priority": "option"
+			},
+			{
+				"viewType": "drawio-inline-editor.markdownEditor",
+				"displayName": "Markdown with Diagrams",
+				"selector": [
+					{ "filenamePattern": "*.md" }
+				],
+				"priority": "option"
 			}
 		],
 		"commands": [
@@ -146,7 +166,45 @@
 				"command": "hediet.vscode-drawio.linkWsSymbolWithSelectedNode",
 				"title": "Link Workspace Symbol With Selected Node",
 				"category": "Draw.io"
+			},
+			{
+				"command": "drawio-inline-editor.editDiagram",
+				"title": "Edit Diagram",
+				"category": "Draw.io"
+			},
+			{
+				"command": "drawio-inline-editor.insertDiagram",
+				"title": "Insert New Diagram",
+				"category": "Draw.io"
+			},
+			{
+				"command": "drawio-inline-editor.toggleLock",
+				"title": "Toggle Diagram Lock",
+				"category": "Draw.io"
+			},
+			{
+				"command": "drawio-inline-editor.previewDiagram",
+				"title": "Preview Diagram",
+				"category": "Draw.io"
+			},
+			{
+				"command": "drawio-inline-editor.inlinePreview",
+				"title": "Open Inline Preview",
+				"category": "Draw.io"
+			},
+			{
+				"command": "drawio-inline-editor.convertMermaid",
+				"title": "Convert Mermaid to Draw.io",
+				"category": "Draw.io"
 			}
+		],
+		"markdown.markdownItPlugins": true,
+		"markdown.previewScripts": [
+			"./drawio/src/main/webapp/js/viewer-static.min.js",
+			"./src/inline-editor/webview/previewInit.js"
+		],
+		"markdown.previewStyles": [
+			"./src/inline-editor/webview/preview.css"
 		],
 		"keybindings": [
 			{
@@ -225,6 +283,67 @@
 						"description": "If set to true, images are resized automatically on paste. If not defined, the user will be asked to confirm the resize.",
 						"default": null,
 						"order": 70
+					},
+					"hediet.vscode-drawio.showTooltipIcons": {
+						"type": "boolean",
+						"default": false,
+						"title": "Show Tooltip Icons",
+						"description": "Specifies whether tooltip icons are shown.",
+						"order": 80
+					},
+					"hediet.vscode-drawio.showLinkIcons": {
+						"type": "boolean",
+						"default": false,
+						"title": "Show Link Icons",
+						"description": "Specifies whether link icons are shown.",
+						"order": 90
+					},
+					"hediet.vscode-drawio.showConnectHandle": {
+						"type": "boolean",
+						"default": false,
+						"title": "Show Connect Handle",
+						"description": "Specifies whether the connect handle is shown on selected vertices.",
+						"order": 100
+					}
+				}
+			},
+			{
+				"title": "Inline Editor",
+				"order": 15,
+				"properties": {
+					"drawio-inline-editor.editorMode": {
+						"type": "string",
+						"default": "local",
+						"enum": ["local", "online"],
+						"description": "Use bundled local editor (offline) or online editor"
+					},
+					"drawio-inline-editor.editorUrl": {
+						"type": "string",
+						"default": "https://test.draw.io",
+						"description": "URL of the online draw.io editor instance (used when editorMode is 'online')"
+					},
+					"drawio-inline-editor.theme": {
+						"type": "string",
+						"default": "auto",
+						"enum": ["auto", "kennedy", "min", "atlas", "dark", "sketch"],
+						"description": "Editor UI theme"
+					},
+					"drawio-inline-editor.autoLock": {
+						"type": "boolean",
+						"default": false,
+						"description": "Automatically lock diagrams after editing"
+					},
+					"drawio-inline-editor.minimalUI": {
+						"type": "boolean",
+						"default": true,
+						"description": "Use minimal draw.io UI (hides sidebar, format panel, scrollbars)"
+					},
+					"drawio-inline-editor.diagramPadding": {
+						"type": "number",
+						"default": 28,
+						"minimum": 0,
+						"maximum": 100,
+						"description": "Padding (in pixels) around diagram content in the viewer and inline editor. Must be large enough to show selection handles (typically 20px)."
 					}
 				}
 			},
@@ -440,8 +559,11 @@
 						"type": "string",
 						"default": "kennedy",
 						"enum": [
+							"auto",
 							"kennedy",
-							"min"
+							"min",
+							"simple",
+							"sketch"
 						],
 						"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
 					},
@@ -494,6 +616,8 @@
 	"files": [
 		"dist/custom-drawio-plugins/**/*",
 		"dist/extension/**/*",
+		"src/inline-editor/**/*",
+		"media/**/*",
 		"package.json",
 		"docs/**/*",
 		"drawio/LICENSE",
@@ -502,7 +626,7 @@
 		"drawio/src/main/webapp/connect/**/*",
 		"drawio/src/main/webapp/images/**/*",
 		"drawio/src/main/webapp/img/**/*",
-		"drawio/src/main/webapp/math/**/*",
+		"drawio/src/main/webapp/math4/**/*",
 		"drawio/src/main/webapp/mxgraph/**/*",
 		"drawio/src/main/webapp/plugins/**/*",
 		"drawio/src/main/webapp/resources/**/*",

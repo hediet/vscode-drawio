@@ -31,23 +31,15 @@ Draw.loadPlugin((ui) => {
 		showDialog(ui);
 	});
 
-	const menu = ui.menus.get("file");
-	const oldFunct = menu.funct;
-	menu.funct = function (menu: any, parent: any) {
-		oldFunct.apply(this, arguments);
-		ui.menus.addMenuItems(
-			menu,
-			[
-				"-",
-				propertiesActionName,
-				"-",
-				importActionName,
-				exportActionName,
-				convertActionName,
-				"-",
-				saveActionName,
-			],
-			parent
-		);
-	};
+	// Use the plugin menu API
+	ui.menus.addPluginMenuItems("file", [
+		"-",
+		propertiesActionName,
+		"-",
+		importActionName,
+		exportActionName,
+		convertActionName,
+		"-",
+		saveActionName,
+	]);
 });

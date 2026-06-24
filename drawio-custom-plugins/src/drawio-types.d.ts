@@ -23,6 +23,8 @@ declare class mxMouseEvent {
 declare const mxEvent: {
     DOUBLE_CLICK: string;
     CHANGE: string;
+    UPDATE: string;
+    RESET: string;
 };
 
 declare const mxUtils: {
@@ -44,6 +46,7 @@ declare interface DrawioUI {
 interface DrawioMenus {
     get(name: string): any;
     addMenuItems(menu: any, arg: any, arg2: any): void;
+    addPluginMenuItems(menuName: string, items: string[]): void;
 }
 
 interface DrawioActions {
@@ -63,6 +66,8 @@ declare interface DrawioGraph {
 	getLabel(cell: DrawioCell): string;
     getSelectionModel(): DrawioGraphSelectionModel;
     view: DrawioGraphView;
+
+    getRubberband(): mxRubberband | null;
 
     addMouseListener(listener: {
         mouseMove?: (graph: DrawioGraph, event: mxMouseEvent) => void;
