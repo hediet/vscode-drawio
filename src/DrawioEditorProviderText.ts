@@ -72,7 +72,16 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 				await drawioClient.mergeXmlLike(newText);
 			});
 
-			drawioClient.onChange.sub(async ({ oldXml, newXml }) => {
+			// Tracks the most recent onChange edit so a save can wait for it to be
+			// applied to the document before persisting (see onSave below).
+			let pendingChange: Promise<void> = Promise.resolve();
+
+			drawioClient.onChange.sub(({ newXml }) => {
+				pendingChange = applyChange(newXml);
+				return pendingChange;
+			});
+
+			async function applyChange(newXml: string): Promise<void> {
 				// We format the xml so that it can be easily edited in a second text editor.
 				async function getOutput(): Promise<string> {
 					if (document.uri.path.endsWith(".svg")) {
@@ -139,9 +148,19 @@ export class DrawioEditorProviderText implements CustomTextEditorProvider {
 				} finally {
 					isThisEditorSaving = false;
 				}
-			});
+			}
 
 			drawioClient.onSave.sub(async () => {
+				// A save may have just emitted an onChange (above) carrying an edit
+				// that autosave hadn't reported yet. Wait for that edit to be
+				// applied to the document before persisting, so a single Save both
+				// updates and saves the file in one step (no second click needed).
+				try {
+					await pendingChange;
+				} catch {
+					// The pending edit failed to apply (the onChange handler
+					// surfaces its own error); still attempt to save.
+				}
 				await document.save();
 			});
 

@@ -640,6 +640,15 @@ For tools that render fenced blocks as code, the comment syntax keeps diagrams c
 
 Adding `locked` works the same way: `<!-- drawio:start locked -->`.
 
+### Linked Image (`.drawio.svg` / `.drawio.png`)
+
+An ordinary Markdown image link to a `.drawio.svg` or `.drawio.png` file in the same repository is editable inline — edits are saved back to the linked file rather than into the Markdown:
+
+    ![alt text](path/to/diagram.drawio.svg)
+    ![alt text](path/to/diagram.drawio.png)
+
+See Section 7. Remote URLs and non-draw.io images render as plain images.
+
 ---
 
 ## 5. Simple Diagram — HTML Comment Format
@@ -726,6 +735,44 @@ This state machine is locked. To edit it, use the "Unlock" CodeLens action or ma
 
 ---
 
+## 7. Linked Diagrams — Editable `.drawio.svg` / `.drawio.png` Images
+
+Diagrams don't have to live inside the Markdown. A standard image link to a `.drawio.svg` **or** `.drawio.png` file in the same repository is rendered inline **and is editable just like a codeblock** — but edits are written back to the linked file, not to this document.
+
+![Linked SVG diagram](linked-diagram.drawio.svg)
+
+![Linked PNG diagram](linked-diagram.drawio.png)
+
+Both links above point at files in this directory ([`linked-diagram.drawio.svg`](linked-diagram.drawio.svg), [`linked-diagram.drawio.png`](linked-diagram.drawio.png)). draw.io embeds the editable diagram XML inside the image itself — in the SVG's `content` attribute, or in a PNG `tEXt` chunk — so the extension can open it inline, let you edit it, and save the result straight back to the image file. In a plain Markdown renderer the same links simply show the image.
+
+**A link is editable when:**
+
+- the target ends in `.drawio.svg` or `.drawio.png` and the link is on its own line, and
+- it resolves to a **local file inside this workspace folder** (same repo).
+
+Remote URLs (`![…](https://…/x.drawio.svg)`), plain images (`![…](pic.png)`), and files outside the workspace are left as ordinary, non-editable images. The **Preview** button on a linked diagram opens the image in VS Code's image-preview tab; external changes to the file (the standalone draw.io editor, a `git` checkout, …) merge into any open inline editing session.
+
+### Inline blocks vs. linked files — which to use?
+
+Both render and edit inline the same way; the difference is *where the diagram lives*.
+
+**Linked `.drawio.svg` / `.drawio.png` files are real image files, so they:**
+
+- double as **standalone vector (SVG) or bitmap (PNG) images** you can open, share, or embed anywhere;
+- can be **reused across many documents** as one source of truth, instead of being copied;
+- have their **own version history** in git, separate from the prose;
+- render in **any tool that shows linked SVG/PNG images** — VS Code's built-in Markdown preview, GitHub, GitLab, and most other renderers — with no extension required.
+
+**The trade-offs:**
+
+- you **can't set a display size** in the link (there's no `width=`), unlike a fenced block;
+- the diagram lives in a **separate file**, so the document isn't fully self-contained (not "all in one file");
+- the file stores the **rendered SVG or PNG as well as the XML**, so it's larger than the bare XML of an inline block (and a PNG is a fixed-resolution bitmap).
+
+Use an **inline block** when you want one self-contained, diff-friendly Markdown file; use a **linked file** when the diagram is a shareable asset, reused across documents, or needs to display wherever the Markdown is viewed.
+
+---
+
 ## Summary
 
 This showcase covers the main capabilities of the Draw.io Markdown Diagrams extension:
@@ -737,6 +784,7 @@ This showcase covers the main capabilities of the Draw.io Markdown Diagrams exte
 | Width attribute | `width=N` | Sections 1, 2, 6 |
 | Locked diagrams | `locked` keyword | Section 6 |
 | Mermaid conversion | `` ```mermaid `` | Section 3 |
+| Linked image file | `![](file.drawio.svg)` · `![](file.drawio.png)` | Section 7 |
 | Mixed text + diagrams | Standard Markdown | Throughout |
 
-All diagram XML is stored inline in the Markdown source, so it diffs cleanly in version control and requires no external files or image exports.
+Diagram XML for block diagrams is stored inline in the Markdown source, so it diffs cleanly in version control with no external files. Linked `.drawio.svg` / `.drawio.png` images (Section 7) instead keep the diagram in a separate, reusable image file — viewable in any tool that renders SVG/PNG — that the extension writes back to.

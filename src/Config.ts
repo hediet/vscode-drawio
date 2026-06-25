@@ -412,6 +412,18 @@ export class DiagramConfig {
 		return this._appearance.get().toLowerCase();
 	}
 
+	/**
+	 * True when the theme or appearance is configured to follow the system
+	 * ("automatic"), in which case draw.io should use `dark=auto` so it tracks
+	 * OS dark-mode changes live instead of a baked snapshot.
+	 */
+	@computed
+	public get appearanceFollowsSystem(): boolean {
+		const t = this._theme.get().toLowerCase();
+		const a = this._appearance.get().toLowerCase();
+		return t === "automatic" || a === "automatic";
+	}
+
 	public async setTheme(themeName: string): Promise<void> {
 		await this._theme.set(themeName);
 	}
@@ -791,6 +803,24 @@ export class ResolvedDrawioTheme {
 			[ColorThemeKind.HighContrastLight]: "2",
 			[ColorThemeKind.HighContrast]: "3"
 		}[this.appearance];
+	}
+
+	/**
+	 * The draw.io `dark` URL param. When `isAuto` (appearance/theme set to
+	 * "automatic"), returns "auto" so draw.io follows prefers-color-scheme LIVE
+	 * (its matchMedia listener re-themes in place). Otherwise a fixed "0"/"1".
+	 */
+	getDarkDrawioValue(isAuto: boolean): string {
+		if (isAuto) {
+			return "auto";
+		}
+		switch (this.appearance) {
+			case ColorThemeKind.Dark:
+			case ColorThemeKind.HighContrast:
+				return "1";
+			default:
+				return "0"; // Light, HighContrastLight
+		}
 	}
 
 	getAppearanceStringValue(): string {

@@ -8,7 +8,7 @@
              img-src ${cspSource} https: data:;
              script-src 'nonce-${nonce}' https://viewer.diagrams.net;
              style-src 'unsafe-inline';
-             frame-src https://embed.diagrams.net https://*.diagrams.net https://test.draw.io https://*.draw.io http://127.0.0.1:* http://localhost:*;
+             frame-src https://embed.diagrams.net https://*.diagrams.net https://*.draw.io http://127.0.0.1:* http://localhost:*;
              connect-src https:;
              font-src https: data:;">
   <style>
@@ -668,14 +668,48 @@
     (function () {
       var vscode = acquireVsCodeApi();
 
+      // Editable image links can be .drawio.svg or .drawio.png; pick draw.io's
+      // export format accordingly (xmlpng embeds the XML in a PNG tEXt chunk,
+      // xmlsvg in the <svg content="..."> attribute).
+      function linkExportFormat(target) {
+        return /\.drawio\.png(?:[?#]|$)/i.test(target || '') ? 'xmlpng' : 'xmlsvg';
+      }
+
       // Forward intercepted VS Code shortcuts from draw.io iframes.
       // This is a dedicated listener that doesn't depend on iframe source
       // matching, because VS Code's webview iframe nesting can make
       // evt.source !== iframe.contentWindow.
       window.addEventListener('message', function(evt) {
-        if (evt.data && typeof evt.data === 'object' && evt.data.type === 'vscodeShortcut' && evt.data.command) {
-          console.log('[inlinePreview] relaying vscodeShortcut to extension:', evt.data.command);
-          vscode.postMessage({ type: 'vscodeShortcut', command: evt.data.command });
+        var d = evt.data;
+        // Object message from the offline injected keyboard script.
+        if (d && typeof d === 'object' && d.type === 'vscodeShortcut' && d.command) {
+          console.log('[inlinePreview] relaying vscodeShortcut to extension:', d.command);
+          vscode.postMessage({ type: 'vscodeShortcut', command: d.command });
+          return;
+        }
+        // Stringified message from draw.io's native embed passthrough (online /
+        // cross-origin iframe, where we cannot inject): {event:'shortcut', command}.
+        if (typeof d === 'string' && d.indexOf('"shortcut"') !== -1) {
+          try {
+            var m = JSON.parse(d);
+            if (m && m.event === 'shortcut' && m.command) {
+              console.log('[inlinePreview] relaying drawio shortcut to extension:', m.command);
+              vscode.postMessage({ type: 'vscodeShortcut', command: m.command });
+            }
+          } catch (e) {}
+        }
+        // Link click forwarded by draw.io ({event:'openLink', href}) — hand it to
+        // the extension to open in the OS browser. draw.io's embed override posts
+        // a JSON string, but handle an object form too for robustness.
+        var linkMsg = null;
+        if (d && typeof d === 'object' && d.event === 'openLink') {
+          linkMsg = d;
+        } else if (typeof d === 'string' && d.indexOf('"openLink"') !== -1) {
+          try { linkMsg = JSON.parse(d); } catch (e) {}
+        }
+        if (linkMsg && linkMsg.event === 'openLink' && linkMsg.href) {
+          console.log('[inlinePreview] relaying openLink to extension:', linkMsg.href);
+          vscode.postMessage({ type: 'openLink', href: linkMsg.href });
         }
       });
 
@@ -711,6 +745,9 @@
 
       // ── State ──
       var editorUrl = 'http://localhost:8888';
+      var uiTheme = 'kennedy'; // draw.io UI theme for the full (overlay) editor; set via setEditorUrl
+      var drawioLang = 'en'; // draw.io UI language (matches VS Code locale); set via setEditorUrl
+      var drawioUserConfig = {}; // user's draw.io config (styles/fonts/defaults); set via setDrawioConfig
       var devMode = true;
       var isDark = document.body.classList.contains('vscode-dark');
       var minimalUI = true;
@@ -1184,9 +1221,12 @@
         state.explicitWidth = keepWidth;
         if (!keepWidth) state.blockWidth = null;
 
-        // Reposition singleton iframe before sending fit so draw.io sees the new size
+        // Reposition the active singleton iframe so it tracks the new layout.
+        // Unconditional: resizing THIS diagram reflows the diagrams below it, which
+        // can move a DIFFERENT diagram that currently hosts the active editor — its
+        // body-absolute iframe must follow or it overlaps the content below.
+        updateSingletonPosition();
         if (_singletonActiveState === state) {
-          updateSingletonPosition();
           // Mark that a fit was just applied while the singleton is active.
           // singletonDetach will skip its own height recalculation and use
           // the dimensions set by this fit instead.
@@ -1206,8 +1246,12 @@
           });
         }
 
-        // Notify extension to update code block attributes
-        if (notifyExtension) {
+        // Notify extension to update code block attributes. Linked .drawio.svg
+        // images have no markdown width/height to persist, so skip the post —
+        // otherwise the extension routes it against codeblocks and could clobber
+        // one that shares this diagram id.
+        var fitLink = diagramBlocks[state.blockIndex];
+        if (notifyExtension && !(fitLink && fitLink.linkTarget)) {
           vscode.postMessage({
             type: 'diagramFitted',
             blockIndex: state.blockIndex,
@@ -1390,12 +1434,27 @@
       // ──────────────────────────────────────────────────────────────
       // Singleton inline editor iframe
       // ──────────────────────────────────────────────────────────────
-      function buildEditorUrl() {
-        var url = editorUrl + '/?embed=1&proto=json&dark=auto&ui=simple'
-          + '&configure=1&libraries=1&pv=0&grid=0&transparent=1&embedInline=1';
-        if (devMode) url += '&dev=1&test=1';
+      // Appends embed query params to the editor base URL, which may itself
+      // already carry a path and query string (e.g. a local dev build pointed
+      // at via the online-url setting: .../index.html?dev=1&embed=1). Existing
+      // params are preserved; ours are appended with '&'.
+      function withEmbedParams(base, params) {
+        try {
+          var u = new URL(base);
+          u.search = (u.search ? u.search + '&' : '?') + params;
+          return u.href;
+        } catch (e) {
+          return base + (base.indexOf('?') >= 0 ? '&' : '/?') + params;
+        }
+      }
 
-        return url;
+      function buildEditorUrl() {
+        var params = 'embed=1&proto=json&dark=auto&ui=simple&tooltips=0'
+          + '&configure=1&libraries=1&pv=0&grid=0&transparent=1&embedInline=1'
+          + '&lang=' + encodeURIComponent(drawioLang);
+        if (devMode) params += '&dev=1&test=1';
+
+        return withEmbedParams(editorUrl, params);
       }
 
       function createSingletonIframe() {
@@ -1573,7 +1632,13 @@
           var scrollYBefore = window.scrollY;
 
           state.previewLayer.style.display = '';
-          renderSvgPreview(state.previewLayer, state.currentXml);
+          // Capture the fresh bounds of the (possibly edited) diagram so the
+          // container — and refitContainerSizes(), which re-fits from
+          // state.diagramBounds on the next window resize — use the NEW size, not the
+          // pre-edit one. For a linked file there's no markdown round-trip to correct
+          // stale bounds.
+          var detachBounds = renderSvgPreview(state.previewLayer, state.currentXml);
+          if (detachBounds) state.diagramBounds = detachBounds;
 
           // Measure the actual SVG preview height. Even when skipRefit is true
           // (fit was applied while editor was active), the SVG preview may render
@@ -1667,6 +1732,13 @@
               if (msg.xml) {
                 state.currentXml = msg.xml;
                 state.dirty = true;
+                // Keep diagramBounds in sync with the live (edited) content so a later
+                // refit — a window resize, or switching VS Code tabs, which re-fits
+                // every wrapper from diagramBounds (refitContainerSizes) — sizes to the
+                // CURRENT diagram instead of reverting to the pre-edit size. A linked
+                // editor has no markdown round-trip that would otherwise refresh this.
+                var liveBounds = getBoundsFromXml(msg.xml);
+                if (liveBounds) state.diagramBounds = liveBounds;
                 debouncedDiagramSave(state);
               }
               break;
@@ -1694,6 +1766,22 @@
                 if (msg.modelBounds) state.diagramBounds = msg.modelBounds;
                 _doFitDiagramToContainer(state, !!state._pendingFitNotify);
                 delete state._pendingFitNotify;
+              }
+              // Editable image-link save: draw.io answers an 'xmlsvg' export request
+              // with an 'svg'-format response whose data URI is the full editable SVG
+              // (visual + embedded <svg content="...">). Forward it to the extension,
+              // which writes it back to the linked .drawio.svg/.png file. Resetting the flag
+              // here is essential — otherwise every autosave queues another export.
+              if (state._pendingLinkSave && (msg.format == 'svg' || msg.format == 'xmlpng')) {
+                state._pendingLinkSave = false;
+                var linkSec = diagramBlocks[state.blockIndex];
+                if (linkSec && linkSec.linkTarget && msg.data) {
+                  vscode.postMessage({ type: 'diagramLinkEdited', target: linkSec.linkTarget, svg: msg.data });
+                  // Keep the live editor authoritative while the async file write
+                  // lands, so a concurrent markdown edit re-reading stale on-disk
+                  // content can't blind-load over the just-saved edits.
+                  state._linkSaveQuietUntil = Date.now() + 2000;
+                }
               }
               break;
 
@@ -1724,7 +1812,7 @@
           case 'configure':
             _singletonIframe.contentWindow.postMessage(JSON.stringify({
               action: 'configure',
-              config: {
+              config: Object.assign({}, drawioUserConfig, {
                 compact: true,
                 css: minimalUI ? EDITOR_CSS_MINIMAL : EDITOR_CSS,
                 darkColor: '#1e1e1e',
@@ -1741,7 +1829,7 @@
                 useInternalClipboard: true,
                 fitDiagramOnLoad: false,
                 fitDiagramOnPage: false
-              }
+              })
             }), '*');
             break;
 
@@ -1842,6 +1930,8 @@
             {
               var urlChanged = editorUrl !== msg.url;
               editorUrl = msg.url;
+              if (msg.uiTheme) uiTheme = msg.uiTheme;
+              if (msg.lang) drawioLang = msg.lang;
               // If the URL changed (e.g. local ↔ online switch), recreate.
               if (urlChanged && _singletonIframe) destroySingletonIframe();
               // Start loading the singleton iframe immediately so draw.io boots
@@ -1851,6 +1941,9 @@
             }
           case 'setDarkMode':
             isDark = msg.dark;
+            break;
+          case 'setDrawioConfig':
+            drawioUserConfig = msg.config || {};
             break;
           case 'setDevMode':
             devMode = msg.devMode;
@@ -1875,7 +1968,7 @@
           case 'configure':
             state.iframe.contentWindow.postMessage(JSON.stringify({
               action: 'configure',
-              config: {
+              config: Object.assign({}, drawioUserConfig, {
                 compact: true,
                 css: minimalUI ? EDITOR_CSS_MINIMAL : EDITOR_CSS,
                 darkColor: '#1e1e1e',
@@ -1892,7 +1985,7 @@
                 useInternalClipboard: true, // TODO: Add native clipboard support
                 fitDiagramOnLoad: false,
                 fitDiagramOnPage: false
-              }
+              })
             }), '*');
             break;
 
@@ -2015,7 +2108,7 @@
             // Full UI — no CSS to hide chrome
             overlayFrame.contentWindow.postMessage(JSON.stringify({
               action: 'configure',
-              config: {
+              config: Object.assign({}, drawioUserConfig, {
                 compact: true,
                 darkColor: '#1e1e1e',
                 showTooltipIcons: true,
@@ -2023,7 +2116,7 @@
                 preserveViewState: true,
                 settingsName: 'vscode-overlay-editor',
                 useInternalClipboard: true
-              }
+              })
             }), '*');
             break;
 
@@ -2038,6 +2131,18 @@
             break;
 
           case 'load':
+            break;
+
+          case 'export':
+            // Editable image-link save from the overlay editor: draw.io answers the
+            // 'xmlsvg' export request with an 'svg'-format response carrying the full
+            // editable SVG; forward it to the extension to write the linked file.
+            if (overlayState._pendingLinkSave && (msg.format == 'svg' || msg.format == 'xmlpng')) {
+              overlayState._pendingLinkSave = false;
+              if (overlayState.linkTarget && msg.data) {
+                vscode.postMessage({ type: 'diagramLinkEdited', target: overlayState.linkTarget, svg: msg.data });
+              }
+            }
             break;
 
           case 'autosave':
@@ -2120,17 +2225,21 @@
         overlayState.blockIndex = blockIndex;
         overlayState.currentXml = state.currentXml;
         overlayState.diagramId = state.diagramId;
+        overlayState.linkTarget = (diagramBlocks[blockIndex] && diagramBlocks[blockIndex].linkTarget) || null;
         overlayState.dirty = false;
         overlayState.modelBounds = null;
 
         overlayEl.classList.add('active');
 
-        // Full UI URL — saveAndExit=1 adds draw.io's built-in "Save & Exit" button
-        var url = editorUrl + '/?embed=1&proto=json&spin=1&configure=1&libraries=1'
-          + '&saveAndExit=1';
-        if (devMode) url += '&dev=1&test=1';
-        if (window.innerWidth < 1200) url += '&format=0&sidebar=0';
-        url += '&dark=auto';
+        // Full UI URL — uses the configured draw.io theme (same as the standalone
+        // editor); saveAndExit=1 adds draw.io's built-in "Save & Exit" button.
+        var params = 'embed=1&proto=json&spin=1&configure=1&libraries=1&tooltips=0'
+          + '&saveAndExit=1&ui=' + encodeURIComponent(uiTheme)
+          + '&lang=' + encodeURIComponent(drawioLang);
+        if (devMode) params += '&dev=1&test=1';
+        if (window.innerWidth < 1200) params += '&format=0&sidebar=0';
+        params += '&dark=auto';
+        var url = withEmbedParams(editorUrl, params);
 
         if (overlayState.initialized && overlayFrame.src && overlayFrame.src.indexOf(editorUrl) >= 0) {
           // Reuse existing iframe
@@ -2178,13 +2287,22 @@
           if (newBounds) state.diagramBounds = newBounds;
         }
 
-        // Save to file
-        vscode.postMessage({
-          type: 'diagramEdited',
-          blockIndex: overlayState.blockIndex,
-          xml: overlayState.currentXml,
-          diagramId: overlayState.diagramId,
-        });
+        // Save to file. For an editable image link, write the linked .drawio.svg/.png
+        // via an export from the overlay editor (mirrors the inline flushDiagramSave
+        // path); otherwise edit the markdown codeblock.
+        if (overlayState.linkTarget) {
+          overlayState._pendingLinkSave = true;
+          state._linkSaveQuietUntil = Date.now() + 2000;
+          overlayFrame.contentWindow.postMessage(JSON.stringify({ action: 'export', format: linkExportFormat(overlayState.linkTarget) }), '*');
+        }
+        else {
+          vscode.postMessage({
+            type: 'diagramEdited',
+            blockIndex: overlayState.blockIndex,
+            xml: overlayState.currentXml,
+            diagramId: overlayState.diagramId,
+          });
+        }
 
         overlayState.dirty = false;
         overlayFrame.contentWindow.postMessage(JSON.stringify({
@@ -2270,10 +2388,12 @@
         lightboxEl.classList.add('active');
         document.body.style.overflow = 'hidden';
 
-        var url = editorUrl + '/?lightbox=1&toolbar=0&configure=1&embed=1'
-          + '&proto=json&spin=1&pv=0&grid=0&transparent=1&border=60';
-        if (devMode) url += '&dev=1&test=1';
-        if (isDark) url += '&dark=1';
+        var params = 'lightbox=1&toolbar=0&configure=1&embed=1&tooltips=0'
+          + '&proto=json&spin=1&pv=0&grid=0&transparent=1&border=60'
+          + '&lang=' + encodeURIComponent(drawioLang);
+        if (devMode) params += '&dev=1&test=1';
+        if (isDark) params += '&dark=1';
+        var url = withEmbedParams(editorUrl, params);
 
         if (lightboxState.initialized && lightboxFrame.src && lightboxFrame.src.indexOf(editorUrl) >= 0) {
           // Reuse existing iframe — no loading needed
@@ -2513,6 +2633,13 @@
         for (var i = 0; i < newDiagrams.length; i++) {
           var nd = newDiagrams[i];
           var state = editorStates.get(nd.blockIndex);
+          // A linked .drawio.svg/.png editor that is mid-save or just-saved is authoritative:
+          // sendContent re-reads the file from disk, which can lag the live edits, so
+          // keep the live xml and don't merge/load that (stale) disk content back in.
+          var linkBusy = !!(nd.linkTarget && state &&
+            (state._pendingLinkSave || (state._linkSaveQuietUntil || 0) > Date.now()));
+          if (linkBusy) { nd = Object.assign({}, nd, { xml: state.currentXml }); }
+          var externallyChanged = false;
           if (state && state.iframe && state.initialized) {
             if (state.currentXml !== nd.xml) {
               if (state.dirty) {
@@ -2530,6 +2657,7 @@
                   border: diagramPadding, fit: 1, maxFitScale: 1
                 }), '*');
               }
+              externallyChanged = true;
             }
           }
           else if (state && state.previewLayer) {
@@ -2537,11 +2665,20 @@
               state.currentXml = nd.xml;
               var newBounds = renderSvgPreview(state.previewLayer, nd.xml);
               if (newBounds) state.diagramBounds = newBounds;
+              externallyChanged = true;
             }
           }
 
+          // A linked .drawio.svg/.png changed externally: resize the viewer so the
+          // complete (possibly larger) diagram stays fully visible. fitDiagramToContainer
+          // exports the fresh post-merge/load bounds for an active editor (or sizes the
+          // preview directly), fitting both width and height to the new content.
+          if (externallyChanged && state && nd.linkTarget) {
+            fitDiagramToContainer(state, false);
+          }
+
           // Merge external changes into the open overlay editor
-          if (overlayState.active && overlayState.blockIndex === nd.blockIndex
+          if (!linkBusy && overlayState.active && overlayState.blockIndex === nd.blockIndex
             && overlayState.initialized && nd.xml !== overlayState.currentXml) {
             overlayFrame.contentWindow.postMessage(JSON.stringify({
               action: 'merge',
@@ -2855,6 +2992,12 @@
         lightboxBtn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M8 3.5C4.136 3.5 1.093 6.314.158 7.7a.75.75 0 0 0 0 .6C1.093 9.686 4.136 12.5 8 12.5s6.907-2.814 7.842-4.2a.75.75 0 0 0 0-.6C14.907 6.314 11.864 3.5 8 3.5ZM8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-1.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>';
         lightboxBtn.addEventListener('click', function (e) {
           e.stopPropagation();
+          // For a linked .drawio.svg/.png, open the file in VS Code's image
+          // preview tab rather than the draw.io lightbox viewer.
+          if (block.linkTarget) {
+            vscode.postMessage({ type: 'openLinkedFile', target: block.linkTarget });
+            return;
+          }
           var st = editorStates.get(index);
           if (st) openLightbox(st.currentXml);
         });
@@ -3144,6 +3287,19 @@
           delete diagramSaveTimers[key];
         }
         state.dirty = false;
+
+        // Editable image link (![alt](*.drawio.svg|*.drawio.png)): write the linked file, not
+        // the markdown. Ask draw.io for the editable SVG (visual + embedded XML);
+        // the 'export' handler forwards it to the extension as 'diagramLinkEdited'.
+        var linkSec = diagramBlocks[state.blockIndex];
+        if (linkSec && linkSec.linkTarget) {
+          if (state.iframe && state.initialized) {
+            state._pendingLinkSave = true;
+            state.iframe.contentWindow.postMessage(JSON.stringify({ action: 'export', format: linkExportFormat(linkSec.linkTarget) }), '*');
+          }
+          return;
+        }
+
         vscode.postMessage({
           type: 'diagramEdited',
           blockIndex: state.blockIndex,
@@ -3155,12 +3311,18 @@
       function flushAllPendingSaves() {
         // Flush overlay
         if (overlayState.active && overlayState.dirty) {
-          vscode.postMessage({
-            type: 'diagramEdited',
-            blockIndex: overlayState.blockIndex,
-            xml: overlayState.currentXml,
-            diagramId: overlayState.diagramId,
-          });
+          if (overlayState.linkTarget) {
+            overlayState._pendingLinkSave = true;
+            overlayFrame.contentWindow.postMessage(JSON.stringify({ action: 'export', format: linkExportFormat(overlayState.linkTarget) }), '*');
+          }
+          else {
+            vscode.postMessage({
+              type: 'diagramEdited',
+              blockIndex: overlayState.blockIndex,
+              xml: overlayState.currentXml,
+              diagramId: overlayState.diagramId,
+            });
+          }
           overlayState.dirty = false;
         }
 
@@ -3304,12 +3466,16 @@
           var state = editorStates.get(blockIndex);
           if (state) state.explicitHeight = true;
 
-          vscode.postMessage({
-            type: 'diagramResized',
-            blockIndex: blockIndex,
-            height: Math.max(20, wrapper.offsetHeight),
-            diagramId: state ? state.diagramId : null,
-          });
+          // Linked .drawio.svg images carry no markdown width/height to persist.
+          var rzLink = diagramBlocks[blockIndex];
+          if (!(rzLink && rzLink.linkTarget)) {
+            vscode.postMessage({
+              type: 'diagramResized',
+              blockIndex: blockIndex,
+              height: Math.max(20, wrapper.offsetHeight),
+              diagramId: state ? state.diagramId : null,
+            });
+          }
         }
       }
 
@@ -3372,13 +3538,17 @@
             state.blockWidth = newWidth;
           }
 
-          vscode.postMessage({
-            type: 'diagramResized',
-            blockIndex: blockIndex,
-            height: Math.max(20, wrapper.offsetHeight),
-            width: newWidth,
-            diagramId: state ? state.diagramId : null,
-          });
+          // Linked .drawio.svg images carry no markdown width/height to persist.
+          var rzLink2 = diagramBlocks[blockIndex];
+          if (!(rzLink2 && rzLink2.linkTarget)) {
+            vscode.postMessage({
+              type: 'diagramResized',
+              blockIndex: blockIndex,
+              height: Math.max(20, wrapper.offsetHeight),
+              width: newWidth,
+              diagramId: state ? state.diagramId : null,
+            });
+          }
         }
       }
 

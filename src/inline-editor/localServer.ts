@@ -45,14 +45,16 @@ const KEYBOARD_OVERRIDE_SCRIPT = `<script>
 		}
 	}
 
-	// Capture ALL keydown events on the document to catch shortcuts
-	// that mxEvent.addListener might not cover (e.g. if Draw.io
-	// registers its own document-level listeners separately).
-	document.addEventListener("keydown", function(e) {
+	// Capture ALL keydown events on WINDOW in the capture phase — the earliest
+	// possible point, before any of Draw.io's own keydown listeners. (A
+	// document-capture listener registered after Draw.io's scripts could be
+	// pre-empted; window-capture from the <head> runs first.) stopImmediate so no
+	// same-target Draw.io listener fires either.
+	window.addEventListener("keydown", function(e) {
 		var shortcut = matchShortcut(e);
 		if (shortcut) {
 			e.preventDefault();
-			e.stopPropagation();
+			e.stopImmediatePropagation();
 			forwardToVSCode(shortcut);
 		}
 	}, true);
@@ -82,6 +84,28 @@ const KEYBOARD_OVERRIDE_SCRIPT = `<script>
 		};
 	}
 	patchWhenReady();
+
+	// Give each editor instance a unique cell-ID prefix so new cells from
+	// different editors don't collide on the same incrementing IDs (which breaks
+	// the 3-way merge — same ID, different shape). Draw.io sets this in fileLoaded
+	// for real files, but the embed 'load' path doesn't, so patch createId to
+	// assign one lazily when the prefix is still empty.
+	function patchPrefixWhenReady() {
+		if (typeof mxGraphModel === "undefined" || typeof Editor === "undefined" || typeof Editor.guid !== "function") {
+			setTimeout(patchPrefixWhenReady, 50);
+			return;
+		}
+		if (mxGraphModel.prototype.__vscodeCellPrefix) return;
+		mxGraphModel.prototype.__vscodeCellPrefix = true;
+		var origCreateId = mxGraphModel.prototype.createId;
+		mxGraphModel.prototype.createId = function() {
+			if (this.prefix == null || this.prefix === "") {
+				this.prefix = Editor.guid() + "-";
+			}
+			return origCreateId.apply(this, arguments);
+		};
+	}
+	patchPrefixWhenReady();
 })();
 </script>`;
 
@@ -163,8 +187,21 @@ export function createLocalServer(webappRoot: string): LocalServer {
 						res.end("Internal server error");
 						return;
 					}
-					html = html.replace("</body>", KEYBOARD_OVERRIDE_SCRIPT + "</body>");
-					res.writeHead(200, { "Content-Type": contentType });
+					// Inject into the <head> so the capture-phase keydown listener is
+					// registered BEFORE draw.io's scripts run (otherwise it can be
+					// pre-empted and Ctrl+P / Ctrl+Shift+P get swallowed). Fall back to
+					// before </body> if there's no <head>.
+					if (/<head[^>]*>/i.test(html)) {
+						html = html.replace(/<head[^>]*>/i, (m) => m + KEYBOARD_OVERRIDE_SCRIPT);
+					} else {
+						html = html.replace("</body>", KEYBOARD_OVERRIDE_SCRIPT + "</body>");
+					}
+					// no-store so a rebuilt extension always re-fetches freshly
+					// injected HTML instead of a cached (possibly un-injected) copy.
+					res.writeHead(200, {
+						"Content-Type": contentType,
+						"Cache-Control": "no-store",
+					});
 					res.end(html);
 				});
 			} else {

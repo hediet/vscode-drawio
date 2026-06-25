@@ -122,16 +122,15 @@ export class DrawioClient<
 		} else if (drawioEvt.event === "save") {
 			const oldXml = this.currentXml;
 			this.currentXml = drawioEvt.xml;
+			// A save may carry an edit that autosave hasn't reported yet. Apply
+			// that edit first (via onChange) so the document is up to date, then
+			// always save — so a single Save click both updates and persists the
+			// file in one step (the provider's onSave waits for the onChange edit
+			// to land before calling document.save()).
 			if (oldXml != this.currentXml) {
-				// a little bit hacky.
-				// If "save" does trigger a change,
-				// treat save as autosave and don't actually save the file.
 				this.onChangeEmitter.emit({ newXml: this.currentXml, oldXml });
-			} else {
-				// Otherwise, the change has already
-				// been reported by autosave.
-				this.onSaveEmitter.emit();
 			}
+			this.onSaveEmitter.emit();
 		} else if (drawioEvt.event === "export") {
 			// sometimes, message is not included :(
 			// this is a hack to find the request to resolve

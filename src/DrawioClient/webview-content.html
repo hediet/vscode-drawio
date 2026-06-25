@@ -56,6 +56,59 @@
 					value: vscodeBridge,
 				});
 
+				// Intercept VS Code chords in the CAPTURE phase, before draw.io's
+				// many keydown listeners, and forward them to the extension. The old
+				// mxEvent patch only suppressed these for draw.io but never delivered
+				// them to the workbench, so Ctrl/Cmd+P was swallowed.
+				window.addEventListener(
+					"keydown",
+					function (e) {
+						var mod = e.ctrlKey || e.metaKey;
+						if (!mod || e.altKey) return;
+						var k = (e.key || "").toLowerCase();
+						var command = null;
+						if (k === "p" && e.shiftKey) {
+							command = "workbench.action.showCommands";
+						} else if (k === "p" && !e.shiftKey) {
+							command = "workbench.action.quickOpen";
+						}
+						if (command) {
+							e.preventDefault();
+							e.stopImmediatePropagation();
+							sendToVsCode({ event: "vscodeShortcut", command: command });
+						}
+					},
+					true
+				);
+
+				// Give each editor instance a unique cell-ID prefix so new cells from
+				// different editors don't collide on the same incrementing IDs (which
+				// breaks the 3-way merge — same ID, different shape). draw.io sets this
+				// in fileLoaded for real files, but the embed 'load' path doesn't, so we
+				// patch createId to assign one lazily when the prefix is still empty.
+				(function () {
+					function patchPrefix() {
+						if (
+							typeof mxGraphModel === "undefined" ||
+							typeof Editor === "undefined" ||
+							typeof Editor.guid !== "function"
+						) {
+							setTimeout(patchPrefix, 50);
+							return;
+						}
+						if (mxGraphModel.prototype.__vscodeCellPrefix) return;
+						mxGraphModel.prototype.__vscodeCellPrefix = true;
+						var origCreateId = mxGraphModel.prototype.createId;
+						mxGraphModel.prototype.createId = function () {
+							if (this.prefix == null || this.prefix === "") {
+								this.prefix = Editor.guid() + "-";
+							}
+							return origCreateId.apply(this, arguments);
+						};
+					}
+					patchPrefix();
+				})();
+
 				window.addEventListener("message", function (evt) {
 					if (evt.source !== vscodeBridge) {
 						let evtData = evt.data;
@@ -103,17 +156,23 @@
 			})();
 
 			var appearance = parseInt($$appearance$$),
-				theme = $$theme$$;
+				theme = $$theme$$,
+				// "auto" when appearance/theme follows the system, so draw.io tracks
+				// OS dark-mode changes live (matchMedia); otherwise a fixed "0"/"1".
+				dark = $$dark$$;
 
 			var urlParams = {
 				embed: "1",
 				configure: "1",
 				proto: "json",
 				ui: theme,
-				dark: theme === "dark" || appearance & 1 ? "1" : "0",
+				dark: dark,
 				"high-contrast": appearance & 2 ? "1" : "0",
 				lang: $$lang$$,
-				noSaveBtn: "1",
+				// noSaveBtn=0 shows a plain "Save" button (noSaveBtn=1 would make
+				// draw.io show "Save & Exit" instead). Exit is handled by closing the
+				// editor tab, so noExitBtn=1 keeps the separate Exit button hidden.
+				noSaveBtn: "0",
 				noExitBtn: "1",
 				chrome: $$chrome$$,
 				get ["svg-warning"]() {

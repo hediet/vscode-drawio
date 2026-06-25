@@ -2,7 +2,7 @@
 
 ## Diagrams as First-Class Markdown Content
 
-This extension embeds editable draw.io diagrams directly in Markdown as fenced mxfile XML blocks — version-controlled and diffable.
+This extension is a full draw.io editor for `.drawio`, `.drawio.svg`, and `.drawio.png` diagram files. On top of that, it can embed and edit diagrams directly inside Markdown — as fenced `drawio` XML blocks, HTML-comment blocks, or links to `.drawio.svg`/`.drawio.png` image files, with in-place mermaid conversion — all version-controlled and diffable.
 
 Unlike text-to-diagram DSLs, the mxfile format encodes a full graph structure: typed nodes and edges, explicit geometry, hierarchical parent-child relationships, and extensible metadata on every element. This makes the XML machine-readable in ways DSLs are not — LLMs can parse, produce, and semantically diff diagram changes (added nodes, changed connections, moved components) without specialized tooling.
 
@@ -333,3 +333,15 @@ Testing that resizing the last diagram on the page works.
   </diagram>
 </mxfile>
 ```
+
+## 10. Linked Image Files (`.drawio.svg` / `.drawio.png`)
+
+Besides fenced and HTML-comment blocks, an ordinary Markdown image link to a same-repository `.drawio.svg` or `.drawio.png` file is rendered **and edited inline like a code block** — except edits are written back to the linked image file, not into this Markdown. draw.io embeds the editable diagram XML inside the image itself (the SVG `content` attribute, or a PNG `tEXt` chunk), so each file is at once a normal image and a fully editable diagram.
+
+![Linked SVG diagram](linked-diagram.drawio.svg)
+
+![Linked PNG diagram](linked-diagram.drawio.png)
+
+A link is treated as an editable diagram only when it is on its own line and resolves to a local file inside this workspace folder; remote URLs, out-of-repo paths, and non-draw.io images stay as plain images. The **Preview** button on a linked diagram opens the file in VS Code's image-preview tab (rather than the draw.io viewer), and external changes to the file — from the standalone draw.io editor, `git`, or any other tool — merge into any open inline editing session, just like edits to the Markdown itself.
+
+Unlike inline blocks, linked files are real image files: they double as standalone SVG/PNG assets, can be reused across many documents, carry their own version history, and display in any tool that renders linked images (VS Code's built-in Markdown preview, GitHub, GitLab, …) with no extension required. The trade-offs are that the diagram lives in a separate file, you can't set a display size in the link, and the file stores the rendered image as well as the XML (so it's larger than a bare inline block). See [`showcase.md`](showcase.md) for the full inline-vs-linked comparison.

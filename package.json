@@ -108,7 +108,7 @@
 			},
 			{
 				"viewType": "drawio-inline-editor.markdownEditor",
-				"displayName": "Markdown with Diagrams",
+				"displayName": "Markdown with Diagrams (Experimental)",
 				"selector": [
 					{ "filenamePattern": "*.md" }
 				],
@@ -311,17 +311,6 @@
 				"title": "Inline Editor",
 				"order": 15,
 				"properties": {
-					"drawio-inline-editor.editorMode": {
-						"type": "string",
-						"default": "local",
-						"enum": ["local", "online"],
-						"description": "Use bundled local editor (offline) or online editor"
-					},
-					"drawio-inline-editor.editorUrl": {
-						"type": "string",
-						"default": "https://test.draw.io",
-						"description": "URL of the online draw.io editor instance (used when editorMode is 'online')"
-					},
 					"drawio-inline-editor.theme": {
 						"type": "string",
 						"default": "auto",
@@ -632,6 +621,7 @@
 		"drawio/src/main/webapp/resources/**/*",
 		"drawio/src/main/webapp/styles/**/*",
 		"drawio/src/main/webapp/templates/**/*",
+		"drawio/src/main/webapp/index.html",
 		"LICENSE.md"
 	],
 	"devDependencies": {

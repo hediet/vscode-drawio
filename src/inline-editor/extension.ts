@@ -1,9 +1,14 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
+import * as crypto from "crypto";
+import { Config } from "../Config";
+import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
+import { appendEmbedParams } from "../utils/appendEmbedParams";
 import {
 	DiagramBlock,
 	MermaidBlock,
+	ImageLink,
 	findDiagramBlocks,
 	replaceDiagramBlock,
 	createEmptyDiagram,
@@ -11,6 +16,11 @@ import {
 	buildDiagramBlock,
 	findMermaidBlocks,
 	replaceMermaidBlock,
+	findDiagramImageLinks,
+	isLocalLinkTarget,
+	isPngLinkTarget,
+	extractDiagramXmlFromSvg,
+	extractDiagramXmlFromPng,
 } from "./diagramParser";
 import { toggleLockAtLine } from "./diagramLock";
 import { createLocalServer, LocalServer } from "./localServer";
@@ -66,27 +76,198 @@ function extractDiagramId(xml: string): string | null {
 }
 
 /**
- * Returns the editor URL based on configuration.
- * If editorMode is 'local', starts the local server and returns its URL.
- * Otherwise returns the configured online URL.
+ * Resolves a Markdown image-link target to an editable, same-repo `.drawio.svg`
+ * or `.drawio.png` file: the file must be local, inside the document's workspace
+ * folder (same repo), exist, and carry an embedded diagram (the SVG `content`
+ * attribute, or a PNG `tEXt`/`zTXt` "mxfile" chunk). Returns the resolved file
+ * URI and the embedded XML, or null otherwise (remote URLs, out-of-repo paths
+ * and plain SVG/PNG images are left as ordinary images).
  */
+function resolveEditableDiagramLink(
+	target: string,
+	docUri: vscode.Uri
+): { fileUri: vscode.Uri; xml: string; isPng: boolean } | null {
+	if (!isLocalLinkTarget(target)) { return null; }
+
+	// Drop any ?query/#fragment and percent-decode the path
+	let rel = target.replace(/[?#].*$/, "");
+	try { rel = decodeURIComponent(rel); } catch (e) { /* keep raw on bad escape */ }
+
+	const docDir = path.dirname(docUri.fsPath);
+	const resolved = path.isAbsolute(rel) ? rel : path.resolve(docDir, rel);
+
+	// Must stay within the document's workspace folder (same repo)
+	const folder = vscode.workspace.getWorkspaceFolder(docUri);
+	if (!folder) { return null; }
+	const relToRoot = path.relative(folder.uri.fsPath, resolved);
+	if (relToRoot.startsWith("..") || path.isAbsolute(relToRoot)) { return null; }
+
+	const isPng = isPngLinkTarget(resolved);
+	const isSvg = /\.drawio\.svg$/i.test(resolved);
+	if ((!isPng && !isSvg) || !fs.existsSync(resolved)) { return null; }
+
+	let xml: string | null = null;
+	try {
+		xml = isPng
+			? extractDiagramXmlFromPng(fs.readFileSync(resolved))
+			: extractDiagramXmlFromSvg(fs.readFileSync(resolved, "utf8"));
+	} catch (e) { return null; }
+	if (!xml) { return null; }
+
+	return { fileUri: vscode.Uri.file(resolved), xml, isPng };
+}
+
+/** Case-fold + normalize an fsPath for comparison. On case-insensitive
+ * filesystems (macOS/Windows) a link target's casing can differ from the
+ * on-disk casing, so the watcher's membership/self-write checks must fold case. */
+function caseFold(p: string): string {
+	return (process.platform === "win32" || process.platform === "darwin")
+		? path.normalize(p).toLowerCase()
+		: path.normalize(p);
+}
+
+/** Content fingerprint of file bytes — lets the file watcher recognize our own
+ * writes by content (not by a timing window), so a genuine external change is
+ * never mistaken for a self-write echo regardless of FS-event latency. */
+function hashBytes(bytes: Uint8Array): string {
+	return crypto.createHash("sha1").update(bytes).digest("hex");
+}
+
+/**
+ * The draw.io UI theme, resolved from the shared `hediet.vscode-drawio.theme`
+ * setting exactly like the standalone editor — so the full inline editors render
+ * with the SAME theme. Legacy 'dark'/'automatic' collapse to 'kennedy' (dark mode
+ * is handled separately via the dark= param).
+ */
+function resolveDrawioUiTheme(): string {
+	const t = vscode.workspace
+		.getConfiguration("hediet.vscode-drawio")
+		.get<string>("theme", "kennedy")!
+		.toLowerCase();
+	return t === "dark" || t === "automatic" ? "kennedy" : t;
+}
+
+/**
+ * The draw.io UI language, derived from VS Code's locale the SAME way the
+ * standalone editor does (Config.drawioLanguage), so the inline and standalone
+ * editors show the same language. draw.io reads this from the `lang` URL param.
+ */
+function resolveDrawioLanguage(): string {
+	if (vscode.env.language.toLowerCase() === "zh-tw") {
+		// See https://github.com/hediet/vscode-drawio/issues/231 — exception;
+		// all other language codes are just the language, not the country.
+		return "zh-tw";
+	}
+	return vscode.env.language.split("-")[0].toLowerCase();
+}
+
+// Cached so we don't leak a theme listener (Config's constructor registers one)
+// on every editor open.
+let _sharedDrawioConfig: Config | undefined;
+
+/**
+ * The user's draw.io configuration (styles, default vertex/edge styles, custom
+ * fonts, colors, …) read the SAME way the standalone editor does (via
+ * DiagramConfig), so the inline and full inline editors stay consistent with it.
+ * Returned as a plain object to merge into the embed `configure` response.
+ * (customLibraries is async and intentionally omitted here.)
+ */
+function getDrawioUserConfig(
+	globalState: vscode.Memento,
+	uri: vscode.Uri
+): Record<string, unknown> {
+	if (!_sharedDrawioConfig) { _sharedDrawioConfig = new Config(globalState); }
+	const dc = _sharedDrawioConfig.getDiagramConfig(uri);
+	return {
+		styles: dc.styles,
+		customColorSchemes: dc.customColorSchemes,
+		defaultVertexStyle: dc.defaultVertexStyle,
+		defaultEdgeStyle: dc.defaultEdgeStyle,
+		colorNames: dc.colorNames,
+		presetColors: dc.presetColors,
+		customFonts: dc.customFonts,
+		zoomFactor: dc.zoomFactor,
+		globalVars: (dc.globalVars as Record<string, string>) ?? undefined,
+		// Chords draw.io should forward to VS Code instead of handling itself
+		// (online/cross-origin path; offline uses the injected script). See
+		// vscodeShortcuts.ts.
+		passThroughKeys: VSCODE_PASSTHROUGH_KEYS,
+		// The VS Code webview blocks new windows/tabs: draw.io forwards link
+		// clicks via {event:'openLink'} instead of window.open. See
+		// Editor.suppressNewWindows.
+		suppressNewWindows: true,
+		// Print needs a popup/modal the webview sandbox blocks, so hide it.
+		hideMenuItems: ["print"],
+	};
+}
+
+/**
+ * Decodes a draw.io xmlsvg/xmlpng export (a complete editable SVG or PNG) for
+ * writing to a `.drawio.svg` / `.drawio.png` file. The export is a base64 data
+ * URI (`data:image/svg+xml;base64,...` or `data:image/png;base64,...`); this
+ * returns the raw file bytes, or null if the data URI is unexpected.
+ */
+function decodeExportedImage(dataUri: string): Buffer | null {
+	if (!dataUri) { return null; }
+	let m = dataUri.match(/^data:image\/svg\+xml;base64,(.*)$/);
+	if (m) { return Buffer.from(m[1], "base64"); }
+	m = dataUri.match(/^data:image\/png;base64,(.*)$/);
+	if (m) { return Buffer.from(m[1], "base64"); }
+	const u = dataUri.match(/^data:image\/svg\+xml(?:;charset=[^,]+)?,(.*)$/);
+	if (u) { return Buffer.from(decodeURIComponent(u[1]), "utf8"); }
+	if (dataUri.trimStart().startsWith("<")) { return Buffer.from(dataUri, "utf8"); }
+	return null;
+}
+
 /**
  * Handle a "vscodeShortcut" message forwarded from the draw.io iframe
  * via the outer webview.  Returns true if the message was handled.
  */
-function handleVSCodeShortcut(msg: { type: string; command?: string }): boolean {
+function handleForwardedMessage(msg: { type: string; command?: string; href?: string }): boolean {
 	if (msg.type === "vscodeShortcut" && msg.command) {
 		vscode.commands.executeCommand(msg.command);
+		return true;
+	}
+	if (msg.type === "openLink" && msg.href) {
+		// Link click forwarded from draw.io (suppressNewWindows mode): open it in
+		// the host's default browser instead of a new tab/window.
+		vscode.env.openExternal(vscode.Uri.parse(msg.href));
 		return true;
 	}
 	return false;
 }
 
-async function getEditorUrl(context: vscode.ExtensionContext): Promise<string> {
-	const config = vscode.workspace.getConfiguration("drawio-inline-editor");
-	const mode = config.get<string>("editorMode", "local");
+/** Settings section shared with the main draw.io editor. */
+const DRAWIO_CONFIG_SECTION = "hediet.vscode-drawio";
 
-	if (mode === "local") {
+/** Whether the bundled (offline) editor should be used, per the shared setting. */
+function isOfflineMode(): boolean {
+	return vscode.workspace
+		.getConfiguration(DRAWIO_CONFIG_SECTION)
+		.get<boolean>("offline", true);
+}
+
+/** The configured online draw.io URL (trailing slashes stripped), per the shared setting. */
+function getOnlineUrl(): string {
+	const url = vscode.workspace
+		.getConfiguration(DRAWIO_CONFIG_SECTION)
+		.get<string>("online-url", "https://embed.diagrams.net/")!;
+	return url.replace(/\/+$/, "");
+}
+
+/**
+ * Resolves the draw.io editor URL for the inline editor.
+ *
+ * Honors the shared `hediet.vscode-drawio.offline` setting: when offline
+ * (the default) the bundled draw.io webapp is served from a local HTTP
+ * server; otherwise the configured `hediet.vscode-drawio.online-url` is used.
+ *
+ * The local server URL is passed through `asExternalUri` so it works in
+ * remote/Codespaces/web contexts (where `127.0.0.1` in the webview points at
+ * the client, not the extension host): VS Code forwards it to a tunnel.
+ */
+async function getEditorUrl(context: vscode.ExtensionContext): Promise<string> {
+	if (isOfflineMode()) {
 		const webappRoot = path.join(context.extensionPath, "drawio", "src", "main", "webapp");
 		if (fs.existsSync(webappRoot)) {
 			if (!localServer) {
@@ -95,13 +276,14 @@ async function getEditorUrl(context: vscode.ExtensionContext): Promise<string> {
 			if (!localServer.port) {
 				await localServer.start();
 			}
-			return `http://127.0.0.1:${localServer.port}`;
-		} else {
-			console.warn("drawio-inline-editor: local drawio webapp not found, falling back to online editor");
+			const local = vscode.Uri.parse(`http://127.0.0.1:${localServer.port}`);
+			const external = await vscode.env.asExternalUri(local);
+			return external.toString().replace(/\/$/, "");
 		}
+		console.warn("drawio-inline-editor: local drawio webapp not found, falling back to online editor");
 	}
 
-	return config.get<string>("editorUrl", "https://test.draw.io")!;
+	return getOnlineUrl();
 }
 
 export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: (md: any) => any } {
@@ -146,9 +328,7 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 	// Eagerly start the local server so it's ready when the user opens an editor.
 	// This runs in the background and doesn't block activation.
 	{
-		const config = vscode.workspace.getConfiguration("drawio-inline-editor");
-		const mode = config.get<string>("editorMode", "local");
-		if (mode === "local") {
+		if (isOfflineMode()) {
 			const webappRoot = path.join(context.extensionPath, "drawio", "src", "main", "webapp");
 			if (fs.existsSync(webappRoot)) {
 				if (!localServer) {
@@ -586,28 +766,29 @@ async function openDiagramEditor(
 	const nonce = getNonce();
 	const htmlPath = path.join(context.extensionPath, "src", "inline-editor", "webview", "editor.html");
 	let html = fs.readFileSync(htmlPath, "utf8");
-
-	// Replace nonce placeholders
 	html = html.replace(/\{\{nonce\}\}/g, nonce);
 
-	// Update CSP to allow the configured editor URL (local or online)
+	// Allow the iframe to load from the resolved editor origin (the local server
+	// — possibly an asExternalUri tunnel — or the online draw.io hosts).
 	const editorOrigin = new URL(editorUrl).origin;
 	html = html.replace(
 		/frame-src[^;]+;/,
 		`frame-src ${editorOrigin} http://127.0.0.1:* https://*.draw.io https://*.diagrams.net;`
 	);
 
-	// Pre-build the iframe URL so it starts loading immediately (no round-trip)
-	let iframeSrc = editorUrl + "/?embed=1&proto=json&spin=1&configure=1&libraries=1&saveAndExit=1";
+	// Pre-build the iframe URL so it starts loading immediately.
+	let iframeSrc = appendEmbedParams(editorUrl, "embed=1&proto=json&spin=1&configure=1&libraries=1&saveAndExit=1&tooltips=0"
+		+ "&ui=" + encodeURIComponent(resolveDrawioUiTheme()) + "&lang=" + encodeURIComponent(resolveDrawioLanguage()));
 	if (devMode) { iframeSrc += "&dev=1&test=1"; }
 	if (isDark) { iframeSrc += "&dark=1"; }
 	html = html.replace("{{iframeSrc}}", iframeSrc);
+	html = html.replace("{{passThroughKeys}}", JSON.stringify(VSCODE_PASSTHROUGH_KEYS));
 
 	activePanel.webview.html = html;
 
 	activePanel.webview.onDidReceiveMessage(
 		async (msg) => {
-			if (handleVSCodeShortcut(msg)) return;
+			if (handleForwardedMessage(msg)) return;
 			switch (msg.type) {
 				case "webviewReady":
 					activePanel!.webview.postMessage({
@@ -730,16 +911,18 @@ async function openMermaidEditor(
 	);
 
 	// Pre-build the iframe URL so it starts loading immediately (no round-trip)
-	let iframeSrc = editorUrl + "/?embed=1&proto=json&spin=1&configure=1&libraries=1&saveAndExit=1";
+	let iframeSrc = appendEmbedParams(editorUrl, "embed=1&proto=json&spin=1&configure=1&libraries=1&saveAndExit=1&tooltips=0"
+		+ "&ui=" + encodeURIComponent(resolveDrawioUiTheme()) + "&lang=" + encodeURIComponent(resolveDrawioLanguage()));
 	if (devMode) { iframeSrc += "&dev=1&test=1"; }
 	if (isDark) { iframeSrc += "&dark=1"; }
 	html = html.replace("{{iframeSrc}}", iframeSrc);
+	html = html.replace("{{passThroughKeys}}", JSON.stringify(VSCODE_PASSTHROUGH_KEYS));
 
 	activePanel.webview.html = html;
 
 	activePanel.webview.onDidReceiveMessage(
 		async (msg) => {
-			if (handleVSCodeShortcut(msg)) return;
+			if (handleForwardedMessage(msg)) return;
 			switch (msg.type) {
 				case "webviewReady":
 					activePanel!.webview.postMessage({
@@ -892,7 +1075,7 @@ async function openPreviewPanel(context: vscode.ExtensionContext, xml: string): 
 		".mxCellEditor { resize:none !important; }",
 	].join("\\n");
 
-	const lightboxUrl = `${editorUrl}/?lightbox=1&toolbar=0&configure=1&embed=1&proto=json&spin=1&pv=0&grid=0&transparent=1&border=60${devMode ? "&dev=1&test=1" : ""}${isDark ? "&dark=1" : ""}`;
+	const lightboxUrl = appendEmbedParams(editorUrl, `lightbox=1&toolbar=0&configure=1&embed=1&proto=json&spin=1&pv=0&grid=0&transparent=1&border=60&tooltips=0${devMode ? "&dev=1&test=1" : ""}${isDark ? "&dark=1" : ""}&lang=${encodeURIComponent(resolveDrawioLanguage())}`);
 
 	const escapedXml = xml.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, "\\n").replace(/\r/g, "\\r");
 
@@ -1093,7 +1276,7 @@ async function openInlinePreview(
 
 	inlinePreviewPanel.webview.onDidReceiveMessage(
 		async (msg) => {
-			if (handleVSCodeShortcut(msg)) return;
+			if (handleForwardedMessage(msg)) return;
 			switch (msg.type) {
 				case "previewReady":
 					inlinePreviewPanel!.webview.postMessage({
@@ -1702,16 +1885,18 @@ class DrawioCustomEditorProvider implements vscode.CustomTextEditorProvider {
 		);
 
 		// Pre-build the iframe URL so it starts loading immediately (no round-trip)
-		let iframeSrc = editorUrl + "/?embed=1&proto=json&spin=1&configure=1&libraries=1&saveAndExit=1";
+		let iframeSrc = appendEmbedParams(editorUrl, "embed=1&proto=json&spin=1&configure=1&libraries=1&saveAndExit=1&tooltips=0"
+		+ "&ui=" + encodeURIComponent(resolveDrawioUiTheme()) + "&lang=" + encodeURIComponent(resolveDrawioLanguage()));
 		if (devMode) { iframeSrc += "&dev=1&test=1"; }
 		if (isDark) { iframeSrc += "&dark=1"; }
 		html = html.replace("{{iframeSrc}}", iframeSrc);
+	html = html.replace("{{passThroughKeys}}", JSON.stringify(VSCODE_PASSTHROUGH_KEYS));
 
 		webviewPanel.webview.html = html;
 
 		webviewPanel.webview.onDidReceiveMessage(
 			async (msg) => {
-				if (handleVSCodeShortcut(msg)) return;
+				if (handleForwardedMessage(msg)) return;
 				switch (msg.type) {
 					case "webviewReady":
 						webviewPanel.webview.postMessage({
@@ -1821,6 +2006,14 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
 		let suppressUpdate = false;
 
+		// Case-folded fsPaths of the linked .drawio.svg/.png files referenced by
+		// editable image links in this document (recomputed each sendContent) — the
+		// file watcher only reacts to changes of these.
+		const linkedFilePaths = new Set<string>();
+		// Content hashes of linked files THIS panel just wrote (case-folded fsPath →
+		// sha1), so the watcher ignores its own write echoes, per panel.
+		const recentLinkWrites = new Map<string, string>();
+
 		const docDir = path.dirname(document.uri.fsPath);
 		webviewPanel.webview.options = {
 			enableScripts: true,
@@ -1866,17 +2059,35 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 				vscode.Uri.file(docDir)
 			).toString();
 			const text = document.getText();
+			const lines = text.split("\n");
 			const diagramBlocks = findDiagramBlocks(text);
 			const mermaidBlocks = findMermaidBlocks(text);
 
-			// Merge diagram and mermaid blocks, sorted by position
+			// Editable image links: ![alt](*.drawio.svg) / ![alt](*.drawio.png) on
+			// their own line that resolve to a same-repo file are edited inline like
+			// a codeblock and written back to the linked file. Inline (mid-paragraph),
+			// remote or out-of-repo links stay as ordinary images.
+			linkedFilePaths.clear();
+			const imageLinks = findDiagramImageLinks(text)
+				.map((lk) => {
+					const ownLine = lk.startLine === lk.endLine
+						&& lines[lk.startLine] !== undefined
+						&& lines[lk.startLine].trim() === lk.fullMatch.trim();
+					if (!ownLine) { return null; }
+					const resolved = resolveEditableDiagramLink(lk.target, document.uri);
+					if (!resolved) { return null; }
+					linkedFilePaths.add(caseFold(resolved.fileUri.fsPath));
+					return { ...lk, xml: resolved.xml };
+				})
+				.filter((x): x is ImageLink & { xml: string } => x != null);
+
+			// Merge diagram, mermaid and editable-image-link blocks by position
 			const allBlocks = [
 				...diagramBlocks.map((b, i) => ({ ...b, sectionType: "diagram" as const, blockIndex: i })),
 				...mermaidBlocks.map((b, i) => ({ ...b, sectionType: "mermaid" as const, mermaidIndex: i })),
+				...imageLinks.map((b, i) => ({ ...b, sectionType: "imageLink" as const, linkIndex: i })),
 			];
 			allBlocks.sort((a, b) => a.index - b.index);
-
-			const lines = text.split("\n");
 			const sections: Array<Record<string, unknown>> = [];
 			let currentLine = 0;
 
@@ -1928,6 +2139,24 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 						startLine: block.startLine,
 						endLine: block.endLine,
 					});
+				} else if (block.sectionType === "imageLink") {
+					// Rendered as a normal diagram so the inline editor works
+					// unchanged; linkTarget routes saves to the .drawio.svg/.png file. The
+					// blockIndex continues past the codeblock diagrams so it can't
+					// clash with them.
+					sections.push({
+						type: "diagram",
+						blockIndex: diagramBlocks.length + (block as any).linkIndex,
+						xml: (block as any).xml,
+						locked: false,
+						height: null,
+						width: null,
+						startLine: block.startLine,
+						endLine: block.endLine,
+						format: "fenced",
+						diagramId: extractDiagramId((block as any).xml),
+						linkTarget: (block as any).target,
+					});
 				}
 
 				currentLine = block.endLine + 1;
@@ -1959,7 +2188,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
 		webviewPanel.webview.onDidReceiveMessage(
 			async (msg) => {
-				if (handleVSCodeShortcut(msg)) return;
+				if (handleForwardedMessage(msg)) return;
 				switch (msg.type) {
 					case "previewReady":
 						webviewPanel.webview.postMessage({
@@ -1969,6 +2198,12 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 						webviewPanel.webview.postMessage({
 							type: "setEditorUrl",
 							url: editorUrl,
+							uiTheme: resolveDrawioUiTheme(),
+							lang: resolveDrawioLanguage(),
+						});
+						webviewPanel.webview.postMessage({
+							type: "setDrawioConfig",
+							config: getDrawioUserConfig(context.globalState, document.uri),
 						});
 						webviewPanel.webview.postMessage({
 							type: "setDarkMode",
@@ -2043,6 +2278,73 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 								if (block) {
 									const newText = replaceDiagramBlock(text, block, msg.xml, block.locked);
 									await applyEdit(newText);
+								}
+							}
+							break;
+						}
+
+					case "diagramLinkEdited":
+						{
+							// An editable image link was saved: write the exported
+							// editable image back to the linked same-repo .drawio.svg /
+							// .drawio.png file (re-resolved from the link target, so a
+							// moved/renamed file is handled safely). The markdown is left
+							// untouched.
+							const r = resolveEditableDiagramLink(msg.target as string, document.uri);
+							if (r && msg.svg) {
+								const bytes = decodeExportedImage(msg.svg as string);
+								if (bytes) {
+									try {
+										// If the linked .drawio.svg is ALSO open in another editor
+										// with unsaved changes (e.g. the full-tab draw.io editor), a
+										// direct disk write would make that editor's in-memory document
+										// stale — VS Code won't reload a dirty document, so its save hits
+										// the "content is newer" conflict and its merge-on-change never
+										// runs. Instead apply the change as a WorkspaceEdit: that updates
+										// the open document in place, fires onDidChangeTextDocument, and
+										// lets the other editor merge it. Persisting happens via that
+										// document's own save. (PNG has no TextDocument, so it always
+										// falls through to a disk write.)
+										const key = caseFold(r.fileUri.fsPath);
+										const openDoc = vscode.workspace.textDocuments.find(
+											d => caseFold(d.uri.fsPath) === key);
+										if (openDoc && openDoc.isDirty && !r.isPng) {
+											const edit = new vscode.WorkspaceEdit();
+											edit.replace(r.fileUri,
+												new vscode.Range(0, 0, openDoc.lineCount, 0),
+												bytes.toString("utf8"));
+											await vscode.workspace.applyEdit(edit);
+										} else {
+											// Record the bytes we're writing so the watcher can
+											// recognize this self-write by content and ignore its
+											// own echo (a genuine concurrent external write has
+											// different bytes and still refreshes).
+											recentLinkWrites.set(key, hashBytes(bytes));
+											await vscode.workspace.fs.writeFile(r.fileUri, bytes);
+										}
+									} catch (e) {
+										vscode.window.showErrorMessage(
+											`draw.io: failed to write ${path.basename(r.fileUri.fsPath)}: ${e}`);
+									}
+								}
+							}
+							break;
+						}
+
+					case "openLinkedFile":
+						{
+							// Preview button on a linked diagram: open the linked image
+							// file in VS Code's built-in image preview tab (beside the
+							// editor) instead of the draw.io lightbox viewer.
+							const r = resolveEditableDiagramLink(msg.target as string, document.uri);
+							if (r) {
+								try {
+									await vscode.commands.executeCommand(
+										"vscode.openWith", r.fileUri, "imagePreview.previewEditor",
+										vscode.ViewColumn.Beside);
+								} catch (e) {
+									await vscode.commands.executeCommand(
+										"vscode.open", r.fileUri, vscode.ViewColumn.Beside);
 								}
 							}
 							break;
@@ -2155,25 +2457,38 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			}
 		});
 
-		// Hide breadcrumbs when this custom editor is active
-		function updateBreadcrumbs(active: boolean): void {
-			const breadcrumbsConfig = vscode.workspace.getConfiguration("breadcrumbs");
-			if (active) {
-				breadcrumbsConfig.update("enabled", false, vscode.ConfigurationTarget.Global);
-			} else {
-				breadcrumbsConfig.update("enabled", undefined, vscode.ConfigurationTarget.Global);
-			}
+		// Watch the linked .drawio.svg/.png files so EXTERNAL changes (the standalone
+		// draw.io editor, git checkout/pull, another tool) flow into any live inline
+		// editing session — sendContent → tryIncrementalUpdate merges them just like a
+		// markdown edit. Our own saves are ignored via recentLinkWrites so the write
+		// doesn't echo back as a reload.
+		let linkWatcher: vscode.FileSystemWatcher | undefined;
+		const wsFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+		if (wsFolder) {
+			linkWatcher = vscode.workspace.createFileSystemWatcher(
+				new vscode.RelativePattern(wsFolder, "**/*.drawio.{svg,png}"));
+			const onLinkChange = (uri: vscode.Uri) => {
+				const key = caseFold(uri.fsPath);
+				if (!linkedFilePaths.has(key)) { return; }
+				// Ignore our own write: suppress only when the file's current bytes
+				// still match what this panel last wrote (content-based, not timed —
+				// a real concurrent external write differs and falls through).
+				const wroteHash = recentLinkWrites.get(key);
+				if (wroteHash != null) {
+					let cur: Buffer | null = null;
+					try { cur = fs.readFileSync(uri.fsPath); } catch (e) { cur = null; }
+					if (cur && hashBytes(cur) === wroteHash) { recentLinkWrites.delete(key); return; }
+				}
+				sendContent();
+			};
+			linkWatcher.onDidChange(onLinkChange);
+			linkWatcher.onDidCreate(onLinkChange);
+			linkWatcher.onDidDelete(onLinkChange);
 		}
-
-		if (webviewPanel.active) { updateBreadcrumbs(true); }
-
-		webviewPanel.onDidChangeViewState(e => {
-			updateBreadcrumbs(e.webviewPanel.active);
-		});
 
 		webviewPanel.onDidDispose(() => {
 			changeDisposable.dispose();
-			updateBreadcrumbs(false);
+			linkWatcher?.dispose();
 			this.activePanels.delete(document.uri.toString());
 		});
 	}

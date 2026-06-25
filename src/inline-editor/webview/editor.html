@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'none'; frame-src https://test.draw.io https://*.draw.io https://*.diagrams.net http://127.0.0.1:* http://localhost:*; script-src 'nonce-{{nonce}}'; style-src 'nonce-{{nonce}}';">
+    content="default-src 'none'; frame-src https://*.draw.io https://*.diagrams.net http://127.0.0.1:* http://localhost:*; script-src 'nonce-{{nonce}}'; style-src 'nonce-{{nonce}}';">
   <style nonce="{{nonce}}">
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -98,8 +98,8 @@
         // wasn't replaced).
         if (!frame.getAttribute('src') || frame.getAttribute('src') === '{{iframeSrc}}')
         {
-          editorUrl = editorUrl || 'https://test.draw.io';
-          let url = editorUrl + '/?embed=1&proto=json&spin=1&configure=1&libraries=1&saveAndExit=1';
+          editorUrl = editorUrl || 'https://embed.diagrams.net';
+          let url = editorUrl + (editorUrl.indexOf('?') >= 0 ? '&' : '/?') + 'embed=1&proto=json&spin=1&configure=1&libraries=1&saveAndExit=1';
           if (devMode) url += '&dev=1&test=1';
           if (isDark) url += '&dark=1';
           frame.setAttribute('src', url);
@@ -140,6 +140,15 @@
               action: 'configure',
               config: {
                 compact: true,
+                // Chords to hand back to VS Code instead of letting draw.io
+                // handle them (online/cross-origin path). Source of truth:
+                // src/vscodeShortcuts.ts (injected as {{passThroughKeys}}).
+                passThroughKeys: {{passThroughKeys}},
+                // The VS Code webview blocks new windows/tabs: draw.io forwards
+                // link clicks via {event:'openLink'} instead of window.open.
+                suppressNewWindows: true,
+                // Print needs a popup/modal the webview sandbox blocks, so hide it.
+                hideMenuItems: ['print'],
                 darkColor: '#1e1e1e',
                 showTooltipIcons: true,
                 showConnectHandle: true,
@@ -148,6 +157,22 @@
                 useInternalClipboard: true // TODO: Add native clipboard support
               }
             }), '*');
+            break;
+
+          case 'shortcut':
+            // draw.io's native embed passthrough (online/cross-origin): forward
+            // the chord to the extension so it runs the VS Code command.
+            if (msg.command) {
+              vscode.postMessage({ type: 'vscodeShortcut', command: msg.command });
+            }
+            break;
+
+          case 'openLink':
+            // Link click forwarded by draw.io (suppressNewWindows mode): open it
+            // in the host's default browser.
+            if (msg.href) {
+              vscode.postMessage({ type: 'openLink', href: msg.href });
+            }
             break;
 
           case 'init':

@@ -1,4 +1,6 @@
 import {
+	commands,
+	env,
 	Webview,
 	OutputChannel,
 	Uri,
@@ -8,6 +10,8 @@ import {
 } from "vscode";
 import { CustomizedDrawioClient, simpleDrawioLibrary } from ".";
 import { Config, DiagramConfig } from "../Config";
+import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
+import { appendEmbedParams } from "../utils/appendEmbedParams";
 import html from "./webview-content.html";
 import { formatValue } from "../utils/formatValue";
 import { autorun, observable, runInAction, untracked } from "mobx";
@@ -56,6 +60,13 @@ export class DrawioClientFactory {
 				config.showLinkIcons;
 				config.showConnectHandle;
 				config.resizeImages;
+				// Reload on theme/appearance SETTING changes, but NOT on system
+				// dark-mode changes: getHtml reads config.resolvedTheme untracked, so
+				// an OS appearance change is handled live by draw.io's dark=auto
+				// instead of forcing a full webview reload (which loses zoom/undo).
+				config.theme;
+				config.appearance;
+				config.appearanceFollowsSystem;
 				const html =
 					this.getHtml(config, options, webview, plugins) +
 					" ".repeat(i++);
@@ -100,6 +111,16 @@ export class DrawioClientFactory {
 					libraries: simpleDrawioLibrary(libs),
 					zoomFactor: config.zoomFactor,
 					globalVars: (config.globalVars as Record<string, string>) ?? undefined,
+					// Chords draw.io should forward to VS Code instead of handling
+					// itself (online/cross-origin path; offline uses the injected
+					// keydown listener in webview-content.html). See vscodeShortcuts.ts.
+					passThroughKeys: VSCODE_PASSTHROUGH_KEYS,
+					// The VS Code webview blocks new windows/tabs: draw.io forwards
+					// link clicks via {event:'openLink'} (handled below) instead of
+					// window.open. (Print can't work in the sandbox either — it needs
+					// a popup/modal — so it stays hidden via hideMenuItems.) See
+					// drawio-dev Editor.suppressNewWindows.
+					suppressNewWindows: true,
 					showTooltipIcons: config.showTooltipIcons || undefined,
 					showLinkIcons: config.showLinkIcons || undefined,
 					showConnectHandle: config.showConnectHandle || undefined,
@@ -121,6 +142,22 @@ export class DrawioClientFactory {
 			if (message.event === "updateLocalStorage") {
 				const newLocalStorage = message.newLocalStorage;
 				config.setLocalStorage(newLocalStorage);
+			} else if (
+				((message as any).event === "vscodeShortcut" ||
+					(message as any).event === "shortcut") &&
+				(message as any).command
+			) {
+				// Forwarded VS Code chord (e.g. Ctrl+P): either from the offline
+				// webview keydown interceptor (vscodeShortcut) or draw.io's native
+				// embed passthrough (shortcut, online/cross-origin). Run it.
+				commands.executeCommand((message as any).command);
+			} else if (
+				(message as any).event === "openLink" &&
+				(message as any).href
+			) {
+				// Link click forwarded from draw.io (suppressNewWindows mode):
+				// open it in the host's default browser instead of a new tab.
+				env.openExternal(Uri.parse((message as any).href));
 			}
 		});
 
@@ -243,12 +280,26 @@ export class DrawioClientFactory {
 
 		const localStorage = untracked(() => config.localStorage);
 
+		// Read theme values UNTRACKED so a system dark-mode change (which flips
+		// vscodeTheme.kind via resolvedTheme) does NOT trigger a full webview
+		// reload — draw.io's dark=auto re-themes live. The theme/appearance
+		// *settings* are tracked separately in the reload autorun.
+		const themeVals = untracked(() => {
+			const rt = config.resolvedTheme;
+			return {
+				theme: rt.themeName,
+				appearance: rt.getAppearanceDrawioValue(),
+				dark: rt.getDarkDrawioValue(config.appearanceFollowsSystem),
+			};
+		});
+
 		// TODO use template engine
 		// Prevent injection attacks by using JSON.stringify.
 		const patchedHtml = html
 			.replace(/\$\$literal-vsuri\$\$/g, vsuri.toString())
-			.replace("$$theme$$", JSON.stringify(config.resolvedTheme.themeName))
-			.replace("$$appearance$$", JSON.stringify(config.resolvedTheme.getAppearanceDrawioValue()))
+			.replace("$$theme$$", JSON.stringify(themeVals.theme))
+			.replace("$$appearance$$", JSON.stringify(themeVals.appearance))
+			.replace("$$dark$$", JSON.stringify(themeVals.dark))
 			.replace("$$lang$$", JSON.stringify(config.drawioLanguage))
 			.replace("$$simpleLabels$$", JSON.stringify(config.simpleLabels))
 			.replace(
@@ -268,6 +319,14 @@ export class DrawioClientFactory {
 	}
 
 	private getOnlineHtml(config: DiagramConfig, drawioUrl: string): string {
+		// Untracked: a system dark-mode change must not reload (dark=auto handles it).
+		const themeVals = untracked(() => {
+			const rt = config.resolvedTheme;
+			return {
+				theme: rt.themeName,
+				dark: rt.getDarkDrawioValue(config.appearanceFollowsSystem),
+			};
+		});
 		return `
 			<html>
 			<head>
@@ -294,11 +353,13 @@ export class DrawioClientFactory {
 					});
 				</script>
 
-				<iframe src="${drawioUrl}?embed=1&ui=${encodeURIComponent(
-			config.resolvedTheme.themeName
-		)}&proto=json&configure=1&noSaveBtn=1&noExitBtn=1&simpleLabels=${encodeURIComponent(
+				<iframe src="${appendEmbedParams(drawioUrl, `embed=1&ui=${encodeURIComponent(
+			themeVals.theme
+		)}&proto=json&configure=1&dark=${encodeURIComponent(
+			themeVals.dark
+		)}&noSaveBtn=0&noExitBtn=1&simpleLabels=${encodeURIComponent(
 			config.simpleLabels
-		)}&lang=${encodeURIComponent(config.drawioLanguage)}"></iframe>
+		)}&lang=${encodeURIComponent(config.drawioLanguage)}`)}"></iframe>
 			</body>
 		</html>
 			`;
