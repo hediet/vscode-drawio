@@ -932,7 +932,6 @@ async function openMermaidEditor(
 						theme,
 						isDark,
 						devMode,
-						sourceMetadataKey: "mermaidSource",
 					});
 					break;
 

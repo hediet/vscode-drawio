@@ -2002,12 +2002,15 @@
               state.iframe.contentWindow.postMessage(JSON.stringify({
                 action: 'load',
                 autosave: 1,
-                descriptor: { format: 'mermaid', data: state.mermaidSource },
+                // wrap:true wraps the parsed result in the editable mermaid
+                // group (a re-openable group carrying the source as mermaidData),
+                // matching Insert > Mermaid — otherwise the raw cells load and
+                // the mermaid source is lost.
+                descriptor: { format: 'mermaid', data: state.mermaidSource, wrap: true },
                 title: '',
                 border: diagramPadding,
                 fit: 1,
-                maxFitScale: 1,
-                sourceMetadata: { key: 'mermaidSource', value: state.mermaidSource }
+                maxFitScale: 1
               }), '*');
             }
             else {

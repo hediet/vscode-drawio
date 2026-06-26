@@ -49,7 +49,6 @@
       let mode = 'modal'; // 'modal' (save & close) or 'customEditor' (autosave)
       let autosaveTimer = null;
       let mermaidDescriptor = null; // set when loading from mermaid source
-      let sourceMetadata = null; // optional metadata to store on model root
       let showTemplatePicker = false; // show template dialog after loading blank diagram
 
       // Receive initial data from the extension
@@ -61,7 +60,6 @@
         {
           currentXml = msg.xml;
           mermaidDescriptor = null;
-          sourceMetadata = null;
           showTemplatePicker = msg.isBlank || false;
           if (msg.mode === 'customEditor')
           {
@@ -73,17 +71,15 @@
         else if (msg.type === 'loadMermaid')
         {
           currentXml = '';
+          // wrap:true wraps the parsed result in the editable mermaid group
+          // (a re-openable group carrying the source as mermaidData), matching
+          // Insert > Mermaid — otherwise the raw cells load and the mermaid
+          // source is lost.
           mermaidDescriptor = {
             format: 'mermaid',
             data: msg.mermaidSource,
+            wrap: true,
           };
-          if (msg.sourceMetadataKey)
-          {
-            sourceMetadata = {
-              key: msg.sourceMetadataKey,
-              value: msg.mermaidSource,
-            };
-          }
           if (msg.devMode != null) devMode = msg.devMode;
           loadEditorFrame(msg.editorUrl, msg.isDark);
         }
@@ -192,10 +188,6 @@
                   descriptor: mermaidDescriptor,
                   title: '',
                 };
-                if (sourceMetadata)
-                {
-                  loadMsg.sourceMetadata = sourceMetadata;
-                }
                 frame.contentWindow.postMessage(JSON.stringify(loadMsg), '*');
               }
               else
