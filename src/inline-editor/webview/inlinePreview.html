@@ -1864,8 +1864,12 @@
           return;
         }
 
-        // Overlay iframe messages
-        if (overlayState.active && evt.source === overlayFrame.contentWindow) {
+        // Overlay iframe messages. Also accept them while a link save is pending
+        // even after the overlay has been deactivated: saving via "Save & Exit"
+        // calls closeOverlay() (which sets active=false) before the async export
+        // response — carrying the editable image to write to the linked file —
+        // arrives. Dropping it here would leave the linked file unwritten.
+        if ((overlayState.active || overlayState._pendingLinkSave) && evt.source === overlayFrame.contentWindow) {
           var msg;
           try { msg = JSON.parse(evt.data); } catch (e) { return; }
           if (msg && msg.event) handleOverlayMessage(msg);
