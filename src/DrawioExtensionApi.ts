@@ -13,23 +13,27 @@ export function getDrawioExtensions(): DrawioExtension[] {
 export class DrawioExtension {
 	constructor(private readonly api: Extension<DrawioExtensionApi>) {}
 
-	public async getDrawioPlugins(
-		context: DocumentContext
-	): Promise<{ jsCode: string }[]> {
-		if (!this.api.isActive) {
-			await this.api.activate();
-		}
-		const { drawioExtensionV1 } = this.api.exports;
-		if (drawioExtensionV1) {
-			const { getDrawioPlugins } = drawioExtensionV1;
-			if (getDrawioPlugins) {
-				return await getDrawioPlugins.apply(drawioExtensionV1, [
-					context,
-				]);
+		public async getDrawioPlugins(
+			context: DocumentContext
+		): Promise<{ jsCode: string }[]> {
+			if (!this.api.isActive) {
+				await this.api.activate();
 			}
+			const exports = this.api.exports;
+			if (!exports) {
+				return [];
+			}
+			const { drawioExtensionV1 } = exports;
+			if (drawioExtensionV1) {
+				const { getDrawioPlugins } = drawioExtensionV1;
+				if (getDrawioPlugins) {
+					return await getDrawioPlugins.apply(drawioExtensionV1, [
+						context,
+					]);
+				}
+			}
+			return [];
 		}
-		return [];
-	}
 }
 
 export interface DrawioExtensionJsonManifest {
