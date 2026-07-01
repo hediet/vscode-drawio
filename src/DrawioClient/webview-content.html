@@ -334,9 +334,13 @@
 		</style>
 		<script src="js/PreConfig.js"></script>
 		<script src="js/app.min.js"></script>
-		<script src="js/extensions.min.js"></script>
-		<script src="js/stencils.min.js"></script>
-		<script src="js/shapes-14-6-5.min.js"></script>
+		<!--
+			Do NOT preload extensions.min.js / stencils.min.js / shapes-14-6-5.min.js
+			here: draw.io's App.main loads them itself via App.loadScripts unless
+			urlParams['dev']=='1' or EditorUi.isElectronApp (neither is true in a
+			VS Code webview). Preloading them made extensions.min.js load twice,
+			throwing "OrgChart... already defined". See diagramly/App.js.
+		-->
 		<script src="js/PostConfig.js"></script>
 	</head>
 
