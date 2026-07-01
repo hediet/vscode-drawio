@@ -2,7 +2,12 @@
 declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | GetVerticesAction
     | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction | UpdateLiveshareViewState;
 declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent
-    | UpdateLocalStorage | PluginLoaded | CursorChangedEvent | SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent | SelectionRectangleChangedEvent;
+    | UpdateLocalStorage | PluginLoaded | CursorChangedEvent | SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent | SelectionRectangleChangedEvent | AutosaveEvent;
+
+declare interface AutosaveEvent {
+    event: "autosave";
+    xml: string;
+}
 
 declare interface InvokeCommandEvent {
     event: "invokeCommand";
