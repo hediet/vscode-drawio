@@ -93,17 +93,27 @@ export class DrawioClient<
 	protected async handleEvent(evt: { event: string }): Promise<void> {
 		const drawioEvt = evt as DrawioEvent;
 
-		if ("message" in drawioEvt) {
-			const actionId = (drawioEvt.message as any).actionId as
-				| string
-				| undefined;
-			if (actionId) {
-				const responseHandler = this.responseHandlers.get(actionId);
-				this.responseHandlers.delete(actionId);
-				if (responseHandler) {
-					responseHandler.resolve(drawioEvt);
-				}
-			}
+		// A message can be an action *response* (identified by a `message` field
+		// carrying the actionId of a still-pending request) OR a regular *event*
+		// that merely echoes its originating request in a `message` field —
+		// draw.io's autosave/save events do the latter (msg.message = message,
+		// see EditorUi.js). Only treat it as a response when it actually resolves
+		// a pending action; otherwise fall through to event handling below.
+		// Without this, autosave/save events get swallowed here (their echoed
+		// message has no matching pending actionId) and the document is never
+		// marked dirty.
+		const responseActionId =
+			"message" in drawioEvt
+				? ((drawioEvt.message as any)?.actionId as string | undefined)
+				: undefined;
+		const responseHandler =
+			responseActionId != null
+				? this.responseHandlers.get(responseActionId)
+				: undefined;
+
+		if (responseHandler) {
+			this.responseHandlers.delete(responseActionId!);
+			responseHandler.resolve(drawioEvt);
 		} else if (drawioEvt.event === "init") {
 			this.onInitEmitter.emit();
 		} else if (drawioEvt.event === "autosave") {
@@ -150,7 +160,13 @@ export class DrawioClient<
 				config,
 			});
 		} else {
-			this.onUnknownMessageEmitter.emit({ message: drawioEvt });
+			// Not a pending-action response and not a known event: forward to
+			// custom handlers. (Previously this was unreachable because the
+			// `"message" in drawioEvt` check above consumed every message-bearing
+			// event, which is exactly what swallowed autosave/save.)
+			this.onUnknownMessageEmitter.emit({
+				message: drawioEvt as unknown as TCustomEvent,
+			});
 		}
 	}
 
