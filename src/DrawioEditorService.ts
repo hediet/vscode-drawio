@@ -20,6 +20,7 @@ import {
 	DrawioClientOptions,
 } from "./DrawioClient";
 import { DrawioBinaryDocument } from "./DrawioEditorProviderBinary";
+import { parseScale } from "./utils/parseScale";
 import { registerFailableCommand } from "./utils/registerFailableCommand";
 
 const drawioChangeThemeCommand = "hediet.vscode-drawio.changeTheme";
@@ -342,14 +343,14 @@ export class DrawioEditor {
 				prompt: "Zoom level for the PNG export (e.g. 1, 2, 3)",
 				value: "1",
 				validateInput: (value) =>
-					Number(value) > 0
-						? undefined
-						: "Enter a number greater than 0",
+					parseScale(value) === undefined
+						? "Enter a number greater than 0"
+						: undefined,
 			});
 			if (scaleInput === undefined) {
 				return;
 			}
-			scale = Number(scaleInput);
+			scale = parseScale(scaleInput);
 		}
 
 		await this.exportTo(result.label, scale);
