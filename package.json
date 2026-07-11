@@ -389,7 +389,7 @@
 							"properties": {
 								"entryId": {
 									"type": "string",
-									"description": "The id of the entry. A specfic entry can be enabled or deactivated in the editor."
+									"description": "The id of the entry. A specific entry can be enabled or deactivated in the editor."
 								},
 								"libName": {
 									"type": "string",
