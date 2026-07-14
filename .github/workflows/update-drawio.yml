@@ -1,0 +1,79 @@
+name: Update Draw.io submodule
+on:
+  schedule:
+    - cron: "0 8 * * *" # daily, shortly after drawio's usual morning release time (UTC)
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Draw.io release tag (e.g. v30.3.8). Leave empty to use the latest release."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Check for a new release
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          TAG="${INPUT_TAG:-$(gh api repos/jgraph/drawio/releases/latest --jq .tag_name)}"
+          BRANCH="update-drawio-$TAG"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          if [ "$(gh pr list --head "$BRANCH" --state all --json number --jq length)" != "0" ]; then
+            echo "A PR for $BRANCH already exists, nothing to do."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git -C drawio fetch --tags origin
+          git -C drawio checkout "refs/tags/$TAG"
+          if git diff --quiet -- drawio; then
+            echo "Submodule already at $TAG, nothing to do."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Node.js
+        if: steps.check.outputs.changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # PRs opened with the default GITHUB_TOKEN don't trigger the Lint & Build
+      # workflow, so run the same checks here before opening the PR.
+      - name: Build with the updated submodule
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          yarn install --frozen-lockfile
+          yarn lint
+          yarn build
+
+      - name: Open PR
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.check.outputs.tag }}
+          BRANCH: ${{ steps.check.outputs.branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add drawio
+          git commit -m "Update Draw.io to $TAG"
+          git push -f -u origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" \
+            --title "Update Draw.io to $TAG" \
+            --body "Automated update of the drawio submodule to [jgraph/drawio $TAG](https://github.com/jgraph/drawio/releases/tag/$TAG). The extension was linted and built successfully with the updated submodule in the workflow run that opened this PR. Lint & Build does not run on PRs opened with the default GITHUB_TOKEN; it runs on main after merging."
