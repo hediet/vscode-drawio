@@ -46,7 +46,7 @@ Draw.loadPlugin((ui) => {
 
 		const cursors = new Set<Cursor>();
 		const rectangles = new Set<SelectionRectangle>();
-		const hightlights = new Highlights(graph);
+		const highlights = new Highlights(graph);
 
 		window.addEventListener("message", (evt) => {
 			if (evt.source !== window.opener) {
@@ -83,7 +83,7 @@ Draw.loadPlugin((ui) => {
 							highlightInfos.push({ cell, color: s.color });
 						}
 					}
-					hightlights.updateHighlights(highlightInfos);
+					highlights.updateHighlights(highlightInfos);
 
 					for (const c of rectangles) {
 						if (
