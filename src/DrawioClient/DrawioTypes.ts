@@ -45,6 +45,7 @@ export type DrawioAction =
 	| {
 			action: "export";
 			format: DrawioFormat;
+			scale?: number;
 	  }
 	| {
 			action: "configure";
