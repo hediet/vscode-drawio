@@ -45,6 +45,7 @@ export type DrawioAction =
 	| {
 			action: "export";
 			format: DrawioFormat;
+			currentPage?: boolean;
 	  }
 	| {
 			action: "configure";
