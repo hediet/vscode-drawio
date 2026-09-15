@@ -22,6 +22,11 @@ import * as packageJson from "../package.json";
 const extensionId = "hediet.vscode-drawio";
 const experimentalFeaturesEnabled = "vscode-drawio.experimentalFeaturesEnabled";
 
+/**
+ * Sets a VS Code context value that can be used in when clauses.
+ * @param key - The context key to set.
+ * @param value - The value to set for the context key.
+ */
 export async function setContext(
 	key: string,
 	value: string | boolean
@@ -29,6 +34,10 @@ export async function setContext(
 	return (await commands.executeCommand("setContext", key, value)) as any;
 }
 
+/**
+ * Manages configuration and settings for the draw.io extension.
+ * Handles experimental features, plugin management, theme detection, and feedback mechanisms.
+ */
 export class Config {
 	public readonly packageJson: {
 		version: string;
