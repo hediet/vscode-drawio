@@ -1,4 +1,5 @@
 import { autorun, computed, observable } from "mobx";
+import * as path from "path";
 import {
 	ColorTheme,
 	ColorThemeKind,
@@ -599,7 +600,17 @@ export class DiagramConfig {
 					lib.file,
 					"custom libraries"
 				);
-				const buffer = await workspace.fs.readFile(Uri.file(file));
+				const resolvedFile = path.resolve(file);
+				const workspaceFolder = workspace.getWorkspaceFolder(this.uri);
+				if (workspaceFolder) {
+					const wsRoot = workspaceFolder.uri.fsPath;
+					if (!resolvedFile.startsWith(wsRoot + path.sep) && resolvedFile !== wsRoot) {
+						throw new Error(
+							`Custom library file "${lib.file}" resolves to "${resolvedFile}" which is outside the workspace folder. For security, library files must be within the workspace.`
+						);
+					}
+				}
+				const buffer = await workspace.fs.readFile(Uri.file(resolvedFile));
 				const content = BufferImpl.from(buffer).toString("utf-8");
 				if (file.endsWith(".json")) {
 					data = {
