@@ -5,11 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.9.0]
+## [1.10.0]
 
 ### Added
 
 - Inline Draw.io editors for ```` ```drawio ```` fenced code blocks in VS Code's experimental Markdown editor (Insiders only), via the `markdown.codeBlockEditorProviders` contribution [#521](https://github.com/hediet/vscode-drawio/issues/521)
+- Inline diagram editing in Markdown files: `drawio` code blocks and linked `.drawio.svg`/`.drawio.png` images get CodeLens actions to edit, preview and lock them, and render in the built-in Markdown preview
+- `Convert Mermaid to Draw.io` command, which turns a Mermaid block into an editable Draw.io diagram
+- New themes: `auto`, `simple` and `sketch`
+- New settings `showTooltipIcons`, `showLinkIcons` and `showConnectHandle`, replacing the tooltips example plugin
+- README section on using `.drawio` files with AI assistants
+
+### Changed
+
+- Updated Draw.io to v31.4.5
+
+### Fixed
+
+- Autosave in the standalone diagram editor
+- `extensions.min.js` was loaded twice
+- Saving linked diagrams in the full-page inline editor
+- Save shortcuts in the inline editor: `Ctrl+S` saves and `Ctrl+Shift+S` opens Save As
+
+## [1.9.0]
 
 ### Fixed
 
