@@ -14,7 +14,10 @@
 		"visio",
 		"architecture",
 		"uml",
-		"code link"
+		"code link",
+		"diagram as code",
+		"git",
+		"ai"
 	],
 	"author": {
 		"email": "henning.dieterichs@live.de",

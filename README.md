@@ -12,6 +12,7 @@ Mentioned in the official diagrams.net [blog](https://www.diagrams.net/blog/embe
     -   `.drawio.svg` are valid `.svg` files that can be embedded in Github readme files! No export needed.
     -   `.drawio.png` are valid `.png` files! No export needed. You should use `.svg` though whenever possible - they look much better!
     -   To convert between different formats, use the `Draw.io: Convert To...` command.
+-   `.drawio` files are plain XML: they diff cleanly in git, and AI assistants can read, edit and review diagram changes like any other code.
 -   Uses an offline version of Draw.io by default.
 -   Multiple Draw.io themes are available.
 -   Use Liveshare to collaboratively edit a diagram with others.
@@ -32,7 +33,7 @@ The logo of this extension is such a `.drawio.png` file that has been created wi
 
 ![](./docs/drawio-png.gif)
 
-If diffs are important for you, you should prefer `.drawio` and avoid `.drawio.png` diagrams.
+If you want readable diffs, for your reviewers and your AI tools alike, prefer `.drawio` over `.drawio.png` diagrams.
 
 ## Collaboratively Edit Or Present Diagrams
 
@@ -118,6 +119,9 @@ They are synchronized, so you can switch between them as you like it.
 This is super practical if you want to use find/replace to rename text or other features of VS Code to speed up your diagram creation/edit process.
 Use the `View: Reopen Editor With...` command to toggle between the text or the Draw.io editor. You can open multiple editors for the same file.
 This does not make much sense for SVG files though, as the draw.io diagram is stored in its metadata.
+
+The same goes for AI assistants: the file is a visual diagram for you and plain text for your agent.
+When an agent edits the XML, the change shows up in the open diagram right away, and in a pull request it can read the diff of a diagram (an added node, a changed connection, a new label) and act on it just like it would on code.
 
 ![](./docs/drawio-xml.gif)
 
