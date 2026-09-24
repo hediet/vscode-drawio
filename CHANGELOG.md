@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0]
+
+### Changed
+
+- Updated Draw.io to v31.5.2
+
+### Fixed
+
+- `Properties`, `Import...`, `Export...` and `Convert...` were missing from the File menu of the default Kennedy theme, so the export zoom could not be set and PNG exports were limited to 100% [#532](https://github.com/hediet/vscode-drawio/issues/532)
+- `Save` was listed twice in the File menu of the simple, sketch and min themes
+
 ## [1.10.0]
 
 ### Added

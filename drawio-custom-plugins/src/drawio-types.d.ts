@@ -46,7 +46,6 @@ declare interface DrawioUI {
 interface DrawioMenus {
     get(name: string): any;
     addMenuItems(menu: any, arg: any, arg2: any): void;
-    addPluginMenuItems(menuName: string, items: string[]): void;
 }
 
 interface DrawioActions {
