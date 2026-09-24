@@ -113,8 +113,16 @@ Draw.loadPlugin((ui) => {
 			return;
 		}
 
-		console.log(evt);
-		const data = JSON.parse(evt.data) as CustomDrawioAction;
+		let data: CustomDrawioAction;
+		try {
+			data = JSON.parse(evt.data);
+		} catch {
+			// e.g. the empty setImmediate probe, re-dispatched by webview-content.html
+			return;
+		}
+		if (!data || typeof data.action !== "string") {
+			return;
+		}
 
 		switch (data.action) {
 			case "setNodeSelectionEnabled": {
