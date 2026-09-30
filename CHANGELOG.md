@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0]
+
+### Changed
+
+- The inline editor toolbar tells the viewer and the full editor apart: a present icon opens the read-only viewer and the expand icon opens the full editor. The Edit label is gone since the inline diagram itself is editable
+- The mouse wheel zooms in the full screen viewer
+- The viewer's fit button toggles between fit and actual size (1:1) and shows which one comes next
+
 ## [1.13.0]
 
 ### Changed
