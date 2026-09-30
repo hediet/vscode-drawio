@@ -372,15 +372,6 @@
       color: var(--vscode-button-foreground);
     }
 
-    /* Icon + text button (e.g. Edit) */
-    .drawio-inline-toolbar button.labeled {
-      width: auto;
-      gap: 5px;
-      padding: 0 10px 0 8px;
-      font-family: var(--vscode-font-family, sans-serif);
-      font-size: 12px;
-    }
-
     .drawio-inline-toolbar button svg {
       width: 16px;
       height: 16px;
@@ -398,13 +389,14 @@
       stroke-linejoin: round;
     }
 
-    /* Tooltip from aria-label (buttons with a visible label need none) */
+    /* Tooltip from aria-label (buttons with a visible label need none).
+       Right-aligned to the button: the toolbar sits flush with the diagram's
+       right edge, so centered tooltips would run past it. */
     .drawio-inline-toolbar button[aria-label]::after {
       content: attr(aria-label);
       position: absolute;
       top: calc(100% + 4px);
-      left: 50%;
-      transform: translateX(-50%);
+      right: 0;
       background: var(--vscode-editorWidget-background, #252526);
       color: var(--vscode-editorWidget-foreground, #ccc);
       border: 1px solid var(--vscode-editorWidget-border, #454545);
@@ -837,8 +829,9 @@
       // Inline toolbar icons, matching the draw.io MCP viewer's toolbar
       var ICON_FIT = '<svg class="stroke-icon" viewBox="0 0 24 24"><polyline points="4 8 4 4 8 4"/><polyline points="16 4 20 4 20 8"/><polyline points="4 16 4 20 8 20"/><polyline points="16 20 20 20 20 16"/><rect x="8" y="9" width="8" height="6" rx="1"/></svg>';
       var ICON_ACTUAL_SIZE = '<svg viewBox="0 0 24 24"><text x="12" y="17" text-anchor="middle" font-size="14" font-weight="700" font-family="-apple-system,system-ui,Segoe UI,sans-serif">1:1</text></svg>';
-      var ICON_FULLSCREEN = '<svg viewBox="0 -960 960 960"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg>';
-      var ICON_EDIT = '<svg class="stroke-icon" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.83 2.83 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg>';
+      // Present (read-only full screen viewer) vs expand (same editor, full UI)
+      var ICON_PRESENT = '<svg class="stroke-icon" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M10 9.2v5.6l4.6-2.8Z" fill="currentColor"/></svg>';
+      var ICON_EXPAND = '<svg viewBox="0 -960 960 960"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg>';
 
 
       /** Show the toolbar for a given outer container, hiding any previously visible one.
@@ -2803,8 +2796,8 @@
         inlineToolbar.className = 'drawio-inline-toolbar';
 
         var lightboxBtn = document.createElement('button');
-        lightboxBtn.setAttribute('aria-label', 'View full screen');
-        lightboxBtn.innerHTML = ICON_FULLSCREEN;
+        lightboxBtn.setAttribute('aria-label', 'Present (read-only)');
+        lightboxBtn.innerHTML = ICON_PRESENT;
         lightboxBtn.addEventListener('click', function (e) {
           e.stopPropagation();
           openLightbox(block.xml);
@@ -3035,7 +3028,9 @@
         // zoomOutBtn.title = 'Zoom out';
         // ...
 
-        // Fit, actual size, full screen view, then the labeled Edit button
+        // Fit, actual size, then the two full screen modes: read-only viewer
+        // (present) and the full editor (expand). The inline diagram is
+        // itself editable, so neither button is labeled "Edit".
         var fitBtn = document.createElement('button');
         fitBtn.setAttribute('aria-label', 'Fit to frame');
         fitBtn.innerHTML = ICON_FIT;
@@ -3063,8 +3058,8 @@
 
         // Lightbox button — opens non-editable full-window view
         var lightboxBtn = document.createElement('button');
-        lightboxBtn.setAttribute('aria-label', block.linkTarget ? 'Open image preview' : 'View full screen');
-        lightboxBtn.innerHTML = ICON_FULLSCREEN;
+        lightboxBtn.setAttribute('aria-label', block.linkTarget ? 'Open image preview' : 'Present (read-only)');
+        lightboxBtn.innerHTML = ICON_PRESENT;
         lightboxBtn.addEventListener('click', function (e) {
           e.stopPropagation();
           // For a linked .drawio.svg/.png, open the file in VS Code's image
@@ -3078,10 +3073,9 @@
         });
         inlineToolbar.appendChild(lightboxBtn);
 
-        // Primary action, so it gets a text label
         var expandBtn = document.createElement('button');
-        expandBtn.className = 'labeled';
-        expandBtn.innerHTML = ICON_EDIT + '<span>Edit</span>';
+        expandBtn.setAttribute('aria-label', 'Open full editor');
+        expandBtn.innerHTML = ICON_EXPAND;
         expandBtn.addEventListener('click', function (e) {
           e.stopPropagation();
           openOverlay(index);
