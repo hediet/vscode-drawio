@@ -334,7 +334,8 @@
       border: 1px solid var(--vscode-editorGroup-border);
       border-radius: 4px;
       background: var(--vscode-editor-background);
-      overflow: hidden;
+      /* no overflow: hidden here, it would clip the button tooltips;
+         the first/last buttons round their own corners instead */
     }
 
     .drawio-inline-toolbar button {
@@ -353,8 +354,17 @@
       padding: 0;
     }
 
+    .drawio-inline-toolbar button:first-child {
+      border-radius: 3px 0 0 3px;
+    }
+
     .drawio-inline-toolbar button:last-child {
       border-right: none;
+      border-radius: 0 3px 3px 0;
+    }
+
+    .drawio-inline-toolbar button:only-child {
+      border-radius: 3px;
     }
 
     .drawio-inline-toolbar button:hover {
@@ -362,14 +372,35 @@
       color: var(--vscode-button-foreground);
     }
 
+    /* Icon + text button (e.g. Edit) */
+    .drawio-inline-toolbar button.labeled {
+      width: auto;
+      gap: 5px;
+      padding: 0 10px 0 8px;
+      font-family: var(--vscode-font-family, sans-serif);
+      font-size: 12px;
+    }
+
     .drawio-inline-toolbar button svg {
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
       fill: currentColor;
     }
 
-    .drawio-inline-toolbar button[title]::after {
-      content: attr(title);
+    /* Outline icons (24px grid, same style as the draw.io MCP viewer) */
+    .drawio-inline-toolbar button svg.stroke-icon,
+    #lightbox-overlay .lightbox-toolbar button svg.stroke-icon {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Tooltip from aria-label (buttons with a visible label need none) */
+    .drawio-inline-toolbar button[aria-label]::after {
+      content: attr(aria-label);
       position: absolute;
       top: calc(100% + 4px);
       left: 50%;
@@ -387,7 +418,7 @@
       z-index: 100;
     }
 
-    .drawio-inline-toolbar button[title]:hover::after {
+    .drawio-inline-toolbar button[aria-label]:hover::after {
       opacity: 1;
     }
 
@@ -576,8 +607,8 @@
     }
 
     #lightbox-overlay .lightbox-toolbar button svg {
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
       fill: currentColor;
     }
 
@@ -634,21 +665,27 @@
   <div id="lightbox-overlay">
     <div class="lightbox-toolbar">
       <button id="lightbox-zoom-in" title="Zoom in">
-        <svg viewBox="0 0 16 16">
-          <path
-            d="M7 1a6 6 0 1 0 3.5 10.9l3.3 3.3a.75.75 0 1 0 1.06-1.06l-3.3-3.3A6 6 0 0 0 7 1ZM2.5 7a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM7 4a.75.75 0 0 1 .75.75v1.5h1.5a.75.75 0 0 1 0 1.5h-1.5v1.5a.75.75 0 0 1-1.5 0v-1.5h-1.5a.75.75 0 0 1 0-1.5h1.5v-1.5A.75.75 0 0 1 7 4Z" />
+        <svg class="stroke-icon" viewBox="0 0 24 24">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <line x1="15.5" y1="15.5" x2="20" y2="20" />
+          <line x1="10.5" y1="7.5" x2="10.5" y2="13.5" />
+          <line x1="7.5" y1="10.5" x2="13.5" y2="10.5" />
         </svg>
       </button>
       <button id="lightbox-zoom-out" title="Zoom out">
-        <svg viewBox="0 0 16 16">
-          <path
-            d="M7 1a6 6 0 1 0 3.5 10.9l3.3 3.3a.75.75 0 1 0 1.06-1.06l-3.3-3.3A6 6 0 0 0 7 1ZM2.5 7a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM4.25 6.25a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5Z" />
+        <svg class="stroke-icon" viewBox="0 0 24 24">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <line x1="15.5" y1="15.5" x2="20" y2="20" />
+          <line x1="7.5" y1="10.5" x2="13.5" y2="10.5" />
         </svg>
       </button>
       <button id="lightbox-fit" title="Fit to window">
-        <svg viewBox="0 0 16 16">
-          <path
-            d="M2 2.5A.5.5 0 0 1 2.5 2h3a.5.5 0 0 1 0 1H3v2.5a.5.5 0 0 1-1 0v-3Zm0 11a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 0-1H3v-2.5a.5.5 0 0 0-1 0v3Zm12 0a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H13v-2.5a.5.5 0 0 1 1 0v3Zm0-11a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0 0 1H13v2.5a.5.5 0 0 0 1 0v-3Z" />
+        <svg class="stroke-icon" viewBox="0 0 24 24">
+          <polyline points="4 8 4 4 8 4" />
+          <polyline points="16 4 20 4 20 8" />
+          <polyline points="4 16 4 20 8 20" />
+          <polyline points="16 20 20 20 20 16" />
+          <rect x="8" y="9" width="8" height="6" rx="1" />
         </svg>
       </button>
       <div class="lightbox-spacer"></div>
@@ -796,6 +833,12 @@
       var _fitAppliedState = null; // set to the state object when _doFitDiagramToContainer runs while singleton is active
       var _toolbarPaddingOuter = 10; // px padding around diagram container
       var _toolbarPaddingToolbar = 4; // px padding around the toolbar row itself
+
+      // Inline toolbar icons, matching the draw.io MCP viewer's toolbar
+      var ICON_FIT = '<svg class="stroke-icon" viewBox="0 0 24 24"><polyline points="4 8 4 4 8 4"/><polyline points="16 4 20 4 20 8"/><polyline points="4 16 4 20 8 20"/><polyline points="16 20 20 20 20 16"/><rect x="8" y="9" width="8" height="6" rx="1"/></svg>';
+      var ICON_ACTUAL_SIZE = '<svg viewBox="0 0 24 24"><text x="12" y="17" text-anchor="middle" font-size="14" font-weight="700" font-family="-apple-system,system-ui,Segoe UI,sans-serif">1:1</text></svg>';
+      var ICON_FULLSCREEN = '<svg viewBox="0 -960 960 960"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg>';
+      var ICON_EDIT = '<svg class="stroke-icon" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.83 2.83 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg>';
 
 
       /** Show the toolbar for a given outer container, hiding any previously visible one.
@@ -2760,8 +2803,8 @@
         inlineToolbar.className = 'drawio-inline-toolbar';
 
         var lightboxBtn = document.createElement('button');
-        lightboxBtn.title = 'Preview';
-        lightboxBtn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M8 3.5C4.136 3.5 1.093 6.314.158 7.7a.75.75 0 0 0 0 .6C1.093 9.686 4.136 12.5 8 12.5s6.907-2.814 7.842-4.2a.75.75 0 0 0 0-.6C14.907 6.314 11.864 3.5 8 3.5ZM8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-1.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>';
+        lightboxBtn.setAttribute('aria-label', 'View full screen');
+        lightboxBtn.innerHTML = ICON_FULLSCREEN;
         lightboxBtn.addEventListener('click', function (e) {
           e.stopPropagation();
           openLightbox(block.xml);
@@ -2769,7 +2812,7 @@
         inlineToolbar.appendChild(lightboxBtn);
 
         var lockBtn = document.createElement('button');
-        lockBtn.title = 'Locked';
+        lockBtn.setAttribute('aria-label', 'Locked');
         lockBtn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M8 1a3.5 3.5 0 0 0-3.5 3.5V6H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-.5V4.5A3.5 3.5 0 0 0 8 1Zm2 5H6V4.5a2 2 0 1 1 4 0V6Z"/></svg>';
         lockBtn.style.cursor = 'default';
         lockBtn.style.opacity = '0.6';
@@ -2992,11 +3035,36 @@
         // zoomOutBtn.title = 'Zoom out';
         // ...
 
+        // Fit, actual size, full screen view, then the labeled Edit button
+        var fitBtn = document.createElement('button');
+        fitBtn.setAttribute('aria-label', 'Fit to frame');
+        fitBtn.innerHTML = ICON_FIT;
+        fitBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var st = editorStates.get(index);
+          if (st) fitDiagramToContainer(st, true);
+        });
+        inlineToolbar.appendChild(fitBtn);
+
+        var actualSizeBtn = document.createElement('button');
+        actualSizeBtn.setAttribute('aria-label', 'Actual size');
+        actualSizeBtn.innerHTML = ICON_ACTUAL_SIZE;
+        actualSizeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var st = editorStates.get(index);
+          if (!st) return;
+          // Clear explicit dimensions so fit uses the diagram's natural size
+          st.blockWidth = null;
+          st.explicitWidth = false;
+          st.explicitHeight = false;
+          fitDiagramToContainer(st, true);
+        });
+        inlineToolbar.appendChild(actualSizeBtn);
+
         // Lightbox button — opens non-editable full-window view
         var lightboxBtn = document.createElement('button');
-        lightboxBtn.title = 'Preview';
-        // Eye icon
-        lightboxBtn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M8 3.5C4.136 3.5 1.093 6.314.158 7.7a.75.75 0 0 0 0 .6C1.093 9.686 4.136 12.5 8 12.5s6.907-2.814 7.842-4.2a.75.75 0 0 0 0-.6C14.907 6.314 11.864 3.5 8 3.5ZM8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-1.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>';
+        lightboxBtn.setAttribute('aria-label', block.linkTarget ? 'Open image preview' : 'View full screen');
+        lightboxBtn.innerHTML = ICON_FULLSCREEN;
         lightboxBtn.addEventListener('click', function (e) {
           e.stopPropagation();
           // For a linked .drawio.svg/.png, open the file in VS Code's image
@@ -3010,35 +3078,10 @@
         });
         inlineToolbar.appendChild(lightboxBtn);
 
-        var fitBtn = document.createElement('button');
-        fitBtn.title = 'Fit diagram';
-        fitBtn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M2 2.5A.5.5 0 0 1 2.5 2h3a.5.5 0 0 1 0 1H3v2.5a.5.5 0 0 1-1 0v-3Zm0 11a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 0-1H3v-2.5a.5.5 0 0 0-1 0v3Zm12 0a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H13v-2.5a.5.5 0 0 1 1 0v3Zm0-11a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0 0 1H13v2.5a.5.5 0 0 0 1 0v-3Z"/></svg>';
-        fitBtn.addEventListener('click', function (e) {
-          e.stopPropagation();
-          var st = editorStates.get(index);
-          if (st) fitDiagramToContainer(st, true);
-        });
-        inlineToolbar.appendChild(fitBtn);
-
-        var actualSizeBtn = document.createElement('button');
-        actualSizeBtn.title = 'Actual size (1:1)';
-        actualSizeBtn.innerHTML = '<svg viewBox="0 0 16 16"><text x="8" y="12" text-anchor="middle" font-size="11" font-weight="bold" fill="currentColor" font-family="sans-serif">1:1</text></svg>';
-        actualSizeBtn.addEventListener('click', function (e) {
-          e.stopPropagation();
-          var st = editorStates.get(index);
-          if (!st) return;
-          // Clear explicit dimensions so fit uses the diagram's natural size
-          st.blockWidth = null;
-          st.explicitWidth = false;
-          st.explicitHeight = false;
-          fitDiagramToContainer(st, true);
-        });
-        inlineToolbar.appendChild(actualSizeBtn);
-
+        // Primary action, so it gets a text label
         var expandBtn = document.createElement('button');
-        expandBtn.title = 'Edit Diagram';
-        // Arrow pointing out of box — distinct from fit icon
-        expandBtn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M9 2a.75.75 0 0 1 0-1.5h5.25a.75.75 0 0 1 .75.75V6.5a.75.75 0 0 1-1.5 0V3.06l-4.72 4.72a.75.75 0 0 1-1.06-1.06L12.44 2H9ZM2.5 4A.5.5 0 0 1 3 3.5h3.25a.75.75 0 0 0 0-1.5H3A2 2 0 0 0 1 4v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V9.75a.75.75 0 0 0-1.5 0V13a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4Z"/></svg>';
+        expandBtn.className = 'labeled';
+        expandBtn.innerHTML = ICON_EDIT + '<span>Edit</span>';
         expandBtn.addEventListener('click', function (e) {
           e.stopPropagation();
           openOverlay(index);
