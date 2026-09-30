@@ -671,8 +671,13 @@
           <line x1="7.5" y1="10.5" x2="13.5" y2="10.5" />
         </svg>
       </button>
-      <button id="lightbox-fit" title="Fit to window">
-        <svg class="stroke-icon" viewBox="0 0 24 24">
+      <!-- Toggles between fit and actual size; shows the next step -->
+      <button id="lightbox-fit" title="Actual size">
+        <svg id="lightbox-fit-icon-actual" viewBox="0 0 24 24">
+          <text x="12" y="17" text-anchor="middle" font-size="14" font-weight="700"
+            font-family="-apple-system,system-ui,Segoe UI,sans-serif">1:1</text>
+        </svg>
+        <svg id="lightbox-fit-icon-fit" class="stroke-icon" viewBox="0 0 24 24" style="display:none">
           <polyline points="4 8 4 4 8 4" />
           <polyline points="16 4 20 4 20 8" />
           <polyline points="4 16 4 20 8 20" />
@@ -763,10 +768,31 @@
         if (lightboxState.initialized)
           lightboxFrame.contentWindow.postMessage(JSON.stringify({ action: 'invokeAction', actionName: 'zoomOut' }), '*');
       });
-      document.getElementById('lightbox-fit').addEventListener('click', function () {
-        if (lightboxState.initialized)
-          lightboxFrame.contentWindow.postMessage(JSON.stringify({ action: 'invokeAction', actionName: 'smartFit' }), '*');
+      // Fit / actual size toggle. draw.io's smartFit fits at 100% and goes to
+      // 100% (centered) at any other zoom, so the button shows the 1:1 icon
+      // unless the viewer is at exactly 100%.
+      var lightboxFitBtn = document.getElementById('lightbox-fit');
+      lightboxFitBtn.addEventListener('click', function () {
+        if (!lightboxState.initialized) return;
+        lightboxFrame.contentWindow.postMessage(JSON.stringify({ action: 'invokeAction', actionName: 'smartFit' }), '*');
+        requestLightboxScale();
       });
+      // draw.io versions without zoom events don't report wheel or pinch
+      // zooming, so refresh the scale before the button is used
+      lightboxFitBtn.addEventListener('mouseenter', requestLightboxScale);
+
+      function requestLightboxScale() {
+        // An empty viewbox leaves the view unchanged and replies with the scale
+        if (lightboxState.initialized)
+          lightboxFrame.contentWindow.postMessage(JSON.stringify({ action: 'viewbox', viewbox: null }), '*');
+      }
+
+      function updateLightboxFitButton() {
+        var atActualSize = lightboxState.scale === 1;
+        lightboxFitBtn.title = atActualSize ? 'Fit to window' : 'Actual size';
+        document.getElementById('lightbox-fit-icon-actual').style.display = atActualSize ? 'none' : '';
+        document.getElementById('lightbox-fit-icon-fit').style.display = atActualSize ? '' : 'none';
+      }
 
       // ── Configuration ──
       var DIAGRAM_SAVE_DEBOUNCE_MS = 500;
@@ -1012,6 +1038,7 @@
         active: false,
         initialized: false,
         currentXml: '',
+        scale: null, // current viewer scale, from load/zoom/viewbox messages
       };
 
       // ── Mermaid conversion helpers ──
@@ -2394,6 +2421,8 @@
                 settingsName: 'vscode-lightbox',
                 noAutoFocus: true,
                 noResizers: true,
+                // Mouse wheel zooms instead of panning (drag still pans)
+                zoomWheel: true,
               }
             }), '*');
             break;
@@ -2404,12 +2433,20 @@
             lightboxFrame.contentWindow.postMessage(JSON.stringify({
               action: 'load',
               autosave: 0,
+              zoomEvents: true,
               xml: lightboxState.currentXml,
               title: '',
             }), '*');
             break;
 
+          // All carry the current scale for the fit / actual size toggle
           case 'load':
+          case 'zoom':
+          case 'viewbox':
+            if (typeof msg.scale === 'number') {
+              lightboxState.scale = msg.scale;
+              updateLightboxFitButton();
+            }
             break;
 
           // Ignore edit events — lightbox is read-only
@@ -2428,6 +2465,8 @@
 
         lightboxState.active = true;
         lightboxState.currentXml = xml;
+        lightboxState.scale = null;
+        updateLightboxFitButton();
         lightboxEl.classList.add('active');
         document.body.style.overflow = 'hidden';
 
@@ -2444,6 +2483,7 @@
           lightboxFrame.contentWindow.postMessage(JSON.stringify({
             action: 'load',
             autosave: 0,
+            zoomEvents: true,
             xml: lightboxState.currentXml,
             title: '',
           }), '*');
