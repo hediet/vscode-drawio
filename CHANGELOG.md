@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.0]
+
+### Fixed
+
+- Diagram background colors were ignored in the inline editor, its full screen viewer, the Diagram Preview panel and the Markdown code block editor, so a white background with Adaptive Colors set to None showed the dark editor background in dark themes [#536](https://github.com/hediet/vscode-drawio/issues/536)
+
 ## [1.14.0]
 
 ### Changed
