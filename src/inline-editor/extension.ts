@@ -1074,7 +1074,7 @@ async function openPreviewPanel(context: vscode.ExtensionContext, xml: string): 
 		".mxCellEditor { resize:none !important; }",
 	].join("\\n");
 
-	const lightboxUrl = appendEmbedParams(editorUrl, `lightbox=1&toolbar=0&configure=1&embed=1&proto=json&spin=1&pv=0&grid=0&transparent=1&border=60&tooltips=0${devMode ? "&dev=1&test=1" : ""}${isDark ? "&dark=1" : ""}&lang=${encodeURIComponent(resolveDrawioLanguage())}`);
+	const lightboxUrl = appendEmbedParams(editorUrl, `lightbox=1&toolbar=0&configure=1&embed=1&proto=json&spin=1&pv=0&grid=0&border=60&tooltips=0${devMode ? "&dev=1&test=1" : ""}${isDark ? "&dark=1" : ""}&lang=${encodeURIComponent(resolveDrawioLanguage())}`);
 
 	const escapedXml = xml.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, "\\n").replace(/\r/g, "\\r");
 
@@ -1168,6 +1168,10 @@ async function openPreviewPanel(context: vscode.ExtensionContext, xml: string): 
               compact: true,
               css: '${LIGHTBOX_CSS}',
               darkColor: '#1e1e1e',
+              // Transparent unless the diagram has a background color
+              // (transparent=1 would drop that color too)
+              defaultPageBackgroundColor: 'transparent',
+              defaultDarkPageBackgroundColor: 'transparent',
               settingsName: 'vscode-lightbox',
               noAutoFocus: true,
               noResizers: true,

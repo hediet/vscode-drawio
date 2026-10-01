@@ -1412,6 +1412,14 @@
         RESIZE_HIDE_CSS,
       ].join('\n');
 
+      // Diagrams without a background color blend into the page, but an
+      // explicit background color is still painted. The transparent=1 URL
+      // param would drop explicit background colors as well.
+      var TRANSPARENT_PAGE_CONFIG = {
+        defaultPageBackgroundColor: 'transparent',
+        defaultDarkPageBackgroundColor: 'transparent'
+      };
+
       // ── Toolbar buttons ──
       // Track the afterLine before click steals focus from the active section
       var _insertAfterLine = null;
@@ -1513,7 +1521,7 @@
 
       function buildEditorUrl() {
         var params = 'embed=1&proto=json&dark=auto&ui=simple&tooltips=0'
-          + '&configure=1&libraries=1&pv=0&grid=0&transparent=1&embedInline=1'
+          + '&configure=1&libraries=1&pv=0&grid=0&embedInline=1'
           + '&lang=' + encodeURIComponent(drawioLang);
         if (devMode) params += '&dev=1&test=1';
 
@@ -1875,7 +1883,7 @@
           case 'configure':
             _singletonIframe.contentWindow.postMessage(JSON.stringify({
               action: 'configure',
-              config: Object.assign({}, drawioUserConfig, {
+              config: Object.assign({}, drawioUserConfig, TRANSPARENT_PAGE_CONFIG, {
                 compact: true,
                 css: minimalUI ? EDITOR_CSS_MINIMAL : EDITOR_CSS,
                 darkColor: '#1e1e1e',
@@ -2035,7 +2043,7 @@
           case 'configure':
             state.iframe.contentWindow.postMessage(JSON.stringify({
               action: 'configure',
-              config: Object.assign({}, drawioUserConfig, {
+              config: Object.assign({}, drawioUserConfig, TRANSPARENT_PAGE_CONFIG, {
                 compact: true,
                 css: minimalUI ? EDITOR_CSS_MINIMAL : EDITOR_CSS,
                 darkColor: '#1e1e1e',
@@ -2414,7 +2422,7 @@
           case 'configure':
             lightboxFrame.contentWindow.postMessage(JSON.stringify({
               action: 'configure',
-              config: {
+              config: Object.assign({}, TRANSPARENT_PAGE_CONFIG, {
                 compact: true,
                 css: LIGHTBOX_CSS,
                 darkColor: '#1e1e1e',
@@ -2423,7 +2431,7 @@
                 noResizers: true,
                 // Mouse wheel zooms instead of panning (drag still pans)
                 zoomWheel: true,
-              }
+              })
             }), '*');
             break;
 
@@ -2471,7 +2479,7 @@
         document.body.style.overflow = 'hidden';
 
         var params = 'lightbox=1&toolbar=0&configure=1&embed=1&tooltips=0'
-          + '&proto=json&spin=1&pv=0&grid=0&transparent=1&border=60'
+          + '&proto=json&spin=1&pv=0&grid=0&border=60'
           + '&lang=' + encodeURIComponent(drawioLang);
         if (devMode) params += '&dev=1&test=1';
         if (isDark) params += '&dark=1';

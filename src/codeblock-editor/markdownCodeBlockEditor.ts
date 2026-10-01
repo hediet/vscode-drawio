@@ -251,7 +251,6 @@ async function buildGuestConfig(
 		libraries: "1",
 		pv: "0",
 		grid: "0",
-		transparent: "1",
 		embedInline: "1",
 		noSaveBtn: "1",
 		noExitBtn: "1",
@@ -287,6 +286,10 @@ async function buildGuestConfig(
 		compact: true,
 		css: INLINE_CSS,
 		darkColor: "#1e1e1e",
+		// Transparent unless the diagram has a background color (the
+		// transparent=1 URL param would drop that color too)
+		defaultPageBackgroundColor: "transparent",
+		defaultDarkPageBackgroundColor: "transparent",
 		settingsName: "vscode-codeblock-editor",
 		noAutoFocus: true,
 		passiveScroll: true,
