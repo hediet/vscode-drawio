@@ -48,7 +48,7 @@
       let editorReady = false;
       let mode = 'modal'; // 'modal' (save & close) or 'customEditor' (autosave)
       let autosaveTimer = null;
-      let mermaidDescriptor = null; // set when loading from mermaid source
+      let sourceDescriptor = null; // set when converting mermaid/plantuml source
       let showTemplatePicker = false; // show template dialog after loading blank diagram
 
       // Receive initial data from the extension
@@ -59,7 +59,7 @@
         if (msg.type === 'loadDiagram')
         {
           currentXml = msg.xml;
-          mermaidDescriptor = null;
+          sourceDescriptor = null;
           showTemplatePicker = msg.isBlank || false;
           if (msg.mode === 'customEditor')
           {
@@ -68,18 +68,12 @@
           if (msg.devMode != null) devMode = msg.devMode;
           loadEditorFrame(msg.editorUrl, msg.isDark);
         }
-        else if (msg.type === 'loadMermaid')
+        else if (msg.type === 'loadSource')
         {
           currentXml = '';
-          // wrap:true wraps the parsed result in the editable mermaid group
-          // (a re-openable group carrying the source as mermaidData), matching
-          // Insert > Mermaid — otherwise the raw cells load and the mermaid
-          // source is lost.
-          mermaidDescriptor = {
-            format: 'mermaid',
-            data: msg.mermaidSource,
-            wrap: true,
-          };
+          // The embed load descriptor that converts the source (see
+          // createConversionDescriptor in diagramParser.ts)
+          sourceDescriptor = msg.descriptor;
           if (msg.devMode != null) devMode = msg.devMode;
           loadEditorFrame(msg.editorUrl, msg.isDark);
         }
@@ -180,12 +174,12 @@
             // stale (zero) dimensions and computes a tiny zoom level.
             requestAnimationFrame(function()
             {
-              if (mermaidDescriptor)
+              if (sourceDescriptor)
               {
                 var loadMsg = {
                   action: 'load',
                   autosave: 1,
-                  descriptor: mermaidDescriptor,
+                  descriptor: sourceDescriptor,
                   title: '',
                 };
                 frame.contentWindow.postMessage(JSON.stringify(loadMsg), '*');

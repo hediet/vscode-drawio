@@ -90,7 +90,7 @@ This document demonstrates the full capabilities of the **Draw.io Markdown Diagr
         <mxCell id="Sh3pKC0F2qFwc_NwnPTL-3" edge="1" parent="webviewLayer" source="mermaid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="modalEditor" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="mermaid" parent="webviewLayer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;shadow=1;dashed=1;" value="&lt;font style=&quot;font-size:10px&quot;&gt;Mermaid Support&lt;br&gt;&lt;i&gt;Detect · Convert · Edit&lt;/i&gt;&lt;/font&gt;" vertex="1">
+        <mxCell id="mermaid" parent="webviewLayer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;shadow=1;dashed=1;" value="&lt;font style=&quot;font-size:10px&quot;&gt;Mermaid / PlantUML&lt;br&gt;&lt;i&gt;Detect · Convert · Edit&lt;/i&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="45" width="190" x="30" y="180" as="geometry" />
         </mxCell>
         <mxCell id="ta1" edge="1" parent="webviewLayer" source="tier1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#999;strokeWidth=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="tier2">
@@ -582,7 +582,7 @@ graph TD
         J -->|iframe src| I
     end
 
-    D -->|finds| L[Fenced blocks<br>drawio / mermaid]
+    D -->|finds| L[Fenced blocks<br>drawio / mermaid / plantuml]
     D -->|finds| M[Comment blocks<br>drawio:start/end]
     E -->|toggles| N[locked attribute]
 
@@ -604,9 +604,38 @@ The extension follows a clean separation of concerns: the parser and lock module
 
 ---
 
-## 4. Block Syntax Reference
+## 4. Diagram Block Lifecycle — PlantUML Diagram
 
-The extension supports two syntaxes for embedding diagrams, plus recognition of Mermaid blocks.
+PlantUML code blocks (`` ```plantuml `` or `` ```puml ``) are recognized just like Mermaid blocks and get the same "Convert to draw.io" button and CodeLens. draw.io converts PlantUML itself, so no PlantUML server or Java runtime is needed. The `@startuml` / `@enduml` lines are optional: the extension adds them when a block leaves them out.
+
+The state diagram below shows the lifecycle of a diagram block, from source code to an editable and lockable draw.io diagram.
+
+```plantuml
+@startuml
+state "Source block" as Source : mermaid · plantuml
+state "Converting" as Converting : draw.io parses the source
+state "draw.io block" as Drawio {
+  state Editable
+  state Locked
+  Editable --> Locked : Lock
+  Locked --> Editable : Unlock
+}
+
+[*] --> Source : write source
+[*] --> Drawio : Insert Diagram
+Source --> Converting : Convert to draw.io
+Converting --> Drawio : drawio block written
+Drawio --> [*] : delete block
+@enduml
+```
+
+The converted diagram keeps its PlantUML source, so draw.io can open it again as PlantUML text for changes that are easier to make in code than on the canvas.
+
+---
+
+## 5. Block Syntax Reference
+
+The extension supports two syntaxes for embedding diagrams, plus recognition of Mermaid and PlantUML blocks.
 
 ### Fenced Code Block
 
@@ -647,11 +676,11 @@ An ordinary Markdown image link to a `.drawio.svg` or `.drawio.png` file in the 
     ![alt text](path/to/diagram.drawio.svg)
     ![alt text](path/to/diagram.drawio.png)
 
-See Section 7. Remote URLs and non-draw.io images render as plain images.
+See Section 8. Remote URLs and non-draw.io images render as plain images.
 
 ---
 
-## 5. Simple Diagram — HTML Comment Format
+## 6. Simple Diagram — HTML Comment Format
 
 This diagram uses the HTML comment format. It is invisible when viewing the raw Markdown in a standard renderer, but the extension detects and renders it inline.
 
@@ -687,7 +716,7 @@ This diagram uses the HTML comment format. It is invisible when viewing the raw 
 <!-- drawio:end -->
 ---
 
-## 6. Locked Diagram Example
+## 7. Locked Diagram Example
 
 Diagrams can be locked to prevent accidental modifications. This is useful in shared repositories where certain diagrams should be treated as stable references. The `locked` attribute disables the click-to-edit behavior and displays an "Unlock" CodeLens action instead.
 
@@ -735,7 +764,7 @@ This state machine is locked. To edit it, use the "Unlock" CodeLens action or ma
 
 ---
 
-## 7. Linked Diagrams — Editable `.drawio.svg` / `.drawio.png` Images
+## 8. Linked Diagrams — Editable `.drawio.svg` / `.drawio.png` Images
 
 Diagrams don't have to live inside the Markdown. A standard image link to a `.drawio.svg` **or** `.drawio.png` file in the same repository is rendered inline **and is editable just like a codeblock** — but edits are written back to the linked file, not to this document.
 
@@ -779,12 +808,13 @@ This showcase covers the main capabilities of the Draw.io Markdown Diagrams exte
 
 | Feature | Syntax | Example in this file |
 |---|---|---|
-| Fenced diagram block | `` ```drawio `` | Sections 1, 2, 6 |
-| HTML comment block | `<!-- drawio:start -->` | Section 5 |
-| Width attribute | `width=N` | Sections 1, 2, 6 |
-| Locked diagrams | `locked` keyword | Section 6 |
+| Fenced diagram block | `` ```drawio `` | Sections 1, 2, 7 |
+| HTML comment block | `<!-- drawio:start -->` | Section 6 |
+| Width attribute | `width=N` | Sections 1, 2, 7 |
+| Locked diagrams | `locked` keyword | Section 7 |
 | Mermaid conversion | `` ```mermaid `` | Section 3 |
-| Linked image file | `![](file.drawio.svg)` · `![](file.drawio.png)` | Section 7 |
+| PlantUML conversion | `` ```plantuml `` · `` ```puml `` | Section 4 |
+| Linked image file | `![](file.drawio.svg)` · `![](file.drawio.png)` | Section 8 |
 | Mixed text + diagrams | Standard Markdown | Throughout |
 
-Diagram XML for block diagrams is stored inline in the Markdown source, so it diffs cleanly in version control with no external files. Linked `.drawio.svg` / `.drawio.png` images (Section 7) instead keep the diagram in a separate, reusable image file — viewable in any tool that renders SVG/PNG — that the extension writes back to.
+Diagram XML for block diagrams is stored inline in the Markdown source, so it diffs cleanly in version control with no external files. Linked `.drawio.svg` / `.drawio.png` images (Section 8) instead keep the diagram in a separate, reusable image file — viewable in any tool that renders SVG/PNG — that the extension writes back to.

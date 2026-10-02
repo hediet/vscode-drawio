@@ -7,15 +7,18 @@ import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
 import { appendEmbedParams } from "../utils/appendEmbedParams";
 import {
 	DiagramBlock,
-	MermaidBlock,
+	SourceBlock,
+	SourceLanguage,
+	SOURCE_LANGUAGE_NAMES,
 	ImageLink,
 	findDiagramBlocks,
 	replaceDiagramBlock,
 	createEmptyDiagram,
 	isBlankDiagram,
 	buildDiagramBlock,
-	findMermaidBlocks,
-	replaceMermaidBlock,
+	findSourceBlocks,
+	replaceSourceBlock,
+	createConversionDescriptor,
 	findDiagramImageLinks,
 	isLocalLinkTarget,
 	isPngLinkTarget,
@@ -54,12 +57,12 @@ interface DiagramEditingContext {
 	block: DiagramBlock;
 }
 
-interface MermaidEditingContext {
+interface SourceEditingContext {
 	documentUri: vscode.Uri;
-	mermaidBlock: MermaidBlock;
+	sourceBlock: SourceBlock;
 }
 
-let editingContext: DiagramEditingContext | MermaidEditingContext | null = null;
+let editingContext: DiagramEditingContext | SourceEditingContext | null = null;
 
 let inlinePreviewPanel: vscode.WebviewPanel | null = null;
 let inlinePreviewDocUri: vscode.Uri | null = null;
@@ -223,7 +226,7 @@ function decodeExportedImage(dataUri: string): Buffer | null {
  * Handle a "vscodeShortcut" message forwarded from the draw.io iframe
  * via the outer webview.  Returns true if the message was handled.
  */
-function handleForwardedMessage(msg: { type: string; command?: string; href?: string }): boolean {
+function handleForwardedMessage(msg: { type: string; command?: string; href?: string; message?: string }): boolean {
 	if (msg.type === "vscodeShortcut" && msg.command) {
 		vscode.commands.executeCommand(msg.command);
 		return true;
@@ -232,6 +235,12 @@ function handleForwardedMessage(msg: { type: string; command?: string; href?: st
 		// Link click forwarded from draw.io (suppressNewWindows mode): open it in
 		// the host's default browser instead of a new tab/window.
 		vscode.env.openExternal(vscode.Uri.parse(msg.href));
+		return true;
+	}
+	if (msg.type === "conversionFailed" && msg.message) {
+		// A mermaid/plantuml block the inline editor could not convert: the
+		// webview has put the source block back, this says why
+		vscode.window.showErrorMessage(msg.message);
 		return true;
 	}
 	return false;
@@ -297,12 +306,12 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 		)
 	);
 
-	// CodeLens provider for mermaid blocks
-	const mermaidCodeLensProvider = new MermaidCodeLensProvider();
+	// CodeLens provider for mermaid and plantuml blocks
+	const sourceCodeLensProvider = new SourceCodeLensProvider();
 	context.subscriptions.push(
 		vscode.languages.registerCodeLensProvider(
 			{ language: "markdown", scheme: "file" },
-			mermaidCodeLensProvider
+			sourceCodeLensProvider
 		)
 	);
 
@@ -666,37 +675,41 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 		})
 	);
 
-	// Command: Convert Mermaid to draw.io
+	// Commands: Convert Mermaid / PlantUML to draw.io
+	const convertSource = (language: SourceLanguage, lineOrUri: unknown): void => {
+		let doc: vscode.TextDocument | null = null;
+		const editor = vscode.window.activeTextEditor;
+		const name = SOURCE_LANGUAGE_NAMES[language];
+
+		if (editor && editor.document.languageId === "markdown") {
+			doc = editor.document;
+		}
+
+		if (!doc) {
+			vscode.window.showWarningMessage(`Open a Markdown file to convert a ${name} diagram.`);
+			return;
+		}
+
+		// The CodeLens passes the block's start line; from the command
+		// palette the block at the cursor is converted
+		const line = typeof lineOrUri === "number" ? lineOrUri : editor!.selection.active.line;
+		const block = findSourceBlocks(doc.getText()).find(b =>
+			b.language === language && line >= b.startLine && line <= b.endLine);
+
+		if (!block) {
+			vscode.window.showWarningMessage(`No ${name} code block found.`);
+			return;
+		}
+
+		openSourceEditor(context, doc, block);
+	};
+
 	context.subscriptions.push(
-		vscode.commands.registerCommand("drawio-inline-editor.convertMermaid", (lineOrUri: unknown, blockIndex?: number) => {
-			let doc: vscode.TextDocument | null = null;
-			const editor = vscode.window.activeTextEditor;
-
-			if (editor && editor.document.languageId === "markdown") {
-				doc = editor.document;
-			}
-
-			if (!doc) {
-				vscode.window.showWarningMessage("Open a Markdown file to convert a mermaid diagram.");
-				return;
-			}
-
-			const text = doc.getText();
-			const blocks = findMermaidBlocks(text);
-
-			let block: MermaidBlock | undefined;
-			if (typeof blockIndex === "number" && blockIndex < blocks.length) {
-				block = blocks[blockIndex];
-			} else if (typeof lineOrUri === "number") {
-				block = blocks.find(b => lineOrUri >= b.startLine && lineOrUri <= b.endLine);
-			}
-
-			if (!block) {
-				vscode.window.showWarningMessage("No mermaid code block found.");
-				return;
-			}
-
-			openMermaidEditor(context, doc, block);
+		vscode.commands.registerCommand("drawio-inline-editor.convertMermaid", (lineOrUri: unknown) => {
+			convertSource("mermaid", lineOrUri);
+		}),
+		vscode.commands.registerCommand("drawio-inline-editor.convertPlantUml", (lineOrUri: unknown) => {
+			convertSource("plantuml", lineOrUri);
 		})
 	);
 
@@ -863,20 +876,20 @@ async function saveDiagram(newXml: string, autoLock: boolean): Promise<void> {
 }
 
 /**
- * Opens the draw.io editor with mermaid source, converting it to a draw.io diagram.
- * When saved, replaces the mermaid block with a drawio block.
+ * Opens the draw.io editor with mermaid or plantuml source, converting it to a
+ * draw.io diagram. When saved, replaces the source block with a drawio block.
  */
-async function openMermaidEditor(
+async function openSourceEditor(
 	context: vscode.ExtensionContext,
 	document: vscode.TextDocument,
-	mermaidBlock: MermaidBlock
+	sourceBlock: SourceBlock
 ): Promise<void> {
 	if (activePanel) {
 		activePanel.dispose();
 	}
 
-	// Store the mermaid block as the editing context so saveMermaidDiagram can find it
-	editingContext = { documentUri: document.uri, mermaidBlock };
+	// Store the source block as the editing context so saveSourceDiagram can find it
+	editingContext = { documentUri: document.uri, sourceBlock };
 
 	const config = vscode.workspace.getConfiguration("drawio-inline-editor");
 	const editorUrl = await getEditorUrl(context);
@@ -889,7 +902,7 @@ async function openMermaidEditor(
 
 	activePanel = vscode.window.createWebviewPanel(
 		"drawio-inline-editor.editor",
-		"Convert Mermaid to Draw.io",
+		`Convert ${SOURCE_LANGUAGE_NAMES[sourceBlock.language]} to Draw.io`,
 		vscode.ViewColumn.Beside,
 		{
 			enableScripts: true,
@@ -926,8 +939,8 @@ async function openMermaidEditor(
 			switch (msg.type) {
 				case "webviewReady":
 					activePanel!.webview.postMessage({
-						type: "loadMermaid",
-						mermaidSource: mermaidBlock.source,
+						type: "loadSource",
+						descriptor: createConversionDescriptor(sourceBlock),
 						editorUrl,
 						theme,
 						isDark,
@@ -936,11 +949,11 @@ async function openMermaidEditor(
 					break;
 
 				case "save":
-					await saveMermaidDiagram(msg.xml);
+					await saveSourceDiagram(msg.xml);
 					break;
 
 				case "saveAndClose":
-					await saveMermaidDiagram(msg.xml);
+					await saveSourceDiagram(msg.xml);
 					activePanel!.dispose();
 					break;
 
@@ -963,20 +976,20 @@ async function openMermaidEditor(
 }
 
 /**
- * Saves the converted diagram, replacing the mermaid block with a drawio block.
+ * Saves the converted diagram, replacing the source block with a drawio block.
  */
-async function saveMermaidDiagram(newXml: string): Promise<void> {
-	if (!editingContext || !("mermaidBlock" in editingContext)) { return; }
+async function saveSourceDiagram(newXml: string): Promise<void> {
+	if (!editingContext || !("sourceBlock" in editingContext)) { return; }
 
-	const { documentUri, mermaidBlock } = editingContext;
+	const { documentUri, sourceBlock } = editingContext;
 	const document = await vscode.workspace.openTextDocument(documentUri);
 	const text = document.getText();
 
-	// Re-parse to find the mermaid block by startLine
-	const blocks = findMermaidBlocks(text);
-	const currentBlock = blocks.find(b => b.startLine === mermaidBlock.startLine) || mermaidBlock;
+	// Re-parse to find the source block by startLine
+	const blocks = findSourceBlocks(text);
+	const currentBlock = blocks.find(b => b.startLine === sourceBlock.startLine) || sourceBlock;
 
-	const newText = replaceMermaidBlock(text, currentBlock, newXml, "fenced");
+	const newText = replaceSourceBlock(text, currentBlock, newXml, "fenced");
 
 	const fullRange = new vscode.Range(
 		document.positionAt(0),
@@ -989,23 +1002,23 @@ async function saveMermaidDiagram(newXml: string): Promise<void> {
 }
 
 /**
- * Saves a mermaid-to-drawio conversion from the inline preview.
- * Replaces the mermaid block with a drawio block and re-renders.
+ * Saves a mermaid/plantuml-to-drawio conversion from the inline preview.
+ * Replaces the source block with a drawio block and re-renders.
  */
-async function saveMermaidConversion(
-	mermaidIndex: number,
+async function saveSourceConversion(
+	sourceIndex: number,
 	xml: string,
 	height: number | undefined,
 	width: number | undefined
 ): Promise<void> {
 	const doc = await vscode.workspace.openTextDocument(inlinePreviewDocUri!);
 	const text = doc.getText();
-	const mBlocks = findMermaidBlocks(text);
-	const mBlock = mBlocks[mermaidIndex];
-	if (!mBlock) { return; }
+	const sBlocks = findSourceBlocks(text);
+	const sBlock = sBlocks[sourceIndex];
+	if (!sBlock) { return; }
 
 	suppressInlinePreviewUpdate = true;
-	const newText = replaceMermaidBlock(text, mBlock, xml, "fenced", height, width);
+	const newText = replaceSourceBlock(text, sBlock, xml, "fenced", height, width);
 	const fullRange = new vscode.Range(
 		doc.positionAt(0),
 		doc.positionAt(text.length)
@@ -1015,17 +1028,17 @@ async function saveMermaidConversion(
 	await vscode.workspace.applyEdit(edit);
 	await doc.save();
 
-	// Find the new diagram block that replaced the mermaid block
+	// Find the new diagram block that replaced the source block
 	const updatedDoc = await vscode.workspace.openTextDocument(inlinePreviewDocUri!);
 	const newDiagramBlocks = findDiagramBlocks(updatedDoc.getText());
-	const newBlock = newDiagramBlocks.find(b => b.startLine >= mBlock.startLine);
+	const newBlock = newDiagramBlocks.find(b => b.startLine >= sBlock.startLine);
 	const blockIndex = newBlock ? newDiagramBlocks.indexOf(newBlock) : -1;
 
-	// Send targeted message to replace the mermaid element in-place
+	// Send targeted message to replace the source element in-place
 	if (inlinePreviewPanel && blockIndex >= 0) {
 		inlinePreviewPanel.webview.postMessage({
-			type: "mermaidConverted",
-			mermaidIndex: mermaidIndex,
+			type: "sourceConverted",
+			sourceIndex: sourceIndex,
 			blockIndex: blockIndex,
 			xml: xml,
 			locked: false,
@@ -1312,8 +1325,8 @@ async function openInlinePreview(
 					break;
 
 				case "diagramEdited":
-					if (msg.mermaidIndex != null) {
-						await saveMermaidConversion(msg.mermaidIndex, msg.xml, msg.height, msg.width);
+					if (msg.sourceIndex != null) {
+						await saveSourceConversion(msg.sourceIndex, msg.xml, msg.height, msg.width);
 					} else {
 						await saveInlineDiagramEdit(msg.blockIndex, msg.xml, msg.diagramId);
 					}
@@ -1343,13 +1356,13 @@ async function openInlinePreview(
 					await insertDiagramFromPreview(msg.afterLine);
 					break;
 
-				case "convertMermaid":
+				case "convertSource":
 					{
 						const doc = await vscode.workspace.openTextDocument(inlinePreviewDocUri!);
-						const mBlocks = findMermaidBlocks(doc.getText());
-						const mBlock = mBlocks[msg.mermaidIndex];
-						if (mBlock) {
-							openMermaidEditor(context, doc, mBlock);
+						const sBlocks = findSourceBlocks(doc.getText());
+						const sBlock = sBlocks[msg.sourceIndex];
+						if (sBlock) {
+							openSourceEditor(context, doc, sBlock);
 						}
 						break;
 					}
@@ -1378,12 +1391,12 @@ function updateInlinePreview(document: vscode.TextDocument): void {
 
 	const text = document.getText();
 	const diagramBlocks = findDiagramBlocks(text);
-	const mermaidBlocks = findMermaidBlocks(text);
+	const sourceBlocks = findSourceBlocks(text);
 
-	// Merge diagram and mermaid blocks, sorted by position
+	// Merge diagram and source blocks, sorted by position
 	const allBlocks = [
 		...diagramBlocks.map((b, i) => ({ ...b, sectionType: "diagram" as const, blockIndex: i })),
-		...mermaidBlocks.map((b, i) => ({ ...b, sectionType: "mermaid" as const, mermaidIndex: i })),
+		...sourceBlocks.map((b, i) => ({ ...b, sectionType: "source" as const, sourceIndex: i })),
 	];
 	allBlocks.sort((a, b) => a.index - b.index);
 
@@ -1434,11 +1447,13 @@ function updateInlinePreview(document: vscode.TextDocument): void {
 				format: block.format,
 				diagramId: extractDiagramId(block.xml),
 			});
-		} else if (block.sectionType === "mermaid") {
+		} else if (block.sectionType === "source") {
 			sections.push({
-				type: "mermaid",
-				mermaidIndex: block.mermaidIndex,
-				source: (block as any).source,
+				type: "source",
+				sourceIndex: block.sourceIndex,
+				language: block.language,
+				source: block.source,
+				descriptor: createConversionDescriptor(block),
 				startLine: block.startLine,
 				endLine: block.endLine,
 			});
@@ -2064,7 +2079,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			const text = document.getText();
 			const lines = text.split("\n");
 			const diagramBlocks = findDiagramBlocks(text);
-			const mermaidBlocks = findMermaidBlocks(text);
+			const sourceBlocks = findSourceBlocks(text);
 
 			// Editable image links: ![alt](*.drawio.svg) / ![alt](*.drawio.png) on
 			// their own line that resolve to a same-repo file are edited inline like
@@ -2084,10 +2099,10 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 				})
 				.filter((x): x is ImageLink & { xml: string } => x != null);
 
-			// Merge diagram, mermaid and editable-image-link blocks by position
+			// Merge diagram, source and editable-image-link blocks by position
 			const allBlocks = [
 				...diagramBlocks.map((b, i) => ({ ...b, sectionType: "diagram" as const, blockIndex: i })),
-				...mermaidBlocks.map((b, i) => ({ ...b, sectionType: "mermaid" as const, mermaidIndex: i })),
+				...sourceBlocks.map((b, i) => ({ ...b, sectionType: "source" as const, sourceIndex: i })),
 				...imageLinks.map((b, i) => ({ ...b, sectionType: "imageLink" as const, linkIndex: i })),
 			];
 			allBlocks.sort((a, b) => a.index - b.index);
@@ -2134,11 +2149,13 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 						format: block.format,
 						diagramId: extractDiagramId(block.xml),
 					});
-				} else if (block.sectionType === "mermaid") {
+				} else if (block.sectionType === "source") {
 					sections.push({
-						type: "mermaid",
-						mermaidIndex: block.mermaidIndex,
-						source: (block as any).source,
+						type: "source",
+						sourceIndex: block.sourceIndex,
+						language: block.language,
+						source: block.source,
+						descriptor: createConversionDescriptor(block),
 						startLine: block.startLine,
 						endLine: block.endLine,
 					});
@@ -2236,26 +2253,26 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
 					case "diagramEdited":
 						{
-							if (msg.mermaidIndex != null) {
-								// Mermaid conversion: replace mermaid block with drawio block
+							if (msg.sourceIndex != null) {
+								// Source conversion: replace mermaid/plantuml block with drawio block
 								const text = document.getText();
-								const mBlocks = findMermaidBlocks(text);
-								const mBlock = mBlocks[msg.mermaidIndex];
-								if (mBlock) {
-									const newText = replaceMermaidBlock(text, mBlock, msg.xml, "fenced", msg.height, msg.width);
+								const sBlocks = findSourceBlocks(text);
+								const sBlock = sBlocks[msg.sourceIndex];
+								if (sBlock) {
+									const newText = replaceSourceBlock(text, sBlock, msg.xml, "fenced", msg.height, msg.width);
 									await applyEdit(newText);
 
-									// Send targeted mermaidConverted message for in-place DOM replacement
+									// Send targeted sourceConverted message for in-place DOM replacement
 									// (avoids full re-render which resets scroll position)
 									const updatedText = document.getText();
 									const newDiagramBlocks = findDiagramBlocks(updatedText);
-									const newBlock = newDiagramBlocks.find(b => b.startLine >= mBlock.startLine);
+									const newBlock = newDiagramBlocks.find(b => b.startLine >= sBlock.startLine);
 									const bIdx = newBlock ? newDiagramBlocks.indexOf(newBlock) : -1;
 
 									if (bIdx >= 0) {
 										webviewPanel.webview.postMessage({
-											type: "mermaidConverted",
-											mermaidIndex: msg.mermaidIndex,
+											type: "sourceConverted",
+											sourceIndex: msg.sourceIndex,
 											blockIndex: bIdx,
 											xml: msg.xml,
 											locked: false,
@@ -2545,21 +2562,23 @@ class DiagramCodeLensProvider implements vscode.CodeLensProvider {
 	}
 }
 
-class MermaidCodeLensProvider implements vscode.CodeLensProvider {
+class SourceCodeLensProvider implements vscode.CodeLensProvider {
 	provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
 		if (document.languageId !== "markdown") { return []; }
 
 		const text = document.getText();
-		const blocks = findMermaidBlocks(text);
+		const blocks = findSourceBlocks(text);
 		const lenses: vscode.CodeLens[] = [];
 
-		blocks.forEach((block, index) => {
+		blocks.forEach((block) => {
 			const range = new vscode.Range(block.startLine, 0, block.startLine, 0);
 
 			lenses.push(new vscode.CodeLens(range, {
 				title: "$(arrow-swap) Convert to draw.io",
-				command: "drawio-inline-editor.convertMermaid",
-				arguments: [block.startLine, index],
+				command: block.language === "mermaid" ?
+					"drawio-inline-editor.convertMermaid" :
+					"drawio-inline-editor.convertPlantUml",
+				arguments: [block.startLine],
 			}));
 		});
 

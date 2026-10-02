@@ -199,6 +199,11 @@
 				"command": "drawio-inline-editor.convertMermaid",
 				"title": "Convert Mermaid to Draw.io",
 				"category": "Draw.io"
+			},
+			{
+				"command": "drawio-inline-editor.convertPlantUml",
+				"title": "Convert PlantUML to Draw.io",
+				"category": "Draw.io"
 			}
 		],
 		"markdown.markdownItPlugins": true,

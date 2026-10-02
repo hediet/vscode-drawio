@@ -488,8 +488,8 @@
       min-height: 80px;
     }
 
-    /* ── Mermaid block ── */
-    .drawio-mermaid-container {
+    /* ── Source (mermaid / plantuml) block ── */
+    .drawio-source-container {
       position: relative;
       border: 1px solid var(--vscode-editorGroup-border);
       border-radius: 4px;
@@ -497,7 +497,7 @@
       background: var(--vscode-textCodeBlock-background);
     }
 
-    .drawio-mermaid-container pre {
+    .drawio-source-container pre {
       margin: 0;
       padding: 12px 16px;
       font-family: var(--vscode-editor-font-family, monospace);
@@ -508,12 +508,12 @@
       overflow-x: auto;
     }
 
-    .drawio-mermaid-container pre code {
+    .drawio-source-container pre code {
       background: none;
       padding: 0;
     }
 
-    .drawio-mermaid-label {
+    .drawio-source-label {
       display: inline-block;
       padding: 2px 8px;
       font-size: 11px;
@@ -810,7 +810,11 @@
 
       var imageBaseUri = '';
       var diagramBlocks = [];
-      var mermaidCount = 0;
+      var sourceCount = 0;
+
+      // Display names of the source block languages (see SOURCE_LANGUAGE_NAMES
+      // in diagramParser.ts)
+      var SOURCE_LANGUAGE_NAMES = { mermaid: 'Mermaid', plantuml: 'PlantUML' };
 
       // Returns true if the XML has no actual shapes (only the two root mxCells).
       function isBlankDiagramXml(xml) {
@@ -1041,33 +1045,51 @@
         scale: null, // current viewer scale, from load/zoom/viewbox messages
       };
 
-      // ── Mermaid conversion helpers ──
+      // ── Source (mermaid / plantuml) conversion helpers ──
 
-      // Check if a draw.io load event is a response to a mermaid descriptor load.
-      function isMermaidLoadResponse(msg) {
-        return msg.message && msg.message.descriptor && msg.message.descriptor.format === 'mermaid';
+      // Check if a draw.io load event is a response to a descriptor load
+      // (the conversion of a source block).
+      function isConversionLoadResponse(msg) {
+        return msg.message && msg.message.descriptor != null;
       }
 
-      // Complete a mermaid conversion: send the converted XML to the extension
-      // to replace the mermaid block with a drawio block. No explicit dimensions
+      // Complete a source conversion: send the converted XML to the extension
+      // to replace the source block with a drawio block. No explicit dimensions
       // are set — the re-rendered diagram block will calculate its size from the
       // XML bounds, just like any other inline diagram.
-      function completeMermaidConversion(state, xml) {
+      function completeSourceConversion(state, xml) {
         state.currentXml = xml;
-        state.mermaidConversion = false;
+        state.sourceConversion = false;
         vscode.postMessage({
           type: 'diagramEdited',
           blockIndex: state.blockIndex,
           xml: xml,
-          mermaidIndex: state.mermaidIndex,
+          sourceIndex: state.sourceIndex,
         });
       }
 
-      // Handle the extension's response after saving mermaid conversion.
-      // Replaces the mermaid editor in-place with a normal diagram block,
+      // Puts the source block back in place of a failed conversion and has the
+      // extension report why (the conversion iframe is too small to show
+      // draw.io's error dialog).
+      function failSourceConversion(state, message) {
+        state.sourceConversion = false;
+        state._blockAutosave = true;
+        if (state.iframe) state.iframe.remove();
+        editorStates.delete(state.blockIndex);
+
+        var outerElement = state.wrapper.closest('.drawio-editor-outer');
+        if (outerElement && outerElement.parentNode) {
+          outerElement.parentNode.replaceChild(createSourceBlock(state.section), outerElement);
+        }
+
+        vscode.postMessage({ type: 'conversionFailed', message: message });
+      }
+
+      // Handle the extension's response after saving a source conversion.
+      // Replaces the conversion editor in-place with a normal diagram block,
       // preserving scroll position for a smooth transition.
-      function handleMermaidConverted(msg) {
-        var stateKey = 'mermaid-' + msg.mermaidIndex;
+      function handleSourceConverted(msg) {
+        var stateKey = 'source-' + msg.sourceIndex;
         var state = editorStates.get(stateKey);
         if (!state) return;
 
@@ -1080,7 +1102,7 @@
           outerElement.style.overflow = 'hidden';
         }
 
-        // Clean up the mermaid conversion iframe
+        // Clean up the conversion iframe
         if (state.iframe) {
           state.iframe.remove();
         }
@@ -1100,9 +1122,9 @@
           diagramId: msg.diagramId,
         };
         diagramBlocks[msg.blockIndex] = section;
-        mermaidCount = Math.max(0, mermaidCount - 1);
+        sourceCount = Math.max(0, sourceCount - 1);
 
-        // Replace the mermaid outer element with the rendered diagram block.
+        // Replace the source outer element with the rendered diagram block.
         // The element height was already pinned above, so the document layout
         // stays stable and the vertical scroll position doesn't jump.
         if (outerElement) {
@@ -2029,8 +2051,8 @@
           case 'setDiagramPadding':
             diagramPadding = msg.padding;
             break;
-          case 'mermaidConverted':
-            handleMermaidConverted(msg);
+          case 'sourceConverted':
+            handleSourceConverted(msg);
             break;
         }
       }
@@ -2069,15 +2091,13 @@
 
             // Always use fit mode with the same border as the fit button
             // so SVG preview, editor load, and fit button all match.
-            if (state.mermaidConversion) {
+            if (state.sourceConversion) {
               state.iframe.contentWindow.postMessage(JSON.stringify({
                 action: 'load',
                 autosave: 1,
-                // wrap:true wraps the parsed result in the editable mermaid
-                // group (a re-openable group carrying the source as mermaidData),
-                // matching Insert > Mermaid — otherwise the raw cells load and
-                // the mermaid source is lost.
-                descriptor: { format: 'mermaid', data: state.mermaidSource, wrap: true },
+                // Converts the source (see createConversionDescriptor in
+                // diagramParser.ts)
+                descriptor: state.conversionDescriptor,
                 title: '',
                 border: diagramPadding,
                 fit: 1,
@@ -2110,13 +2130,23 @@
             // Don't recalculate size here — the container was already
             // correctly sized during initial render using mxGraph-rendered
             // bounds from the SVG preview.
-            // Mermaid conversion: the load response includes the converted XML.
-            if (state.mermaidConversion && isMermaidLoadResponse(msg)) {
-              if (msg.xml) {
-                completeMermaidConversion(state, msg.xml);
+            // Source conversion: the load response includes the converted XML,
+            // or the error that stopped the conversion.
+            if (state.sourceConversion) {
+              if (msg.error) {
+                failSourceConversion(state, 'Could not convert the ' + state.languageName + ' block: ' +
+                  String(msg.error).replace(new RegExp('^' + state.languageName + ':\\s*', 'i'), ''));
+              }
+              else if (!isConversionLoadResponse(msg)) {
+                // A draw.io that predates the descriptor's format loads an
+                // empty diagram instead, without echoing the descriptor.
+                failSourceConversion(state, 'This draw.io version cannot convert ' + state.languageName + '.');
+              }
+              else if (msg.xml) {
+                completeSourceConversion(state, msg.xml);
               }
               else {
-                console.error('drawio-inline-editor: mermaid conversion load response missing xml');
+                console.error('drawio-inline-editor: conversion load response missing xml');
               }
             }
             break;
@@ -2130,8 +2160,8 @@
 
           case 'autosave':
             if (msg.xml && !state._blockAutosave) {
-              if (state.mermaidConversion) {
-                completeMermaidConversion(state, msg.xml);
+              if (state.sourceConversion) {
+                completeSourceConversion(state, msg.xml);
               }
               else {
                 state.currentXml = msg.xml;
@@ -2143,8 +2173,8 @@
 
           case 'save':
             if (msg.xml && !state._blockAutosave) {
-              if (state.mermaidConversion) {
-                completeMermaidConversion(state, msg.xml);
+              if (state.sourceConversion) {
+                completeSourceConversion(state, msg.xml);
               }
               else {
                 state.currentXml = msg.xml;
@@ -2627,7 +2657,7 @@
         cleanupAllEditors();
         contentEl.innerHTML = '';
         diagramBlocks = [];
-        mermaidCount = sections.filter(function (s) { return s.type === 'mermaid'; }).length;
+        sourceCount = sections.filter(function (s) { return s.type === 'source'; }).length;
         textSections = [];
         _lastInteractedEndLine = null;
 
@@ -2645,8 +2675,8 @@
             contentEl.appendChild(ph);
             renderDiagramBlock(ph, section.blockIndex);
           }
-          else if (section.type === 'mermaid') {
-            renderMermaidBlock(section);
+          else if (section.type === 'source') {
+            renderSourceBlock(section);
           }
         }
 
@@ -2707,8 +2737,8 @@
       }
 
       function tryIncrementalUpdate(sections) {
-        var newMermaidCount = sections.filter(function (s) { return s.type === 'mermaid'; }).length;
-        if (newMermaidCount !== mermaidCount) return false;
+        var newSourceCount = sections.filter(function (s) { return s.type === 'source'; }).length;
+        if (newSourceCount !== sourceCount) return false;
 
         var newDiagrams = sections.filter(function (s) { return s.type === 'diagram'; });
         if (newDiagrams.length !== diagramBlocks.length) return false;
@@ -2926,8 +2956,12 @@
         }
       }
 
-      // ── Mermaid blocks: code preview + convert toolbar ──
-      function renderMermaidBlock(section) {
+      // ── Source (mermaid / plantuml) blocks: code preview + convert toolbar ──
+      function renderSourceBlock(section) {
+        contentEl.appendChild(createSourceBlock(section));
+      }
+
+      function createSourceBlock(section) {
         var outer = document.createElement('div');
         outer.className = 'drawio-editor-outer';
 
@@ -2946,10 +2980,9 @@
         // Arrow-swap icon + text label
         convertBtn.innerHTML = '<svg viewBox="0 0 16 16" style="flex-shrink:0"><path d="M2.5 2a.5.5 0 0 0 0 1h8.793L9.146 5.146a.5.5 0 1 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L11.293 2H2.5Zm11 12a.5.5 0 0 0 0-1H4.707l2.147-2.146a.5.5 0 0 0-.708-.708l-3 3a.5.5 0 0 0 0 .708l3 3a.5.5 0 0 0 .708-.708L4.707 14H13.5Z"/></svg>'
           + '<span style="font-size:11px">Convert to draw.io</span>';
-        var mIdx = section.mermaidIndex;
         convertBtn.addEventListener('click', function (e) {
           e.stopPropagation();
-          convertMermaidInline(outer, section);
+          convertSourceInline(outer, section);
         });
         inlineToolbar.appendChild(convertBtn);
 
@@ -2957,11 +2990,11 @@
         outer.appendChild(toolbarRow);
 
         var container = document.createElement('div');
-        container.className = 'drawio-mermaid-container';
+        container.className = 'drawio-source-container';
 
         var label = document.createElement('span');
-        label.className = 'drawio-mermaid-label';
-        label.textContent = 'mermaid';
+        label.className = 'drawio-source-label';
+        label.textContent = section.language;
         container.appendChild(label);
 
         var pre = document.createElement('pre');
@@ -2974,14 +3007,15 @@
         // Toolbar visibility on hover
         outer.addEventListener('mouseenter', function () { showToolbarFor(outer); });
         outer.addEventListener('mouseleave', function () { scheduleToolbarHide(); });
-        contentEl.appendChild(outer);
+        return outer;
       }
 
-      // ── Mermaid inline conversion: replace mermaid block with inline editor ──
-      function convertMermaidInline(outerElement, section) {
-        var stateKey = 'mermaid-' + section.mermaidIndex;
+      // ── Source inline conversion: replace source block with inline editor ──
+      function convertSourceInline(outerElement, section) {
+        var stateKey = 'source-' + section.sourceIndex;
+        var languageName = SOURCE_LANGUAGE_NAMES[section.language] || section.language;
 
-        // Clear existing mermaid content
+        // Clear existing source content
         outerElement.innerHTML = '';
 
         // Toolbar row with status label
@@ -2993,7 +3027,7 @@
         statusBtn.style.width = 'auto';
         statusBtn.style.padding = '0 8px';
         statusBtn.style.cursor = 'default';
-        statusBtn.innerHTML = '<span style="font-size:11px">Converting mermaid\u2026</span>';
+        statusBtn.innerHTML = '<span style="font-size:11px">Converting ' + languageName + '\u2026</span>';
         inlineToolbar.appendChild(statusBtn);
         toolbarRow.appendChild(inlineToolbar);
         outerElement.appendChild(toolbarRow);
@@ -3006,7 +3040,7 @@
 
         var loadingDiv = document.createElement('div');
         loadingDiv.className = 'loading-placeholder';
-        loadingDiv.textContent = 'Converting mermaid to draw.io\u2026';
+        loadingDiv.textContent = 'Converting ' + languageName + ' to draw.io\u2026';
         wrapper.appendChild(loadingDiv);
 
         var resizeHandle = document.createElement('div');
@@ -3029,9 +3063,11 @@
           diagramId: null,
           explicitHeight: false,
           explicitWidth: false,
-          mermaidConversion: true,
-          mermaidSource: section.source,
-          mermaidIndex: section.mermaidIndex,
+          sourceConversion: true,
+          conversionDescriptor: section.descriptor,
+          sourceIndex: section.sourceIndex,
+          languageName: languageName,
+          section: section,
         };
         editorStates.set(stateKey, state);
 

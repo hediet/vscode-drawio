@@ -4,6 +4,9 @@ const {
   buildDiagramBlock,
   replaceDiagramBlock,
   createEmptyDiagram,
+  findSourceBlocks,
+  createConversionDescriptor,
+  replaceSourceBlock,
 } = require('../../../out/inline-editor/diagramParser');
 
 describe('DiagramParser', function ()
@@ -569,6 +572,92 @@ describe('DiagramParser', function ()
       const result = saveAll(lines.join('\r\n'));
       assert.strictEqual(result.replace(/\r\n/g, '\n'), lines.join('\n'));
       assert.deepStrictEqual(findDiagramBlocks(result).map(b => b.endLine), [4, 10, 14]);
+    });
+  });
+
+  describe('findSourceBlocks', function ()
+  {
+    it('should find mermaid and plantuml blocks in document order', function ()
+    {
+      const md = [
+        '```plantuml',
+        '@startuml',
+        'Alice -> Bob',
+        '@enduml',
+        '```',
+        '',
+        '```mermaid',
+        'graph TD',
+        '  A --> B',
+        '```',
+        '',
+        '```puml',
+        'class A',
+        '```',
+      ].join('\n');
+      const blocks = findSourceBlocks(md);
+      assert.deepStrictEqual(blocks.map(b => b.language), ['plantuml', 'mermaid', 'plantuml']);
+      assert.strictEqual(blocks[0].source, '@startuml\nAlice -> Bob\n@enduml');
+      assert.strictEqual(blocks[0].startLine, 0);
+      assert.strictEqual(blocks[0].endLine, 4);
+      assert.strictEqual(blocks[1].source, 'graph TD\n  A --> B');
+      assert.strictEqual(blocks[2].source, 'class A');
+    });
+
+    it('should ignore source blocks nested inside other fences', function ()
+    {
+      const md = '````markdown\n```plantuml\nclass A\n```\n````';
+      assert.strictEqual(findSourceBlocks(md).length, 0);
+    });
+
+    it('should not treat drawio blocks as source blocks', function ()
+    {
+      const md = '```drawio\n<mxfile/>\n```';
+      assert.strictEqual(findSourceBlocks(md).length, 0);
+    });
+  });
+
+  describe('createConversionDescriptor', function ()
+  {
+    it('should keep the source of a wrapped plantuml block', function ()
+    {
+      const block = findSourceBlocks('```plantuml\n@startmindmap\n* Root\n@endmindmap\n```')[0];
+      assert.deepStrictEqual(createConversionDescriptor(block),
+        { format: 'plantuml', data: '@startmindmap\n* Root\n@endmindmap', wrap: true });
+    });
+
+    it('should add @startuml / @enduml to an unwrapped plantuml block', function ()
+    {
+      const block = findSourceBlocks('```plantuml\nAlice -> Bob\n```')[0];
+      assert.strictEqual(createConversionDescriptor(block).data, '@startuml\nAlice -> Bob\n@enduml');
+    });
+
+    it('should pass mermaid source through unchanged', function ()
+    {
+      const block = findSourceBlocks('```mermaid\ngraph TD\n```')[0];
+      assert.deepStrictEqual(createConversionDescriptor(block),
+        { format: 'mermaid', data: 'graph TD', wrap: true });
+    });
+  });
+
+  describe('replaceSourceBlock', function ()
+  {
+    it('should replace a plantuml block with a drawio block', function ()
+    {
+      const md = 'Before\n\n```plantuml\nclass A\n```\n\nAfter';
+      const block = findSourceBlocks(md)[0];
+      const result = replaceSourceBlock(md, block, '<mxfile>new</mxfile>', 'fenced');
+      assert.ok(!result.includes('plantuml'));
+      assert.ok(result.startsWith('Before\n\n```drawio'));
+      assert.ok(result.endsWith('\n\nAfter'));
+      assert.strictEqual(findDiagramBlocks(result).length, 1);
+    });
+
+    it('should preserve the text after a source block byte-for-byte in CRLF files', function ()
+    {
+      const md = 'Before\r\n\r\n```mermaid\r\ngraph TD\r\n```\r\n\r\nAfter\r\n';
+      const result = replaceSourceBlock(md, findSourceBlocks(md)[0], '<mxfile/>', 'fenced');
+      assert.strictEqual(result, 'Before\r\n\r\n```drawio\n<mxfile/>\n```\r\n\r\nAfter\r\n');
     });
   });
 

@@ -19,13 +19,16 @@
  *    ```drawio locked height=400 width=600
  *    <!-- drawio:start locked -->
  *    <!-- drawio:start locked height=400 width=600 -->
+ *
+ * Mermaid and PlantUML fenced blocks (```mermaid, ```plantuml, ```puml) are
+ * found as source blocks, which can be converted into draw.io diagrams.
  */
 
 import * as zlib from "zlib";
 
 export const FENCED_REGEX = /^(`{3,})drawio((?:\s+(?:locked|height=\d+|width=\d+))*)\s*\r?\n([\s\S]*?)^\1[ \t]*$/gm;
 export const COMMENT_REGEX = /^<!--\s*drawio:start((?:\s+(?:locked|height=\d+|width=\d+))*)\s*-->\s*\r?\n([\s\S]*?)^<!--\s*drawio:end\s*-->[ \t]*$/gm;
-export const MERMAID_REGEX = /^(`{3,})mermaid\s*\r?\n([\s\S]*?)^\1\s*$/gm;
+export const SOURCE_REGEX = /^(`{3,})(mermaid|plantuml|puml)\s*\r?\n([\s\S]*?)^\1[ \t]*$/gm;
 
 export type BlockFormat = "fenced" | "comment";
 
@@ -41,12 +44,28 @@ export interface DiagramBlock {
 	fullMatch: string;
 }
 
-export interface MermaidBlock {
+/** The text-to-diagram languages draw.io converts (the embed descriptor format). */
+export type SourceLanguage = "mermaid" | "plantuml";
+
+export const SOURCE_LANGUAGE_NAMES: Record<SourceLanguage, string> = {
+	mermaid: "Mermaid",
+	plantuml: "PlantUML",
+};
+
+export interface SourceBlock {
 	index: number;
 	startLine: number;
 	endLine: number;
+	language: SourceLanguage;
 	source: string;
 	fullMatch: string;
+}
+
+/** A draw.io embed `load` descriptor that converts a source block. */
+export interface ConversionDescriptor {
+	format: SourceLanguage;
+	data: string;
+	wrap: boolean;
 }
 
 interface Range {
@@ -56,8 +75,9 @@ interface Range {
 
 /**
  * Finds ranges of fenced code blocks that could contain nested diagram blocks.
- * Any fenced block whose language tag is NOT drawio or mermaid is treated as an
- * outer container — diagram/mermaid blocks found inside these ranges are skipped.
+ * Any fenced block whose language tag is NOT drawio or a source language is
+ * treated as an outer container — diagram/source blocks found inside these
+ * ranges are skipped.
  */
 function findOuterFenceRanges(text: string): Range[] {
 	const ranges: Range[] = [];
@@ -65,7 +85,7 @@ function findOuterFenceRanges(text: string): Range[] {
 	let match;
 	while ((match = outerFenceRegex.exec(text)) !== null) {
 		const lang = match[2].trim().split(/\s+/)[0] || "";
-		if (lang === "drawio" || lang === "mermaid") { continue; }
+		if (lang === "drawio" || lang === "mermaid" || lang === "plantuml" || lang === "puml") { continue; }
 		ranges.push({ start: match.index, end: match.index + match[0].length });
 	}
 	return ranges;
@@ -215,22 +235,24 @@ export function createEmptyDiagram(): string {
 }
 
 /**
- * Finds all mermaid code blocks in the given markdown text.
+ * Finds all mermaid and plantuml code blocks in the given markdown text, in
+ * document order.
  */
-export function findMermaidBlocks(text: string): MermaidBlock[] {
-	const blocks: MermaidBlock[] = [];
+export function findSourceBlocks(text: string): SourceBlock[] {
+	const blocks: SourceBlock[] = [];
 	const offsetToLine = buildOffsetToLine(text);
 	const outerRanges = findOuterFenceRanges(text);
 
 	let match;
-	MERMAID_REGEX.lastIndex = 0;
-	while ((match = MERMAID_REGEX.exec(text)) !== null) {
+	SOURCE_REGEX.lastIndex = 0;
+	while ((match = SOURCE_REGEX.exec(text)) !== null) {
 		if (isInsideRanges(match.index, outerRanges)) { continue; }
 		blocks.push({
 			index: match.index,
 			startLine: offsetToLine(match.index),
 			endLine: offsetToLine(match.index + match[0].length - 1),
-			source: match[2].trim(),
+			language: match[2] === "mermaid" ? "mermaid" : "plantuml",
+			source: match[3].trim(),
 			fullMatch: match[0],
 		});
 	}
@@ -239,11 +261,29 @@ export function findMermaidBlocks(text: string): MermaidBlock[] {
 }
 
 /**
- * Replaces a mermaid block with a drawio diagram block.
+ * Returns the draw.io embed `load` descriptor that converts the given block.
+ * wrap:true wraps the result in the editable group carrying the source
+ * (mermaidData / plantUmlData), matching Insert > Mermaid / PlantUML —
+ * otherwise the raw cells load and the source is lost.
  */
-export function replaceMermaidBlock(
+export function createConversionDescriptor(block: SourceBlock): ConversionDescriptor {
+	let data = block.source;
+
+	// Markdown renderers (GitLab, Kroki) accept PlantUML without the
+	// @startuml / @enduml wrapper, draw.io's converter requires it
+	if (block.language === "plantuml" && !/^\s*@start/m.test(data)) {
+		data = "@startuml\n" + data + "\n@enduml";
+	}
+
+	return { format: block.language, data, wrap: true };
+}
+
+/**
+ * Replaces a mermaid or plantuml block with a drawio diagram block.
+ */
+export function replaceSourceBlock(
 	text: string,
-	block: MermaidBlock,
+	block: SourceBlock,
 	xml: string,
 	format?: BlockFormat,
 	height?: number | null,
