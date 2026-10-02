@@ -86,6 +86,30 @@ describe('DiagramParser', function ()
       assert.strictEqual(blocks[0].endLine, 4);
     });
 
+    it('should end blocks on the closing line when a blank line follows', function ()
+    {
+      for (const eol of ['\n', '\r\n'])
+      {
+        const md = ['Before', '', '```drawio', '<a/>', '```', '',
+          '<!-- drawio:start -->', '<b/>', '<!-- drawio:end -->', '', 'After'].join(eol);
+        const blocks = findDiagramBlocks(md);
+        assert.strictEqual(blocks.length, 2);
+        assert.strictEqual(blocks[0].endLine, 4, JSON.stringify(eol));
+        assert.strictEqual(blocks[0].fullMatch, ['```drawio', '<a/>', '```'].join(eol));
+        assert.strictEqual(blocks[1].endLine, 8, JSON.stringify(eol));
+        assert.strictEqual(blocks[1].fullMatch, ['<!-- drawio:start -->', '<b/>', '<!-- drawio:end -->'].join(eol));
+      }
+    });
+
+    it('should allow trailing spaces and tabs after the closing line', function ()
+    {
+      const md = '```drawio\n<a/>\n``` \t\n\n<!-- drawio:start -->\n<b/>\n<!-- drawio:end --> \t\r\n\r\nAfter';
+      const blocks = findDiagramBlocks(md);
+      assert.strictEqual(blocks.length, 2);
+      assert.strictEqual(blocks[0].fullMatch, '```drawio\n<a/>\n``` \t');
+      assert.strictEqual(blocks[1].fullMatch, '<!-- drawio:start -->\n<b/>\n<!-- drawio:end --> \t');
+    });
+
     it('should handle multi-line XML content', function ()
     {
       const xml = '<mxfile>\n  <diagram>\n    <root/>\n  </diagram>\n</mxfile>';
@@ -486,6 +510,65 @@ describe('DiagramParser', function ()
       assert.ok(result.includes('locked'));
       assert.ok(result.includes('height=400'));
       assert.ok(result.includes('width=600'));
+    });
+
+    it('should keep the blank line between a block and the next paragraph', function ()
+    {
+      const fenced = 'Before\n\n```drawio\n<x/>\n```\n\nAfter';
+      assert.strictEqual(replaceDiagramBlock(fenced, findDiagramBlocks(fenced)[0], '<y/>'),
+        'Before\n\n```drawio\n<y/>\n```\n\nAfter');
+
+      const comment = 'Before\n\n<!-- drawio:start -->\n<x/>\n<!-- drawio:end -->\n\nAfter';
+      assert.strictEqual(replaceDiagramBlock(comment, findDiagramBlocks(comment)[0], '<y/>'),
+        'Before\n\n<!-- drawio:start -->\n<y/>\n<!-- drawio:end -->\n\nAfter');
+    });
+
+    it('should preserve the text after a block byte-for-byte', function ()
+    {
+      const tails = ['', '\n', '\n\n', '\nAfter', '\n\nAfter', '\n\n\nAfter\n', '\n \t\n\tAfter',
+        '\r\n', '\r\n\r\n', '\r\nAfter', '\r\n\r\nAfter\r\n', '\r\n\r\n\r\nAfter', '\r\n \t\r\nAfter'];
+      for (const eol of ['\n', '\r\n'])
+      {
+        for (const lines of [['```drawio', '<x/>', '```'], ['<!-- drawio:start -->', '<x/>', '<!-- drawio:end -->']])
+        {
+          for (const tail of tails)
+          {
+            const head = 'Before' + eol + eol;
+            const md = head + lines.join(eol) + tail;
+            const block = findDiagramBlocks(md)[0];
+            const result = replaceDiagramBlock(md, block, '<y/>');
+            const label = JSON.stringify(md);
+            // The rebuilt block always uses \n, everything before and after
+            // it must be untouched
+            const replacement = lines.join('\n').replace('<x/>', '<y/>');
+            assert.strictEqual(result, head + replacement + tail, label);
+          }
+        }
+      }
+    });
+
+    it('should not change a document when saving every block with the same XML', function ()
+    {
+      const lines = ['# Title', '', '```drawio locked height=300', '<a/>', '```', '', 'Text', '',
+        '<!-- drawio:start width=400 -->', '<b/>', '<!-- drawio:end -->', '', '```drawio', '<c/>', '```', '',
+        'End', ''];
+      const saveAll = (md) =>
+      {
+        let text = md;
+        for (let i = 0; i < 3; i++)
+        {
+          const block = findDiagramBlocks(text)[i];
+          text = replaceDiagramBlock(text, block, block.xml);
+        }
+        return text;
+      };
+
+      assert.strictEqual(saveAll(lines.join('\n')), lines.join('\n'));
+
+      // In a CRLF file only the rebuilt blocks use \n, no line is added or lost
+      const result = saveAll(lines.join('\r\n'));
+      assert.strictEqual(result.replace(/\r\n/g, '\n'), lines.join('\n'));
+      assert.deepStrictEqual(findDiagramBlocks(result).map(b => b.endLine), [4, 10, 14]);
     });
   });
 

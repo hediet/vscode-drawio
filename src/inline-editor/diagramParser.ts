@@ -23,8 +23,8 @@
 
 import * as zlib from "zlib";
 
-export const FENCED_REGEX = /^(`{3,})drawio((?:\s+(?:locked|height=\d+|width=\d+))*)\s*\r?\n([\s\S]*?)^\1\s*$/gm;
-export const COMMENT_REGEX = /^<!--\s*drawio:start((?:\s+(?:locked|height=\d+|width=\d+))*)\s*-->\s*\r?\n([\s\S]*?)^<!--\s*drawio:end\s*-->\s*$/gm;
+export const FENCED_REGEX = /^(`{3,})drawio((?:\s+(?:locked|height=\d+|width=\d+))*)\s*\r?\n([\s\S]*?)^\1[ \t]*$/gm;
+export const COMMENT_REGEX = /^<!--\s*drawio:start((?:\s+(?:locked|height=\d+|width=\d+))*)\s*-->\s*\r?\n([\s\S]*?)^<!--\s*drawio:end\s*-->[ \t]*$/gm;
 export const MERMAID_REGEX = /^(`{3,})mermaid\s*\r?\n([\s\S]*?)^\1\s*$/gm;
 
 export type BlockFormat = "fenced" | "comment";
@@ -61,7 +61,7 @@ interface Range {
  */
 function findOuterFenceRanges(text: string): Range[] {
 	const ranges: Range[] = [];
-	const outerFenceRegex = /^(`{3,}|~{3,})([^\n]*)\r?\n([\s\S]*?)^\1\s*$/gm;
+	const outerFenceRegex = /^(`{3,}|~{3,})([^\n]*)\r?\n([\s\S]*?)^\1[ \t]*$/gm;
 	let match;
 	while ((match = outerFenceRegex.exec(text)) !== null) {
 		const lang = match[2].trim().split(/\s+/)[0] || "";
