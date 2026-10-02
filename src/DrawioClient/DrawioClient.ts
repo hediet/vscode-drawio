@@ -208,9 +208,12 @@ export class DrawioClient<
 		this.loadXmlLike("data:image/png;base64," + str);
 	}
 
-	public async export(extension: string): Promise<BufferImpl> {
+	public async export(
+		extension: string,
+		scale?: number
+	): Promise<BufferImpl> {
 		if (extension.endsWith(".png")) {
-			return await this.exportAsPngWithEmbeddedXml();
+			return await this.exportAsPngWithEmbeddedXml(scale);
 		} else if (
 			extension.endsWith(".drawio") ||
 			extension.endsWith(".dio")
@@ -249,10 +252,13 @@ export class DrawioClient<
 		return this.currentXml;
 	}
 
-	public async exportAsPngWithEmbeddedXml(): Promise<BufferImpl> {
+	public async exportAsPngWithEmbeddedXml(
+		scale?: number
+	): Promise<BufferImpl> {
 		const response = await this.sendActionWaitForResponse({
 			action: "export",
 			format: "xmlpng",
+			...(scale !== undefined ? { scale } : {}),
 		});
 		if (response.event !== "export") {
 			throw new Error("Unexpected response");
