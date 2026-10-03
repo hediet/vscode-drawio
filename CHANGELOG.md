@@ -5,10 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.16.0]
+
+### Added
+
+- PlantUML code blocks (```` ```plantuml ```` and ```` ```puml ````) get a `Convert to draw.io` CodeLens and a `Convert PlantUML to Draw.io` command, which turn them into editable Draw.io diagrams like Mermaid blocks
+
+### Changed
+
+- Updated Draw.io to v32.0.1
 
 ### Fixed
 
+- Saving a `drawio` code block removed the blank line between the block and the next paragraph
+- `Convert Mermaid to Draw.io` from the command palette always reported that no mermaid code block was found. It now converts the block at the cursor
+- A failed Mermaid conversion left an empty diagram that an edit would autosave over the Mermaid source. The source block is now restored and the reason is shown
 - `Export To...` as .png always exported the first page of a diagram with several pages. It now exports the page that is visible in the editor, like the .svg export [#522](https://github.com/hediet/vscode-drawio/issues/522)
 
 ## [1.15.0]
