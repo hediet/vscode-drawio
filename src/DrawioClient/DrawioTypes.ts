@@ -45,6 +45,8 @@ export type DrawioAction =
 	| {
 			action: "export";
 			format: DrawioFormat;
+			// Exports the visible page instead of the first page (png)
+			currentPage?: boolean;
 	  }
 	| {
 			action: "configure";

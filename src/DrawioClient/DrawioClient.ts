@@ -208,9 +208,17 @@ export class DrawioClient<
 		this.loadXmlLike("data:image/png;base64," + str);
 	}
 
-	public async export(extension: string): Promise<BufferImpl> {
+	/**
+	 * Exports the diagram for the given file extension. With currentPage, the
+	 * png image shows the page that is visible in the editor instead of the
+	 * first page (svg exports always show the visible page).
+	 */
+	public async export(
+		extension: string,
+		currentPage: boolean = false
+	): Promise<BufferImpl> {
 		if (extension.endsWith(".png")) {
-			return await this.exportAsPngWithEmbeddedXml();
+			return await this.exportAsPngWithEmbeddedXml(currentPage);
 		} else if (
 			extension.endsWith(".drawio") ||
 			extension.endsWith(".dio")
@@ -249,10 +257,13 @@ export class DrawioClient<
 		return this.currentXml;
 	}
 
-	public async exportAsPngWithEmbeddedXml(): Promise<BufferImpl> {
+	public async exportAsPngWithEmbeddedXml(
+		currentPage: boolean = false
+	): Promise<BufferImpl> {
 		const response = await this.sendActionWaitForResponse({
 			action: "export",
 			format: "xmlpng",
+			currentPage,
 		});
 		if (response.event !== "export") {
 			throw new Error("Unexpected response");

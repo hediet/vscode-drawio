@@ -275,7 +275,8 @@ export class DrawioEditor {
 	}
 
 	public async exportTo(targetExtension: string): Promise<void> {
-		const buffer = await this.drawioClient.export(targetExtension);
+		// Exports the page that is visible in the editor
+		const buffer = await this.drawioClient.export(targetExtension, true);
 		const targetUri = await window.showSaveDialog({
 			defaultUri: this.getUriWithExtension(targetExtension),
 		});
