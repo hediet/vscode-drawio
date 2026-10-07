@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0]
+
+### Added
+
+- `hediet.vscode-drawio.svgAppearance` sets the colors of `.drawio.svg` files and SVG exports: `light` (the default), `auto` (adapts to the color scheme of the page that shows the SVG) or `dark`. Files saved in a dark editor were adaptive SVGs and are light again unless the setting is `auto` [#217](https://github.com/hediet/vscode-drawio/issues/217)
+
+### Changed
+
+- Updated Draw.io to v32.3.0
+
 ## [1.16.0]
 
 ### Added
