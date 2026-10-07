@@ -90,6 +90,12 @@ Add this to your VS Code `settings.json` file if you want to associate it with `
 
 You won't be able to edit arbitrary SVG files though - only those that have been created with Draw.io or this extension!
 
+## Light and Dark `.drawio.svg` Files
+
+By default, `.drawio.svg` files are saved with light colors, whatever theme the editor uses.
+Set `hediet.vscode-drawio.svgAppearance` to `auto` to make them adapt to the color scheme of the page that shows them, for example a README on GitHub in dark mode, or to `dark` to always save them with dark colors.
+The setting applies the next time a diagram is saved. Add it to the workspace settings so that everyone on a team saves the same file.
+
 ## Inline Diagrams in VS Code's Markdown Editor (Experimental, Insiders only)
 
 VS Code Insiders ships an experimental WYSIWYG Markdown editor (`View: Reopen Editor With... > Markdown Editor`).

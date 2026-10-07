@@ -135,7 +135,8 @@ export class DrawioClientFactory {
 				runInAction("Force reload", () => {
 					reloadId.id++;
 				});
-			}
+			},
+			() => config.svgAppearance
 		);
 
 		drawioClient.onUnknownMessage.sub(({ message }) => {

@@ -2237,6 +2237,12 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 							type: "setDiagramPadding",
 							padding: diagramPadding,
 						});
+						webviewPanel.webview.postMessage({
+							type: "setSvgAppearance",
+							appearance: vscode.workspace
+								.getConfiguration(DRAWIO_CONFIG_SECTION, document.uri)
+								.get<string>("svgAppearance", "light"),
+						});
 						sendContent();
 						{
 							const uriKey = document.uri.toString();

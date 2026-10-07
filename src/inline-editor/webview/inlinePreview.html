@@ -709,6 +709,12 @@
         return /\.drawio\.png(?:[?#]|$)/i.test(target || '') ? 'xmlpng' : 'xmlsvg';
       }
 
+      // Export request for saving an editable image link. theme sets the colors
+      // of the svg (hediet.vscode-drawio.svgAppearance); draw.io ignores it for png.
+      function linkExportRequest(target) {
+        return JSON.stringify({ action: 'export', format: linkExportFormat(target), theme: svgAppearance });
+      }
+
       // Forward intercepted VS Code shortcuts from draw.io iframes.
       // This is a dedicated listener that doesn't depend on iframe source
       // matching, because VS Code's webview iframe nesting can make
@@ -807,6 +813,7 @@
       var isDark = document.body.classList.contains('vscode-dark');
       var minimalUI = true;
       var diagramPadding = 28;
+      var svgAppearance = 'light'; // colors of saved .drawio.svg links; set via setSvgAppearance
 
       var imageBaseUri = '';
       var diagramBlocks = [];
@@ -2051,6 +2058,9 @@
           case 'setDiagramPadding':
             diagramPadding = msg.padding;
             break;
+          case 'setSvgAppearance':
+            svgAppearance = msg.appearance;
+            break;
           case 'sourceConverted':
             handleSourceConverted(msg);
             break;
@@ -2401,7 +2411,7 @@
         if (overlayState.linkTarget) {
           overlayState._pendingLinkSave = true;
           state._linkSaveQuietUntil = Date.now() + 2000;
-          overlayFrame.contentWindow.postMessage(JSON.stringify({ action: 'export', format: linkExportFormat(overlayState.linkTarget) }), '*');
+          overlayFrame.contentWindow.postMessage(linkExportRequest(overlayState.linkTarget), '*');
         }
         else {
           vscode.postMessage({
@@ -3423,7 +3433,7 @@
         if (linkSec && linkSec.linkTarget) {
           if (state.iframe && state.initialized) {
             state._pendingLinkSave = true;
-            state.iframe.contentWindow.postMessage(JSON.stringify({ action: 'export', format: linkExportFormat(linkSec.linkTarget) }), '*');
+            state.iframe.contentWindow.postMessage(linkExportRequest(linkSec.linkTarget), '*');
           }
           return;
         }
@@ -3441,7 +3451,7 @@
         if (overlayState.active && overlayState.dirty) {
           if (overlayState.linkTarget) {
             overlayState._pendingLinkSave = true;
-            overlayFrame.contentWindow.postMessage(JSON.stringify({ action: 'export', format: linkExportFormat(overlayState.linkTarget) }), '*');
+            overlayFrame.contentWindow.postMessage(linkExportRequest(overlayState.linkTarget), '*');
           }
           else {
             vscode.postMessage({

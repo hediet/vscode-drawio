@@ -10,7 +10,12 @@ import {
 	window,
 	workspace,
 } from "vscode";
-import { Style, ColorScheme, DrawioLibraryData } from "./DrawioClient";
+import {
+	Style,
+	ColorScheme,
+	DrawioExportTheme,
+	DrawioLibraryData,
+} from "./DrawioClient";
 import { BufferImpl } from "./utils/buffer";
 import { SimpleTemplate } from "./utils/SimpleTemplate";
 import {
@@ -334,6 +339,28 @@ export class DiagramConfig {
 	@computed
 	public get simpleLabels(): boolean {
 		return this._simpleLabels.get();
+	}
+
+	//#endregion
+
+	//#region SVG Appearance
+
+	private readonly _svgAppearance = new VsCodeSetting(
+		`${extensionId}.svgAppearance`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<DrawioExportTheme>("light"),
+		}
+	);
+
+	/**
+	 * The theme of .drawio.svg files and svg exports. Without it, draw.io
+	 * picks one from the dark mode of the editor, so the saved file would
+	 * depend on the VS Code theme of whoever saved it last.
+	 */
+	@computed
+	public get svgAppearance(): DrawioExportTheme {
+		return this._svgAppearance.get();
 	}
 
 	//#endregion

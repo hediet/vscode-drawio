@@ -286,6 +286,23 @@
 						"description": "When enabled, no ForeignObjects are used in the svg.",
 						"order": 40
 					},
+					"hediet.vscode-drawio.svgAppearance": {
+						"type": "string",
+						"default": "light",
+						"enum": [
+							"light",
+							"auto",
+							"dark"
+						],
+						"enumDescriptions": [
+							"The SVG always uses light colors.",
+							"The SVG adapts to the light or dark color scheme of the page that shows it.",
+							"The SVG always uses dark colors."
+						],
+						"title": "SVG Appearance",
+						"description": "The appearance of `.drawio.svg` files and SVG exports. It does not depend on the theme of the editor.",
+						"order": 45
+					},
 					"hediet.vscode-drawio.zoomFactor": {
 						"type": "number",
 						"default": 1.2,

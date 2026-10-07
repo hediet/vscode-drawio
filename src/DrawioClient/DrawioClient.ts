@@ -1,6 +1,11 @@
 import { EventEmitter } from "@hediet/std/events";
 import { Disposable } from "@hediet/std/disposable";
-import { DrawioConfig, DrawioEvent, DrawioAction } from "./DrawioTypes";
+import {
+	DrawioConfig,
+	DrawioEvent,
+	DrawioAction,
+	DrawioExportTheme,
+} from "./DrawioTypes";
 import { BufferImpl } from "../utils/buffer";
 
 /**
@@ -35,7 +40,8 @@ export class DrawioClient<
 	constructor(
 		private readonly messageStream: MessageStream,
 		private readonly getConfig: () => Promise<DrawioConfig>,
-		public readonly reloadWebview: () => void
+		public readonly reloadWebview: () => void,
+		private readonly getSvgTheme: () => DrawioExportTheme
 	) {
 		this.dispose.track(
 			messageStream.registerMessageHandler((msg) =>
@@ -280,6 +286,7 @@ export class DrawioClient<
 		const response = await this.sendActionWaitForResponse({
 			action: "export",
 			format: "xmlsvg",
+			theme: this.getSvgTheme(),
 		});
 		if (response.event !== "export") {
 			throw new Error("Unexpected response");

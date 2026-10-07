@@ -47,6 +47,8 @@ export type DrawioAction =
 			format: DrawioFormat;
 			// Exports the visible page instead of the first page (png)
 			currentPage?: boolean;
+			// Colors of the svg (xmlsvg); draw.io ignores it for png
+			theme?: DrawioExportTheme;
 	  }
 	| {
 			action: "configure";
@@ -268,3 +270,9 @@ export interface DrawioResource {
 }
 
 export type DrawioFormat = "html" | "xmlpng" | "png" | "xml" | "xmlsvg";
+
+/**
+ * The colors of an svg export: "auto" adapts to the color scheme of the page
+ * that shows the svg (light-dark() colors).
+ */
+export type DrawioExportTheme = "auto" | "light" | "dark";
