@@ -68,7 +68,7 @@ export class Config {
 			setContext(
 				experimentalFeaturesEnabled,
 				this.experimentalFeaturesEnabled
-			);
+			).catch(() => {});
 		});
 
 		this._vscodeTheme = window.activeColorTheme;
