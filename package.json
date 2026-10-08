@@ -46,7 +46,14 @@
 	"main": "./dist/extension/index",
 	"capabilities": {
 		"untrustedWorkspaces": {
-			"supported": true
+			"supported": "limited",
+			"description": "In Restricted Mode, workspace settings cannot load custom libraries or plugins, or change which Draw.io app the editor loads.",
+			"restrictedConfigurations": [
+				"hediet.vscode-drawio.customLibraries",
+				"hediet.vscode-drawio.plugins",
+				"hediet.vscode-drawio.offline",
+				"hediet.vscode-drawio.online-url"
+			]
 		}
 	},
 	"contributes": {
