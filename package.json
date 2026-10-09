@@ -684,7 +684,7 @@
 		"@types/vscode": "1.70.0",
 		"@types/xml-formatter": "^1.1.0",
 		"@vscode/vsce": "^3.2.1",
-		"@vscode/web-editors": "0.0.2-50",
+		"@vscode/web-editors": "0.0.2-76",
 		"clean-webpack-plugin": "^4.0.0-alpha.0",
 		"copy-webpack-plugin": "^9.0.1",
 		"css-loader": "^3.4.2",
@@ -700,6 +700,9 @@
 		"webpack-cli": "^4.7.2",
 		"webpack-dev-server": "^3.11.2",
 		"zod": "^4.4.3"
+	},
+	"resolutions": {
+		"@vscode/hubrpc": "0.0.2-32"
 	},
 	"dependencies": {
 		"@hediet/json-to-dictionary": "^0.2.1",

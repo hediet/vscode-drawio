@@ -644,10 +644,10 @@
   dependencies:
     eslint-visitor-keys "^1.1.0"
 
-"@vscode/hubrpc@next":
-  version "0.0.2-15"
-  resolved "https://registry.yarnpkg.com/@vscode/hubrpc/-/hubrpc-0.0.2-15.tgz#182acd6a9df697d8941b44623590c286a8177eb7"
-  integrity sha512-eN520Qs/0UmI5l/nEWYLqQrYfx9JX7zZ116m13YTs/8lK55iq+DLeM6GpMWWWf8TE4+OMi8hDabkl/FYRp9XPQ==
+"@vscode/hubrpc@0.0.2-32", "@vscode/hubrpc@next":
+  version "0.0.2-32"
+  resolved "https://registry.yarnpkg.com/@vscode/hubrpc/-/hubrpc-0.0.2-32.tgz#ad86cec1f17635c5652281af97e71d066ffd4852"
+  integrity sha512-NyJ+bw+p+MJZUclXLTOtEy+scPttSSqQN7PWNCtfgLu1/ZlZvYlJGjeOR55q/RWRe0s9TrPgFSSMTPWTAr7dvw==
   dependencies:
     "@hpke/core" "^1.9.0"
     ws "^8.18.0"
@@ -744,10 +744,10 @@
   optionalDependencies:
     keytar "^7.7.0"
 
-"@vscode/web-editors@0.0.2-50":
-  version "0.0.2-50"
-  resolved "https://registry.yarnpkg.com/@vscode/web-editors/-/web-editors-0.0.2-50.tgz#cc1142f2706e5279abf0d2d0bc98be943df692f3"
-  integrity sha512-V2KrqTcN81eHejJaLfaK8a2BpkwdpYQ6iXZqth5vNh/j+pE3NHmve+lESRK/VQnRsmpb6AWoWyqCZHvwxXWTOw==
+"@vscode/web-editors@0.0.2-76":
+  version "0.0.2-76"
+  resolved "https://registry.yarnpkg.com/@vscode/web-editors/-/web-editors-0.0.2-76.tgz#c65af1588771dfea8876a65d97ff37f71bd64158"
+  integrity sha512-XqJJeYLr9QrpnuPDAYQFpYLLehXEzsI+hiaXIvTBV5ByJwwIPhUAqL1DFUdYJ7e86hzMG0vreg6x5P35mwkSaQ==
   dependencies:
     "@vscode/hubrpc" next
 

@@ -98,10 +98,25 @@ class Session {
 	private fitPending = false;
 	private fitTimer: number | undefined;
 	private initTimer: number | undefined;
+	private readonly _themeObserver = new MutationObserver(() => this._syncTheme());
 	/** Offline only: Draw.io's EditorUi instance (it runs in this document). */
 	public editorUi: any;
 
-	constructor(private readonly config: GuestConfig) {}
+	constructor(private readonly config: GuestConfig) {
+		if (config.mode.kind === "offline" && config.followHostTheme) {
+			this._themeObserver.observe(document.head, { childList: true, subtree: true, characterData: true });
+		}
+	}
+
+	private _syncTheme(): void {
+		const dark = hostDarkMode();
+		if (this.loaded && this.config.followHostTheme && dark !== undefined) {
+			const drawio = window as Window & { Editor?: { isDarkMode(): boolean } };
+			if (drawio.Editor?.isDarkMode() !== dark) {
+				this.editorUi?.setDarkMode(dark);
+			}
+		}
+	}
 
 	private get readOnly(): boolean {
 		return this.config.locked || this.hostReadOnly;
@@ -182,6 +197,7 @@ class Session {
 	}
 
 	dispose(): void {
+		this._themeObserver.disconnect();
 		window.clearTimeout(this.initTimer);
 		window.clearTimeout(this.fitTimer);
 		this.client?.dispose();
@@ -211,6 +227,7 @@ class Session {
 
 	private onLoaded(msg: DrawioEvent): void {
 		this.loaded = true;
+		this._syncTheme();
 		hideStatus();
 		this.applyReadOnly();
 		this.reportHeight(msg, true);
@@ -370,6 +387,10 @@ function startOffline(config: GuestConfig, session: Session): DrawioChannel {
 	// Draw.io reads its parameters from this global instead of location.search
 	// (Init.js keeps an existing object).
 	w.urlParams = { ...config.urlParams };
+	const dark = config.followHostTheme ? hostDarkMode() : undefined;
+	if (dark !== undefined) {
+		w.urlParams.dark = dark ? "1" : "0";
+	}
 	w.isLocalStorage = true;
 
 	// Draw.io persists settings in localStorage; route them to the extension
@@ -470,12 +491,23 @@ function startOffline(config: GuestConfig, session: Session): DrawioChannel {
 		await loadScript("js/PostConfig.js");
 
 		const { EditorUi, mxUrlConverter, App } = w;
+		const cellEditor = w.mxCellEditor.prototype as { focusContainer(): void };
+		const focusContainer = cellEditor.focusContainer;
+		cellEditor.focusContainer = function () {
+			// stopEditing also runs during startup and programmatic theme changes.
+			if (document.hasFocus()) {
+				focusContainer.call(this);
+			}
+		};
 		EditorUi.prototype.embedMessageSource = bridge;
+		EditorUi.prototype.noAutoFocus = true;
 		EditorUi.prototype.addEmbedButtons = () => {};
 		const originalInit = EditorUi.prototype.init;
 		EditorUi.prototype.init = function (this: any, ...args: unknown[]) {
 			session.editorUi = this;
-			return originalInit.apply(this, args);
+			const result = originalInit.apply(this, args);
+			this.editor.graph.getModel().prefix = `${w.Editor.guid()}-`;
+			return result;
 		};
 		// Relative image links in diagrams resolve against the document base
 		// (the webapp folder), not this iframe's location.
@@ -490,6 +522,11 @@ function startOffline(config: GuestConfig, session: Session): DrawioChannel {
 	})().catch((e) => showStatus(`Could not load Draw.io: ${e}`, true));
 
 	return channel;
+}
+
+function hostDarkMode(): boolean | undefined {
+	const scheme = getComputedStyle(document.documentElement).colorScheme;
+	return scheme === "dark" ? true : scheme === "light" ? false : undefined;
 }
 
 //#endregion
