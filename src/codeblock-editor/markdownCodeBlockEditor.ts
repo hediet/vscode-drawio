@@ -53,6 +53,7 @@ const INLINE_CSS = [
 	".geSidebar { display:none !important; }",
 	".geFormatContainer { display:none !important; }",
 	".geTabContainer { display:none !important; }",
+	".geToolbarContainer { box-shadow:none !important; }",
 	".mxWindow { display:none !important; }",
 	"::-webkit-scrollbar { display:none !important; }",
 	"body { background: transparent !important; overflow: hidden !important; }",
@@ -315,6 +316,7 @@ async function buildGuestConfig(
 
 	return {
 		mode: dc.mode,
+		followHostTheme: dc.appearanceFollowsSystem,
 		urlParams,
 		drawioConfig,
 		localStorage: dc.mode.kind === "offline" ? dc.localStorage : {},

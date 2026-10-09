@@ -24,6 +24,8 @@ export interface GuestConfig {
 	 * iframe.
 	 */
 	mode: { kind: "offline" } | { kind: "online"; url: string };
+	/** Follow injected VS Code colors instead of the operating-system theme. */
+	followHostTheme: boolean;
 	/** Draw.io URL parameters: `window.urlParams` offline, query string online. */
 	urlParams: Record<string, string>;
 	/** The `config` object answered to Draw.io's `configure` event. */
