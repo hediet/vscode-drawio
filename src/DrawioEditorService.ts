@@ -37,7 +37,13 @@ export class DrawioEditorService {
 		return [...this.openedEditors].find((e) => e.isActive);
 	}
 
-	@observable private _lastActiveDrawioEditor: DrawioEditor | undefined;
+	// `declare` keeps this field out of the emitted class body. With
+	// `useDefineForClassFields`, an emitted field would shadow the accessor that
+	// the mobx decorator installs on the prototype, so the field would not be
+	// observable.
+	@observable private declare _lastActiveDrawioEditor:
+		| DrawioEditor
+		| undefined;
 	get lastActiveDrawioEditor(): DrawioEditor | undefined {
 		return this._lastActiveDrawioEditor;
 	}
@@ -164,8 +170,12 @@ const PrivateSymbol = Symbol();
 export class DrawioEditor {
 	public readonly dispose = Disposable.fn();
 
-	@observable private _isActive = false;
-	@observable private _hasFocus = false;
+	// `declare` keeps these fields out of the emitted class body. With
+	// `useDefineForClassFields`, an emitted field would shadow the accessor that
+	// the mobx decorator installs on the prototype, so the fields would not be
+	// observable.
+	@observable private declare _isActive: boolean;
+	@observable private declare _hasFocus: boolean;
 
 	private readonly knownDrawioFileExtensions: ReadonlyArray<string> = [
 		".drawio",
@@ -200,6 +210,7 @@ export class DrawioEditor {
 		public readonly config: DiagramConfig
 	) {
 		this._isActive = webviewPanel.active;
+		this._hasFocus = false;
 		this.dispose.track(
 			webviewPanel.onDidChangeViewState(() => {
 				this._isActive = webviewPanel.active;
