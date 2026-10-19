@@ -233,6 +233,12 @@
 				},
 				"contentType": "text",
 				"initialHeight": 400,
+				"presentation": {
+					"resizable": true,
+					"fullWidth": true,
+					"fullView": true,
+					"minHeight": 120
+				},
 				"sandbox": {
 					"clipboardWrite": true
 				}
