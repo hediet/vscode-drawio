@@ -110,9 +110,6 @@ In that editor, every fenced code block tagged `drawio` is replaced by a live, r
 Edits are written straight back into the fenced block, so the Markdown file stays the single source of truth and undo/redo, dirty state and hot exit keep working.
 The block attributes of the inline editor are honored: `locked` makes a block read-only and `height=N` fixes its height, e.g. ```` ```drawio locked height=300 ````.
 The Markdown editor's own lock toggle also puts the diagrams into read-only mode.
-Hover or focus a diagram to show the Markdown host's **Full width** and **Full view**
-buttons. Drag the bottom resize grip to adjust its height. Full view fills the
-Markdown editor viewport and preserves the diagram's state when closed.
 
 Notes:
 
