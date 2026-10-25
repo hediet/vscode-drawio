@@ -1,6 +1,6 @@
 import { Uri, workspace, ConfigurationTarget, Disposable } from "vscode";
 import { fromResource } from "../utils/fromResource";
-import { computed, runInAction } from "mobx";
+import { computed, IComputedValue, runInAction } from "mobx";
 import { EventEmitter } from "@hediet/std/events";
 
 export interface Serializer<T> {
@@ -101,7 +101,15 @@ class VsCodeSettingResource {
 		private readonly id: string,
 		private readonly scope: Uri | undefined,
 		private readonly target: ConfigurationTarget | undefined
-	) {}
+	) {
+		this.stringifiedSettingValue = computed(
+			() => JSON.stringify(this.resource.current()),
+			{
+				name: `VsCodeSettingResource[${this.id}].value`,
+				context: this,
+			}
+		);
+	}
 
 	private readValue(): any {
 		const config = workspace.getConfiguration(undefined, this.scope);
@@ -126,13 +134,7 @@ class VsCodeSettingResource {
 	/**
 	 * This improves change detection.
 	 */
-	private readonly stringifiedSettingValue = computed(
-		() => JSON.stringify(this.resource.current()),
-		{
-			name: `VsCodeSettingResource[${this.id}].value`,
-			context: this,
-		}
-	);
+	private readonly stringifiedSettingValue: IComputedValue<string>;
 
 	public get value() {
 		const v = this.stringifiedSettingValue.get();

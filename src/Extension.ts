@@ -16,27 +16,34 @@ export class Extension {
 		vscode.window.createOutputChannel("Drawio Integration Log")
 	);
 
-	public readonly config = new Config(this.context.globalState);
-	private readonly drawioClientFactory = new DrawioClientFactory(
-		this.config,
-		this.log,
-		this.context.extensionUri
-	);
-	private readonly editorService = new DrawioEditorService(
-		this.config,
-		this.drawioClientFactory
-	);
-	private readonly linkCodeWithSelectedNodeService = this.dispose.track(
-		new LinkCodeWithSelectedNodeService(this.editorService, this.config)
-	);
-	private readonly editDiagramsAsTextFeature = this.dispose.track(
-		new EditDiagramAsTextFeature(this.editorService, this.config)
-	);
-	private readonly liveshareFeature = this.dispose.track(
-		new LiveshareFeature(this.editorService, this.config)
-	);
+	public readonly config: Config;
+	private readonly drawioClientFactory: DrawioClientFactory;
+	private readonly editorService: DrawioEditorService;
+	private readonly linkCodeWithSelectedNodeService: LinkCodeWithSelectedNodeService;
+	private readonly editDiagramsAsTextFeature: EditDiagramAsTextFeature;
+	private readonly liveshareFeature: LiveshareFeature;
 
 	constructor(private readonly context: vscode.ExtensionContext) {
+		this.config = new Config(this.context.globalState);
+		this.drawioClientFactory = new DrawioClientFactory(
+			this.config,
+			this.log,
+			this.context.extensionUri
+		);
+		this.editorService = new DrawioEditorService(
+			this.config,
+			this.drawioClientFactory
+		);
+		this.linkCodeWithSelectedNodeService = this.dispose.track(
+			new LinkCodeWithSelectedNodeService(this.editorService, this.config)
+		);
+		this.editDiagramsAsTextFeature = this.dispose.track(
+			new EditDiagramAsTextFeature(this.editorService, this.config)
+		);
+		this.liveshareFeature = this.dispose.track(
+			new LiveshareFeature(this.editorService, this.config)
+		);
+
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
 				"hediet.vscode-drawio-text",
