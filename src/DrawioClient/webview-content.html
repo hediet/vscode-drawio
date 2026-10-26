@@ -187,7 +187,12 @@
 			// Checks for local storage
 			var isLocalStorage = true;
 
-			function mxscript(src, onLoad, id, dataAppKey, noWrite) {
+			// Draw.io derives this from window.location, which is the
+			// vscode-webview:// host frame, not the webapp folder. On-demand
+			// bundles (eg. js/plantuml/drawio-plantuml.min.js) load from here.
+			window.DRAWIO_SERVER_URL = "$$literal-vsuri$$/";
+
+			function mxscript(src, onLoad, id, dataAppKey, noWrite, onError) {
 				if (onLoad != null || noWrite) {
 					var s = document.createElement("script");
 					s.setAttribute("type", "text/javascript");
@@ -212,6 +217,12 @@
 								r = true;
 								onLoad();
 							}
+						};
+					}
+
+					if (onError != null) {
+						s.onerror = function (e) {
+							onError("Failed to load " + src, e);
 						};
 					}
 

@@ -462,12 +462,19 @@ function startOffline(config: GuestConfig, session: Session): DrawioChannel {
 
 	installKeyInterceptor(config.passThroughKeys);
 
+	// Draw.io derives this from window.location, not the document base, so
+	// on-demand bundles (eg. js/plantuml/drawio-plantuml.min.js) would load
+	// from this iframe's origin instead of the webapp folder.
+	w.DRAWIO_SERVER_URL = document.baseURI.replace(/[^/]*$/, "");
+
 	// Loader helpers Draw.io's index.html normally provides.
 	w.mxscript = (
 		src: string,
 		onLoad?: () => void,
 		id?: string,
-		dataAppKey?: string
+		dataAppKey?: string,
+		noWrite?: boolean,
+		onError?: (message: string, e: Event | string) => void
 	) => {
 		const script = document.createElement("script");
 		script.type = "text/javascript";
@@ -480,6 +487,9 @@ function startOffline(config: GuestConfig, session: Session): DrawioChannel {
 		}
 		if (onLoad != null) {
 			script.onload = onLoad;
+		}
+		if (onError != null) {
+			script.onerror = (e) => onError(`Failed to load ${src}`, e);
 		}
 		document.head.appendChild(script);
 	};
