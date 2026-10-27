@@ -1418,7 +1418,8 @@
         '.geSidebar { display:none !important; }',
         '.geFormatContainer { display:none !important; }',
         '.geTabContainer { display:none !important; }',
-        '.mxWindow { display:none !important; }',
+        // The color window of the inline toolbar stays (draw.io 32.6.4+ marks it)
+        '.mxWindow:not(.geColorWindow) { display:none !important; }',
         '::-webkit-scrollbar { display:none !important; }',
         'body { background: transparent !important; overflow: hidden !important; }',
         '.geDiagramBackdrop { background: transparent !important; }',
@@ -2235,6 +2236,8 @@
                 darkColor: '#1e1e1e',
                 showTooltipIcons: true,
                 showConnectHandle: true,
+                enableShapeInlineToolbar: true,
+                springMove: true,
                 preserveViewState: true,
                 settingsName: 'vscode-overlay-editor',
                 useInternalClipboard: true
