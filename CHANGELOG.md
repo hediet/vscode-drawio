@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0]
+
+### Added
+
+- The inline Markdown diagram editor shows the inline toolbar for selected shapes and the spring move handle, which moves a shape together with the shapes connected to it. The full editor opened from an inline diagram shows them too
+- `hediet.vscode-drawio.export` takes `{ source, destination?, format?, overwrite? }` and exports a diagram file to SVG, PNG or `.drawio` without opening it and without prompts, for other extensions and automations [#548](https://github.com/hediet/vscode-drawio/issues/548)
+
+### Changed
+
+- Updated Draw.io to v32.6.9
+
+### Fixed
+
+- In Restricted Mode, the settings of an untrusted workspace could load custom libraries and plugins from any local file and change which Draw.io app the editor loads. VS Code now ignores the workspace values of `customLibraries`, `plugins`, `offline` and `online-url` there and uses only your own settings [#494](https://github.com/hediet/vscode-drawio/pull/494)
+- In online mode, the editor exchanged messages with any page its Draw.io frame showed. It now only talks to the origin of the configured `online-url`
+- Inserting PlantUML (Arrange > Insert > Advanced > PlantUML) never finished: the editor kept showing the loading spinner and inserted nothing [jgraph/drawio#5822](https://github.com/jgraph/drawio/issues/5822)
+- The color buttons of the inline toolbar in the inline editor opened nothing
+
 ## [1.17.0]
 
 ### Added
