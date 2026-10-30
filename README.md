@@ -131,6 +131,26 @@ When an agent edits the XML, the change shows up in the open diagram right away,
 
 ![](./docs/drawio-xml.gif)
 
+## Exporting Diagrams From Other Extensions
+
+Other extensions, keybindings and automations can export a diagram file to SVG, PNG or `.drawio` without opening it and without prompts:
+
+```ts
+const uri = await vscode.commands.executeCommand("hediet.vscode-drawio.export", {
+	source: "diagrams/architecture.drawio",
+	destination: "public/diagrams/architecture.svg", // optional
+	format: "svg", // optional: "svg", "png" or "drawio"
+	overwrite: true, // optional, defaults to false
+});
+```
+
+-   `source` and `destination` are a `Uri`, a URI string, an absolute path or a path relative to the first workspace folder. Missing folders are created.
+-   Without `destination`, the export is written next to the source (`architecture.drawio` → `architecture.svg`). Without `format`, it is taken from the extension of `destination`, else SVG.
+-   The saved file is exported, with the first page for multi-page diagrams. It is briefly rendered in a temporary editor tab that closes again.
+-   The command resolves to the `Uri` of the written file and rejects with the reason if the export fails, e.g. because the destination exists and `overwrite` is not set.
+
+Without arguments, the command is `Draw.io: Export To...`, which asks for the format and file of the diagram in the active editor.
+
 ## Contributors
 
 -   Henning Dieterichs, [hediet](https://github.com/hediet) on Github (Main Contributor / Author)

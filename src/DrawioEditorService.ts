@@ -1,12 +1,13 @@
 import { Disposable } from "@hediet/std/disposable";
 import { EventEmitter } from "@hediet/std/events";
 import { autorun, computed, observable, ObservableSet } from "mobx";
-import { extname } from "path";
+import { basename, extname, isAbsolute } from "path";
 import {
 	commands,
 	QuickPickItem, QuickPickItemKind, StatusBarAlignment,
 	TextDocument,
 	Uri,
+	ViewColumn,
 	WebviewPanel,
 	window,
 	workspace
@@ -18,9 +19,28 @@ import {
 	DrawioClientOptions,
 } from "./DrawioClient";
 import { DrawioBinaryDocument } from "./DrawioEditorProviderBinary";
+import { BufferImpl } from "./utils/buffer";
 import { registerFailableCommand } from "./utils/registerFailableCommand";
 
 const drawioChangeThemeCommand = "hediet.vscode-drawio.changeTheme";
+
+/**
+ * The argument of `hediet.vscode-drawio.export` for exporting a diagram file
+ * without an editor and without prompts, e.g. from another extension.
+ * Paths are absolute or relative to the first workspace folder.
+ */
+export interface ExportOptions {
+	source: Uri | string;
+	/** Defaults to the source with the extension of the format. */
+	destination?: Uri | string;
+	/** Defaults to the extension of the destination, else svg. */
+	format?: "svg" | "png" | "drawio";
+	/** Replaces an existing destination file. Defaults to false. */
+	overwrite?: boolean;
+}
+
+const exportFormats = ["svg", "png", "drawio"];
+const exportTimeoutMs = 60_000;
 
 export class DrawioEditorService {
 	public readonly dispose = Disposable.fn();
@@ -94,13 +114,25 @@ export class DrawioEditorService {
 		);
 
 		this.dispose.track(
-			registerFailableCommand("hediet.vscode-drawio.export", () => {
-				const activeDrawioEditor = this.activeDrawioEditor;
-				if (!activeDrawioEditor) {
-					return;
+			commands.registerCommand(
+				"hediet.vscode-drawio.export",
+				async (options?: ExportOptions) => {
+					if (options?.source !== undefined) {
+						// Errors reject the command so that the caller sees them.
+						return await this.exportFile(options);
+					}
+					const activeDrawioEditor = this.activeDrawioEditor;
+					if (!activeDrawioEditor) {
+						return;
+					}
+					try {
+						await activeDrawioEditor.handleExportCommand();
+					} catch (e: any) {
+						window.showErrorMessage("The command failed: " + e.message);
+						return false;
+					}
 				}
-				activeDrawioEditor.handleExportCommand();
-			})
+			)
 		);
 
 		this.dispose.track({
@@ -153,9 +185,151 @@ export class DrawioEditorService {
 
 		return editor;
 	}
+
+	/**
+	 * Exports a diagram file as it is saved on disk. It is rendered in a
+	 * temporary webview that closes when the export is written.
+	 */
+	public async exportFile(options: ExportOptions): Promise<Uri> {
+		const source = resolveUri(options.source);
+		const destinationOption =
+			options.destination !== undefined
+				? resolveUri(options.destination)
+				: undefined;
+		const format = (
+			options.format ??
+			(destinationOption && exportFormatOf(destinationOption.path)) ??
+			"svg"
+		)
+			.replace(/^\./, "")
+			.toLowerCase();
+		if (!exportFormats.includes(format)) {
+			throw new Error(
+				`Invalid format "${format}"! Use "svg", "png" or "drawio".`
+			);
+		}
+		const destination =
+			destinationOption ??
+			source.with({
+				path:
+					removeEnd(source.path, getDiagramFileExtension(source.path)) +
+					"." +
+					format,
+			});
+
+		if (destination.toString() === source.toString()) {
+			throw new Error(
+				`Cannot export "${source.toString()}" to itself!`
+			);
+		}
+		if (!options.overwrite && (await fileExists(destination))) {
+			throw new Error(
+				`File "${destination.toString()}" already exists! Pass overwrite: true to replace it.`
+			);
+		}
+		const content = await workspace.fs.readFile(source);
+
+		const panel = window.createWebviewPanel(
+			"hediet.vscode-drawio.export",
+			`Exporting ${basename(source.path)}`,
+			{ viewColumn: ViewColumn.Active, preserveFocus: true },
+			{ retainContextWhenHidden: true }
+		);
+		let timeout: NodeJS.Timeout | undefined;
+		try {
+			const drawioClient =
+				await this.drawioClientFactory.createDrawioClientInWebview(
+					source,
+					panel,
+					{ isReadOnly: false }
+				);
+			const buffer = await new Promise<BufferImpl>((resolve, reject) => {
+				timeout = setTimeout(
+					() => reject(new Error(`Exporting "${source.toString()}" timed out!`)),
+					exportTimeoutMs
+				);
+				panel.onDidDispose(() =>
+					reject(new Error("The export was canceled."))
+				);
+				drawioClient.onInit.sub(async () => {
+					try {
+						if (source.path.endsWith(".png")) {
+							await drawioClient.loadPngWithEmbeddedXml(content);
+						} else {
+							await drawioClient.loadXmlLike(
+								BufferImpl.from(content).toString("utf-8")
+							);
+						}
+						resolve(await drawioClient.export("." + format, true));
+					} catch (e) {
+						reject(e);
+					}
+				});
+			});
+			await workspace.fs.writeFile(destination, buffer);
+			return destination;
+		} finally {
+			clearTimeout(timeout);
+			panel.dispose();
+		}
+	}
 }
 
 const PrivateSymbol = Symbol();
+
+const knownDrawioFileExtensions: ReadonlyArray<string> = [
+	".drawio",
+	".dio",
+	".drawio.svg",
+	".drawio.png",
+	".dio.svg",
+	".dio.png",
+];
+
+function getDiagramFileExtension(path: string): string {
+	// Just in case an extension is the prefix of another,
+	// we want to return the longest.
+	const sortedExtensionsByLengthDesc = knownDrawioFileExtensions
+		.slice()
+		.sort((a, b) => b.length - a.length);
+	return (
+		sortedExtensionsByLengthDesc.find((ext) => path.endsWith(ext)) ||
+		extname(path)
+	);
+}
+
+function exportFormatOf(path: string): string | undefined {
+	const ext = extname(path).toLowerCase();
+	return ext === ".dio" ? "drawio" : ext.substr(1) || undefined;
+}
+
+/**
+ * Accepts a Uri, a URI string, an absolute path or a path relative to the
+ * first workspace folder (in its file system, e.g. in a remote window).
+ */
+function resolveUri(uriOrPath: Uri | string): Uri {
+	if (uriOrPath instanceof Uri) {
+		return uriOrPath;
+	}
+	if (typeof uriOrPath !== "string") {
+		// Uri components, e.g. from a keybinding's args
+		return Uri.from(uriOrPath);
+	}
+	if (/^[a-z][\w+.-]+:\/\//i.test(uriOrPath)) {
+		return Uri.parse(uriOrPath, true);
+	}
+	const folder = workspace.workspaceFolders?.[0]?.uri;
+	if (isAbsolute(uriOrPath)) {
+		const path = Uri.file(uriOrPath).path;
+		return folder ? folder.with({ path }) : Uri.file(uriOrPath);
+	}
+	if (!folder) {
+		throw new Error(
+			`Cannot resolve the relative path "${uriOrPath}" without a workspace folder!`
+		);
+	}
+	return Uri.joinPath(folder, uriOrPath);
+}
 
 /**
  * Represents a drawio editor in VS Code.
@@ -167,27 +341,8 @@ export class DrawioEditor {
 	@observable private _isActive = false;
 	@observable private _hasFocus = false;
 
-	private readonly knownDrawioFileExtensions: ReadonlyArray<string> = [
-		".drawio",
-		".dio",
-		".drawio.svg",
-		".drawio.png",
-		".dio.svg",
-		".dio.png",
-	];
-
 	public get fileExtension(): string {
-		const currentFilePath = this.uri.path;
-		// Just in case an extension is the prefix of another,
-		// we want to return the longest.
-		const sortedExtensionsByLengthDesc = this.knownDrawioFileExtensions
-			.slice()
-			.sort((a, b) => b.length - a.length);
-		return (
-			sortedExtensionsByLengthDesc.find((ext) =>
-				currentFilePath.endsWith(ext)
-			) || extname(currentFilePath)
-		);
+		return getDiagramFileExtension(this.uri.path);
 	}
 
 	constructor(
