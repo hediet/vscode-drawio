@@ -39,7 +39,7 @@ export class Extension {
 	constructor(private readonly context: vscode.ExtensionContext) {
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
-				"hediet.vscode-drawio-text",
+				"drawioSlides.textEditor",
 				new DrawioEditorProviderText(this.editorService),
 				{ webviewOptions: { retainContextWhenHidden: true } }
 			)
@@ -47,7 +47,7 @@ export class Extension {
 
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
-				"hediet.vscode-drawio",
+				"drawioSlides.binaryEditor",
 				new DrawioEditorProviderBinary(this.editorService),
 				{
 					supportsMultipleEditorsPerDocument: false,
@@ -58,7 +58,7 @@ export class Extension {
 
 		this.dispose.track(
 			registerFailableCommand(
-				"hediet.vscode-drawio.newDiagram",
+				"drawioSlides.newDiagram",
 				async () => {
 					const targetUri = await vscode.window.showSaveDialog({
 						saveLabel: "Create",
@@ -77,7 +77,7 @@ export class Extension {
 						await vscode.commands.executeCommand(
 							"vscode.openWith",
 							targetUri,
-							"hediet.vscode-drawio-text"
+							"drawioSlides.textEditor"
 						);
 					} catch (e) {
 						console.error("Cannot create or open file", e);

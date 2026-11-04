@@ -1,12 +1,12 @@
 {
-	"name": "vscode-drawio",
+	"name": "drawio-slides",
 	"private": true,
-	"displayName": "Draw.io Integration",
-	"description": "This unofficial extension integrates Draw.io into VS Code.",
-	"version": "1.18.0",
+	"displayName": "Draw.io Slides",
+	"description": "A fork of the Draw.io Integration of Henning Dieterichs, for slide decks drawn in draw.io.",
+	"version": "0.1.0",
 	"preRelease": false,
 	"license": "GPL-3.0",
-	"publisher": "hediet",
+	"publisher": "yujunhuang",
 	"keywords": [
 		"drawio",
 		"diagram",
@@ -40,7 +40,7 @@
 		"onUri"
 	],
 	"repository": {
-		"url": "https://github.com/hediet/vscode-drawio.git"
+		"url": "https://github.com/HuangYujun-JunkyTalent/vscode-drawio-slides.git"
 	},
 	"browser": "./dist/extension/index",
 	"main": "./dist/extension/index",
@@ -49,10 +49,10 @@
 			"supported": "limited",
 			"description": "In Restricted Mode, workspace settings cannot load custom libraries or plugins, or change which Draw.io app the editor loads.",
 			"restrictedConfigurations": [
-				"hediet.vscode-drawio.customLibraries",
-				"hediet.vscode-drawio.plugins",
-				"hediet.vscode-drawio.offline",
-				"hediet.vscode-drawio.online-url"
+				"drawioSlides.customLibraries",
+				"drawioSlides.plugins",
+				"drawioSlides.offline",
+				"drawioSlides.online-url"
 			]
 		}
 	},
@@ -76,8 +76,8 @@
 		],
 		"customEditors": [
 			{
-				"viewType": "hediet.vscode-drawio",
-				"displayName": "Draw.io (Binary)",
+				"viewType": "drawioSlides.binaryEditor",
+				"displayName": "Draw.io Slides (Binary)",
 				"selector": [
 					{
 						"filenamePattern": "*.drawio.png"
@@ -89,8 +89,8 @@
 				"priority": "default"
 			},
 			{
-				"viewType": "hediet.vscode-drawio-text",
-				"displayName": "Draw.io",
+				"viewType": "drawioSlides.textEditor",
+				"displayName": "Draw.io Slides",
 				"selector": [
 					{
 						"filenamePattern": "*.drawio"
@@ -108,8 +108,8 @@
 				"priority": "default"
 			},
 			{
-				"viewType": "drawio-inline-editor.drawioEditor",
-				"displayName": "Draw.io Inline Editor",
+				"viewType": "drawioSlides.inlineEditor.drawioEditor",
+				"displayName": "Draw.io Slides Inline Editor",
 				"selector": [
 					{ "filenamePattern": "*.drawio" },
 					{ "filenamePattern": "*.dio" }
@@ -117,7 +117,7 @@
 				"priority": "option"
 			},
 			{
-				"viewType": "drawio-inline-editor.markdownEditor",
+				"viewType": "drawioSlides.inlineEditor.markdownEditor",
 				"displayName": "Markdown with Diagrams (Experimental)",
 				"selector": [
 					{ "filenamePattern": "*.md" }
@@ -127,90 +127,90 @@
 		],
 		"commands": [
 			{
-				"command": "hediet.vscode-drawio.convert",
+				"command": "drawioSlides.convert",
 				"title": "Convert To...",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "hediet.vscode-drawio.export",
+				"command": "drawioSlides.export",
 				"title": "Export To...",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "hediet.vscode-drawio.toggleCodeLinkActivation",
+				"command": "drawioSlides.toggleCodeLinkActivation",
 				"title": "Toggle Code Link Activation",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "hediet.vscode-drawio.changeTheme",
+				"command": "drawioSlides.changeTheme",
 				"title": "Change Theme",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "hediet.vscode-drawio.editDiagramAsText",
+				"command": "drawioSlides.editDiagramAsText",
 				"title": "Edit Diagram As Text (Experimental)",
-				"enablement": "hediet.vscode-drawio.experimentalFeaturesEnabled",
-				"category": "Draw.io"
+				"enablement": "drawioSlides.experimentalFeaturesEnabled",
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
+				"command": "drawioSlides.linkCodeWithSelectedNode",
 				"title": "Link Code with Selected Node",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "hediet.vscode-drawio.newDiagram",
+				"command": "drawioSlides.newDiagram",
 				"title": "New Draw.io Diagram",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "hediet.vscode-drawio.linkFileWithSelectedNode",
+				"command": "drawioSlides.linkFileWithSelectedNode",
 				"title": "Link File With Selected Node",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "hediet.vscode-drawio.linkSymbolWithSelectedNode",
+				"command": "drawioSlides.linkSymbolWithSelectedNode",
 				"title": "Link Symbol With Selected Node",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "hediet.vscode-drawio.linkWsSymbolWithSelectedNode",
+				"command": "drawioSlides.linkWsSymbolWithSelectedNode",
 				"title": "Link Workspace Symbol With Selected Node",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "drawio-inline-editor.editDiagram",
+				"command": "drawioSlides.inlineEditor.editDiagram",
 				"title": "Edit Diagram",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "drawio-inline-editor.insertDiagram",
+				"command": "drawioSlides.inlineEditor.insertDiagram",
 				"title": "Insert New Diagram",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "drawio-inline-editor.toggleLock",
+				"command": "drawioSlides.inlineEditor.toggleLock",
 				"title": "Toggle Diagram Lock",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "drawio-inline-editor.previewDiagram",
+				"command": "drawioSlides.inlineEditor.previewDiagram",
 				"title": "Preview Diagram",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "drawio-inline-editor.inlinePreview",
+				"command": "drawioSlides.inlineEditor.inlinePreview",
 				"title": "Open Inline Preview",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "drawio-inline-editor.convertMermaid",
+				"command": "drawioSlides.inlineEditor.convertMermaid",
 				"title": "Convert Mermaid to Draw.io",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			},
 			{
-				"command": "drawio-inline-editor.convertPlantUml",
+				"command": "drawioSlides.inlineEditor.convertPlantUml",
 				"title": "Convert PlantUML to Draw.io",
-				"category": "Draw.io"
+				"category": "Draw.io Slides"
 			}
 		],
 		"markdown.markdownItPlugins": true,
@@ -246,7 +246,7 @@
 		],
 		"keybindings": [
 			{
-				"command": "hediet.vscode-drawio.linkCodeWithSelectedNode",
+				"command": "drawioSlides.linkCodeWithSelectedNode",
 				"key": "shift+F3",
 				"when": "!findWidgetVisible"
 			}
@@ -256,28 +256,28 @@
 				"title": "General",
 				"order": 10,
 				"properties": {
-					"hediet.vscode-drawio.offline": {
+					"drawioSlides.offline": {
 						"type": "boolean",
 						"default": true,
 						"title": "Use Offline Mode",
 						"description": "When enabled, the bundled instance of Draw.io is used.",
 						"order": 10
 					},
-					"hediet.vscode-drawio.online-url": {
+					"drawioSlides.online-url": {
 						"type": "string",
 						"default": "https://embed.diagrams.net/",
 						"title": "Online URL",
 						"description": "The app to use when offline mode is disabled.",
 						"order": 11
 					},
-					"hediet.vscode-drawio.codeLinkActivated": {
+					"drawioSlides.codeLinkActivated": {
 						"type": "boolean",
 						"default": false,
 						"title": "Code Link Enabled",
 						"description": "When activated, selecting a node will navigate to an associated code section.",
 						"order": 20
 					},
-					"hediet.vscode-drawio.local-storage": {
+					"drawioSlides.local-storage": {
 						"anyOf": [
 							{
 								"type": "object"
@@ -292,14 +292,14 @@
 						"description": "Only change this property if you know what you are doing. Manual changes to this property are not supported!",
 						"order": 30
 					},
-					"hediet.vscode-drawio.simpleLabels": {
+					"drawioSlides.simpleLabels": {
 						"type": "boolean",
 						"default": false,
 						"title": "Use SimpleLabels",
 						"description": "When enabled, no ForeignObjects are used in the svg.",
 						"order": 40
 					},
-					"hediet.vscode-drawio.svgAppearance": {
+					"drawioSlides.svgAppearance": {
 						"type": "string",
 						"default": "light",
 						"enum": [
@@ -316,20 +316,20 @@
 						"description": "The appearance of `.drawio.svg` files and SVG exports. It does not depend on the theme of the editor.",
 						"order": 45
 					},
-					"hediet.vscode-drawio.zoomFactor": {
+					"drawioSlides.zoomFactor": {
 						"type": "number",
 						"default": 1.2,
 						"title": "Draw.io zoom factor",
 						"description": "Defines the zoom factor for mouse wheel and trackpad zoom.",
 						"order": 50
 					},
-					"hediet.vscode-drawio.globalVars": {
+					"drawioSlides.globalVars": {
 						"type": "object",
 						"title": "Draw.io global variables.",
 						"description": "Defines global variables for system-wide placeholders using a JSON structure with key, value pairs. Keep the number of global variables small.",
 						"order": 60
 					},
-					"hediet.vscode-drawio.resizeImages": {
+					"drawioSlides.resizeImages": {
 						"type": [
 							"boolean",
 							"null"
@@ -339,21 +339,21 @@
 						"default": null,
 						"order": 70
 					},
-					"hediet.vscode-drawio.showTooltipIcons": {
+					"drawioSlides.showTooltipIcons": {
 						"type": "boolean",
 						"default": false,
 						"title": "Show Tooltip Icons",
 						"description": "Specifies whether tooltip icons are shown.",
 						"order": 80
 					},
-					"hediet.vscode-drawio.showLinkIcons": {
+					"drawioSlides.showLinkIcons": {
 						"type": "boolean",
 						"default": false,
 						"title": "Show Link Icons",
 						"description": "Specifies whether link icons are shown.",
 						"order": 90
 					},
-					"hediet.vscode-drawio.showConnectHandle": {
+					"drawioSlides.showConnectHandle": {
 						"type": "boolean",
 						"default": false,
 						"title": "Show Connect Handle",
@@ -366,23 +366,23 @@
 				"title": "Inline Editor",
 				"order": 15,
 				"properties": {
-					"drawio-inline-editor.theme": {
+					"drawioSlides.inlineEditor.theme": {
 						"type": "string",
 						"default": "auto",
 						"enum": ["auto", "kennedy", "min", "atlas", "dark", "sketch"],
 						"description": "Editor UI theme"
 					},
-					"drawio-inline-editor.autoLock": {
+					"drawioSlides.inlineEditor.autoLock": {
 						"type": "boolean",
 						"default": false,
 						"description": "Automatically lock diagrams after editing"
 					},
-					"drawio-inline-editor.minimalUI": {
+					"drawioSlides.inlineEditor.minimalUI": {
 						"type": "boolean",
 						"default": true,
 						"description": "Use minimal draw.io UI (hides sidebar, format panel, scrollbars)"
 					},
-					"drawio-inline-editor.diagramPadding": {
+					"drawioSlides.inlineEditor.diagramPadding": {
 						"type": "number",
 						"default": 28,
 						"minimum": 0,
@@ -395,7 +395,7 @@
 				"title": "Plugins",
 				"order": 20,
 				"properties": {
-					"hediet.vscode-drawio.plugins": {
+					"drawioSlides.plugins": {
 						"type": "array",
 						"items": {
 							"anyOf": [
@@ -415,7 +415,7 @@
 						"markdownDescription": "Loads Draw.io plugins from the local filesystem.  See description of the `file` property. See [plugins documentation](https://github.com/hediet/vscode-drawio/blob/master/docs/plugins.md).",
 						"order": 10
 					},
-					"hediet.vscode-drawio.knownPlugins": {
+					"drawioSlides.knownPlugins": {
 						"type": "array",
 						"items": {
 							"type": "object",
@@ -437,7 +437,7 @@
 						"scope": "application",
 						"order": 15
 					},
-					"hediet.vscode-drawio.customLibraries": {
+					"drawioSlides.customLibraries": {
 						"type": "array",
 						"items": {
 							"type": "object",
@@ -496,7 +496,7 @@
 				"title": "Theme and styles",
 				"order": 30,
 				"properties": {
-					"hediet.vscode-drawio.styles": {
+					"drawioSlides.styles": {
 						"title": "Styles",
 						"description": "Defines an array of objects that contain the colours (fontColor, fillColor, strokeColor and gradientColor) for the Style tab of the format panel if the selection is empty. These objects can have a commonStyle (which is applied to both vertices and edges), vertexStyle (applied to vertices) and edgeStyle (applied to edges), and a graph with background and gridColor. An empty object means apply the default colors",
 						"type": "array",
@@ -531,22 +531,22 @@
 							}
 						}
 					},
-					"hediet.vscode-drawio.defaultVertexStyle": {
+					"drawioSlides.defaultVertexStyle": {
 						"title": "Default Vertex Style",
 						"description": "Default styling of vertices (shapes).",
 						"type": "object"
 					},
-					"hediet.vscode-drawio.defaultEdgeStyle": {
+					"drawioSlides.defaultEdgeStyle": {
 						"title": "Default Edge Style",
 						"description": "Default styling of edges.",
 						"type": "object"
 					},
-					"hediet.vscode-drawio.colorNames": {
+					"drawioSlides.colorNames": {
 						"title": "Color Names",
 						"description": "Names for colors, eg. {‘FFFFFF’: ‘White’, ‘000000’: ‘Black’} that are used as tooltips (uppercase, no leading # for the colour codes)",
 						"type": "object"
 					},
-					"hediet.vscode-drawio.presetColors": {
+					"drawioSlides.presetColors": {
 						"title": "Preset Colors",
 						"description": "Color codes for the upper palette in the color dialog.",
 						"type": "array",
@@ -555,7 +555,7 @@
 							"description": "Use hex codes without # at the beginning only (FFFFFF for absolute white, for example)."
 						}
 					},
-					"hediet.vscode-drawio.customColorSchemes": {
+					"drawioSlides.customColorSchemes": {
 						"title": "Custom Color Schemes",
 						"markdownDescription": "Available color schemes in the style section at the top of the format panel. See example [here](https://www.diagrams.net/doc/faq/custom-colours-confluence-cloud#default-colour-schemes---format-panel)",
 						"type": "array",
@@ -589,7 +589,7 @@
 							}
 						}
 					},
-					"hediet.vscode-drawio.customFonts": {
+					"drawioSlides.customFonts": {
 						"type": "array",
 						"items": {
 							"type": "string"
@@ -598,7 +598,7 @@
 						"title": "Custom Fonts",
 						"description": "Configures the Draw.io editor to use custom fonts."
 					},
-					"hediet.vscode-drawio.theme": {
+					"drawioSlides.theme": {
 						"title": "Draw.io Theme",
 						"type": "string",
 						"default": "kennedy",
@@ -611,7 +611,7 @@
 						],
 						"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
 					},
-					"hediet.vscode-drawio.appearance": {
+					"drawioSlides.appearance": {
 						"title": "Draw.io Appearance",
 						"type": "string",
 						"default": "light",
@@ -630,15 +630,15 @@
 		"menus": {
 			"explorer/context": [
 				{
-					"when": "hediet.vscode-drawio.active",
-					"command": "hediet.vscode-drawio.linkFileWithSelectedNode",
+					"when": "drawioSlides.active",
+					"command": "drawioSlides.linkFileWithSelectedNode",
 					"group": "Draw.io"
 				}
 			],
 			"commandPalette": [
 				{
 					"when": "false",
-					"command": "hediet.vscode-drawio.linkFileWithSelectedNode"
+					"command": "drawioSlides.linkFileWithSelectedNode"
 				}
 			]
 		}

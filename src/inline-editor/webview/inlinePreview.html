@@ -710,7 +710,7 @@
       }
 
       // Export request for saving an editable image link. theme sets the colors
-      // of the svg (hediet.vscode-drawio.svgAppearance); draw.io ignores it for png.
+      // of the svg (drawioSlides.svgAppearance); draw.io ignores it for png.
       function linkExportRequest(target) {
         return JSON.stringify({ action: 'export', format: linkExportFormat(target), theme: svgAppearance });
       }

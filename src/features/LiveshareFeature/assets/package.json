@@ -1,6 +1,6 @@
 {
-	"name": "vscode-drawio",
-	"publisher": "hediet",
+	"name": "drawio-slides",
+	"publisher": "yujunhuang",
 	"description": "This file bypasses vsliveshares check",
 	"private": "true"
 }

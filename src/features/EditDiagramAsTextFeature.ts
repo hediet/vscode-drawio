@@ -41,7 +41,7 @@ export class EditDiagramAsTextFeature {
 
 		this.dispose.track(
 			registerFailableCommand(
-				"hediet.vscode-drawio.editDiagramAsText",
+				"drawioSlides.editDiagramAsText",
 				async () => {
 					const activeDrawioEditor =
 						this.editorManager.activeDrawioEditor;

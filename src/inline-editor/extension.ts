@@ -31,10 +31,10 @@ import markdownItDrawio from "./markdownPlugin";
 
 /**
  * Default diagram padding (pixels) used as fallback for the
- * 'drawio-inline-editor.diagramPadding' setting.
+ * 'drawioSlides.inlineEditor.diagramPadding' setting.
  *
  * When changing this value, also update the defaults in:
- *  - package.json  ("drawio-inline-editor.diagramPadding" → "default")
+ *  - package.json  ("drawioSlides.inlineEditor.diagramPadding" → "default")
  *  - src/webview/inlinePreview.html  (var diagramPadding = …)
  *  - src/webview/previewInit.js      (MXGRAPH_CONFIG.border)
  */
@@ -137,14 +137,14 @@ function hashBytes(bytes: Uint8Array): string {
 }
 
 /**
- * The draw.io UI theme, resolved from the shared `hediet.vscode-drawio.theme`
+ * The draw.io UI theme, resolved from the shared `drawioSlides.theme`
  * setting exactly like the standalone editor — so the full inline editors render
  * with the SAME theme. Legacy 'dark'/'automatic' collapse to 'kennedy' (dark mode
  * is handled separately via the dark= param).
  */
 function resolveDrawioUiTheme(): string {
 	const t = vscode.workspace
-		.getConfiguration("hediet.vscode-drawio")
+		.getConfiguration("drawioSlides")
 		.get<string>("theme", "kennedy")!
 		.toLowerCase();
 	return t === "dark" || t === "automatic" ? "kennedy" : t;
@@ -247,7 +247,7 @@ function handleForwardedMessage(msg: { type: string; command?: string; href?: st
 }
 
 /** Settings section shared with the main draw.io editor. */
-const DRAWIO_CONFIG_SECTION = "hediet.vscode-drawio";
+const DRAWIO_CONFIG_SECTION = "drawioSlides";
 
 /** Whether the bundled (offline) editor should be used, per the shared setting. */
 function isOfflineMode(): boolean {
@@ -267,9 +267,9 @@ function getOnlineUrl(): string {
 /**
  * Resolves the draw.io editor URL for the inline editor.
  *
- * Honors the shared `hediet.vscode-drawio.offline` setting: when offline
+ * Honors the shared `drawioSlides.offline` setting: when offline
  * (the default) the bundled draw.io webapp is served from a local HTTP
- * server; otherwise the configured `hediet.vscode-drawio.online-url` is used.
+ * server; otherwise the configured `drawioSlides.online-url` is used.
  *
  * The local server URL is passed through `asExternalUri` so it works in
  * remote/Codespaces/web contexts (where `127.0.0.1` in the webview points at
@@ -318,7 +318,7 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 	// Custom editor provider for .drawio and .dio files
 	context.subscriptions.push(
 		vscode.window.registerCustomEditorProvider(
-			"drawio-inline-editor.drawioEditor",
+			"drawioSlides.inlineEditor.drawioEditor",
 			new DrawioCustomEditorProvider(context),
 			{ webviewOptions: { retainContextWhenHidden: true } }
 		)
@@ -328,7 +328,7 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 	const markdownEditorProvider = new MarkdownEditorProvider(context);
 	context.subscriptions.push(
 		vscode.window.registerCustomEditorProvider(
-			"drawio-inline-editor.markdownEditor",
+			"drawioSlides.inlineEditor.markdownEditor",
 			markdownEditorProvider,
 			{ webviewOptions: { retainContextWhenHidden: true } }
 		)
@@ -390,7 +390,7 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 
 	// URI handler for vscode:// URIs from the markdown preview.
 	// The markdown preview cannot use command: URIs (enableCommandUris is not
-	// set), so the edit button uses vscode://drawio.drawio-inline-editor/edit?line=N
+	// set), so the edit button uses vscode://yujunhuang.drawio-slides/edit?line=N
 	// which routes through this handler.
 	//
 	// Because the URI round-trips through the OS protocol handler,
@@ -540,7 +540,7 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 
 	// Command: Edit Diagram
 	context.subscriptions.push(
-		vscode.commands.registerCommand("drawio-inline-editor.editDiagram", (lineOrUri: unknown, blockIndex?: number) => {
+		vscode.commands.registerCommand("drawioSlides.inlineEditor.editDiagram", (lineOrUri: unknown, blockIndex?: number) => {
 			// Find the markdown document.  Prefer the active editor; fall back to
 			// searching all open documents (needed when triggered from the markdown
 			// preview where activeTextEditor may not be set).
@@ -599,7 +599,7 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 
 	// Command: Insert New Diagram
 	context.subscriptions.push(
-		vscode.commands.registerCommand("drawio-inline-editor.insertDiagram", async () => {
+		vscode.commands.registerCommand("drawioSlides.inlineEditor.insertDiagram", async () => {
 			const editor = vscode.window.activeTextEditor;
 			if (!editor || editor.document.languageId !== "markdown") {
 				vscode.window.showWarningMessage("Open a Markdown file to insert a diagram.");
@@ -627,7 +627,7 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 
 	// Command: Toggle Lock
 	context.subscriptions.push(
-		vscode.commands.registerCommand("drawio-inline-editor.toggleLock", (lineNumber?: number) => {
+		vscode.commands.registerCommand("drawioSlides.inlineEditor.toggleLock", (lineNumber?: number) => {
 			const editor = vscode.window.activeTextEditor;
 			if (!editor || editor.document.languageId !== "markdown") { return; }
 
@@ -657,7 +657,7 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 
 	// Command: Preview Diagram
 	context.subscriptions.push(
-		vscode.commands.registerCommand("drawio-inline-editor.previewDiagram", async (lineNumber?: number) => {
+		vscode.commands.registerCommand("drawioSlides.inlineEditor.previewDiagram", async (lineNumber?: number) => {
 			const editor = vscode.window.activeTextEditor;
 			if (!editor || editor.document.languageId !== "markdown") { return; }
 
@@ -705,17 +705,17 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 	};
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("drawio-inline-editor.convertMermaid", (lineOrUri: unknown) => {
+		vscode.commands.registerCommand("drawioSlides.inlineEditor.convertMermaid", (lineOrUri: unknown) => {
 			convertSource("mermaid", lineOrUri);
 		}),
-		vscode.commands.registerCommand("drawio-inline-editor.convertPlantUml", (lineOrUri: unknown) => {
+		vscode.commands.registerCommand("drawioSlides.inlineEditor.convertPlantUml", (lineOrUri: unknown) => {
 			convertSource("plantuml", lineOrUri);
 		})
 	);
 
 	// Command: Inline Preview (open Markdown with Diagrams custom editor)
 	context.subscriptions.push(
-		vscode.commands.registerCommand("drawio-inline-editor.inlinePreview", (targetBlockIndex?: number) => {
+		vscode.commands.registerCommand("drawioSlides.inlineEditor.inlinePreview", (targetBlockIndex?: number) => {
 			const editor = vscode.window.activeTextEditor;
 			if (!editor || editor.document.languageId !== "markdown") {
 				vscode.window.showWarningMessage("Open a Markdown file to use the inline preview.");
@@ -755,7 +755,7 @@ async function openDiagramEditor(
 
 	editingContext = { documentUri: document.uri, block };
 
-	const config = vscode.workspace.getConfiguration("drawio-inline-editor");
+	const config = vscode.workspace.getConfiguration("drawioSlides.inlineEditor");
 	const editorUrl = await getEditorUrl(context);
 	const themeConfig = config.get<string>("ui", "kennedy")!;
 	const autoLock = config.get<boolean>("autoLock", false)!;
@@ -766,7 +766,7 @@ async function openDiagramEditor(
 	const theme = themeConfig === "auto" ? (isDark ? "dark" : "kennedy") : themeConfig;
 
 	activePanel = vscode.window.createWebviewPanel(
-		"drawio-inline-editor.editor",
+		"drawioSlides.inlineEditor.editor",
 		"Edit Diagram",
 		vscode.ViewColumn.Beside,
 		{
@@ -891,7 +891,7 @@ async function openSourceEditor(
 	// Store the source block as the editing context so saveSourceDiagram can find it
 	editingContext = { documentUri: document.uri, sourceBlock };
 
-	const config = vscode.workspace.getConfiguration("drawio-inline-editor");
+	const config = vscode.workspace.getConfiguration("drawioSlides.inlineEditor");
 	const editorUrl = await getEditorUrl(context);
 	const themeConfig = config.get<string>("ui", "kennedy")!;
 	const devMode = DEV_MODE;
@@ -901,7 +901,7 @@ async function openSourceEditor(
 	const theme = themeConfig === "auto" ? (isDark ? "dark" : "kennedy") : themeConfig;
 
 	activePanel = vscode.window.createWebviewPanel(
-		"drawio-inline-editor.editor",
+		"drawioSlides.inlineEditor.editor",
 		`Convert ${SOURCE_LANGUAGE_NAMES[sourceBlock.language]} to Draw.io`,
 		vscode.ViewColumn.Beside,
 		{
@@ -1059,7 +1059,7 @@ async function saveSourceConversion(
 
 async function openPreviewPanel(context: vscode.ExtensionContext, xml: string): Promise<void> {
 	const panel = vscode.window.createWebviewPanel(
-		"drawio-inline-editor.preview",
+		"drawioSlides.inlineEditor.preview",
 		"Diagram Preview",
 		vscode.ViewColumn.Beside,
 		{
@@ -1226,7 +1226,7 @@ async function openInlinePreview(
 	document: vscode.TextDocument,
 	targetBlockIndex?: number
 ): Promise<void> {
-	const config = vscode.workspace.getConfiguration("drawio-inline-editor");
+	const config = vscode.workspace.getConfiguration("drawioSlides.inlineEditor");
 	const editorUrl = await getEditorUrl(context);
 	const minimalUI = config.get<boolean>("minimalUI", true)!;
 	const devMode = DEV_MODE;
@@ -1251,7 +1251,7 @@ async function openInlinePreview(
 	inlinePreviewDocUri = document.uri;
 
 	inlinePreviewPanel = vscode.window.createWebviewPanel(
-		"drawio-inline-editor.inlinePreview",
+		"drawioSlides.inlineEditor.inlinePreview",
 		"Markdown Editor",
 		vscode.ViewColumn.Beside,
 		{
@@ -1873,7 +1873,7 @@ class DrawioCustomEditorProvider implements vscode.CustomTextEditorProvider {
 		webviewPanel: vscode.WebviewPanel
 	): Promise<void> {
 		const context = this.context;
-		const config = vscode.workspace.getConfiguration("drawio-inline-editor");
+		const config = vscode.workspace.getConfiguration("drawioSlides.inlineEditor");
 		const editorUrl = await getEditorUrl(context);
 		const themeConfig = config.get<string>("ui", "kennedy")!;
 		const devMode = DEV_MODE;
@@ -1996,7 +1996,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			this.pendingScrollTargets.set(uri.toString(), targetBlockIndex);
 		}
 
-		await vscode.commands.executeCommand("vscode.openWith", uri, "drawio-inline-editor.markdownEditor");
+		await vscode.commands.executeCommand("vscode.openWith", uri, "drawioSlides.inlineEditor.markdownEditor");
 
 		if (targetBlockIndex != null && alreadyOpen) {
 			// Panel already loaded — send immediately
@@ -2015,7 +2015,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		webviewPanel: vscode.WebviewPanel
 	): Promise<void> {
 		const context = this.context;
-		const config = vscode.workspace.getConfiguration("drawio-inline-editor");
+		const config = vscode.workspace.getConfiguration("drawioSlides.inlineEditor");
 		const editorUrl = await getEditorUrl(context);
 		const minimalUI = config.get<boolean>("minimalUI", true)!;
 		const diagramPadding = config.get<number>("diagramPadding", DEFAULT_DIAGRAM_PADDING)!;
@@ -2535,7 +2535,7 @@ class DiagramCodeLensProvider implements vscode.CodeLensProvider {
 			if (!block.locked) {
 				lenses.push(new vscode.CodeLens(range, {
 					title: "$(pencil) Edit Diagram",
-					command: "drawio-inline-editor.editDiagram",
+					command: "drawioSlides.inlineEditor.editDiagram",
 					arguments: [block.startLine, index],
 				}));
 			}
@@ -2543,7 +2543,7 @@ class DiagramCodeLensProvider implements vscode.CodeLensProvider {
 			// Preview action — opens read-only preview in a separate tab
 			lenses.push(new vscode.CodeLens(range, {
 				title: "$(eye) Preview",
-				command: "drawio-inline-editor.previewDiagram",
+				command: "drawioSlides.inlineEditor.previewDiagram",
 				arguments: [block.startLine],
 			}));
 
@@ -2551,7 +2551,7 @@ class DiagramCodeLensProvider implements vscode.CodeLensProvider {
 			if (!block.locked) {
 				lenses.push(new vscode.CodeLens(range, {
 					title: "$(open-preview) Inline Edit",
-					command: "drawio-inline-editor.inlinePreview",
+					command: "drawioSlides.inlineEditor.inlinePreview",
 					arguments: [index],
 				}));
 			}
@@ -2559,7 +2559,7 @@ class DiagramCodeLensProvider implements vscode.CodeLensProvider {
 			// Lock/Unlock action
 			lenses.push(new vscode.CodeLens(range, {
 				title: block.locked ? "$(lock) Unlock" : "$(unlock) Lock",
-				command: "drawio-inline-editor.toggleLock",
+				command: "drawioSlides.inlineEditor.toggleLock",
 				arguments: [block.startLine],
 			}));
 		});
@@ -2582,8 +2582,8 @@ class SourceCodeLensProvider implements vscode.CodeLensProvider {
 			lenses.push(new vscode.CodeLens(range, {
 				title: "$(arrow-swap) Convert to draw.io",
 				command: block.language === "mermaid" ?
-					"drawio-inline-editor.convertMermaid" :
-					"drawio-inline-editor.convertPlantUml",
+					"drawioSlides.inlineEditor.convertMermaid" :
+					"drawioSlides.inlineEditor.convertPlantUml",
 				arguments: [block.startLine],
 			}));
 		});

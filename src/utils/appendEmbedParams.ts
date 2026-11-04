@@ -6,7 +6,7 @@
  *  - a host with a trailing slash (the default online URL,
  *    `https://embed.diagrams.net/`), or
  *  - a full path that already carries its own query string — e.g. a local dev
- *    build pointed at via the `hediet.vscode-drawio.online-url` setting:
+ *    build pointed at via the `drawioSlides.online-url` setting:
  *    `http://localhost/.../index.html?dev=1&test=1&embed=1`.
  *
  * Existing query parameters on the base are preserved; ours are appended with

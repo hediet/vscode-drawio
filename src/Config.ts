@@ -24,8 +24,8 @@ import {
 } from "./vscode-utils/VsCodeSetting";
 import * as packageJson from "../package.json";
 
-const extensionId = "hediet.vscode-drawio";
-const experimentalFeaturesEnabled = "vscode-drawio.experimentalFeaturesEnabled";
+const settingPrefix = "drawioSlides";
+const experimentalFeaturesEnabled = "drawioSlides.experimentalFeaturesEnabled";
 
 export async function setContext(
 	key: string,
@@ -82,7 +82,7 @@ export class Config {
 	}
 
 	private readonly _experimentalFeatures = new VsCodeSetting(
-		`${extensionId}.enableExperimentalFeatures`,
+		`${settingPrefix}.enableExperimentalFeatures`,
 		{
 			serializer: serializerWithDefault<boolean>(false),
 		}
@@ -118,7 +118,7 @@ export class Config {
 
 	private readonly _knownPlugins = new VsCodeSetting<
 		{ pluginId: string; fingerprint: string; allowed: boolean }[]
-	>(`${extensionId}.knownPlugins`, {
+	>(`${settingPrefix}.knownPlugins`, {
 		serializer: serializerWithDefault<any>([]),
 		// Don't use workspace settings here!
 		target: ConfigurationTarget.Global,
@@ -246,7 +246,7 @@ interface InternalConfig {
 export class DiagramConfig {
 	//#region Styles
 
-	private readonly _styles = new VsCodeSetting(`${extensionId}.styles`, {
+	private readonly _styles = new VsCodeSetting(`${settingPrefix}.styles`, {
 		scope: this.uri,
 		serializer: serializerWithDefault<Style[]>([]),
 	});
@@ -261,7 +261,7 @@ export class DiagramConfig {
 	//#region Custom Color Schemes
 
 	private readonly _customColorSchemes = new VsCodeSetting(
-		`${extensionId}.customColorSchemes`,
+		`${settingPrefix}.customColorSchemes`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<ColorScheme[][]>([]),
@@ -278,7 +278,7 @@ export class DiagramConfig {
 	//#region Default Vertex Style
 
 	private readonly _defaultVertexStyle = new VsCodeSetting(
-		`${extensionId}.defaultVertexStyle`,
+		`${settingPrefix}.defaultVertexStyle`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<Record<string, string>>({}),
@@ -295,7 +295,7 @@ export class DiagramConfig {
 	//#region Default Edge Style
 
 	private readonly _defaultEdgeStyle = new VsCodeSetting(
-		`${extensionId}.defaultEdgeStyle`,
+		`${settingPrefix}.defaultEdgeStyle`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<Record<string, string>>({}),
@@ -312,7 +312,7 @@ export class DiagramConfig {
 	//#region Color Names
 
 	private readonly _colorNames = new VsCodeSetting(
-		`${extensionId}.colorNames`,
+		`${settingPrefix}.colorNames`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<Record<string, string>>({}),
@@ -329,7 +329,7 @@ export class DiagramConfig {
 	//#region Simple Labels
 
 	private readonly _simpleLabels = new VsCodeSetting(
-		`${extensionId}.simpleLabels`,
+		`${settingPrefix}.simpleLabels`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<boolean>(false),
@@ -346,7 +346,7 @@ export class DiagramConfig {
 	//#region SVG Appearance
 
 	private readonly _svgAppearance = new VsCodeSetting(
-		`${extensionId}.svgAppearance`,
+		`${settingPrefix}.svgAppearance`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<DrawioExportTheme>("light"),
@@ -368,7 +368,7 @@ export class DiagramConfig {
 	//#region Preset Colors
 
 	private readonly _presetColors = new VsCodeSetting(
-		`${extensionId}.presetColors`,
+		`${settingPrefix}.presetColors`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<string[]>([]),
@@ -384,12 +384,12 @@ export class DiagramConfig {
 
 	// #region Theme
 
-	private readonly _theme = new VsCodeSetting(`${extensionId}.theme`, {
+	private readonly _theme = new VsCodeSetting(`${settingPrefix}.theme`, {
 		scope: this.uri,
 		serializer: serializerWithDefault("kennedy"),
 	});
 
-	private readonly _appearance = new VsCodeSetting(`${extensionId}.appearance`, {
+	private readonly _appearance = new VsCodeSetting(`${settingPrefix}.appearance`, {
 		scope: this.uri,
 		serializer: serializerWithDefault<
 			"automatic" |
@@ -464,7 +464,7 @@ export class DiagramConfig {
 	// #region Mode
 
 	private readonly _useOfflineMode = new VsCodeSetting(
-		`${extensionId}.offline`,
+		`${settingPrefix}.offline`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault(true),
@@ -472,7 +472,7 @@ export class DiagramConfig {
 	);
 
 	private readonly _onlineUrl = new VsCodeSetting(
-		`${extensionId}.online-url`,
+		`${settingPrefix}.online-url`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault("https://embed.diagrams.net/"),
@@ -493,7 +493,7 @@ export class DiagramConfig {
 	// #region Code Link Activated
 
 	private readonly _codeLinkActivated = new VsCodeSetting(
-		`${extensionId}.codeLinkActivated`,
+		`${settingPrefix}.codeLinkActivated`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault(false),
@@ -512,7 +512,7 @@ export class DiagramConfig {
 
 	// #region resizeImages
 	private readonly _resizeImages = new VsCodeSetting(
-		`${extensionId}.resizeImages`,
+		`${settingPrefix}.resizeImages`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<boolean | undefined>(undefined),
@@ -540,7 +540,7 @@ export class DiagramConfig {
 
 	public get localStorage(): Record<string, string> {
 		const localStorage = this.memento.get<Record<string, string>>(
-			`${extensionId}.local-storage`,
+			`${settingPrefix}.local-storage`,
 			{}
 		);
 
@@ -569,13 +569,13 @@ export class DiagramConfig {
 		} catch (e) {
 			console.error(e);
 		}
-		this.memento.update(`${extensionId}.local-storage`, value);
+		this.memento.update(`${settingPrefix}.local-storage`, value);
 	}
 
 	//#endregion
 
 	private readonly _plugins = new VsCodeSetting<{ file: string }[]>(
-		`${extensionId}.plugins`,
+		`${settingPrefix}.plugins`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<any[]>([]),
@@ -593,7 +593,7 @@ export class DiagramConfig {
 
 	private readonly _customLibraries = new VsCodeSetting<
 		DrawioCustomLibrary[]
-	>(`${extensionId}.customLibraries`, {
+	>(`${settingPrefix}.customLibraries`, {
 		scope: this.uri,
 		serializer: serializerWithDefault<DrawioCustomLibrary[]>([]),
 	});
@@ -675,7 +675,7 @@ export class DiagramConfig {
 	// #region Custom Fonts
 
 	private readonly _customFonts = new VsCodeSetting<string[]>(
-		`${extensionId}.customFonts`,
+		`${settingPrefix}.customFonts`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<string[]>([]),
@@ -692,7 +692,7 @@ export class DiagramConfig {
 	// #region Zoom Factor
 
 	private readonly _zoomFactor = new VsCodeSetting<number>(
-		`${extensionId}.zoomFactor`,
+		`${settingPrefix}.zoomFactor`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<number>(1.2),
@@ -709,7 +709,7 @@ export class DiagramConfig {
 	// #region Global Variables
 
 	private readonly _globalVars = new VsCodeSetting<object | null>(
-		`${extensionId}.globalVars`,
+		`${settingPrefix}.globalVars`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<object | null>(null),
@@ -726,7 +726,7 @@ export class DiagramConfig {
 	// #region Show Tooltip Icons
 
 	private readonly _showTooltipIcons = new VsCodeSetting(
-		`${extensionId}.showTooltipIcons`,
+		`${settingPrefix}.showTooltipIcons`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<boolean>(false),
@@ -743,7 +743,7 @@ export class DiagramConfig {
 	// #region Show Link Icons
 
 	private readonly _showLinkIcons = new VsCodeSetting(
-		`${extensionId}.showLinkIcons`,
+		`${settingPrefix}.showLinkIcons`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<boolean>(false),
@@ -760,7 +760,7 @@ export class DiagramConfig {
 	// #region Show Connect Handle
 
 	private readonly _showConnectHandle = new VsCodeSetting(
-		`${extensionId}.showConnectHandle`,
+		`${settingPrefix}.showConnectHandle`,
 		{
 			scope: this.uri,
 			serializer: serializerWithDefault<boolean>(false),

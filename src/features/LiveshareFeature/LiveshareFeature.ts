@@ -17,7 +17,7 @@ export class LiveshareFeature {
 	}
 
 	private async init() {
-		const liveshare = await vsls.getApi("hediet.vscode-drawio");
+		const liveshare = await vsls.getApi("yujunhuang.drawio-slides");
 		if (!liveshare) {
 			console.warn("Could not get liveshare API");
 			return;
