@@ -20,12 +20,13 @@ Draw.loadPlugin(function (ui) {
   // The caret at the point, kept inside the box of the editor.
   function caretAt(box, x, y) {
     var rect = box.getBoundingClientRect();
-    x = Math.min(Math.max(x, rect.left + 1), rect.right - 1);
-    y = Math.min(Math.max(y, rect.top + 1), rect.bottom - 1);
-    var range = document.caretRangeFromPoint ? document.caretRangeFromPoint(x, y) : null;
+    var insideX = Math.min(Math.max(x, rect.left + 1), rect.right - 1);
+    var insideY = Math.min(Math.max(y, rect.top + 1), rect.bottom - 1);
+    var range = document.caretRangeFromPoint ? document.caretRangeFromPoint(insideX, insideY)
+      : null;
 
     if (range == null && document.caretPositionFromPoint) {
-      var position = document.caretPositionFromPoint(x, y);
+      var position = document.caretPositionFromPoint(insideX, insideY);
 
       if (position != null) {
         range = document.createRange();

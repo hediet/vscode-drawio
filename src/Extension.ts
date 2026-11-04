@@ -57,36 +57,33 @@ export class Extension {
 		);
 
 		this.dispose.track(
-			registerFailableCommand(
-				"drawioSlides.newDiagram",
-				async () => {
-					const targetUri = await vscode.window.showSaveDialog({
-						saveLabel: "Create",
-						filters: {
-							Diagrams: ["drawio"],
-						},
-					});
-					if (!targetUri) {
-						return;
-					}
-					try {
-						await vscode.workspace.fs.writeFile(
-							targetUri,
-							new Uint8Array()
-						);
-						await vscode.commands.executeCommand(
-							"vscode.openWith",
-							targetUri,
-							"drawioSlides.textEditor"
-						);
-					} catch (e) {
-						console.error("Cannot create or open file", e);
-						await vscode.window.showErrorMessage(
-							`Cannot create or open file "${targetUri.toString()}"!`
-						);
-					}
+			registerFailableCommand("drawioSlides.newDiagram", async () => {
+				const targetUri = await vscode.window.showSaveDialog({
+					saveLabel: "Create",
+					filters: {
+						Diagrams: ["drawio"],
+					},
+				});
+				if (!targetUri) {
+					return;
 				}
-			)
+				try {
+					await vscode.workspace.fs.writeFile(
+						targetUri,
+						new Uint8Array()
+					);
+					await vscode.commands.executeCommand(
+						"vscode.openWith",
+						targetUri,
+						"drawioSlides.textEditor"
+					);
+				} catch (e) {
+					console.error("Cannot create or open file", e);
+					await vscode.window.showErrorMessage(
+						`Cannot create or open file "${targetUri.toString()}"!`
+					);
+				}
+			})
 		);
 	}
 }

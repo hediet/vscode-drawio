@@ -88,7 +88,9 @@ export class CustomizedDrawioClient extends DrawioClient<
 	}
 
 	/** Gives `insert-slide.plugin.js` the pages of the templates again. */
-	public updateSlideTemplates(templates: SlideTemplatesAction["templates"]) {
+	public updateSlideTemplates(
+		templates: SlideTemplatesAction["templates"]
+	): void {
 		this.sendCustomAction({ action: "drawioSlidesTemplates", templates });
 	}
 

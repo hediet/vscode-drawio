@@ -6,9 +6,9 @@
 // of its page, so content past the edge is hidden from the slide, and the extra page only gets
 // in the way.  This plugin gives the graph a page layout of the one page at the origin when the
 // page view is on and the page has the size of a slide, the setting "drawioSlides.slideSize" of the
-// extension, 1920 by 1080 by default, which the extension gives in window.drawioSlidesSettings.
-// Content past the edge stays on the grey canvas, where it can still be selected and edited.
-// Every other page keeps the layout of the editor.
+// extension, which the extension gives in window.drawioSlidesSettings.  Content past the edge stays
+// on the grey canvas, where it can still be selected and edited.  Every other page keeps the layout
+// of the editor.
 //
 // The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
 // drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,

@@ -20,14 +20,23 @@ import { autorun, observable, runInAction, untracked } from "mobx";
 import { sha256 } from "js-sha256";
 import { getDrawioExtensions } from "../DrawioExtensionApi";
 import { BufferImpl } from "../utils/buffer";
-import { DefinedColour, readSlideSettings, readTemplates } from "./slideSettings";
+import {
+	DefinedColour,
+	readSlideSettings,
+	readTemplates,
+	SlideSettings,
+	SlideTemplate,
+} from "./slideSettings";
 import * as path from "path";
 
 /**
  * The plugins of the draw.io presentation framework in `drawio-custom-plugins/slides/`, in the
- * order of loading: `media-bar.js` before `media.plugin.js`, which uses it.
+ * order of loading: `deck-files.js` before `deck-pictures.plugin.js`, `language-check.plugin.js`
+ * and `media.plugin.js`, `list-marker-rules.js` before `list-styles.plugin.js`, and `media-bar.js`
+ * before `media.plugin.js`, which use them.
  */
 const SLIDE_PLUGINS = [
+	"deck-files.js",
 	"math-definitions.plugin.js",
 	"single-page.plugin.js",
 	"click-through.plugin.js",
@@ -59,11 +68,12 @@ export class DrawioClientFactory {
 	): Promise<CustomizedDrawioClient> {
 		const config = this.config.getDiagramConfig(uri);
 		const slides = config.slides ? await this.getSlides(config) : undefined;
-		const plugins = [
-			...(slides?.plugins ?? []),
-			...(await this.getPlugins(config)),
-		];
-		const definedColours = slides?.colours ?? [];
+		const otherPlugins = await this.getPlugins(config);
+		const definedColours = slides?.settings.colours ?? [];
+		// The templates as last saved, from which each new page of the webview starts. The
+		// variable is no observable, so that a save of a template reaches the page in use through
+		// `updateSlideTemplates` and reloads no webview, which would lose the zoom and the undo.
+		let slideTemplates = slides?.settings.pluginSettings.templates ?? [];
 
 		const webview = webviewPanel.webview;
 
@@ -98,6 +108,18 @@ export class DrawioClientFactory {
 				config.theme;
 				config.appearance;
 				config.appearanceFollowsSystem;
+				const plugins = slides
+					? [
+							{
+								jsCode: slideSettingsScript(slides.deckFolder, {
+									...slides.settings.pluginSettings,
+									templates: slideTemplates,
+								}),
+							},
+							...slides.plugins,
+							...otherPlugins,
+					  ]
+					: otherPlugins;
 				const html =
 					this.getHtml(config, options, webview, plugins) +
 					" ".repeat(i++);
@@ -200,7 +222,10 @@ export class DrawioClientFactory {
 		});
 
 		const templateWatchers = slides
-			? this.watchTemplates(config, slides.deckFolder, drawioClient)
+			? this.watchTemplates(config, slides.deckFolder, (templates) => {
+					slideTemplates = templates;
+					drawioClient.updateSlideTemplates(templates);
+			  })
 			: [];
 
 		webviewPanel.onDidDispose(() => {
@@ -217,7 +242,6 @@ export class DrawioClientFactory {
 	): Promise<{ jsCode: string }[]> {
 		const pluginsToLoad = new Array<{ jsCode: string }>();
 		const promises = new Array<Promise<void>>();
-
 
 		for (const ext of getDrawioExtensions()) {
 			promises.push(
@@ -293,15 +317,13 @@ export class DrawioClientFactory {
 	}
 
 	/**
-	 * The slide plugins, after one line that gives them the folder of the deck and the settings
-	 * of the slides, and the colours of the colour definitions. The extension ships the plugins,
-	 * so they load without the question that a plugin of the settings asks.
+	 * The slide plugins, the settings of the slides and the folder of the deck, which
+	 * `slideSettingsScript` gives the plugins. The extension ships the plugins, so they load
+	 * without the question that a plugin of the settings asks.
 	 */
-	private async getSlides(
-		config: DiagramConfig
-	): Promise<{
+	private async getSlides(config: DiagramConfig): Promise<{
 		plugins: { jsCode: string }[];
-		colours: readonly DefinedColour[];
+		settings: SlideSettings;
 		deckFolder: Uri;
 	}> {
 		const deckFolder = await findDeckFolder(config.uri);
@@ -311,9 +333,6 @@ export class DrawioClientFactory {
 			this.extensionUri,
 			this.log
 		);
-		const settingsLine =
-			`window.mediaPluginDeckFolders = ${JSON.stringify([deckFolder.fsPath])};\n` +
-			`window.drawioSlidesSettings = ${JSON.stringify(settings.pluginSettings)};`;
 		const plugins = await Promise.all(
 			SLIDE_PLUGINS.map(async (name) => ({
 				jsCode: BufferImpl.from(
@@ -328,27 +347,21 @@ export class DrawioClientFactory {
 				).toString("utf-8"),
 			}))
 		);
-		return {
-			plugins: [{ jsCode: settingsLine }, ...plugins],
-			colours: settings.colours,
-			deckFolder,
-		};
+		return { plugins, settings, deckFolder };
 	}
 
 	/**
-	 * Watches the template files of a drawing, and gives `insert-slide.plugin.js` their pages
-	 * again after a file is saved, added or deleted.
+	 * Watches the template files of a drawing, and gives `update` their pages again after a file
+	 * is saved, added or deleted.
 	 */
 	private watchTemplates(
 		config: DiagramConfig,
 		deckFolder: Uri,
-		drawioClient: CustomizedDrawioClient
+		update: (templates: SlideTemplate[]) => void
 	): Disposable[] {
 		const patterns = config.templatePatterns(deckFolder);
 		const send = async () => {
-			drawioClient.updateSlideTemplates(
-				await readTemplates(patterns, this.log)
-			);
+			update(await readTemplates(patterns, this.log));
 		};
 		return patterns.map((pattern) => {
 			const watcher = workspace.createFileSystemWatcher(
@@ -530,6 +543,21 @@ async function findDeckFolder(uri: Uri): Promise<Uri> {
 		}
 		folder = parent;
 	}
+}
+
+/**
+ * The script of two lines, loaded before the slide plugins, that gives them the folder of the deck
+ * and the settings of the slides.
+ */
+function slideSettingsScript(
+	deckFolder: Uri,
+	settings: SlideSettings["pluginSettings"]
+): string {
+	const deckFolders = JSON.stringify([deckFolder.fsPath]);
+	return (
+		`window.mediaPluginDeckFolders = ${deckFolders};\n` +
+		`window.drawioSlidesSettings = ${JSON.stringify(settings)};`
+	);
 }
 
 /** The colour names of the settings, with a name for each defined colour that has none. */

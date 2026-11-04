@@ -140,7 +140,8 @@
     return (control.type == 'range') ? key != ' ' : control.tagName == 'BUTTON' && key == ' ';
   }
 
-  // The shell of a bar: its look, the events it keeps from the page, and its place under its anchor.
+  // The shell of a bar: its look, the events it keeps from the page, and its place under its
+  // anchor.
   // `options.container` gives the element that holds the bar, whose scrolled content the bar is
   // placed in.  `options.onFrame` runs on each frame of the screen while the bar shows.
   // `options.focus` is a value of MediaBar.Focus, as the header says.
@@ -306,7 +307,7 @@
   // from the bar, and `video.heldBySlider` a video that a drag of the slider holds, for a caller
   // that starts its videos again on its own.
   function makeVideoBar(options) {
-    var self = { video: null, anchor: null, dragging: false, playAfterDrag: false };
+    var self = { video: null, dragging: false, playAfterDrag: false };
     var shell = makeShell({
       className: options.className || 'media-plugin-bar',
       container: options.container,
@@ -526,7 +527,6 @@
         });
       }
 
-      self.anchor = anchor;
       show();
       shell.show(anchor);
     };
@@ -543,7 +543,6 @@
       }
 
       self.video = null;
-      self.anchor = null;
       self.dragging = false;
       self.playAfterDrag = false;
       shell.hide();
@@ -567,7 +566,7 @@
   // `options.content(target)` gives the element that announces a change of the problem by the
   // event `mediapluginproblem` and a change of the loading by the event `mediapluginload`.
   function makePageBar(options) {
-    var self = { target: null, anchor: null };
+    var self = { target: null };
     var shell = makeShell({
       className: (options.className || 'media-plugin-bar') + ' media-plugin-page-bar',
       container: options.container,
@@ -618,15 +617,23 @@
       status.style.color = loading ? 'inherit' : '#ffb3b3';
     }
 
+    function listenTo(target) {
+      options.content(target).addEventListener('mediapluginproblem', show);
+      options.content(target).addEventListener('mediapluginload', show);
+    }
+
+    function stopListeningTo(target) {
+      options.content(target).removeEventListener('mediapluginproblem', show);
+      options.content(target).removeEventListener('mediapluginload', show);
+    }
+
     self.attach = function (target, anchor) {
       if (self.target != target) {
         self.detach();
         self.target = target;
-        options.content(target).addEventListener('mediapluginproblem', show);
-        options.content(target).addEventListener('mediapluginload', show);
+        listenTo(target);
       }
 
-      self.anchor = anchor;
       show();
       shell.show(anchor);
     };
@@ -638,18 +645,15 @@
         return;
       }
 
-      options.content(self.target).removeEventListener('mediapluginproblem', show);
-      options.content(self.target).removeEventListener('mediapluginload', show);
+      stopListeningTo(self.target);
       self.target = target;
-      options.content(target).addEventListener('mediapluginproblem', show);
-      options.content(target).addEventListener('mediapluginload', show);
+      listenTo(target);
       show();
     };
 
     self.detach = function () {
       if (self.target != null) {
-        options.content(self.target).removeEventListener('mediapluginproblem', show);
-        options.content(self.target).removeEventListener('mediapluginload', show);
+        stopListeningTo(self.target);
 
         if (options.onDetach != null) {
           options.onDetach(self.target);
@@ -657,7 +661,6 @@
       }
 
       self.target = null;
-      self.anchor = null;
       shell.hide();
     };
 

@@ -7,11 +7,11 @@
 //     brew services start languagetool
 //
 // The server answers at the address of the setting "drawioSlides.languageTool" of the extension,
-// http://localhost:8081 by default, which the extension gives in
-// window.drawioSlidesSettings.languageTool, and no text leaves the machine.  While a label is edited, the plugin sends its text to the
-// server half a second after the last change, and underlines what the server finds: a wavy red
-// line under a word that may be misspelt, a wavy blue line under a fault of grammar or of style.
-// The lines are highlights of the browser, so the label keeps its HTML as it is.  A formula
+// which the extension gives in window.drawioSlidesSettings.languageTool.  No text leaves the
+// machine while the setting names a server on it.  While a label is edited, the plugin sends its
+// text to the server half a second after the last change, and underlines what the server finds: a
+// wavy red line under a word that may be misspelt, a wavy blue line under a fault of grammar or of
+// style.  The lines are highlights of the browser, so the label keeps its HTML as it is.  A formula
 // between \( and \) or $$ goes to the server as markup that reads as a noun, so its TeX is not
 // checked, and the items of a list and the lines of a label read as paragraphs.
 //
@@ -22,11 +22,11 @@
 // CHECK holds the language and the rules left out, which suit slides: an item of a list may start
 // with a small letter and end without a full stop.  The mode `check` of build-slides.py reads the
 // same object from this file and checks every slide of a deck.  A word of the list of the server
-// counts as spelled right for every application that checks with the server.  A word of the file language-check-words.txt in
-// the folder of the deck, one per line, such as a name, counts as spelled right in that deck
-// alone, in both checks.  The plugin reads the file from the folders of
-// window.mediaPluginDeckFolders, which the extension sets.  The plugin warns once in the console
-// when the server does not answer.
+// counts as spelled right for every application that checks with the server.  A word of the file
+// language-check-words.txt in the folder of the deck, one per line, such as a name, counts as
+// spelled right in that deck alone, in both checks.  The plugin reads the file from the folders of
+// window.mediaPluginDeckFolders, which the extension sets, at the addresses that deckFileAddress of
+// deck-files.js gives.  The plugin warns once in the console when the server does not answer.
 //
 // The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
 // drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
@@ -81,19 +81,16 @@ Draw.loadPlugin(function (ui) {
 
   // The words of the deck that count as spelled right, read once from the deck folders.  Every
   // check waits for the same reading, so a check made while the file is on its way misses no word.
-  // A folder is encoded name by name, so a # or a ? in the name of a folder stays part of the path.
   function loadWords() {
     if (wordsRead != null) {
       return wordsRead;
     }
 
     var folders = window.mediaPluginDeckFolders || [];
-    var base = (location.protocol == 'file:') ? 'file://' : new URL(document.baseURI).origin;
     var words = {};
 
     wordsRead = Promise.all(folders.map(function (folder) {
-      var address = base + folder.split('/').map(encodeURIComponent).join('/') + '/' + WORDS_FILE;
-      return fetch(address).then(function (response) {
+      return fetch(deckFileAddress(folder, WORDS_FILE)).then(function (response) {
         return response.ok ? response.text() : '';
       }).catch(function () {
         return '';
@@ -148,9 +145,9 @@ Draw.loadPlugin(function (ui) {
 
         text(node, last, data.length);
       } else if (node.nodeType == 1) {
-        var block = BLOCKS[node.nodeName];
+        var isBlock = BLOCKS[node.nodeName] == true;
 
-        if (block) {
+        if (isBlock) {
           markup('\n', '\n\n');
         }
 
@@ -158,7 +155,7 @@ Draw.loadPlugin(function (ui) {
           walk(child);
         }
 
-        if (block && node.nodeName != 'BR') {
+        if (isBlock && node.nodeName != 'BR') {
           markup('\n', '\n\n');
         }
       }
@@ -168,13 +165,25 @@ Draw.loadPlugin(function (ui) {
     return { pieces: pieces, places: places };
   }
 
-  // The point of the box at an offset of the text, or null inside markup.
-  function pointAt(places, offset, atEnd) {
+  // The point of the box at an offset of the text, or null inside markup.  startPointAt takes a
+  // point at the start of a piece of text, and endPointAt a point at its end.
+  function startPointAt(places, offset) {
     for (var i = 0; i < places.length; i++) {
       var place = places[i];
 
-      if (offset > place.start && offset < place.end ||
-          (!atEnd && offset == place.start) || (atEnd && offset == place.end)) {
+      if (offset > place.start && offset < place.end || offset == place.start) {
+        return { node: place.node, offset: place.offset + offset - place.start };
+      }
+    }
+
+    return null;
+  }
+
+  function endPointAt(places, offset) {
+    for (var i = 0; i < places.length; i++) {
+      var place = places[i];
+
+      if (offset > place.start && offset < place.end || offset == place.end) {
         return { node: place.node, offset: place.offset + offset - place.start };
       }
     }
@@ -249,8 +258,8 @@ Draw.loadPlugin(function (ui) {
       issues = [];
 
       results[1].matches.forEach(function (match) {
-        var start = pointAt(read.places, match.offset, false);
-        var end = pointAt(read.places, match.offset + match.length, true);
+        var start = startPointAt(read.places, match.offset);
+        var end = endPointAt(read.places, match.offset + match.length);
 
         if (start == null || end == null) {
           return;

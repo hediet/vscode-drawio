@@ -3,9 +3,10 @@
 //
 // The VS Code extension yujunhuang.drawio-slides gives the definitions in
 // window.drawioSlidesSettings.mathDefinitions: every \definecolor of the files of the setting
-// "drawioSlides.colorDefinitions", then the commands of mathjax-commands.tex beside this plugin,
-// which MathJax lacks.  The MathJax of draw.io reads the colour models rgb, RGB, gray and HTML,
-// and the extension warns of a definition in another model and leaves it out.
+// "drawioSlides.colorDefinitions" in the model RGB, then the commands of mathjax-commands.tex
+// beside this plugin, which MathJax lacks.  The extension converts the colour models rgb, RGB,
+// gray, Gray, cmy, cmyk and HTML as the build of the draw.io presentation framework converts them,
+// and warns of a definition in another model and leaves it out.
 //
 // The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
 // drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
@@ -36,7 +37,9 @@ Draw.loadPlugin(function (ui) {
   var tries = 0;
   function define() {
     if (typeof Editor === 'undefined' || typeof Editor.MathJaxRender !== 'function') {
-      if (tries++ < 600) window.setTimeout(define, 100);
+      if (tries++ < 600) {
+        window.setTimeout(define, 100);
+      }
       return;
     }
     var holder = document.createElement('div');
@@ -49,10 +52,14 @@ Draw.loadPlugin(function (ui) {
       finish();
     };
     var finish = function () {
-      if (holder.parentNode == null || holder.querySelector('mjx-container') == null) return;
+      if (holder.parentNode == null || holder.querySelector('mjx-container') == null) {
+        return;
+      }
       // A listener that hooked in after this one calls this one, so this one leaves only when
       // it is the last.
-      if (Editor.onMathJaxDone === hook) Editor.onMathJaxDone = previous;
+      if (Editor.onMathJaxDone === hook) {
+        Editor.onMathJaxDone = previous;
+      }
       holder.parentNode.removeChild(holder);
       // No file of the editor reads this flag.  A headless check of the definitions reads it to
       // know that they are loaded.

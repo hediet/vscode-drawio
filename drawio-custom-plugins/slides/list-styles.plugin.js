@@ -14,11 +14,12 @@
 // the last level of the setting.
 //
 // The menu List style shows while a label is edited, beside the list buttons, and says the marker
-// of the list at the caret, from the markers of the setting "drawioSlides.listMarkers".  Choosing
-// a marker sets it on that list, and Template gives the list the style of its level again.  Both
-// write inline HTML into the label, so the editor, the HTML deck and the PDF show the same marker.  A choice in the menu is not in the history of
-// the browser, so Undo inside the label does not take it back and takes back the change before it
-// instead.  Undo of the drawing after the edit takes back the whole edit, the choice included.
+// of the list at the caret, from the markers of the setting "drawioSlides.listMarkers".  Choosing a
+// marker sets it on that list, and Template gives the list the style of its level again.  Both
+// write inline HTML into the label, so the editor, the HTML deck and the PDF show the same marker.
+// A choice in the menu is not in the history of the browser, so Undo inside the label does not take
+// it back and takes back the change before it instead.  Undo of the drawing after the edit takes
+// back the whole edit, the choice included.
 //
 // The markers take the colour and the size of their level by the rules of listMarkerCss in
 // list-marker-rules.js, which this plugin gives the page of the editor and export-pages.mjs copies

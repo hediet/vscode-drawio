@@ -17,6 +17,7 @@ import {
 	DrawioLibraryData,
 } from "./DrawioClient";
 import { BufferImpl } from "./utils/buffer";
+import * as path from "path";
 import { SimpleTemplate } from "./utils/SimpleTemplate";
 import {
 	serializerWithDefault,
@@ -582,33 +583,42 @@ export class DiagramConfig {
 		}
 	);
 
+	public get plugins(): { file: Uri }[] {
+		return this._plugins.get().map((entry) => {
+			const fullFilePath = this.evaluateTemplate(entry.file, "plugins");
+			return { file: Uri.file(fullFilePath) };
+		});
+	}
+
+	// #region Slides
+
 	private readonly _slides = new VsCodeSetting(`${settingPrefix}.slides`, {
 		scope: this.uri,
 		serializer: serializerWithDefault<boolean>(false),
 	});
 
-	/** Whether the drawing is a deck of the draw.io presentation framework. */
+	/** Whether the drawing holds slides of the draw.io presentation framework. */
 	public get slides(): boolean {
 		return this._slides.get();
 	}
 
-	private readonly _listStyles = new VsCodeSetting<unknown>(
+	private readonly _listStyles = new VsCodeSetting<ListStyles>(
 		`${settingPrefix}.listStyles`,
 		{ scope: this.uri }
 	);
 
 	/** The style of each level of a list, which `list-styles.plugin.js` reads. */
-	public get listStyles(): unknown {
+	public get listStyles(): ListStyles {
 		return this._listStyles.get();
 	}
 
-	private readonly _listMarkers = new VsCodeSetting<unknown>(
+	private readonly _listMarkers = new VsCodeSetting<[string, string][]>(
 		`${settingPrefix}.listMarkers`,
 		{ scope: this.uri }
 	);
 
 	/** The markers of the menu List style. */
-	public get listMarkers(): unknown {
+	public get listMarkers(): [string, string][] {
 		return this._listMarkers.get();
 	}
 
@@ -622,39 +632,43 @@ export class DiagramConfig {
 
 	/**
 	 * The files of `\definecolor` lines of the drawing, with `${deckFolder}` and
-	 * `${workspaceFolder}` filled in.
+	 * `${workspaceFolder}` filled in and a relative path read from the deck folder.
 	 */
 	public colorDefinitionFiles(deckFolder: Uri): Uri[] {
-		return this._colorDefinitions.get().map((path) =>
-			Uri.file(this.renderDeckPath(path, deckFolder))
-		);
+		return this._colorDefinitions
+			.get()
+			.map((setting) =>
+				Uri.file(this.renderDeckPath(setting, deckFolder))
+			);
 	}
 
-	private renderDeckPath(path: string, deckFolder: Uri): string {
-		return new SimpleTemplate(path).render({
+	private renderDeckPath(setting: string, deckFolder: Uri): string {
+		const rendered = new SimpleTemplate(setting).render({
 			deckFolder: () => deckFolder.fsPath,
 			workspaceFolder: () =>
-				(workspace.getWorkspaceFolder(this.uri)?.uri ?? deckFolder).fsPath,
+				(workspace.getWorkspaceFolder(this.uri)?.uri ?? deckFolder)
+					.fsPath,
 		});
+		return path.resolve(deckFolder.fsPath, rendered);
 	}
 
-	private readonly _slideSize = new VsCodeSetting<unknown>(
+	private readonly _slideSize = new VsCodeSetting<SlideSize>(
 		`${settingPrefix}.slideSize`,
 		{ scope: this.uri }
 	);
 
 	/** The width and the height of a slide, which `single-page.plugin.js` reads. */
-	public get slideSize(): unknown {
+	public get slideSize(): SlideSize {
 		return this._slideSize.get();
 	}
 
-	private readonly _languageTool = new VsCodeSetting<unknown>(
+	private readonly _languageTool = new VsCodeSetting<string>(
 		`${settingPrefix}.languageTool`,
 		{ scope: this.uri }
 	);
 
 	/** The address of the LanguageTool server of `language-check.plugin.js`. */
-	public get languageTool(): unknown {
+	public get languageTool(): string {
 		return this._languageTool.get();
 	}
 
@@ -668,20 +682,16 @@ export class DiagramConfig {
 
 	/**
 	 * The patterns of the template files of the drawing, with `${deckFolder}` and
-	 * `${workspaceFolder}` filled in. The last part of a pattern may hold `*`.
+	 * `${workspaceFolder}` filled in and a relative path read from the deck folder. The last part
+	 * of a pattern may hold `*`.
 	 */
 	public templatePatterns(deckFolder: Uri): string[] {
-		return this._templates.get().map((path) =>
-			this.renderDeckPath(path, deckFolder)
-		);
+		return this._templates
+			.get()
+			.map((setting) => this.renderDeckPath(setting, deckFolder));
 	}
 
-	public get plugins(): { file: Uri }[] {
-		return this._plugins.get().map((entry) => {
-			const fullFilePath = this.evaluateTemplate(entry.file, "plugins");
-			return { file: Uri.file(fullFilePath) };
-		});
-	}
+	// #endregion
 
 	// #region Custom Libraries
 
@@ -884,6 +894,27 @@ export class DiagramConfig {
 		const lang = env.language.split("-")[0].toLowerCase();
 		return lang;
 	}
+}
+
+/** The style of one level of a list, as the setting `drawioSlides.listStyles` gives it. */
+export interface ListLevelStyle {
+	indent: string;
+	marker: string;
+	color?: string;
+	size?: string;
+}
+
+/** The setting `drawioSlides.listStyles`. */
+export interface ListStyles {
+	itemGap: string;
+	bulleted: ListLevelStyle[];
+	numbered: ListLevelStyle[];
+}
+
+/** The setting `drawioSlides.slideSize`, in pixels. */
+export interface SlideSize {
+	width: number;
+	height: number;
 }
 
 type DrawioCustomLibrary = (

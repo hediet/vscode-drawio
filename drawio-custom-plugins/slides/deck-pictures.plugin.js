@@ -6,8 +6,8 @@
 // the deck before it loads this plugin, and serves every file of an open folder at its absolute
 // path under the origin of the page.  The plugin wraps postProcessCellStyle of the graph, which
 // draw.io calls on the style of a cell before it draws the cell, and gives the drawn style the
-// address of the file in the first folder of the list.  The model keeps the name, so the saved
-// file and the build see `assets/plot.png` as before.
+// address of the file in the first folder of the list, from deckFileAddress of deck-files.js.  The
+// model keeps the name, so the saved file and the build see `assets/plot.png` as before.
 //
 // The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
 // drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
@@ -28,25 +28,22 @@ Draw.loadPlugin(function (ui) {
       return null;
     }
 
-    var folder = folders[0].split('/').map(encodeURIComponent).join('/');
-
-    return new URL(document.baseURI).origin + folder + '/' +
-      encodeURI(name.replace(/^\.\//, ''));
+    return deckFileAddress(folders[0], name.replace(/^\.\//, ''));
   }
 
   graph.postProcessCellStyle = function (cell, style) {
-    style = postProcessCellStyle.apply(this, arguments);
-    var name = (style != null) ? style[mxConstants.STYLE_IMAGE] : null;
+    var drawnStyle = postProcessCellStyle.apply(this, arguments);
+    var name = (drawnStyle != null) ? drawnStyle[mxConstants.STYLE_IMAGE] : null;
 
     if (isDeckPath(name)) {
       var address = deckAddress(name);
 
       if (address != null) {
-        style[mxConstants.STYLE_IMAGE] = address;
+        drawnStyle[mxConstants.STYLE_IMAGE] = address;
       }
     }
 
-    return style;
+    return drawnStyle;
   };
 
   graph.refresh();

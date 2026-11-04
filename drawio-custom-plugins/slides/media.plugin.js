@@ -4,9 +4,9 @@
 //
 // The page of the editor does not know the folder of the drawing, so the VS Code extension
 // yujunhuang.drawio-slides sets window.mediaPluginDeckFolders to the folder of the deck before it
-// loads this plugin, and this plugin reads the folders when a video or a page loads.  The path of
-// a file, relative to its deck, is tried in each folder of the list in turn, and the first file
-// that loads plays.
+// loads this plugin, and this plugin reads the folders when a video or a page loads.  The path of a
+// file, relative to its deck, is tried in each folder of the list in turn, and the first file that
+// loads plays.  deckFileAddress of deck-files.js gives the address of the file in a folder.
 //
 // A video or a page goes into the group that draws the shape of its cell, cut to the outline of
 // the shape and drawn in the place of the cell among the cells, so a cell in front of it covers
@@ -34,14 +34,14 @@
 //
 // While the shape of a video or a page is the one selected cell, a bar past the arrows of draw.io
 // controls it.  The bars come from media-bar.js, whose header says what they offer and where they
-// sit, and the bar of a page here also offers Interact.  After a click on the bar, or in the page with Interact on, the bar or the page
-// keeps the focus and takes every key, the arrows, Delete and the shortcuts of draw.io among them,
-// until a press of the pointer outside the shape and the bar gives the focus back to the drawing.
-// draw.io takes the focus on each press in the drawing and after each change of the selection, and
-// the plugin then gives it back to the bar or the page.  A double-click that edits the label of
-// the cell gives the focus to the label.  A key that a page does not use, such as an arrow in a
-// page that does not scroll, may still scroll the view of the drawing, because the browser passes
-// the scroll on to the page around the frame.
+// sit, and the bar of a page here also offers Interact.  After a click on the bar, or in the page
+// with Interact on, the bar or the page keeps the focus and takes every key, the arrows, Delete and
+// the shortcuts of draw.io among them, until a press of the pointer outside the shape and the bar
+// gives the focus back to the drawing.  draw.io takes the focus on each press in the drawing and
+// after each change of the selection, and the plugin then gives it back to the bar or the page.  A
+// double-click that edits the label of the cell gives the focus to the label.  A key that a page
+// does not use, such as an arrow in a page that does not scroll, may still scroll the view of the
+// drawing, because the browser passes the scroll on to the page around the frame.
 //
 // A video keeps its time, pause, speed and sound, and a page its state, through zooms, edits,
 // refreshes of the page, and the undo of a move, a resize or a change of style.  When the drawing
@@ -52,6 +52,7 @@
 // the cause.
 Draw.loadPlugin(function (ui) {
   var SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+  var MediaKind = Object.freeze({ VIDEO: 'video', PAGE: 'page' });
   var OBJECT_FIT = { contain: 'contain', stretch: 'fill', crop: 'cover' };
   var OUTLINE_TAGS = { path: true, rect: true, ellipse: true, circle: true, polygon: true,
     polyline: true };
@@ -74,29 +75,13 @@ Draw.loadPlugin(function (ui) {
   var pageBar = null;
   var parking = null;
 
-  // The address of a file from its path, with the folder given apart from the path below it.  The
-  // folder is encoded name by name, so a # or a ? in the name of a folder stays part of the path,
-  // and the path below it keeps a query or a hash that the source writes.
-  function fileAddress(folder, path) {
-    var encoded = (folder == null) ? encodeURI(path)
-      : folder.split('/').map(encodeURIComponent).join('/') + '/' + encodeURI(path);
-
-    if (location.protocol == 'file:') {
-      return 'file://' + encoded;
-    }
-
-    // The extension serves a file of an open folder at its absolute path under the origin of the
-    // page's own files.
-    return new URL(document.baseURI).origin + encoded;
-  }
-
   function candidateAddresses(source) {
     if (isRemote(source)) {
       return [source];
     }
 
     if (source.charAt(0) == '/') {
-      return [fileAddress(null, source)];
+      return [deckFileAddress(null, source)];
     }
 
     if (loadedAddress[source] != null) {
@@ -106,12 +91,13 @@ Draw.loadPlugin(function (ui) {
     var folders = window.mediaPluginDeckFolders || [];
 
     if (folders.length == 0) {
-      console.warn('media.plugin.js: no deck folder is known for ' + source + '.  ' +
-        'Open the deck as a folder of VS Code.');
+      console.warn('media.plugin.js: no deck folder is known for ' + source + '.  Load the ' +
+        'plugin through the setting drawioSlides.slides of the extension, which gives the deck ' +
+        'folder.');
     }
 
     return folders.map(function (folder) {
-      return fileAddress(folder, source.replace(/^\.\//, ''));
+      return deckFileAddress(folder, source.replace(/^\.\//, ''));
     });
   }
 
@@ -278,7 +264,8 @@ Draw.loadPlugin(function (ui) {
     }
   }
 
-  // The base of a page given as srcdoc, so that its relative files load from the folder of its file.
+  // The base of a page given as srcdoc, so that its relative files load from the folder of its
+  // file.
   function withBase(text, address) {
     var tag = '<base href="' + address.slice(0, address.lastIndexOf('/') + 1).replace(/"/g, '&quot;') +
       '">';
@@ -367,10 +354,10 @@ Draw.loadPlugin(function (ui) {
     var page = (value.getAttribute('html') || '').trim();
 
     if (video != '') {
-      return { kind: 'video', source: video };
+      return { kind: MediaKind.VIDEO, source: video };
     }
 
-    return (page != '') ? { kind: 'page', source: page } : null;
+    return (page != '') ? { kind: MediaKind.PAGE, source: page } : null;
   }
 
   function makeVideo(source) {
@@ -413,7 +400,8 @@ Draw.loadPlugin(function (ui) {
     frame.box = document.createElementNS(SVG_NAMESPACE, 'foreignObject');
     frame.box.setAttribute('pointer-events', 'none');
     frame.box.style.pointerEvents = 'none';
-    frame.content = (media.kind == 'video') ? makeVideo(media.source) : makePage(media.source);
+    frame.content = (media.kind == MediaKind.VIDEO) ? makeVideo(media.source)
+      : makePage(media.source);
     frame.box.appendChild(frame.content);
     frame.appendChild(frame.box);
     frame.clip = document.createElementNS(SVG_NAMESPACE, 'clipPath');
@@ -583,7 +571,7 @@ Draw.loadPlugin(function (ui) {
     });
     content.removed = true;
 
-    if (frame.kind == 'video') {
+    if (frame.kind == MediaKind.VIDEO) {
       content.pause();
       content.removeAttribute('src');
       content.load();
@@ -592,8 +580,7 @@ Draw.loadPlugin(function (ui) {
         URL.revokeObjectURL(content.mediaSourceAddress);
       }
     } else {
-      content.removeAttribute('srcdoc');
-      content.src = 'about:blank';
+      disposePage(content);
     }
 
     frame.remove();
@@ -671,7 +658,7 @@ Draw.loadPlugin(function (ui) {
 
     unpark(frame, group);
 
-    if (frame.kind == 'page') {
+    if (frame.kind == MediaKind.PAGE) {
       var scale = graph.view.scale || 1;
       frame.pageWidth = box.width / scale;
       frame.pageHeight = box.height / scale;
@@ -693,7 +680,7 @@ Draw.loadPlugin(function (ui) {
       }
     }
 
-    if (frame.kind == 'video') {
+    if (frame.kind == MediaKind.VIDEO) {
       var video = frame.content;
       var fit = (state.cell.value.getAttribute('fit') || 'contain').trim().toLowerCase();
       video.style.objectFit = OBJECT_FIT[fit] || 'contain';
@@ -809,21 +796,21 @@ Draw.loadPlugin(function (ui) {
   function updateBars() {
     var frame = selectedFrame();
 
-    if ((frame == null || frame.kind != 'video') && videoBar != null) {
+    if ((frame == null || frame.kind != MediaKind.VIDEO) && videoBar != null) {
       videoBar.detach();
     }
 
-    if ((frame == null || frame.kind != 'page') && pageBar != null) {
+    if ((frame == null || frame.kind != MediaKind.PAGE) && pageBar != null) {
       pageBar.detach();
     }
 
-    if (frame != null && frame.kind == 'video') {
+    if (frame != null && frame.kind == MediaKind.VIDEO) {
       videoBar = videoBar || makeVideoBar();
 
       if (videoBar != null) {
         videoBar.attach(frame);
       }
-    } else if (frame != null && frame.kind == 'page') {
+    } else if (frame != null && frame.kind == MediaKind.PAGE) {
       pageBar = pageBar || makePageBar();
 
       if (pageBar != null) {
@@ -846,7 +833,7 @@ Draw.loadPlugin(function (ui) {
       return false;
     }
 
-    var bar = (frame.kind == 'video') ? videoBar : pageBar;
+    var bar = (frame.kind == MediaKind.VIDEO) ? videoBar : pageBar;
 
     return (bar != null && bar.frame == frame && bar.element.contains(node)) ||
       frame.contains(node) || (state.shape != null && state.shape.node.contains(node)) ||
@@ -911,15 +898,15 @@ Draw.loadPlugin(function (ui) {
   renderer.insertStateAfter = function (state) {
     var frame = state.mediaFrame;
     var group = (state.shape != null) ? state.shape.node : null;
-    var parked = frame != null && frame.parentNode == group && group != null;
+    var isInGroup = group != null && frame != null && frame.parentNode == group;
 
-    if (parked) {
+    if (isInGroup) {
       park(frame);
     }
 
     var result = insertStateAfter.apply(this, arguments);
 
-    if (parked && state.mediaFrame == frame && state.shape != null) {
+    if (isInGroup && state.mediaFrame == frame && state.shape != null) {
       unpark(frame, state.shape.node);
     }
 
@@ -935,7 +922,7 @@ Draw.loadPlugin(function (ui) {
     var state = (cell != null) ? this.view.getState(cell) : null;
     var frame = (state != null) ? state.mediaFrame : null;
 
-    if (frame != null && frame.kind == 'page' && this.isEnabled()) {
+    if (frame != null && frame.kind == MediaKind.PAGE && this.isEnabled()) {
       this.setSelectionCell(cell);
       setInteractive(frame, true);
       updateBars();

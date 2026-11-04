@@ -10,9 +10,10 @@
 // the pages again in the action drawioSlidesTemplates after a template changes, so the submenu
 // shows the template as it was last saved, without a reload of the editor.
 //
-// The copy takes the name of its layout without the number of the step and a new number after the
-// word new, such as title-and-body-new-1, which no other page of the drawing has, so the build of
-// the framework counts it as a slide of its own until the page is renamed.
+// The copy takes the name of its layout without the number of the step, then new and the step 1,
+// such as title-and-body-new-1.  When a page of the drawing has that name already, new carries the
+// first free number from 2, such as title-and-body-new2-1.  No other page has the name of the copy,
+// so the build of the framework counts the copy as a slide of its own until the page is renamed.
 //
 // The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
 // drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
@@ -44,7 +45,8 @@ Draw.loadPlugin(function (ui) {
     });
   }
 
-  // The name of a copy of a layout: its name without the step, then new and a free number.
+  // The name of a copy of a layout: its name without the step, then new, a free number from 2 when
+  // the name is taken, and the step 1.
   function copyName(layout) {
     var base = layout.replace(/-\d+$/, '');
     var names = pageNames();

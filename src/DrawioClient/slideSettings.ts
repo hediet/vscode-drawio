@@ -1,6 +1,6 @@
 import { FileType, OutputChannel, Uri, workspace } from "vscode";
 import * as path from "path";
-import { DiagramConfig } from "../Config";
+import { DiagramConfig, ListStyles, SlideSize } from "../Config";
 import { BufferImpl } from "../utils/buffer";
 
 /**
@@ -9,21 +9,18 @@ import { BufferImpl } from "../utils/buffer";
  */
 export interface SlideSettings {
 	readonly pluginSettings: {
-		readonly listStyles: unknown;
-		readonly listMarkers: unknown;
+		readonly listStyles: ListStyles;
+		readonly listMarkers: [string, string][];
 		readonly mathDefinitions: string;
 		readonly templates: SlideTemplate[];
-		readonly slideSize: unknown;
-		readonly languageTool: unknown;
+		readonly slideSize: SlideSize;
+		readonly languageTool: string;
 	};
 	readonly colours: readonly DefinedColour[];
 }
 
 /** A template file of a deck, with its pages, the layouts of the slides. */
-export interface SlideTemplate {
-	readonly name: string;
-	readonly pages: { readonly name: string; readonly xml: string }[];
-}
+export type SlideTemplate = SlideTemplatesAction["templates"][number];
 
 const DIAGRAM = /<diagram\b[^>]*>[\s\S]*?<\/diagram>/g;
 const DIAGRAM_NAME = /^<diagram\b[^>]*\sname="([^"]*)"/;
@@ -37,8 +34,9 @@ export interface DefinedColour {
 const DEFINE_COLOUR = /\\definecolor\s*\{([^}]*)\}\s*\{([^}]*)\}\s*\{([^}]*)\}/;
 
 /**
- * Reads the colour definitions of the drawing and the commands that MathJax lacks, which the
- * extension ships in `drawio-custom-plugins/slides/mathjax-commands.tex`.
+ * The settings of the slide plugins of a drawing, with the colour definitions, the commands that
+ * MathJax lacks, which the extension ships in `drawio-custom-plugins/slides/mathjax-commands.tex`,
+ * and the pages of the template files.
  */
 export async function readSlideSettings(
 	config: DiagramConfig,
@@ -53,13 +51,15 @@ export async function readSlideSettings(
 		try {
 			text = await readText(file);
 		} catch {
-			log.appendLine(`The colour definitions ${file.fsPath} do not exist.`);
+			log.appendLine(
+				`The colour definitions ${file.fsPath} do not exist.`
+			);
 			continue;
 		}
 		const pattern = new RegExp(DEFINE_COLOUR.source, "g");
 		let match: RegExpExecArray | null;
 		while ((match = pattern.exec(text)) !== null) {
-			const [line, name, model, values] = match;
+			const [, name, model, values] = match;
 			// The first definition of a name wins, as in the build of the framework.
 			if (colours.some((colour) => colour.name === name)) {
 				continue;
@@ -67,11 +67,11 @@ export async function readSlideSettings(
 			const hex = colourHex(model.trim(), values);
 			if (hex === undefined) {
 				log.appendLine(
-					`${file.fsPath} defines ${name} in the model ${model}, which the MathJax of draw.io does not read, so the colour is left out.`
+					`${file.fsPath} defines ${name} in the model ${model} with the values ${values}, which the extension does not convert for the MathJax of draw.io, so the colour is left out.`
 				);
 				continue;
 			}
-			definitions.push(line);
+			definitions.push(rgbDefinition(name, hex));
 			colours.push({ name, hex });
 		}
 	}
@@ -92,7 +92,10 @@ export async function readSlideSettings(
 			listStyles: config.listStyles,
 			listMarkers: config.listMarkers,
 			mathDefinitions: [...definitions, ...commandLines].join(""),
-			templates: await readTemplates(config.templatePatterns(deckFolder), log),
+			templates: await readTemplates(
+				config.templatePatterns(deckFolder),
+				log
+			),
 			slideSize: config.slideSize,
 			languageTool: config.languageTool,
 		},
@@ -130,7 +133,10 @@ export async function templateFiles(patterns: string[]): Promise<Uri[]> {
 		}
 		files.push(
 			...entries
-				.filter(([name, type]) => type === FileType.File && matcher.test(name))
+				.filter(
+					([name, type]) =>
+						type === FileType.File && matcher.test(name)
+				)
 				.map(([name]) => name)
 				.sort()
 				.map((name) => Uri.joinPath(folder, name))
@@ -176,8 +182,10 @@ async function readText(file: Uri): Promise<string> {
 }
 
 /**
- * A colour of the models that MathJax reads, `rgb`, `RGB`, `gray` and `HTML`, as six upper-case
- * hexadecimal digits, or undefined for another model or values that do not read.
+ * A colour of the models `rgb`, `RGB`, `gray`, `Gray`, `cmy`, `cmyk` and `HTML` as six upper-case
+ * hexadecimal digits, or undefined for another model or values that do not read. The conversion
+ * and the rounding of half to even are those of `tex_definitions.py` of the draw.io presentation
+ * framework, so that the editor and the build give a colour one value.
  */
 function colourHex(model: string, values: string): string | undefined {
 	if (model === "HTML") {
@@ -192,22 +200,52 @@ function colourHex(model: string, values: string): string | undefined {
 	if (numbers.some((number) => isNaN(number))) {
 		return undefined;
 	}
-	let channels: number[];
-	if (model === "rgb" && numbers.length === 3) {
-		channels = numbers;
-	} else if (model === "RGB" && numbers.length === 3) {
-		channels = numbers.map((number) => number / 255);
-	} else if (model === "gray" && numbers.length === 1) {
-		channels = [numbers[0], numbers[0], numbers[0]];
-	} else {
+	const channels = redGreenBlue(model, numbers);
+	if (channels === undefined) {
 		return undefined;
 	}
 	return channels
 		.map((channel) =>
-			(256 + Math.max(0, Math.min(255, Math.round(channel * 255))))
+			(256 + Math.max(0, Math.min(255, roundHalfToEven(channel * 255))))
 				.toString(16)
 				.slice(1)
 		)
 		.join("")
 		.toUpperCase();
+}
+
+/**
+ * The red, the green and the blue between 0 and 1, converted as the package xcolor converts them.
+ */
+function redGreenBlue(model: string, numbers: number[]): number[] | undefined {
+	if ((model === "rgb" || model === "cmy") && numbers.length === 3) {
+		return model === "cmy" ? numbers.map((number) => 1 - number) : numbers;
+	}
+	if (model === "RGB" && numbers.length === 3) {
+		return numbers.map((number) => number / 255);
+	}
+	if ((model === "gray" || model === "Gray") && numbers.length === 1) {
+		const grey = model === "Gray" ? numbers[0] / 15 : numbers[0];
+		return [grey, grey, grey];
+	}
+	if (model === "cmyk" && numbers.length === 4) {
+		const black = numbers[3];
+		return numbers.slice(0, 3).map((ink) => 1 - Math.min(1, ink + black));
+	}
+	return undefined;
+}
+
+/** A number rounded to the nearest integer, and a half to the even one, as Python rounds. */
+function roundHalfToEven(value: number): number {
+	return Math.abs(value % 1) === 0.5
+		? 2 * Math.round(value / 2)
+		: Math.round(value);
+}
+
+/** The definition of a colour in the model `RGB`, which the MathJax of draw.io reads. */
+function rgbDefinition(name: string, hex: string): string {
+	const [red, green, blue] = [0, 2, 4].map((start) =>
+		parseInt(hex.slice(start, start + 2), 16)
+	);
+	return `\\definecolor{${name}}{RGB}{${red},${green},${blue}}`;
 }

@@ -51,6 +51,7 @@
 			"restrictedConfigurations": [
 				"drawioSlides.customLibraries",
 				"drawioSlides.plugins",
+				"drawioSlides.slides",
 				"drawioSlides.offline",
 				"drawioSlides.online-url"
 			]
@@ -581,7 +582,7 @@
 						"default": [
 							"${deckFolder}/templates/*.drawio.xml"
 						],
-						"description": "The template files of a deck, multi-page draw.io files whose pages are the layouts of its slides, each named by its layout. The menus Insert and Pages of the editor offer Insert slide, which inserts a copy of a layout after the current page. The last part of a path may hold `*`, and a path may hold `${deckFolder}`, the nearest folder above the drawing with a `package.json`, and `${workspaceFolder}`.",
+						"description": "The template files of a deck, multi-page draw.io files whose pages are the layouts of its slides, each named by its layout. The menus Insert and Pages of the editor offer Insert slide, which inserts a copy of a layout after the current page. The last part of a path may hold `*`, and a path may hold `${deckFolder}`, the nearest folder above the drawing with a `package.json`, and `${workspaceFolder}`. A relative path is read from the deck folder.",
 						"items": {
 							"type": "string"
 						}
@@ -615,7 +616,7 @@
 						"default": [
 							"${deckFolder}/templates/color-definitions.tex"
 						],
-						"description": "TeX files of `\\definecolor` lines, in the models rgb, RGB, gray or HTML. The editor defines their colours for the formulas of every page and names them in the colour picker, and the build of the draw.io presentation framework writes them into each page that uses them. A path may hold `${deckFolder}`, the nearest folder above the drawing with a `package.json`, and `${workspaceFolder}`.",
+						"description": "TeX files of `\\definecolor` lines, in the models rgb, RGB, gray, Gray, cmy, cmyk or HTML. The editor and the build of the draw.io presentation framework convert the models alike and give MathJax each colour in the model RGB. The editor defines the colours for the formulas of every page and names them in the colour picker, and the build writes them into each page that uses them. A path may hold `${deckFolder}`, the nearest folder above the drawing with a `package.json`, and `${workspaceFolder}`. A relative path is read from the deck folder.",
 						"items": {
 							"type": "string"
 						}

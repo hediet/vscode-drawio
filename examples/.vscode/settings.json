@@ -1,14 +1,14 @@
 {
-	"hediet.vscode-drawio.enableExperimentalFeatures": true,
-	"hediet.vscode-drawio.showTooltipIcons": true,
-	"hediet.vscode-drawio.defaultVertexStyle": {
+	"drawioSlides.enableExperimentalFeatures": true,
+	"drawioSlides.showTooltipIcons": true,
+	"drawioSlides.defaultVertexStyle": {
 		"fontColor": "#ff0000",
 		"fontFamily": "Courier New",
 		"fontSize": 18,
 		"strokeWidth": 2,
 		"strokeColor": "#ff0000"
 	},
-	"hediet.vscode-drawio.defaultEdgeStyle": {
+	"drawioSlides.defaultEdgeStyle": {
 		"fontColor": "#0000ff",
 		"fontFamily": "Courier New",
 		"fontSize": 18,
@@ -20,7 +20,7 @@
 		"orthogonal": 1,
 		"elbow": "vertical"
 	},
-	"hediet.vscode-drawio.customColorSchemes": [
+	"drawioSlides.customColorSchemes": [
 		[
 			{
 				"title": "Kind of pink",
@@ -89,13 +89,13 @@
 			}
 		]
 	],
-	"hediet.vscode-drawio.presetColors": ["ff0000", "00ff00"],
-	"hediet.vscode-drawio.colorNames": {
+	"drawioSlides.presetColors": ["ff0000", "00ff00"],
+	"drawioSlides.colorNames": {
 		"FF0000": "Red",
 		"00FF00": "Green"
 	},
-	"hediet.vscode-drawio.simpleLabels": false,
-	"hediet.vscode-drawio.styles": [
+	"drawioSlides.simpleLabels": false,
+	"drawioSlides.styles": [
 		{},
 		{
 			"commonStyle": {
