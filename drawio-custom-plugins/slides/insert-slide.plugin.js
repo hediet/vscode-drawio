@@ -58,23 +58,15 @@ Draw.loadPlugin(function (ui) {
     }
   }
 
+  // Inserts a copy of a layout after the current page, as draw.io inserts the pages of an
+  // imported file: a page made from the <diagram> without its id, whose root and view state
+  // updatePageRoot reads from the model, so the page keeps the size, the grid, the mathematics
+  // and the background of the layout.
   function insertLayout(layout) {
     var diagram = mxUtils.parseXml(layout.xml).documentElement;
-    var model = null;
-
-    for (var child = diagram.firstChild; child != null; child = child.nextSibling) {
-      if (child.nodeName == 'mxGraphModel') {
-        model = child;
-      }
-    }
-
-    if (model == null) {
-      ui.handleError({ message: 'The layout ' + layout.name + ' of the template holds no ' +
-        'uncompressed mxGraphModel, so it cannot be inserted.' });
-      return;
-    }
-
-    var page = ui.createPage(copyName(layout.name), ui.createPageId(), model);
+    diagram.removeAttribute('id');
+    var page = ui.updatePageRoot(new DiagramPage(diagram));
+    page.setName(copyName(layout.name));
     ui.selectPage(ui.insertPage(page, ui.getSelectedPageIndex() + 1));
   }
 
