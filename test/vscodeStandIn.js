@@ -1,3 +1,4 @@
+const fs = require("node:fs");
 const path = require("node:path");
 
 /**
@@ -32,6 +33,10 @@ function resetState(options = {}) {
 		configurationListeners: [],
 		/** The number of reports of progress after which a notification is cancelled, or undefined. */
 		cancelAfter: undefined,
+		/** The workspace edits that `workspace.applyEdit` applied, each a list of its replacements. */
+		appliedEdits: [],
+		/** The paths of the documents saved, in the order of the saves. */
+		saved: [],
 		...options,
 	};
 	return state;
@@ -69,10 +74,81 @@ class TabInputText {
 	}
 }
 
+class Position {
+	constructor(line, character) {
+		Object.assign(this, { line, character });
+	}
+}
+
+/** A range of lines and characters, or of two positions of `TextDocument.positionAt`, which carry their offsets. */
 class Range {
 	constructor(startLine, startCharacter, endLine, endCharacter) {
-		Object.assign(this, { startLine, startCharacter, endLine, endCharacter });
+		if (startLine instanceof Position) {
+			Object.assign(this, { start: startLine, end: startCharacter });
+		} else {
+			Object.assign(this, { startLine, startCharacter, endLine, endCharacter });
+		}
 	}
+}
+
+/** The replacements of a workspace edit, each a file, a range of two positions and a text. */
+class WorkspaceEdit {
+	constructor() {
+		this.replacements = [];
+	}
+	replace(uri, range, text) {
+		this.replacements.push({ uri, range, text });
+	}
+}
+
+/**
+ * A text document of the file, with the text on the disk unless given: `positionAt` gives a
+ * position with its offset, and `save` writes the text to the disk.
+ */
+function textDocument(fsPath, text, isDirty = false) {
+	const document = {
+		uri: Uri.file(fsPath),
+		isDirty,
+		text: text ?? fs.readFileSync(fsPath, "utf8"),
+		getText: () => document.text,
+		positionAt: (offset) => Object.assign(new Position(0, offset), { offset }),
+		save: () => {
+			fs.writeFileSync(fsPath, document.text);
+			document.isDirty = false;
+			state.saved.push(fsPath);
+			return Promise.resolve(true);
+		},
+	};
+	return document;
+}
+
+/** The open document of the file, or a new one from the disk, which is then open. */
+function openTextDocument(uri) {
+	let document = state.textDocuments.find(
+		(open) => open.uri.fsPath === uri.fsPath
+	);
+	if (document === undefined) {
+		document = textDocument(uri.fsPath);
+		state.textDocuments.push(document);
+	}
+	return Promise.resolve(document);
+}
+
+/** Applies the replacements to the documents, which become dirty, unless `state.answers.applyEdit` answers false. */
+async function applyEdit(edit) {
+	if (answer("applyEdit") === false) {
+		return false;
+	}
+	state.appliedEdits.push(edit.replacements);
+	for (const { uri, range, text } of edit.replacements) {
+		const document = await openTextDocument(uri);
+		document.text =
+			document.text.slice(0, range.start.offset) +
+			text +
+			document.text.slice(range.end.offset);
+		document.isDirty = true;
+	}
+	return true;
 }
 
 class Diagnostic {
@@ -166,7 +242,9 @@ const vscode = {
 	Uri,
 	TabInputCustom,
 	TabInputText,
+	Position,
 	Range,
+	WorkspaceEdit,
 	Diagnostic,
 	DiagnosticSeverity: { Error: 0, Warning: 1, Information: 2, Hint: 3 },
 	StatusBarAlignment: { Left: 1, Right: 2 },
@@ -205,6 +283,8 @@ const vscode = {
 		get textDocuments() {
 			return state.textDocuments;
 		},
+		openTextDocument,
+		applyEdit,
 		getConfiguration: (section) => ({
 			get: (key, fallback) => state.settings[`${section}.${key}`] ?? fallback,
 		}),
@@ -331,6 +411,7 @@ function changeConfiguration(key, value) {
 }
 
 module.exports = {
+	textDocument,
 	changeConfiguration,
 	vscode,
 	log,

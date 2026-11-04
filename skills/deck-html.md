@@ -12,6 +12,8 @@ A deck is a folder that the extension Draw.io Slides, the repository of this ski
 A path in this skill that starts at `build/`, `sections/` or `assets/` is relative to the folder of the deck.
 Every other path is relative to `<extension folder>`, the folder of the installed extension or of a clone of this repository.
 `docs/presentations.md` gives the properties of a link and of a video, the keys of the HTML file, the set-up of the editor plugins and the warnings of the build, and this skill does not restate them.
+A key of a style beside a link to a color of the deck, such as `fillColor` beside `deckFillColor`, takes its value from the link.
+A new value of such a key therefore needs the link taken out as well, as the section on editing a slide as text of `docs/presentations.md` says.
 
 ## Resources of this skill
 

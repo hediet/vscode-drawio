@@ -12,6 +12,8 @@ A deck is a folder that the extension Draw.io Slides, the repository of this ski
 A path in this skill that starts at `sections/`, `assets/`, `templates/` or `build/` is relative to the folder of the deck.
 Every other path is relative to `<extension folder>`, the folder of the installed extension or of a clone of this repository.
 `docs/presentations.md` gives the steps that start a deck, the pages of the template and the way an agent edits a slide as text.
+A key of a style beside a link to a color of the deck, such as `fillColor` beside `deckFillColor`, takes its value from the link.
+A new value of such a key therefore needs the link taken out as well, as the section on editing a slide as text of `docs/presentations.md` says.
 The template of a deck is the first file of its setting `drawioSlides.templates` in `.vscode/settings.json`, `templates/slides.drawio.xml` by default, which the set-up copies from `deck-templates/slide-format.drawio.xml`.
 A new deck is a git repository of its own, and the user makes its first commit and adds its remote, as the same guide says.
 The git commands on the files of a deck run in the repository of the deck.

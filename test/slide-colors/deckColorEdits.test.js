@@ -126,18 +126,6 @@ test("hasColorsMember tells a file with the setting from one without it", () => 
 	assert.equal(edits.hasColorsMember(""), false);
 });
 
-test("countLabelsNamingColor counts the labels whose formulas name the color", () => {
-	const xml = '<mxfile><diagram name="p-1"><mxGraphModel><root>' +
-		'<mxCell id="a" value="\\(\\textcolor{accent}{x} + \\color{accent} y\\)" vertex="1"/>' +
-		'<mxCell id="b" value="\\(\\colorbox{accent}{z}\\)" vertex="1"/>' +
-		'<object id="c" label="\\(\\fcolorbox{black}{accent}{w}\\)"><mxCell vertex="1"/></object>' +
-		'<mxCell id="d" value="\\(\\textcolor{accentlight}{x}\\) accent" vertex="1"/>' +
-		'</root></mxGraphModel></diagram></mxfile>';
-	assert.equal(edits.countLabelsNamingColor(xml, "accent"), 3);
-	assert.equal(edits.countLabelsNamingColor(xml, "black"), 1);
-	assert.equal(edits.countLabelsNamingColor(xml, "panel"), 0);
-});
-
 function stripComments(text) {
 	return text.replace(/^\s*\/\/.*$/gm, "");
 }

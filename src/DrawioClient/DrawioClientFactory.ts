@@ -33,16 +33,23 @@ import {
 	readMathCommands,
 	readTemplates,
 	SlideTemplate,
+	templateFiles,
+	checkDeckColorEdit,
 	writeDeckColorEdit,
 } from "./slideSettings";
-import { countLabelsNamingColor, RefusedColorEdit } from "./deckColorEdits";
+import { RefusedColorEdit } from "./deckColorEdits";
+import { writeDeckColorEditWithUses } from "./deckColorUseEdits";
+import { DeckColorValueWatch } from "./deckColorValueWatch";
+import { COLOR_LINK_KEYS, TEXT_COLOR_LINK } from "../deck/deckColors";
+import { deckDrawingFiles, deckSectionFiles } from "../deck/deckColorFiles";
 import * as path from "path";
 
 /**
  * The plugins of the slides in `drawio-custom-plugins/slides/`, in the
  * order of loading: `deck-files.js` before `deck-pictures.plugin.js`, `language-check.plugin.js`
  * and `media.plugin.js`, `slide-settings.js` before `math-definitions.plugin.js`,
- * `deck-colors.plugin.js`, `deck-colors-section.plugin.js` and `list-styles.plugin.js`,
+ * `deck-colors.plugin.js`, `deck-color-links.plugin.js`, `deck-colors-section.plugin.js` and
+ * `list-styles.plugin.js`,
  * `list-marker-rules.js` before
  * `list-styles.plugin.js`, and `media-bar.js` before `media.plugin.js`, which use them.
  */
@@ -51,6 +58,7 @@ const SLIDE_PLUGINS = [
 	"slide-settings.js",
 	"math-definitions.plugin.js",
 	"deck-colors.plugin.js",
+	"deck-color-links.plugin.js",
 	"deck-colors-section.plugin.js",
 	"single-page.plugin.js",
 	"click-through.plugin.js",
@@ -68,7 +76,17 @@ const SLIDE_PLUGINS = [
 /** The file whose folder is the folder of a deck. */
 const DECK_MARKER = "package.json";
 
+/** The watch of the colors of a deck folder, shared by the open drawings of the deck. */
+interface DeckColorWatchEntry {
+	readonly watch: DeckColorValueWatch;
+	/** The settings of each open drawing of the deck. */
+	readonly drawings: Set<DiagramConfig>;
+}
+
 export class DrawioClientFactory {
+	/** The watch of the colors of each deck folder with an open drawing, by the path of the folder. */
+	private readonly deckColorWatches = new Map<string, DeckColorWatchEntry>();
+
 	constructor(
 		private readonly config: Config,
 		private readonly log: OutputChannel,
@@ -264,13 +282,23 @@ export class DrawioClientFactory {
 			}
 		});
 
+		const releaseDeckColorWatch = slides
+			? this.holdDeckColorWatch(slides.deckFolder, config)
+			: () => {};
 		if (slides) {
 			// The edits of a drawing run one after the other, so that each reads the settings
 			// file that the edit before it saved.
 			let pendingEdit = Promise.resolve();
 			drawioClient.onDeckColorEdit.sub(({ edit }) => {
 				pendingEdit = pendingEdit
-					.then(() => this.editDeckColors(config, edit, drawioClient))
+					.then(() =>
+						this.editDeckColors(
+							config,
+							edit,
+							slides.deckFolder,
+							untracked(readLiveSettings)!.settings.colors
+						)
+					)
 					.catch((error) => this.log.appendLine(`${error}`));
 			});
 		}
@@ -321,11 +349,83 @@ export class DrawioClientFactory {
 		webviewPanel.onDidDispose(() => {
 			disposeAutorun();
 			disposeLiveSettings();
+			releaseDeckColorWatch();
 			drawioClient.dispose();
 			templateWatchers.forEach((watcher) => watcher.dispose());
 		});
 
 		return drawioClient;
+	}
+
+	/**
+	 * Keeps a watch of the colors of the deck folder while a drawing of the deck is open, one watch
+	 * per deck folder, and returns the function that gives the drawing up.
+	 */
+	private holdDeckColorWatch(
+		deckFolder: Uri,
+		config: DiagramConfig
+	): () => void {
+		const key = deckFolder.fsPath;
+		const entry =
+			this.deckColorWatches.get(key) ??
+			this.startDeckColorWatch(deckFolder, config);
+		entry.drawings.add(config);
+		return () => {
+			entry.drawings.delete(config);
+			if (entry.drawings.size === 0) {
+				entry.watch.dispose();
+				this.deckColorWatches.delete(key);
+			}
+		};
+	}
+
+	/**
+	 * Starts the watch of the colors of the deck folder with the drawing as its first drawing, so
+	 * that the watch reads the colors of the deck through it from the start.
+	 */
+	private startDeckColorWatch(
+		deckFolder: Uri,
+		config: DiagramConfig
+	): DeckColorWatchEntry {
+		const drawings = new Set<DiagramConfig>([config]);
+		const watch = new DeckColorValueWatch(
+			deckFolder,
+			() =>
+				new Map(
+					readLiveSlideSettings(
+						[...drawings][0] ?? config,
+						[]
+					).settings.colors.map(({ name, value }) => [name, value])
+				),
+			() => this.deckDrawingFiles(deckFolder, [...drawings]),
+			(line) => this.log.appendLine(line)
+		);
+		const entry = { watch, drawings };
+		this.deckColorWatches.set(deckFolder.fsPath, entry);
+		return entry;
+	}
+
+	/**
+	 * The drawing files of a deck that an edit of its colors changes: its section files, or its
+	 * multi-page file, its templates, and the open drawings of the deck whose text is the XML of
+	 * draw.io, such as a drawing of the deck outside its slides folder.
+	 */
+	private async deckDrawingFiles(
+		deckFolder: Uri,
+		drawings: readonly DiagramConfig[]
+	): Promise<string[]> {
+		const templates =
+			drawings.length === 0
+				? []
+				: await templateFiles(drawings[0].templatePatterns(deckFolder));
+		return deckDrawingFiles(
+			deckSectionFiles(deckFolder.fsPath),
+			templates.map((file) => file.fsPath),
+			drawings
+				.map((drawing) => drawing.uri)
+				.filter((uri) => uri.scheme === "file")
+				.map((uri) => uri.fsPath)
+		);
 	}
 
 	private async getPlugins(
@@ -452,17 +552,32 @@ export class DrawioClientFactory {
 	}
 
 	/**
-	 * Writes an edit of the colors that the section Deck colors of the Format panel sends, and
-	 * says in VS Code why the extension refuses an edit. After a rename, it says how many labels of
-	 * the drawing name the old name in a formula, which the rename leaves as they are.
+	 * Writes an edit of the colors that the section Deck colors of the Format panel sends into the
+	 * settings and into the uses of the color in the drawing files of the deck, after a question
+	 * before a removal, and says in VS Code why the extension refuses an edit.
 	 */
 	private async editDeckColors(
 		config: DiagramConfig,
 		edit: DeckColorEdit,
-		drawioClient: CustomizedDrawioClient
+		deckFolder: Uri,
+		colors: LiveSlideSettings["colors"]
 	): Promise<void> {
+		const deckColorWatch = this.deckColorWatches.get(deckFolder.fsPath);
+		const watch = deckColorWatch?.watch;
+		const write = async () => {
+			await checkDeckColorEdit(config, edit);
+			await writeDeckColorEditWithUses(
+				edit,
+				await this.deckDrawingFiles(deckFolder, [
+					config,
+					...(deckColorWatch?.drawings ?? []),
+				]),
+				new Map(colors.map(({ name, value }) => [name, value])),
+				() => writeDeckColorEdit(config, edit)
+			);
+		};
 		try {
-			await writeDeckColorEdit(config, edit);
+			await (watch === undefined ? write() : watch.whileSectionEdits(write));
 		} catch (error) {
 			const message = error instanceof Error ? error.message : `${error}`;
 			this.log.appendLine(message);
@@ -471,14 +586,6 @@ export class DrawioClientFactory {
 			} else {
 				window.showErrorMessage(message);
 			}
-			return;
-		}
-		if (edit.operation === "rename" && edit.newName !== edit.name) {
-			const count = countLabelsNamingColor(
-				await drawioClient.getXml(),
-				edit.name
-			);
-			window.showInformationMessage(renamedColorMessage(edit, count));
 		}
 	}
 
@@ -679,7 +786,7 @@ async function findDeckFolder(uri: Uri): Promise<Uri> {
 
 /**
  * The script of two lines, loaded before the slide plugins, that gives them the folder of the deck
- * and the settings of the slides.
+ * and the settings of the slides, with the keys of the links to the colors of the deck.
  */
 function slideSettingsScript(
 	deckFolder: Uri,
@@ -690,24 +797,19 @@ function slideSettingsScript(
 	}
 ): string {
 	const deckFolders = JSON.stringify([deckFolder.fsPath]);
+	const colorLinks = {
+		keys: Object.fromEntries(
+			Object.entries(COLOR_LINK_KEYS).map(([key, { link }]) => [key, link])
+		),
+		textAttribute: TEXT_COLOR_LINK,
+	};
 	return (
 		`window.mediaPluginDeckFolders = ${deckFolders};\n` +
-		`window.drawioSlidesSettings = ${JSON.stringify(settings)};`
+		`window.drawioSlidesSettings = ${JSON.stringify({
+			...settings,
+			colorLinks,
+		})};`
 	);
-}
-
-/** The message after a rename of a color, with the number of labels whose formulas name the old name. */
-function renamedColorMessage(
-	edit: Extract<DeckColorEdit, { operation: "rename" }>,
-	count: number
-): string {
-	const renamed = `The color ${edit.name} is now ${edit.newName} in drawioSlides.colors.`;
-	if (count === 0) {
-		return `${renamed} No formula of this drawing names ${edit.name}.`;
-	}
-	return count === 1
-		? `${renamed} 1 label of this drawing names ${edit.name} in a formula, and the formula keeps that name until it is edited.`
-		: `${renamed} ${count} labels of this drawing name ${edit.name} in a formula, and the formulas keep that name until they are edited.`;
 }
 
 function getNonce(): string {

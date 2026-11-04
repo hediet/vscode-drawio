@@ -16,6 +16,12 @@ The versions below are those of the original hediet.vscode-drawio, from which th
 - The extension loads the plugins of the slides from its own folder for a drawing whose setting `drawioSlides.slides` is true: single page, click-through, edit at click, list styles and markers, language check, view position, deck pictures, Insert slide from the templates of the deck, and media.
 - The colors of a deck are the setting `drawioSlides.colors`, which defines them for the formulas, the color picker, the swatches and the list styles, and which the editor follows without a reload.
 - The section Deck colors of the Format panel applies a color of the deck by a click on its swatch, and renames, recolors, adds and removes the colors, written back into `.vscode/settings.json` with its comments kept.
+- A shape, a line or a text that takes a color from the section Deck colors keeps a link to the name of the color beside its value, such as `fillColor=#B20000;deckFillColor=red`, and the editor and the build draw it in the current value of the color.
+  A new value, a new name or a removal of a color from the section goes into the section files, the templates and the open drawings of the deck in one edit of VS Code.
+  A new value goes into each linked use, a new name into each link and each formula, and the last value of a removed color into each linked use and each formula, as `\textcolor[RGB]{178,0,0}{x}`.
+  A drawing with unsaved changes takes the edit in its editor and stays unsaved.
+  The removal asks first, in a dialog that counts the linked shapes, lines and texts and the formulas that keep the value, with the buttons Delete and Cancel.
+  A new value written in `.vscode/settings.json` goes into the files after a question.
 - The build of a deck in TypeScript, in `src/deck/`, with no Python.
   The build exports the pages with the draw.io viewer of the extension in a headless Chrome, Edge or Chromium driven through `playwright-core`.
   The build then writes the HTML file with the links, the videos and the embedded pages of the cells, and the PDF with its bookmarks.

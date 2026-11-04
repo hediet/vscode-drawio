@@ -3,11 +3,12 @@
  * export draws one SVG per page, and the outline of the deck in `build/outline.json`, from which
  * the PDF takes its bookmarks.
  *
- * The assembly fills in each cell that holds `%slide%` or `%slides%` with the slide's number and
- * the total without the backup slides, writes into each page the TeX definitions its formulas use
- * and it does not define, draws each cell of an embedded page as a picture of that page, and
- * writes each picture of `assets/` into its cell as data. A page whose name ends in `-hide` is
- * left out, as `deckFiles.ts` says.
+ * The assembly gives each use of a color that links to a color of `drawioSlides.colors` the value
+ * of that color, as `deckColorLinks.ts` says, fills in each cell that holds `%slide%` or
+ * `%slides%` with the slide's number and the total without the backup slides, writes into each
+ * page the TeX definitions its formulas use and it does not define, draws each cell of an
+ * embedded page as a picture of that page, and writes each picture of `assets/` into its cell as
+ * data. A page whose name ends in `-hide` is left out, as `deckFiles.ts` says.
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
  * Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
@@ -36,6 +37,8 @@ import {
 	stepProblems,
 	titleOf,
 } from "./deckFiles";
+import { withLinkedColorValues } from "./deckColorLinks";
+import { colorNamesOf, formulasOfPage } from "./formulaColors";
 import { embedPictures } from "./deckPictures";
 import { PagePictures, withPagePictures } from "./pageSnapshots";
 import { colorDefinition, commandDefinition } from "./texDefinitions";
@@ -55,9 +58,6 @@ const DEFINITIONS_LAYER = "Equation colors, added by the build";
  */
 const ROOT_CELL =
 	/<mxCell id="([^"]+)"(?![^>]*parent=)[^>]*\/>|<(UserObject|object)\b[^>]*?\bid="([^"]+)"[^>]*>\s*<mxCell\s*\/>\s*<\/\2>/;
-const COLOR_USE =
-	/\\(?:textcolor|color|colorbox)\{([^}]*)\}|\\fcolorbox\{([^}]*)\}\{([^}]*)\}/g;
-const FORMULA = /\\\(|\$\$/;
 const CELL = /<mxCell\b([^>]*)>/g;
 const ATTRIBUTE = /(\w+)="([^"]*)"/g;
 const MATH_ON = /<mxGraphModel\b[^>]*\bmath="1"/;
@@ -259,10 +259,7 @@ export function missingDefinitions(
 	missingCommands: ReadonlyMap<string, string>
 ): { definitions: string; unknown: string[] } {
 	const own = pageDefinitions(diagram);
-	const names = new Set<string>();
-	for (const match of matchesOf(COLOR_USE, diagram)) {
-		match.slice(1).forEach((name) => name && names.add(name));
-	}
+	const names = new Set(formulasOfPage(diagram).flatMap(colorNamesOf));
 	const needed = new Array<string>();
 	const unknown = new Array<string>();
 	for (const name of [...names].sort()) {
@@ -358,8 +355,9 @@ function slideNameWarnings(slides: readonly DeckPage[]): string[] {
  * backup slides. On a backup slide `%slides%` gets the total and the total with the backup
  * slides, so `%slide%/%slides%` reads `54/40-54`. A cell of an embedded page is drawn as the
  * picture of its page, and every picture of a file of `assets/` is written into its page as data,
- * so an SVG that the PDF or the HTML file shows needs no file beside it. Raises `DeckError` for a
- * deck without pages.
+ * so an SVG that the PDF or the HTML file shows needs no file beside it. A use of a color linked
+ * to a color of the deck takes the value of that color. Raises `DeckError` for a deck without
+ * pages.
  */
 export function assembleDeck(
 	slides: readonly DeckPage[],
@@ -375,7 +373,21 @@ export function assembleDeck(
 	const pages = new Array<AssembledPage>();
 	slides.forEach((slide, index) => {
 		const where = `slide ${numbers[index]}, ${jsonText(slide.pageName)}`;
-		const numbered = slide.diagram
+		const linked = withLinkedColorValues(slide.diagram, inputs.colors);
+		if (linked.unknown.length > 0) {
+			warnings.push(
+				`${where}, links colors to ${linked.unknown.join(
+					", "
+				)}, which the setting drawioSlides.colors does not define, so they keep the values beside the links`
+			);
+		}
+		warnings.push(
+			...linked.differing.map(
+				({ written, name, value }) =>
+					`${where}, holds ${written} beside a link to ${name}, ${value}, and draws ${value}`
+			)
+		);
+		const numbered = linked.page
 			.split(SLIDE_PLACEHOLDER)
 			.join(String(numbers[index]))
 			.split(TOTAL_PLACEHOLDER)
@@ -410,7 +422,7 @@ export function assembleDeck(
 					)}, which neither the page nor the setting drawioSlides.colors defines`
 				);
 			}
-		} else if (FORMULA.test(diagram)) {
+		} else if (formulasOfPage(diagram).length > 0) {
 			warnings.push(
 				`${where}, holds a formula and has mathematical typesetting off, so the formula shows as raw text. Switch on Extras > Mathematical Typesetting on that page.`
 			);

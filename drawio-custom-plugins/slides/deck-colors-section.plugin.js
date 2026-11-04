@@ -28,20 +28,26 @@
 // The swatch and the buttons Fill, Line and Font set the keys of the style that the color
 // options Fill, Line and Font Color of draw.io set: fillColor, or swimlaneFillColor for a lane of
 // a table and imageBackground for an image, strokeColor, or imageBorder for an image, and
-// fontColor.  The keys of every selected cell change in one edit, which one Undo takes back.
-// While a label of formatted text is edited, the swatch and Font give the selected text the color
-// as the option Font Color of draw.io does, through Graph.setEditingFontColor.  While a label of
-// plain text is edited, they give the cell the color as its font color.  A cell takes the value #RRGGBB
-// of the color and keeps no link to its name.
+// fontColor.  Each key takes the value #RRGGBB of the color and, beside it, the link to the name
+// of the color under the key that window.drawioSlidesSettings.colorLinks gives it, such as
+// deckFillColor=red, which deck-color-links.plugin.js draws.  The keys of every selected cell
+// change in one edit, which one Undo takes back.  While a label of formatted text is edited, the
+// swatch and Font give the selected text the color as the option Font Color of draw.io does,
+// through Graph.setEditingFontColor, and give each element that takes the color the attribute
+// data-deck-color with the name of the color, in the same edit.  When the selected text is the
+// whole label, draw.io gives the cell the font color instead, and the cell takes the link.  While
+// a label of plain text is edited, they give the cell the color as its font color.
 //
 // The VS Code extension yujunhuang.drawio-slides gives the plugin the colors in
 // window.drawioSlidesSettings.colors, a list of names and values #RRGGBB in the order of the
 // setting.  The plugin sends an edit of the list to the extension as the event
 // drawioSlidesEditColor with the operation set, rename or remove, and the extension writes it into
-// the .vscode/settings.json of the workspace folder of the drawing.  The extension then sends the
-// colors again through slide-settings.js, and the section shows the new list.  The extension
-// refuses an edit with a message in VS Code, such as a name that another color has or that is not
-// letters and digits starting with a letter, and the section then shows the list as it was.
+// the .vscode/settings.json of the workspace folder of the drawing, and into the uses of the color
+// in the drawing files of the deck.  Before a removal, the extension asks in a dialog of VS Code.
+// The extension then sends the colors again through slide-settings.js, and the section shows the
+// new list.  The extension refuses an edit with a message in VS Code, such as a name that another
+// color has or that is not letters and digits starting with a letter, and the section then shows
+// the list as it was, as it does when the removal is cancelled.
 //
 // The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
 // drawio-custom-plugins/slides/ after slide-settings.js, for every drawing whose setting
@@ -57,6 +63,10 @@ Draw.loadPlugin(function (ui) {
   function colors() {
     return window.drawioSlidesSettings.colors || [];
   }
+
+  // The keys of the links of the color keys of a style, and the attribute of a linked text, or
+  // none when the extension gives no links.
+  var colorLinks = window.drawioSlidesSettings.colorLinks || {keys: {}, textAttribute: null};
 
   // The color #RRGGBB that the color dialog gives, or null for none or another value.
   function hexValue(color) {
@@ -139,9 +149,10 @@ Draw.loadPlugin(function (ui) {
     }, []);
   }
 
-  // Gives each cell the color under the key of the cell, in one edit, as
-  // BaseFormatPanel.createCellColorOption does.  The cells that take a font color also show their
-  // label and lose the colors of its text, as with the option Font Color.
+  // Gives each cell the value of the color under the key of the cell and the name of the color
+  // under the link of that key, in one edit, as BaseFormatPanel.createCellColorOption does.  The
+  // cells that take a font color also show their label and lose the colors of its text, as with
+  // the option Font Color.
   function setCellColors(keyOf, color, cells) {
     var keys = [];
     var groups = {};
@@ -161,7 +172,11 @@ Draw.loadPlugin(function (ui) {
 
     try {
       keys.forEach(function (key) {
-        graph.setCellStyles(key, color, groups[key]);
+        graph.setCellStyles(key, color.value, groups[key]);
+
+        if (colorLinks.keys[key] != null) {
+          graph.setCellStyles(colorLinks.keys[key], color.name, groups[key]);
+        }
       });
 
       var fontCells = groups[mxConstants.STYLE_FONTCOLOR];
@@ -175,7 +190,7 @@ Draw.loadPlugin(function (ui) {
       }
 
       keys.forEach(function (key) {
-        ui.fireEvent(new mxEventObject('styleChanged', 'keys', [key], 'values', [color],
+        ui.fireEvent(new mxEventObject('styleChanged', 'keys', [key], 'values', [color.value],
           'cells', groups[key]));
       });
     } finally {
@@ -183,13 +198,55 @@ Draw.loadPlugin(function (ui) {
     }
   }
 
+  // The color that draw.io records as given to an element of the label being edited, which it
+  // writes into the style of the element when the editing stops, or null.
+  function givenColor(element) {
+    try {
+      return JSON.parse(element.getAttribute(Graph.backupStyleAttribute) || '{}').color || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
   // Gives the selected text of the label being edited the color, as the option Font Color of the
-  // tab Text does while a label is edited.
+  // tab Text does while a label is edited, and links each element that takes the color to its
+  // name, or the cell when draw.io gives the whole label the color as its font color.
   function setEditingFontColor(color) {
-    var cell = graph.setEditingFontColor(color);
+    var textarea = graph.cellEditor.textarea;
+    var elements = function () {
+      return Array.prototype.slice.call(textarea.getElementsByTagName('*'));
+    };
+    var before = elements().map(function (element) {
+      return {element: element, color: givenColor(element)};
+    });
+    var wasGiven = function (element) {
+      return before.some(function (entry) {
+        return entry.element == element && entry.color == givenColor(element);
+      });
+    };
+    var cell = null;
+
+    graph.getModel().beginUpdate();
+
+    try {
+      cell = graph.setEditingFontColor(color.value);
+      var fontLink = colorLinks.keys[mxConstants.STYLE_FONTCOLOR];
+
+      if (cell != null && fontLink != null) {
+        graph.setCellStyles(fontLink, color.name, [cell]);
+      } else if (cell == null && colorLinks.textAttribute != null) {
+        elements().forEach(function (element) {
+          if (givenColor(element) == color.value && !wasGiven(element)) {
+            element.setAttribute(colorLinks.textAttribute, color.name);
+          }
+        });
+      }
+    } finally {
+      graph.getModel().endUpdate();
+    }
 
     ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_FONTCOLOR],
-      'values', [color], 'cells', (cell != null) ? [cell] : ui.getSelectionState().cells));
+      'values', [color.value], 'cells', (cell != null) ? [cell] : ui.getSelectionState().cells));
   }
 
   // The function that gives the label being edited a color as its font color: the selected text
@@ -292,7 +349,7 @@ Draw.loadPlugin(function (ui) {
     var button = mxUtils.button('', function (evt) {
       if (action.apply != null) {
         restoreTextSelection();
-        action.apply(color.value);
+        action.apply({name: color.name, value: color.value});
       }
 
       mxEvent.consume(evt);
@@ -315,8 +372,8 @@ Draw.loadPlugin(function (ui) {
 
   // Opens the color dialog of draw.io at the value of the color, and sends the value chosen.
   function pickColorValue(color) {
-    ui.pickColorModal(color.value, function (color) {
-      var value = hexValue(color);
+    ui.pickColorModal(color.value, function (chosen) {
+      var value = hexValue(chosen);
 
       if (value != null && value != color.value) {
         sendEdit({operation: 'set', name: color.name, value: value});
@@ -382,7 +439,7 @@ Draw.loadPlugin(function (ui) {
       var restoreTextSelection = null;
       var element = smallButton(button.label, button.label + ': ' + color.name, function () {
         restoreTextSelection();
-        button.apply(color.value);
+        button.apply({name: color.name, value: color.value});
       });
 
       restoreTextSelection = saveTextSelectionOnPress(element);

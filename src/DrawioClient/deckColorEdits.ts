@@ -17,15 +17,6 @@ const OPERATIONS: Record<DeckColorEdit["operation"], true> = {
 	remove: true,
 };
 
-/**
- * A color command of a formula that names a color, as `\textcolor{accent}{x}` names `accent`,
- * with `NAME` in place of the name.
- */
-const COLOR_COMMAND =
-	"\\\\(?:textcolor|color|colorbox|fcolorbox)\\s*\\{NAME\\}|\\\\fcolorbox\\s*\\{[^{}]*\\}\\s*\\{NAME\\}";
-/** The label of a cell in the XML of a drawing, as the attribute `value` or `label`. */
-const LABEL_ATTRIBUTE = /\s(?:value|label)="[^"]*"/g;
-
 /** An edit of `drawioSlides.colors` that the extension refuses, with the reason. */
 export class RefusedColorEdit extends Error {
 	public readonly name = "RefusedColorEdit";
@@ -119,22 +110,6 @@ export function hasColorsMember(text: string): boolean {
 		root !== undefined &&
 		jsoncParser.findNodeAtLocation(root, [COLORS]) !== undefined
 	);
-}
-
-/**
- * The number of labels of a drawing, given as the uncompressed XML of its pages, whose formulas
- * name the color, as `\textcolor{accent}{x}` names `accent`.
- */
-export function countLabelsNamingColor(xml: string, name: string): number {
-	const command = new RegExp(
-		COLOR_COMMAND.replace(
-			/NAME/g,
-			name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-		)
-	);
-	return (xml.match(LABEL_ATTRIBUTE) ?? []).filter((label) =>
-		command.test(label)
-	).length;
 }
 
 function checkColorEdit(

@@ -259,6 +259,7 @@ The extension and the build leave out an entry of another form, and the output c
 The color picker offers the colors as presets after those of `drawioSlides.presetColors`, in the order of the names.
 VS Code shows a swatch before each value in the settings file, and a click on the swatch opens its color picker, which writes the value back.
 The section Deck colors of the Format panel of the editor lists the same colors, gives the selection a color of the list, and renames, recolors, adds and removes a color, as the README of this repository says.
+A shape, a line or a text that takes a color from the section keeps a link to its name, as the next section says.
 Two places read the setting:
 
 - In the editor, the extension defines every color on every page, so a new page needs no definitions of its own, and names the colors in the color picker and adds them to its presets.
@@ -269,6 +270,51 @@ Two places read the setting:
 The extension and the build give MathJax each color in the model `RGB`, such as `\definecolor{green}{RGB}{0,128,0}`, so the color picker, the formulas of the editor and the build take one value.
 A page may still carry its own locked layer `Equation colors`, and the build then leaves the colors it defines to the page.
 The commands that MathJax lacks are defined the same way, from `drawio-custom-plugins/slides/mathjax-commands.tex`, which lists them.
+
+### A shape, a line or a text colored from the section Deck colors follows the color, as a formula does
+
+A click on a swatch, on Fill, on Line or on Font of the section Deck colors writes the value of the color into the style of each selected shape.
+The style also takes a link to the name of the color, beside the value.
+A fill of the color `red` of the value `#B20000` reads `fillColor=#B20000;deckFillColor=red;` in the style.
+The link of a line is `deckStrokeColor`, of a font `deckFontColor`, and of the fill of a lane or of the background and the border of an image `deckSwimlaneFillColor`, `deckImageBackground` and `deckImageBorder`.
+A style may also link `gradientColor` and `labelBackgroundColor`, through `deckGradientColor` and `deckLabelBackgroundColor`, which the section sets on no shape.
+Selected text of a label being edited takes the color as the option Font Color of draw.io gives it, and the attribute `data-deck-color` with the name, as in `<span data-deck-color="red" style="color: rgb(178, 0, 0);">`.
+When the selected text is the whole label, draw.io gives the shape the font color instead, and the shape takes the link.
+
+Each linked use follows the color:
+
+- The editor draws a linked use in the value that the color has now, also before the files change, and in every open drawing.
+- The build gives a linked use the value of the color.
+  The build warns of a link to a name that `drawioSlides.colors` does not define, whose use keeps the value beside the link.
+  The build also warns of a value beside a link that differs from the value of the color, and draws the value of the color.
+- A new value from the button ✎ goes into each linked use of the drawing files of the deck, so the files draw the color in a draw.io without the extension too.
+- A new name typed in the section renames the links and every formula of the drawing files of the deck that names the color, as `\textcolor{red}{x}` becomes `\textcolor{crimson}{x}`.
+- The button × asks first, in a dialog of VS Code that names the color and its value.
+  The dialog counts the shapes, the lines and the texts linked to the color and the times that formulas name it, in the drawing files of the deck.
+  Delete then takes the color out of the setting, writes its last value into each linked use and takes the link out.
+  Each formula that names the color then names its value in the model `RGB`, as `\textcolor{red}{x}` becomes `\textcolor[RGB]{178,0,0}{x}`, which the MathJax of draw.io and TeX both read.
+  Cancel changes nothing.
+
+The drawing files of the deck are its section files, its templates, and each open drawing of the deck whose name ends in `.drawio`, `.dio` or `.drawio.xml`, such as a figure outside the folder of the sections.
+A formula is the text that MathJax typesets: between `\(` and `\)`, `$$` and `$$`, `\[` and `\]`, or `\begin{...}` and its `\end{...}`.
+A command written in a label outside these delimiters is text, and keeps its name.
+A command names the color with no model before it, or with the model `[named]`, as in `\color[named]{red}`.
+A page that defines the color itself, in its own layer `Equation colors`, keeps the formulas that name it on a rename and on a removal, because its own definition colors them.
+
+The extension writes the drawing files of the deck in one edit of VS Code and saves each file that had no unsaved changes, so an open drawing shows the change at once.
+A drawing file with unsaved changes takes the change in its editor and stays unsaved, and a message names it.
+The extension still refuses the change while `.vscode/settings.json` has unsaved changes, because VS Code reads the settings from the disk.
+
+After a new name or a removal of a color, the editor of each open drawing of the deck starts a new undo history.
+Undo in the editor does not take back a change of the files by the extension.
+An undo of an edit of a shape made before a new value gives the shape its old value beside the link, and the editor and the build still draw the new value.
+
+Another color option of draw.io, a swatch of the Style tab and the dialog Edit Style take the link out of a key whose value they change.
+The option Font Color takes the link out of the text whose color it changes.
+A shape pasted from another deck, or from an older copy of the deck, takes the current value of each color that its links name.
+A new value written in `.vscode/settings.json`, by hand or with the color picker of VS Code, reaches the editor and the build through the links.
+While a drawing of the deck is open, a message then asks whether to write the new value into the linked uses of the drawing files of the deck, as a value from ✎ goes in, and its button Write writes it.
+A name renamed or removed by hand leaves the links and the formulas with the old name, and the build warns of it.
 
 ### The commands Import Colors from TeX and Export Colors to TeX convert the colors between the setting and a TeX file
 
@@ -420,7 +466,9 @@ With `drawioSlides.slides` on, the extension loads the plugins in its folder `dr
 - `math-definitions.plugin.js` defines the colors of `drawioSlides.colors` and the commands of `mathjax-commands.tex` on every page, as the section on colors above says, and starts every new page with mathematical typesetting on.
 - `deck-colors.plugin.js` gives the color picker its presets and its names, and the Style tab of the Format panel its swatches, again after a change of the settings.
 - `deck-colors-section.plugin.js` adds the section Deck colors to the Format panel, as the section on colors above says.
-- `slide-settings.js` receives the settings that the extension sends after a change, and passes them to `math-definitions.plugin.js`, `deck-colors.plugin.js`, `deck-colors-section.plugin.js` and `list-styles.plugin.js`, as the paragraph after the templates says.
+- `deck-color-links.plugin.js` draws each use of a color linked to a color of the deck in the value of that color, as the section on the links above says.
+  The plugin takes a link out when another option of draw.io changes the color, gives a pasted shape the current values of its links, and starts a new undo history after a new name or a removal of a color.
+- `slide-settings.js` receives the settings that the extension sends after a change, and passes them to `math-definitions.plugin.js`, `deck-colors.plugin.js`, `deck-color-links.plugin.js`, `deck-colors-section.plugin.js` and `list-styles.plugin.js`, as the paragraph after the templates says.
 - `single-page.plugin.js` keeps a page of the size of the setting `drawioSlides.slideSize`, 1920 by 1080 by default, at one page in the page view, so content past the edge is cut as the build cuts it.
 - `click-through.plugin.js` lets a click on the empty inside of a shape or a text box without fill select the shape behind it.
 - `edit-at-click.plugin.js` keeps the view still when a double-click starts editing a label, and puts the caret at the character under the double-click.
@@ -594,6 +642,9 @@ Every slide is uncompressed XML: a `<diagram name="...">` per page, and inside i
   ```
 
   A link to a page is `link="data:page/id,<id of the diagram>"`.
+- A key of a style such as `fillColor` beside a link such as `deckFillColor=red` takes its value from the color `red` in the editor and in the build.
+  The color of an element with `data-deck-color="red"` in a label takes its value from `red` in the same way.
+  To give such a key another value, take the link out as well, or change the color in `drawioSlides.colors`.
 - After a change, run `npm run build` in the presentation folder and read its warnings.
 
 An agent changes only the files in `sections/`, `assets/` and `templates/`, and `.vscode/settings.json` for a setting of the slides.
@@ -608,6 +659,8 @@ The skills in `skills/` of the extension give an agent the steps to start a deck
 | `slide 4, "x", has the steps 2, 1 in page order` | the steps of one slide are out of order | reorder the page tabs or rename the steps |
 | `holds a formula and has mathematical typesetting off` | the switch of the page is off | *Extras > Mathematical Typesetting* on that page |
 | `colors formulas with dpgren, which neither the page nor the setting drawioSlides.colors defines` | a name of a color that `drawioSlides.colors` lacks, often a typo | fix the name, or add the color to `drawioSlides.colors` |
+| `links colors to gone, which the setting drawioSlides.colors does not define, so they keep the values beside the links` | a shape or a text linked to a name that `drawioSlides.colors` lacks, such as a color removed by hand from the settings file | add the color to `drawioSlides.colors`, or give the shape a color again |
+| `holds #00AA00 beside a link to red, #B20000, and draws #B20000` | a key of a style or a text whose value was changed outside the editor of the extension, such as by an agent or in a draw.io without the extension, and whose link stayed | take the link out beside the new value, or give the shape the color again from the section Deck colors |
 | `drawioSlides.colors names a color "dp-red", which is not letters and digits that start with a letter, so the color is left out` | a name that TeX cannot read | rename the color, and the formulas that name it |
 | `drawioSlides.colors gives accent the value "#04D80", which is not # and six hexadecimal digits, so the color is left out` | a value other than `#RRGGBB` | write the value as `#RRGGBB` |
 | `drawioSlides.listStyles names the color acent, which drawioSlides.colors does not define, so the value stays as written` | a color of a level of the list styles that is a name `drawioSlides.colors` lacks, often a typo, or a name of CSS, such as `red`, which the marker still takes | fix the name, add the color to `drawioSlides.colors`, or write the value as `#RRGGBB` |

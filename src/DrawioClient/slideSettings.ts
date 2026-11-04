@@ -163,6 +163,26 @@ export async function writeDeckColorEdit(
 	config: DiagramConfig,
 	edit: DeckColorEdit
 ): Promise<void> {
+	const write = await plannedSettingsWrite(config, edit);
+	await write();
+}
+
+/**
+ * Raises `RefusedColorEdit` for an edit of the colors of a drawing that `writeDeckColorEdit` would
+ * refuse, and writes nothing.
+ */
+export async function checkDeckColorEdit(
+	config: DiagramConfig,
+	edit: DeckColorEdit
+): Promise<void> {
+	await plannedSettingsWrite(config, edit);
+}
+
+/** The write of `writeDeckColorEdit`, after the checks that may refuse the edit. */
+async function plannedSettingsWrite(
+	config: DiagramConfig,
+	edit: DeckColorEdit
+): Promise<() => Promise<void>> {
 	const folder = workspace.getWorkspaceFolder(config.uri);
 	if (folder === undefined) {
 		throw new RefusedColorEdit(
@@ -187,14 +207,16 @@ export async function writeDeckColorEdit(
 		(!hasColorsMember(document.getText()) &&
 			isColorsSettingDefined(config.uri))
 	) {
-		await workspace
-			.getConfiguration(undefined, config.uri)
-			.update(
-				"drawioSlides.colors",
-				withColorEdit(folderColors(config.uri), edit),
-				ConfigurationTarget.WorkspaceFolder
-			);
-		return;
+		const colors = withColorEdit(folderColors(config.uri), edit);
+		return async () => {
+			await workspace
+				.getConfiguration(undefined, config.uri)
+				.update(
+					"drawioSlides.colors",
+					colors,
+					ConfigurationTarget.WorkspaceFolder
+				);
+		};
 	}
 	if (document.isDirty) {
 		throw new RefusedColorEdit(
@@ -203,27 +225,29 @@ export async function writeDeckColorEdit(
 	}
 	const text = document.getText();
 	const edited = withColorEditInSettings(text, edit);
-	if (edited === text) {
-		return;
-	}
-	const change = changedPart(text, edited);
-	const workspaceEdit = new WorkspaceEdit();
-	workspaceEdit.replace(
-		settingsFile,
-		new Range(
-			document.positionAt(change.start),
-			document.positionAt(change.end)
-		),
-		change.text
-	);
-	if (
-		!(await workspace.applyEdit(workspaceEdit)) ||
-		!(await document.save())
-	) {
-		throw new Error(
-			`VS Code did not write ${settingsFile.fsPath}, so drawioSlides.colors stays as it is.`
+	return async () => {
+		if (edited === text) {
+			return;
+		}
+		const change = changedPart(text, edited);
+		const workspaceEdit = new WorkspaceEdit();
+		workspaceEdit.replace(
+			settingsFile,
+			new Range(
+				document.positionAt(change.start),
+				document.positionAt(change.end)
+			),
+			change.text
 		);
-	}
+		if (
+			!(await workspace.applyEdit(workspaceEdit)) ||
+			!(await document.save())
+		) {
+			throw new Error(
+				`VS Code did not write ${settingsFile.fsPath}, so drawioSlides.colors stays as it is.`
+			);
+		}
+	};
 }
 
 /** The settings file as a document, without a window, or `undefined` when the file is missing. */
@@ -288,7 +312,7 @@ function isColorsSettingDefined(uri: Uri): boolean {
  * The one span of a text that an edit changes: the offsets of its start and of its end in the text
  * before, and the text that replaces it.
  */
-function changedPart(
+export function changedPart(
 	before: string,
 	after: string
 ): { start: number; end: number; text: string } {
