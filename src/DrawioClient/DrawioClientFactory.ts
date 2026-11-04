@@ -11,20 +11,27 @@ import {
 	workspace,
 } from "vscode";
 import { CustomizedDrawioClient, simpleDrawioLibrary } from ".";
-import { Config, DiagramConfig } from "../Config";
+import { Config, DiagramConfig, SlideSize } from "../Config";
 import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
 import { appendEmbedParams } from "../utils/appendEmbedParams";
 import html from "./webview-content.html";
 import { formatValue } from "../utils/formatValue";
-import { autorun, observable, runInAction, untracked } from "mobx";
+import {
+	autorun,
+	comparer,
+	observable,
+	reaction,
+	runInAction,
+	untracked,
+} from "mobx";
 import { sha256 } from "js-sha256";
 import { getDrawioExtensions } from "../DrawioExtensionApi";
 import { BufferImpl } from "../utils/buffer";
 import {
-	DefinedColour,
-	readSlideSettings,
+	LiveSlideSettings,
+	readLiveSlideSettings,
+	readMathCommands,
 	readTemplates,
-	SlideSettings,
 	SlideTemplate,
 } from "./slideSettings";
 import * as path from "path";
@@ -32,12 +39,15 @@ import * as path from "path";
 /**
  * The plugins of the draw.io presentation framework in `drawio-custom-plugins/slides/`, in the
  * order of loading: `deck-files.js` before `deck-pictures.plugin.js`, `language-check.plugin.js`
- * and `media.plugin.js`, `list-marker-rules.js` before `list-styles.plugin.js`, and `media-bar.js`
- * before `media.plugin.js`, which use them.
+ * and `media.plugin.js`, `slide-settings.js` before `math-definitions.plugin.js`,
+ * `deck-colors.plugin.js` and `list-styles.plugin.js`, `list-marker-rules.js` before
+ * `list-styles.plugin.js`, and `media-bar.js` before `media.plugin.js`, which use them.
  */
 const SLIDE_PLUGINS = [
 	"deck-files.js",
+	"slide-settings.js",
 	"math-definitions.plugin.js",
+	"deck-colors.plugin.js",
 	"single-page.plugin.js",
 	"click-through.plugin.js",
 	"edit-at-click.plugin.js",
@@ -69,11 +79,25 @@ export class DrawioClientFactory {
 		const config = this.config.getDiagramConfig(uri);
 		const slides = config.slides ? await this.getSlides(config) : undefined;
 		const otherPlugins = await this.getPlugins(config);
-		const definedColours = slides?.settings.colours ?? [];
 		// The templates as last saved, from which each new page of the webview starts. The
 		// variable is no observable, so that a save of a template reaches the page in use through
 		// `updateSlideTemplates` and reloads no webview, which would lose the zoom and the undo.
-		let slideTemplates = slides?.settings.pluginSettings.templates ?? [];
+		let slideTemplates = slides?.templates ?? [];
+		const readLiveSettings = () =>
+			slides && readLiveSlideSettings(config, slides.mathCommands);
+		// The live settings that the HTML of the webview holds, which the configuration of
+		// draw.io takes as well, so that the two agree at every load of the page, also at a load
+		// that VS Code starts from the same HTML.
+		let htmlSettings: LiveSlideSettings | undefined;
+		// The live settings that the page in the webview holds, the settings of its HTML or the
+		// settings sent last.
+		let pageSettings: LiveSlideSettings | undefined;
+		// Whether the slide plugins of the page listen for the live settings, from the event
+		// init of draw.io until the next reload.
+		let isPageListening = false;
+		readLiveSettings()?.problems.forEach((problem) =>
+			this.log.appendLine(problem)
+		);
 
 		const webview = webviewPanel.webview;
 
@@ -88,12 +112,9 @@ export class DrawioClientFactory {
 				// these getters triggers a reload on change
 				config.customLibraries;
 				config.customFonts;
-				config.presetColors;
-				config.customColorSchemes;
 				config.styles;
 				config.defaultVertexStyle;
 				config.defaultEdgeStyle;
-				config.colorNames;
 				config.simpleLabels;
 				config.zoomFactor;
 				config.globalVars;
@@ -108,18 +129,37 @@ export class DrawioClientFactory {
 				config.theme;
 				config.appearance;
 				config.appearanceFollowsSystem;
-				const plugins = slides
-					? [
-							{
-								jsCode: slideSettingsScript(slides.deckFolder, {
-									...slides.settings.pluginSettings,
-									templates: slideTemplates,
-								}),
-							},
-							...slides.plugins,
-							...otherPlugins,
-					  ]
-					: otherPlugins;
+				// The slide plugins of a drawing of slides in the offline mode follow a change of
+				// its live settings without a reload, through the reaction below, so the zoom and
+				// the undo history stay. Every other drawing reloads when its colours change.
+				const isUpdatedInPlace =
+					slides !== undefined && config.mode.kind === "offline";
+				if (!isUpdatedInPlace) {
+					config.presetColors;
+					config.customColorSchemes;
+					config.colorNames;
+				}
+				const settings = isUpdatedInPlace
+					? untracked(readLiveSettings)?.settings
+					: readLiveSettings()?.settings;
+				const plugins =
+					slides && settings
+						? [
+								{
+									jsCode: slideSettingsScript(
+										slides.deckFolder,
+										{
+											...settings,
+											templates: slideTemplates,
+											slideSize: slides.slideSize,
+											languageTool: slides.languageTool,
+										}
+									),
+								},
+								...slides.plugins,
+								...otherPlugins,
+						  ]
+						: otherPlugins;
 				const html =
 					this.getHtml(config, options, webview, plugins) +
 					" ".repeat(i++);
@@ -127,6 +167,9 @@ export class DrawioClientFactory {
 				if (config.isResizeImageUpdating) {
 					config.isResizeImageUpdating = false;
 				} else {
+					htmlSettings = settings;
+					pageSettings = settings;
+					isPageListening = false;
 					webview.html = html;
 				}
 			},
@@ -153,18 +196,14 @@ export class DrawioClientFactory {
 				return {
 					compressXml: false,
 					customFonts: config.customFonts,
-					presetColors: withDefinedPresets(
-						config.presetColors,
-						definedColours
-					),
-					customColorSchemes: config.customColorSchemes,
+					presetColors:
+						htmlSettings?.presetColors ?? config.presetColors,
+					customColorSchemes:
+						htmlSettings?.colorSchemes ?? config.customColorSchemes,
 					styles: config.styles,
 					defaultVertexStyle: config.defaultVertexStyle,
 					defaultEdgeStyle: config.defaultEdgeStyle,
-					colorNames: withDefinedNames(
-						config.colorNames,
-						definedColours
-					),
+					colorNames: htmlSettings?.colorNames ?? config.colorNames,
 					simpleLabels: config.simpleLabels,
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
@@ -228,8 +267,45 @@ export class DrawioClientFactory {
 			  })
 			: [];
 
+		// A change of the live settings goes to the page that listens, and a page that starts
+		// after the change gets the settings when it is ready, at the event init.
+		const sendLiveSettings = (settings: LiveSlideSettings) => {
+			if (
+				isPageListening &&
+				!comparer.structural(settings, pageSettings)
+			) {
+				pageSettings = settings;
+				drawioClient.updateSlideSettings(settings);
+			}
+		};
+		const disposeLiveSettings = slides
+			? reaction(
+					() => readLiveSettings()!,
+					(reading) => {
+						reading.problems.forEach((problem) =>
+							this.log.appendLine(problem)
+						);
+						sendLiveSettings(reading.settings);
+					},
+					{
+						name: "Update Slide Settings",
+						equals: comparer.structural,
+					}
+			  )
+			: () => {};
+		drawioClient.onInit.sub(() => {
+			// A page that has just loaded holds the settings of its HTML.
+			pageSettings = htmlSettings;
+			isPageListening = slides !== undefined;
+			const reading = untracked(readLiveSettings);
+			if (reading) {
+				sendLiveSettings(reading.settings);
+			}
+		});
+
 		webviewPanel.onDidDispose(() => {
 			disposeAutorun();
+			disposeLiveSettings();
 			drawioClient.dispose();
 			templateWatchers.forEach((watcher) => watcher.dispose());
 		});
@@ -317,22 +393,25 @@ export class DrawioClientFactory {
 	}
 
 	/**
-	 * The slide plugins, the settings of the slides and the folder of the deck, which
-	 * `slideSettingsScript` gives the plugins. The extension ships the plugins, so they load
-	 * without the question that a plugin of the settings asks.
+	 * The slide plugins, the folder of the deck, the pages of its templates, the commands that
+	 * MathJax lacks and the settings that the plugins read once, which `slideSettingsScript`
+	 * gives the plugins. The extension ships the plugins, so they load without the question that
+	 * a plugin of the settings asks.
 	 */
 	private async getSlides(config: DiagramConfig): Promise<{
 		plugins: { jsCode: string }[];
-		settings: SlideSettings;
 		deckFolder: Uri;
+		templates: SlideTemplate[];
+		mathCommands: string[];
+		slideSize: SlideSize;
+		languageTool: string;
 	}> {
 		const deckFolder = await findDeckFolder(config.uri);
-		const settings = await readSlideSettings(
-			config,
-			deckFolder,
-			this.extensionUri,
+		const templates = await readTemplates(
+			config.templatePatterns(deckFolder),
 			this.log
 		);
+		const mathCommands = await readMathCommands(this.extensionUri);
 		const plugins = await Promise.all(
 			SLIDE_PLUGINS.map(async (name) => ({
 				jsCode: BufferImpl.from(
@@ -347,7 +426,14 @@ export class DrawioClientFactory {
 				).toString("utf-8"),
 			}))
 		);
-		return { plugins, settings, deckFolder };
+		return {
+			plugins,
+			deckFolder,
+			templates,
+			mathCommands,
+			slideSize: config.slideSize,
+			languageTool: config.languageTool,
+		};
 	}
 
 	/**
@@ -551,41 +637,17 @@ async function findDeckFolder(uri: Uri): Promise<Uri> {
  */
 function slideSettingsScript(
 	deckFolder: Uri,
-	settings: SlideSettings["pluginSettings"]
+	settings: LiveSlideSettings & {
+		templates: SlideTemplate[];
+		slideSize: SlideSize;
+		languageTool: string;
+	}
 ): string {
 	const deckFolders = JSON.stringify([deckFolder.fsPath]);
 	return (
 		`window.mediaPluginDeckFolders = ${deckFolders};\n` +
 		`window.drawioSlidesSettings = ${JSON.stringify(settings)};`
 	);
-}
-
-/** The colour names of the settings, with a name for each defined colour that has none. */
-function withDefinedNames(
-	names: Record<string, string>,
-	colours: readonly DefinedColour[]
-): Record<string, string> {
-	const result = { ...names };
-	for (const colour of colours) {
-		if (!(colour.hex in result)) {
-			result[colour.hex] = colour.name;
-		}
-	}
-	return result;
-}
-
-/** The preset colours of the settings, followed by each defined colour that they lack. */
-function withDefinedPresets(
-	presets: string[],
-	colours: readonly DefinedColour[]
-): string[] {
-	const result = [...presets];
-	for (const colour of colours) {
-		if (!result.some((preset) => preset.toUpperCase() === colour.hex)) {
-			result.push(colour.hex);
-		}
-	}
-	return result;
 }
 
 function getNonce(): string {

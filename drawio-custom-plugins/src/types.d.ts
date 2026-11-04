@@ -1,7 +1,7 @@
 
 declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | GetVerticesAction
     | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction | UpdateLiveshareViewState
-    | SlideTemplatesAction;
+    | SlideTemplatesAction | SlideSettingsAction;
 declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent
     | UpdateLocalStorage | PluginLoaded | CursorChangedEvent | SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent | SelectionRectangleChangedEvent;
 
@@ -87,6 +87,46 @@ declare interface Rectangle {
 declare interface SlideTemplatesAction {
     action: "drawioSlidesTemplates";
     templates: { name: string; pages: { name: string; xml: string }[] }[];
+}
+
+/**
+ * The settings of a deck that the slide plugins follow without a reload, as the extension gives
+ * them in `window.drawioSlidesSettings` and again after a change: the colours of
+ * `drawioSlides.colors` as definitions of MathJax, presets and names of the colour picker, and
+ * the swatches, the list styles and the markers of the menu List style, with each name of a colour
+ * replaced by its value.
+ */
+declare interface SlideSettingsAction {
+    action: "drawioSlidesSettings";
+    settings: {
+        listStyles: SlideListStyles;
+        listMarkers: [string, string][];
+        mathDefinitions: string;
+        presetColors: string[];
+        colorNames: Record<string, string>;
+        colorSchemes: {
+            title?: string;
+            fill?: string;
+            stroke?: string;
+            gradient?: string;
+            font?: string;
+        }[][];
+    };
+}
+
+/** The setting `drawioSlides.listStyles`. */
+declare interface SlideListStyles {
+    itemGap: string;
+    bulleted: SlideListLevelStyle[];
+    numbered: SlideListLevelStyle[];
+}
+
+/** The style of one level of a list, as the setting `drawioSlides.listStyles` gives it. */
+declare interface SlideListLevelStyle {
+    indent: string;
+    marker: string;
+    color?: string;
+    size?: string;
 }
 
 declare interface UpdateLiveshareViewState {

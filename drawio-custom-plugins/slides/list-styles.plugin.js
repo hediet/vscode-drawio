@@ -23,7 +23,12 @@
 //
 // The markers take the colour and the size of their level by the rules of listMarkerCss in
 // list-marker-rules.js, which this plugin gives the page of the editor and export-pages.mjs copies
-// into the SVG of each page.  In the default, the triangle is #004D80 at 0.7 of the size of the
+// into the SVG of each page.  The colour of a level may name a colour of the setting
+// "drawioSlides.colors", which the extension replaces by its value.  After a change of the list
+// styles, of the markers or of the colours, the extension sends them again through
+// slide-settings.js, and the plugin takes them for the next list and the next menu and gives the
+// markers on the page their new colours and sizes.  A list that has its style already keeps its
+// indent and its marker.  In the default, the triangle is #004D80 at 0.7 of the size of the
 // text, which covers about the area of the narrower triangle of the Keynote deck of the template,
 // and sits on the baseline, and the dash is #004D80.
 //
@@ -36,7 +41,7 @@ Draw.loadPlugin(function (ui) {
   var settings = window.drawioSlidesSettings || {};
   var listStyles = settings.listStyles;
   // The markers of the menu, as written into list-style-type, with their names.
-  var MARKERS = settings.listMarkers || [];
+  var markers = settings.listMarkers || [];
 
   if (listStyles == null || typeof listMarkerCss != 'function') {
     console.warn('list-styles.plugin.js: the extension gave no list styles, so lists keep the ' +
@@ -140,6 +145,22 @@ Draw.loadPlugin(function (ui) {
   markerStyle.textContent = listMarkerCss(listStyles);
   document.head.appendChild(markerStyle);
 
+  if (typeof onSlideSettingsChange == 'function') {
+    onSlideSettingsChange(function (changed) {
+      if (changed.listStyles == null) {
+        return;
+      }
+
+      listStyles = changed.listStyles;
+      markers = changed.listMarkers || [];
+      markerStyle.textContent = listMarkerCss(listStyles);
+
+      if (ui.format != null) {
+        ui.format.refresh();
+      }
+    });
+  }
+
   var watched = null;
 
   function watch(box) {
@@ -175,10 +196,11 @@ Draw.loadPlugin(function (ui) {
       return;
     }
 
-    // The browser reads a marker of text back with double quotes, and MARKERS holds single ones.
+    // The browser reads a marker of text back with double quotes, and the markers of the menu
+    // hold single ones.
     var marker = list.style.listStyleType.replace(/^"(.*)"$/, "'$1'");
     var style = templateLevel(list, levelOf(list, cellEditor.textarea));
-    var known = MARKERS.some(function (entry) {
+    var known = markers.some(function (entry) {
       return entry[0] == marker;
     });
     select.value = (marker == '' || marker == style.marker || !known) ? 'template' : marker;
@@ -205,7 +227,7 @@ Draw.loadPlugin(function (ui) {
     select.style.width = '98px';
     select.style.fontWeight = 'normal';
 
-    MARKERS.forEach(function (entry) {
+    markers.forEach(function (entry) {
       var option = document.createElement('option');
       option.value = entry[0];
       mxUtils.write(option, entry[1]);

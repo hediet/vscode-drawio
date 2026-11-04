@@ -2,17 +2,17 @@
 // editor opens, and starts every new page with mathematical typesetting on.
 //
 // The VS Code extension yujunhuang.drawio-slides gives the definitions in
-// window.drawioSlidesSettings.mathDefinitions: every \definecolor of the files of the setting
-// "drawioSlides.colorDefinitions" in the model RGB, then the commands of mathjax-commands.tex
-// beside this plugin, which MathJax lacks.  The extension converts the colour models rgb, RGB,
-// gray, Gray, cmy, cmyk and HTML as the build of the draw.io presentation framework converts them,
-// and warns of a definition in another model and leaves it out.
+// window.drawioSlidesSettings.mathDefinitions: a \definecolor in the model RGB for every colour of
+// the setting "drawioSlides.colors", then the commands of mathjax-commands.tex beside this
+// plugin, which MathJax lacks.  After a change of the colours, the extension sends the definitions
+// again through slide-settings.js, and the plugin typesets them again, so that a formula shows the
+// new value of a colour.  A colour taken out of the setting stays defined until the editor
+// reloads.
 //
 // The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
 // drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
 // without asking.
 Draw.loadPlugin(function (ui) {
-  var DEFINITIONS = (window.drawioSlidesSettings || {}).mathDefinitions || '';
   var graph = ui.editor.graph;
 
   // A page the editor creates takes this value, and a page read from a file keeps its own.
@@ -35,16 +35,18 @@ Draw.loadPlugin(function (ui) {
   // that every label is typeset with, and the page is drawn again, so that a label typeset
   // before them shows its colours.
   var tries = 0;
-  function define() {
+  function define(definitions) {
     if (typeof Editor === 'undefined' || typeof Editor.MathJaxRender !== 'function') {
       if (tries++ < 600) {
-        window.setTimeout(define, 100);
+        window.setTimeout(function () {
+          define(definitions);
+        }, 100);
       }
       return;
     }
     var holder = document.createElement('div');
     holder.style.cssText = 'position:absolute;left:-10000px;top:0;visibility:hidden';
-    holder.textContent = '\\(' + DEFINITIONS + '\\)';
+    holder.textContent = '\\(' + definitions + '\\)';
     document.body.appendChild(holder);
     var previous = Editor.onMathJaxDone;
     var hook = function () {
@@ -70,5 +72,18 @@ Draw.loadPlugin(function (ui) {
     Editor.MathJaxRender(holder);
     finish();
   }
-  define();
+  // The definitions last typeset, so that a change of the list markers or of the swatches alone
+  // typesets no formula again.
+  var current = (window.drawioSlidesSettings || {}).mathDefinitions || '';
+  define(current);
+
+  if (typeof onSlideSettingsChange == 'function') {
+    onSlideSettingsChange(function (settings) {
+      var definitions = settings.mathDefinitions || '';
+      if (definitions != current) {
+        current = definitions;
+        define(definitions);
+      }
+    });
+  }
 });

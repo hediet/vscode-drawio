@@ -442,7 +442,7 @@
 								}
 							]
 						},
-						"description": "The style of each level of a bulleted and of a numbered list that the list buttons of draw.io make, and the gap above each item but the first of a first level. A level deeper than the lists give takes the last style. The build of the draw.io presentation framework reads the same setting.",
+						"description": "The style of each level of a bulleted and of a numbered list that the list buttons of draw.io make, and the gap above each item but the first of a first level. A level deeper than the lists give takes the last style. The editor follows a change of this setting without a reload. The build of the draw.io presentation framework reads the same setting.",
 						"properties": {
 							"itemGap": {
 								"type": "string"
@@ -466,7 +466,7 @@
 										},
 										"color": {
 											"type": "string",
-											"description": "The colour of the marker, as CSS."
+											"description": "The colour of the marker, as CSS, such as `#004D80`, or the name of a colour of `drawioSlides.colors`, such as `accent`."
 										},
 										"size": {
 											"type": "string",
@@ -494,7 +494,7 @@
 										},
 										"color": {
 											"type": "string",
-											"description": "The colour of the marker, as CSS."
+											"description": "The colour of the marker, as CSS, such as `#004D80`, or the name of a colour of `drawioSlides.colors`, such as `accent`."
 										},
 										"size": {
 											"type": "string",
@@ -566,7 +566,7 @@
 								"None"
 							]
 						],
-						"description": "The markers of the menu List style, each as its `list-style-type` and its name. The marker `template` gives a list the style of its level again.",
+						"description": "The markers of the menu List style, each as its `list-style-type` and its name. The marker `template` gives a list the style of its level again. The editor follows a change of this setting without a reload.",
 						"items": {
 							"type": "array",
 							"items": {
@@ -610,15 +610,20 @@
 						"default": "http://localhost:8081",
 						"description": "The address of the LanguageTool server that checks the spelling and the grammar of the label being edited. The check of every slide of the draw.io presentation framework, `npm run check`, reads the same setting."
 					},
-					"drawioSlides.colorDefinitions": {
-						"type": "array",
+					"drawioSlides.colors": {
+						"type": "object",
 						"scope": "resource",
-						"default": [
-							"${deckFolder}/templates/color-definitions.tex"
-						],
-						"description": "TeX files of `\\definecolor` lines, in the models rgb, RGB, gray, Gray, cmy, cmyk or HTML. The editor and the build of the draw.io presentation framework convert the models alike and give MathJax each colour in the model RGB. The editor defines the colours for the formulas of every page and names them in the colour picker, and the build writes them into each page that uses them. A path may hold `${deckFolder}`, the nearest folder above the drawing with a `package.json`, and `${workspaceFolder}`. A relative path is read from the deck folder.",
-						"items": {
-							"type": "string"
+						"default": {},
+						"description": "The colours of a deck, each a name of letters and digits that starts with a letter and a value `#RRGGBB`. In a drawing whose `drawioSlides.slides` is true, the editor defines each colour for the formulas of every page, which name it as in `\\textcolor{accent}{x}`, names it in the colour picker, adds it to the presets of the picker in the order of this setting and follows a change of this setting without a reload. A colour of `drawioSlides.listStyles` and of `drawioSlides.customColorSchemes` may be the name of a colour of this setting. The build of the draw.io presentation framework reads the same setting, and its `tools/draw-io/color-settings.py` converts the `\\definecolor` lines of a TeX file into this setting and back.",
+						"propertyNames": {
+							"pattern": "^[A-Za-z][A-Za-z0-9]*$",
+							"patternErrorMessage": "A name of a colour is letters and digits and starts with a letter."
+						},
+						"additionalProperties": {
+							"type": "string",
+							"format": "color-hex",
+							"pattern": "^#[0-9A-Fa-f]{6}$",
+							"patternErrorMessage": "A colour is `#` and six hexadecimal digits, such as `#004D80`."
 						}
 					},
 					"drawioSlides.plugins": {
@@ -797,19 +802,19 @@
 									},
 									"fill": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a colour of `drawioSlides.colors`, such as `accent`."
 									},
 									"stroke": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a colour of `drawioSlides.colors`, such as `accent`."
 									},
 									"gradient": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a colour of `drawioSlides.colors`, such as `accent`."
 									},
 									"font": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example)."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a colour of `drawioSlides.colors`, such as `accent`."
 									}
 								}
 							}

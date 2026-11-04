@@ -94,6 +94,16 @@ export class CustomizedDrawioClient extends DrawioClient<
 		this.sendCustomAction({ action: "drawioSlidesTemplates", templates });
 	}
 
+	/**
+	 * Gives the slide plugins the colours, the list styles and the list markers of the deck
+	 * again.
+	 */
+	public updateSlideSettings(
+		settings: SlideSettingsAction["settings"]
+	): void {
+		this.sendCustomAction({ action: "drawioSlidesSettings", settings });
+	}
+
 	public updateLiveshareViewState(update: {
 		cursors: ParticipantCursorInfo[];
 		selectedCells: ParticipantSelectedCellsInfo[];

@@ -1,22 +1,22 @@
 import { FileType, OutputChannel, Uri, workspace } from "vscode";
 import * as path from "path";
-import { DiagramConfig, ListStyles, SlideSize } from "../Config";
+import { DiagramConfig } from "../Config";
+import { ColorScheme } from "./DrawioTypes";
 import { BufferImpl } from "../utils/buffer";
 
 /**
- * The settings that the slide plugins read from `window.drawioSlidesSettings`, and the colours of
- * the colour definitions, which the colour picker of draw.io names.
+ * The settings of a deck that the slide plugins follow without a reload, which the extension
+ * gives them in `window.drawioSlidesSettings` and in the action `drawioSlidesSettings`.
  */
-export interface SlideSettings {
-	readonly pluginSettings: {
-		readonly listStyles: ListStyles;
-		readonly listMarkers: [string, string][];
-		readonly mathDefinitions: string;
-		readonly templates: SlideTemplate[];
-		readonly slideSize: SlideSize;
-		readonly languageTool: string;
-	};
-	readonly colours: readonly DefinedColour[];
+export type LiveSlideSettings = SlideSettingsAction["settings"];
+
+/**
+ * The live settings of a drawing, with one line for each entry of the settings that the
+ * extension leaves out or leaves as written.
+ */
+export interface LiveSlideSettingsReading {
+	readonly settings: LiveSlideSettings;
+	readonly problems: readonly string[];
 }
 
 /** A template file of a deck, with its pages, the layouts of the slides. */
@@ -25,56 +25,117 @@ export type SlideTemplate = SlideTemplatesAction["templates"][number];
 const DIAGRAM = /<diagram\b[^>]*>[\s\S]*?<\/diagram>/g;
 const DIAGRAM_NAME = /^<diagram\b[^>]*\sname="([^"]*)"/;
 
-export interface DefinedColour {
+/** A name of `drawioSlides.colors`, which TeX reads as the name of a colour. */
+const COLOR_NAME = /^[A-Za-z][A-Za-z0-9]*$/;
+const COLOR_VALUE = /^#[0-9A-Fa-f]{6}$/;
+const SCHEME_COLOR_KEYS = ["fill", "stroke", "gradient", "font"] as const;
+
+interface DeckColour {
 	readonly name: string;
 	/** The colour as six upper-case hexadecimal digits, as draw.io writes a colour. */
 	readonly hex: string;
 }
 
-const DEFINE_COLOUR = /\\definecolor\s*\{([^}]*)\}\s*\{([^}]*)\}\s*\{([^}]*)\}/;
+/**
+ * The live settings of a drawing: the colours of `drawioSlides.colors` as definitions of MathJax
+ * before the commands that MathJax lacks, the presets and the names of the colour picker with the
+ * colours added, and the swatches of `drawioSlides.customColorSchemes`, the list styles and the
+ * list markers, in which each name of a colour stands for its value.
+ */
+export function readLiveSlideSettings(
+	config: DiagramConfig,
+	mathCommands: readonly string[]
+): LiveSlideSettingsReading {
+	const structureProblems = new Array<string>();
+	const entries = isPlainObject(config.colors)
+		? Object.entries(config.colors)
+		: [];
+	if (!isPlainObject(config.colors)) {
+		structureProblems.push(
+			`drawioSlides.colors holds ${JSON.stringify(config.colors)}, where an object of names and colours was expected, so no colour is defined.`
+		);
+	}
+	let givenListStyles = config.listStyles;
+	if (!isPlainObject(givenListStyles)) {
+		structureProblems.push(
+			`drawioSlides.listStyles holds ${JSON.stringify(givenListStyles)}, where an object was expected, so the editor takes the default.`
+		);
+		givenListStyles = defaultSetting<SlideListStyles>(
+			"drawioSlides.listStyles"
+		);
+	}
+	const givenSchemes = Array.isArray(config.customColorSchemes)
+		? config.customColorSchemes
+		: [];
+	if (!Array.isArray(config.customColorSchemes)) {
+		structureProblems.push(
+			`drawioSlides.customColorSchemes holds ${JSON.stringify(config.customColorSchemes)}, where an array of pages of swatches was expected, so the editor shows no swatch of the setting.`
+		);
+	}
+	givenSchemes
+		.filter((page) => !isSchemePage(page))
+		.forEach((page) =>
+			structureProblems.push(
+				`drawioSlides.customColorSchemes holds the page ${JSON.stringify(page)}, where an array of swatches was expected, so the page is left out.`
+			)
+		);
+	const colours = entries
+		.filter(isValidColour)
+		.map(([name, value]) => ({ name, hex: value.slice(1).toUpperCase() }));
+	const values = new Map(
+		colours.map((colour) => [colour.name, `#${colour.hex}`])
+	);
+	const valueOf = (colour: string): string => values.get(colour) ?? colour;
+	const listStyles = withListColourValues(givenListStyles, valueOf);
+	const colorSchemes = givenSchemes
+		.filter(isSchemePage)
+		.map((page) =>
+			page.map((scheme) => withSchemeColourValues(scheme, valueOf))
+		);
+	// A known name stands for its value now, so a name that is left is unknown.
+	const unknownListColours = listLevels(listStyles)
+		.map((level) => level.color)
+		.filter(isColourName);
+	const unknownSchemeColours =
+		schemeColours(colorSchemes).filter(isColourName);
+	const problems = [
+		...structureProblems,
+		...entries
+			.filter((entry) => !isValidColour(entry))
+			.map(([name, value]) => invalidColourProblem(name, value)),
+		...[...new Set(unknownListColours)].map((name) =>
+			unknownNameProblem("drawioSlides.listStyles", name)
+		),
+		...[...new Set(unknownSchemeColours)].map((name) =>
+			unknownNameProblem("drawioSlides.customColorSchemes", name)
+		),
+		...(config.hasColorDefinitions
+			? [
+					"The extension does not read drawioSlides.colorDefinitions. The command tools/draw-io/color-settings.py from-tex <file.tex> --project <deck> of the draw.io presentation framework writes the colours of a TeX file into drawioSlides.colors.",
+			  ]
+			: []),
+	];
+	return {
+		settings: {
+			listStyles,
+			listMarkers: config.listMarkers,
+			mathDefinitions: [
+				...colours.map(rgbDefinition),
+				...mathCommands,
+			].join(""),
+			presetColors: withColourPresets(config.presetColors, colours),
+			colorNames: withColourNames(config.colorNames, colours),
+			colorSchemes,
+		},
+		problems,
+	};
+}
 
 /**
- * The settings of the slide plugins of a drawing, with the colour definitions, the commands that
- * MathJax lacks, which the extension ships in `drawio-custom-plugins/slides/mathjax-commands.tex`,
- * and the pages of the template files.
+ * The commands that MathJax lacks, which the extension ships in
+ * `drawio-custom-plugins/slides/mathjax-commands.tex`, one per line.
  */
-export async function readSlideSettings(
-	config: DiagramConfig,
-	deckFolder: Uri,
-	extensionUri: Uri,
-	log: OutputChannel
-): Promise<SlideSettings> {
-	const definitions = new Array<string>();
-	const colours = new Array<DefinedColour>();
-	for (const file of config.colorDefinitionFiles(deckFolder)) {
-		let text: string;
-		try {
-			text = await readText(file);
-		} catch {
-			log.appendLine(
-				`The colour definitions ${file.fsPath} do not exist.`
-			);
-			continue;
-		}
-		const pattern = new RegExp(DEFINE_COLOUR.source, "g");
-		let match: RegExpExecArray | null;
-		while ((match = pattern.exec(text)) !== null) {
-			const [, name, model, values] = match;
-			// The first definition of a name wins, as in the build of the framework.
-			if (colours.some((colour) => colour.name === name)) {
-				continue;
-			}
-			const hex = colourHex(model.trim(), values);
-			if (hex === undefined) {
-				log.appendLine(
-					`${file.fsPath} defines ${name} in the model ${model} with the values ${values}, which the extension does not convert for the MathJax of draw.io, so the colour is left out.`
-				);
-				continue;
-			}
-			definitions.push(rgbDefinition(name, hex));
-			colours.push({ name, hex });
-		}
-	}
+export async function readMathCommands(extensionUri: Uri): Promise<string[]> {
 	const commands = await readText(
 		Uri.joinPath(
 			extensionUri,
@@ -83,24 +144,131 @@ export async function readSlideSettings(
 			"mathjax-commands.tex"
 		)
 	);
-	const commandLines = commands
+	return commands
 		.split("\n")
 		.map((line) => line.trim())
 		.filter((line) => line !== "" && !line.startsWith("%"));
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** Whether a page of `drawioSlides.customColorSchemes` is an array of swatches. */
+function isSchemePage(page: unknown): page is ColorScheme[] {
+	return Array.isArray(page) && page.every(isPlainObject);
+}
+
+/** The default value of a setting, which `package.json` declares. */
+function defaultSetting<T>(name: string): T {
+	return workspace.getConfiguration().inspect<T>(name)!.defaultValue!;
+}
+
+function isValidColour(entry: [string, unknown]): entry is [string, string] {
+	const [name, value] = entry;
+	return (
+		COLOR_NAME.test(name) &&
+		typeof value === "string" &&
+		COLOR_VALUE.test(value)
+	);
+}
+
+function invalidColourProblem(name: string, value: unknown): string {
+	const shownName = JSON.stringify(name);
+	const shownValue = JSON.stringify(value);
+	return COLOR_NAME.test(name)
+		? `drawioSlides.colors gives ${name} the value ${shownValue}, which is not # and six hexadecimal digits, so the colour is left out.`
+		: `drawioSlides.colors names a colour ${shownName}, which is not letters and digits that start with a letter, so the colour is left out.`;
+}
+
+function unknownNameProblem(setting: string, name: string): string {
+	return `${setting} names the colour ${name}, which drawioSlides.colors does not define, so the value stays as written.`;
+}
+
+/** Whether a colour of a setting is a name, which the values `none` and `#RRGGBB` are not. */
+function isColourName(colour: string | undefined): colour is string {
+	return colour !== undefined && colour !== "none" && COLOR_NAME.test(colour);
+}
+
+/** The levels of the bulleted and of the numbered lists of the list styles. */
+function listLevels(listStyles: SlideListStyles): SlideListLevelStyle[] {
+	return [...(listStyles.bulleted ?? []), ...(listStyles.numbered ?? [])];
+}
+
+/** The colours of every swatch, in the order of the pages and of the keys of a swatch. */
+function schemeColours(schemes: ColorScheme[][]): (string | undefined)[] {
+	return new Array<ColorScheme>()
+		.concat(...schemes)
+		.reduce(
+			(colours, scheme) => [
+				...colours,
+				...SCHEME_COLOR_KEYS.map((key) => scheme[key]),
+			],
+			new Array<string | undefined>()
+		);
+}
+
+/**
+ * The list styles with the value of each colour that they name. Levels that the setting leaves out
+ * stay left out.
+ */
+function withListColourValues(
+	listStyles: SlideListStyles,
+	valueOf: (colour: string) => string
+): SlideListStyles {
+	const withValues = (levels: SlideListLevelStyle[]): SlideListLevelStyle[] =>
+		levels?.map((level) =>
+			level.color === undefined
+				? level
+				: { ...level, color: valueOf(level.color) }
+		);
 	return {
-		pluginSettings: {
-			listStyles: config.listStyles,
-			listMarkers: config.listMarkers,
-			mathDefinitions: [...definitions, ...commandLines].join(""),
-			templates: await readTemplates(
-				config.templatePatterns(deckFolder),
-				log
-			),
-			slideSize: config.slideSize,
-			languageTool: config.languageTool,
-		},
-		colours,
+		...listStyles,
+		bulleted: withValues(listStyles.bulleted),
+		numbered: withValues(listStyles.numbered),
 	};
+}
+
+function withSchemeColourValues(
+	scheme: ColorScheme,
+	valueOf: (colour: string) => string
+): ColorScheme {
+	const result = { ...scheme };
+	for (const key of SCHEME_COLOR_KEYS) {
+		const colour = scheme[key];
+		if (typeof colour === "string") {
+			result[key] = valueOf(colour);
+		}
+	}
+	return result;
+}
+
+/** The colour names of the settings, with a name for each colour of the deck that has none. */
+function withColourNames(
+	names: Record<string, string>,
+	colours: readonly DeckColour[]
+): Record<string, string> {
+	const result = { ...names };
+	for (const colour of colours) {
+		if (!(colour.hex in result)) {
+			result[colour.hex] = colour.name;
+		}
+	}
+	return result;
+}
+
+/** The preset colours of the settings, followed by each colour of the deck that they lack. */
+function withColourPresets(
+	presets: string[],
+	colours: readonly DeckColour[]
+): string[] {
+	const result = [...presets];
+	for (const colour of colours) {
+		if (!result.some((preset) => preset.toUpperCase() === colour.hex)) {
+			result.push(colour.hex);
+		}
+	}
+	return result;
 }
 
 /**
@@ -181,69 +349,8 @@ async function readText(file: Uri): Promise<string> {
 	return BufferImpl.from(await workspace.fs.readFile(file)).toString("utf-8");
 }
 
-/**
- * A colour of the models `rgb`, `RGB`, `gray`, `Gray`, `cmy`, `cmyk` and `HTML` as six upper-case
- * hexadecimal digits, or undefined for another model or values that do not read. The conversion
- * and the rounding of half to even are those of `tex_definitions.py` of the draw.io presentation
- * framework, so that the editor and the build give a colour one value.
- */
-function colourHex(model: string, values: string): string | undefined {
-	if (model === "HTML") {
-		const digits = values.trim().toUpperCase();
-		return /^[0-9A-F]{6}$/.test(digits) ? digits : undefined;
-	}
-	const numbers = values
-		.split(",")
-		.map((value) => value.trim())
-		.filter((value) => value !== "")
-		.map(Number);
-	if (numbers.some((number) => isNaN(number))) {
-		return undefined;
-	}
-	const channels = redGreenBlue(model, numbers);
-	if (channels === undefined) {
-		return undefined;
-	}
-	return channels
-		.map((channel) =>
-			(256 + Math.max(0, Math.min(255, roundHalfToEven(channel * 255))))
-				.toString(16)
-				.slice(1)
-		)
-		.join("")
-		.toUpperCase();
-}
-
-/**
- * The red, the green and the blue between 0 and 1, converted as the package xcolor converts them.
- */
-function redGreenBlue(model: string, numbers: number[]): number[] | undefined {
-	if ((model === "rgb" || model === "cmy") && numbers.length === 3) {
-		return model === "cmy" ? numbers.map((number) => 1 - number) : numbers;
-	}
-	if (model === "RGB" && numbers.length === 3) {
-		return numbers.map((number) => number / 255);
-	}
-	if ((model === "gray" || model === "Gray") && numbers.length === 1) {
-		const grey = model === "Gray" ? numbers[0] / 15 : numbers[0];
-		return [grey, grey, grey];
-	}
-	if (model === "cmyk" && numbers.length === 4) {
-		const black = numbers[3];
-		return numbers.slice(0, 3).map((ink) => 1 - Math.min(1, ink + black));
-	}
-	return undefined;
-}
-
-/** A number rounded to the nearest integer, and a half to the even one, as Python rounds. */
-function roundHalfToEven(value: number): number {
-	return Math.abs(value % 1) === 0.5
-		? 2 * Math.round(value / 2)
-		: Math.round(value);
-}
-
 /** The definition of a colour in the model `RGB`, which the MathJax of draw.io reads. */
-function rgbDefinition(name: string, hex: string): string {
+function rgbDefinition({ name, hex }: DeckColour): string {
 	const [red, green, blue] = [0, 2, 4].map((start) =>
 		parseInt(hex.slice(start, start + 2), 16)
 	);

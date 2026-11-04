@@ -602,13 +602,13 @@ export class DiagramConfig {
 		return this._slides.get();
 	}
 
-	private readonly _listStyles = new VsCodeSetting<ListStyles>(
+	private readonly _listStyles = new VsCodeSetting<SlideListStyles>(
 		`${settingPrefix}.listStyles`,
 		{ scope: this.uri }
 	);
 
 	/** The style of each level of a list, which `list-styles.plugin.js` reads. */
-	public get listStyles(): ListStyles {
+	public get listStyles(): SlideListStyles {
 		return this._listStyles.get();
 	}
 
@@ -622,24 +622,30 @@ export class DiagramConfig {
 		return this._listMarkers.get();
 	}
 
-	private readonly _colorDefinitions = new VsCodeSetting<string[]>(
-		`${settingPrefix}.colorDefinitions`,
+	private readonly _colors = new VsCodeSetting<Record<string, unknown>>(
+		`${settingPrefix}.colors`,
 		{
 			scope: this.uri,
-			serializer: serializerWithDefault<string[]>([]),
+			serializer: serializerWithDefault<Record<string, unknown>>({}),
 		}
 	);
 
+	/** The colours of the deck by name, as the setting gives them, before they are checked. */
+	public get colors(): Record<string, unknown> {
+		return this._colors.get();
+	}
+
+	private readonly _colorDefinitions = new VsCodeSetting<unknown>(
+		`${settingPrefix}.colorDefinitions`,
+		{ scope: this.uri }
+	);
+
 	/**
-	 * The files of `\definecolor` lines of the drawing, with `${deckFolder}` and
-	 * `${workspaceFolder}` filled in and a relative path read from the deck folder.
+	 * Whether the settings hold `drawioSlides.colorDefinitions`, a list of TeX files of colours,
+	 * which the extension does not read.
 	 */
-	public colorDefinitionFiles(deckFolder: Uri): Uri[] {
-		return this._colorDefinitions
-			.get()
-			.map((setting) =>
-				Uri.file(this.renderDeckPath(setting, deckFolder))
-			);
+	public get hasColorDefinitions(): boolean {
+		return this._colorDefinitions.get() !== undefined;
 	}
 
 	private renderDeckPath(setting: string, deckFolder: Uri): string {
@@ -894,21 +900,6 @@ export class DiagramConfig {
 		const lang = env.language.split("-")[0].toLowerCase();
 		return lang;
 	}
-}
-
-/** The style of one level of a list, as the setting `drawioSlides.listStyles` gives it. */
-export interface ListLevelStyle {
-	indent: string;
-	marker: string;
-	color?: string;
-	size?: string;
-}
-
-/** The setting `drawioSlides.listStyles`. */
-export interface ListStyles {
-	itemGap: string;
-	bulleted: ListLevelStyle[];
-	numbered: ListLevelStyle[];
 }
 
 /** The setting `drawioSlides.slideSize`, in pixels. */
