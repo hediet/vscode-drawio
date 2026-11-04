@@ -165,7 +165,13 @@ test("the set-up starts a presentation in an empty folder from the templates of 
 		workspaceFolders: [folder],
 		answers: { input: ["My talk"], information: ["Set Up"] },
 	});
+	// VS Code reads the settings file that the set-up writes a moment later.
+	const settingsRead = setTimeout(
+		() => standIn.changeConfiguration("drawioSlides.slides", true),
+		100
+	);
 	await runCommand("drawioSlides.setUpDeck");
+	clearTimeout(settingsRead);
 	const confirmation = messagesOf("information").find((shown) => shown.modal);
 	assert.equal(confirmation.text, `Start a presentation in ${folder}?`);
 	assert.match(
@@ -186,7 +192,9 @@ test("the set-up starts a presentation in an empty folder from the templates of 
 	);
 	assert.deepEqual(manifest.config, { title: "My talk" });
 	assert.equal(manifest.scripts.build, "node drawio-slides.cjs build");
-	const [command, file, viewType] = standIn.state().executed[0];
+	// The section opens after VS Code has read the settings, so the editor loads the slide plugins.
+	assert.deepEqual(standIn.state().executed[0], ["configurationChanged", "drawioSlides.slides"]);
+	const [command, file, viewType] = standIn.state().executed[1];
 	assert.equal(command, "vscode.openWith");
 	assert.equal(file.fsPath, path.join(folder, "sections/1-my-talk.drawio.xml"));
 	assert.equal(viewType, "drawioSlides.textEditor");

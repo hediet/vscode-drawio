@@ -136,6 +136,9 @@ async function startDeck(
 	// window of the folder, where the editor reads the settings that the set-up wrote.
 	const opensFirst = first !== undefined && isWorkspaceFolder(folder);
 	if (opensFirst) {
+		// The editor decides at the opening of a drawing whether it loads the slide plugins, so the
+		// section opens after VS Code has read the settings file that the set-up wrote.
+		await settingsLoadSlides(Uri.file(first!));
 		await commands.executeCommand(
 			"vscode.openWith",
 			Uri.file(first),
@@ -361,4 +364,33 @@ function isWorkspaceFolder(folder: string): boolean {
 		(workspaceFolder) =>
 			path.resolve(workspaceFolder.uri.fsPath) === path.resolve(folder)
 	);
+}
+
+/** How long the set-up waits for VS Code to read the settings file it wrote. */
+const settingsReadTimeoutMs = 5000;
+
+/**
+ * Resolves once the settings of the file set `drawioSlides.slides` to true, which VS Code reads
+ * from a settings file written moments before only after its watcher has seen the file, or after
+ * a timeout, after which the drawing opens as it is.
+ */
+function settingsLoadSlides(file: Uri): Promise<void> {
+	const loadsSlides = () =>
+		workspace.getConfiguration("drawioSlides", file).get<boolean>("slides") === true;
+	if (loadsSlides()) {
+		return Promise.resolve();
+	}
+	return new Promise((resolve) => {
+		const finish = () => {
+			clearTimeout(timer);
+			listener.dispose();
+			resolve();
+		};
+		const timer = setTimeout(finish, settingsReadTimeoutMs);
+		const listener = workspace.onDidChangeConfiguration((event) => {
+			if (event.affectsConfiguration("drawioSlides.slides", file) && loadsSlides()) {
+				finish();
+			}
+		});
+	});
 }

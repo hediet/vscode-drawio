@@ -29,6 +29,7 @@ function resetState(options = {}) {
 		textDocuments: [],
 		progress: [],
 		statusBarItems: [],
+		configurationListeners: [],
 		/** The number of reports of progress after which a notification is cancelled, or undefined. */
 		cancelAfter: undefined,
 		...options,
@@ -207,6 +208,16 @@ const vscode = {
 		getConfiguration: (section) => ({
 			get: (key, fallback) => state.settings[`${section}.${key}`] ?? fallback,
 		}),
+		onDidChangeConfiguration: (listener) => {
+			state.configurationListeners.push(listener);
+			return {
+				dispose: () => {
+					state.configurationListeners = state.configurationListeners.filter(
+						(other) => other !== listener
+					);
+				},
+			};
+		},
 	},
 	window: {
 		showErrorMessage: message("error"),
@@ -307,7 +318,20 @@ function loggedText() {
 
 resetState();
 
+/**
+ * Sets a setting and tells the listeners, as VS Code does once it has read a changed settings
+ * file, and records the change among the commands run, so that a test sees the order.
+ */
+function changeConfiguration(key, value) {
+	state.settings[key] = value;
+	state.executed.push(["configurationChanged", key]);
+	for (const listener of [...state.configurationListeners]) {
+		listener({ affectsConfiguration: (section) => section === key });
+	}
+}
+
 module.exports = {
+	changeConfiguration,
 	vscode,
 	log,
 	diagnostics,
