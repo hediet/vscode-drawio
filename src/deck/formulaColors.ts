@@ -18,7 +18,7 @@
  * A formula with its delimiters, as MathJax finds it in the text of a label. The name of an
  * environment is the first group.
  */
-const FORMULA =
+export const FORMULA =
 	/\\\([\s\S]*?\\\)|\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\begin\s*\{([^{}]*)\}[\s\S]*?\\end\s*\{\1\}/g;
 /** The label of a cell in the XML of a page, as the attribute `value` or `label`. */
 const LABEL_ATTRIBUTE = /(\s(?:value|label)=")([^"]*)(")/g;

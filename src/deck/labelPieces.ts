@@ -12,13 +12,13 @@
  * out when the label ends before its end tag.
  */
 import { decodeHTML } from "entities";
+import { FORMULA } from "./formulaColors";
 
 /** A piece of a label: a run of text, or markup with the text that it reads as. */
 export type LabelPiece =
 	| { readonly text: string }
 	| { readonly markup: string; readonly interpretAs: string };
 
-const FORMULA = /\\\([\s\S]*?\\\)|\$\$[\s\S]*?\$\$/g;
 /** The tags that start a paragraph, which LanguageTool reads as a blank line. */
 const BLOCKS = new Set([
 	"div",

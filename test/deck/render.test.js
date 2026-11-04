@@ -140,6 +140,16 @@ test("a label of HTML splits into its text, its tags and its formulas as Python'
 				{ text: "next" },
 			],
 		],
+		[
+			"see \\[a+b\\] and \\begin{align}c&=d\\end{align} here",
+			[
+				{ text: "see " },
+				{ markup: "\\[a+b\\]", interpretAs: "noun" },
+				{ text: " and " },
+				{ markup: "\\begin{align}c&=d\\end{align}", interpretAs: "noun" },
+				{ text: " here" },
+			],
+		],
 	];
 	for (const [label, pieces] of cases) {
 		assert.deepEqual(labelPieces(label, true, true, "noun"), pieces, label);

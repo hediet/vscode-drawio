@@ -44,6 +44,7 @@ Six settings of scope `resource` describe a deck, so that the `.vscode/settings.
 A color of a level of `drawioSlides.listStyles` and a `fill`, `stroke`, `font` or `gradient` of `drawioSlides.customColorSchemes`, the swatches of the Style tab of the Format panel, may be the name of a color of `drawioSlides.colors`.
 The output channel Drawio Integration Log names each color that the extension leaves out and each name of a color that `drawioSlides.colors` does not define.
 VS Code shows a swatch before each value of `drawioSlides.colors` in `settings.json`, and its color picker edits the value.
+After a new value there, while a drawing of the deck is open, a message asks whether to write it into the shapes, the lines and the texts linked to the color in the drawing files of the deck.
 
 The section Deck colors of the Format panel lists the colors of `drawioSlides.colors` in the editor of a drawing, each with its swatch and its name.
 It sits in the Style tab, after the swatches and before Fill, in the Style tab of the diagram while nothing is selected, where it edits the list alone, and in the tab Text while a label is edited.
@@ -55,18 +56,24 @@ While a label of formatted text is edited, a click on a swatch or on Font gives 
 While a label of plain text is edited, the click gives the whole label the color.
 With an empty selection, a click on a swatch leaves the drawing as it is.
 The tooltip of a swatch says what a click on it does for the selection at hand.
-A shape takes the value `#RRGGBB` of the color and keeps no link to its name.
+A shape takes the value `#RRGGBB` of the color and a link to the name of the color beside the value.
+The editor and the build draw a linked shape in the current value of the color, as the guide says.
 The button ✎ opens the color dialog of draw.io, which gives the color a new value, and a new name in the text field renames the color.
-The button × removes a color, and Add color adds one, named `color1` or the next free number, with the value that the color dialog gives.
+The button × removes a color after a dialog of VS Code that counts the uses that keep its last value.
+Add color adds a color, named `color1` or the next free number, with the value that the color dialog gives.
 The extension writes each change into `drawioSlides.colors` of the `.vscode/settings.json` of the workspace folder of the drawing, as an edit of that setting alone, so the comments of the file stay.
 When the file is missing, or holds no `drawioSlides.colors` while another settings file defines it, VS Code writes the colors of the folder with the change into the `.vscode/settings.json` of the workspace folder.
 A color that the user settings or the file of a workspace of several folders define can be recolored there, and the extension refuses to rename or remove it.
-A rename also renames the color where `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` of the file name it, and leaves the formulas as they are, and a message says how many labels of the drawing name the old name in a formula.
+A rename also renames the color where `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` of the file name it.
+A new value from the section also goes into the shapes, the lines and the texts linked to the color in the section files, the templates and the open drawings of the deck.
+A new name or a removal also goes into the links and the formulas that name the color.
+A drawing file with unsaved changes takes the change in its editor and stays unsaved.
 The extension refuses a name that another color has, a name of other characters than letters and digits starting with a letter, and a value other than `#RRGGBB`.
 The extension also refuses a change while the settings file has unsaved changes.
 A message in VS Code then gives the reason, and the section shows the colors as they were.
 
 The editor follows a change of `drawioSlides.colors`, `drawioSlides.listStyles`, `drawioSlides.listMarkers`, `drawioSlides.customColorSchemes`, `drawioSlides.presetColors` and `drawioSlides.colorNames` without a reload, so the zoom and the undo history stay.
+After a new name or a removal of a color, the editor starts a new undo history.
 The formulas, the presets and the names of the color picker, the swatches, the colors of the list markers and the menu List style take the new settings, and a list made after the change takes the new list style.
 A color taken out of `drawioSlides.colors` stays defined for the formulas until the editor reloads.
 The editor also follows a save of a template file, whose pages the submenu Insert slide then offers.
