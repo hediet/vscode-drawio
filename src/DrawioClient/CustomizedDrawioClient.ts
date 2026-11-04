@@ -48,6 +48,12 @@ export class CustomizedDrawioClient extends DrawioClient<
 	}>();
 	public readonly onInvokeCommand = this.onInvokeCommandEmitter.asEvent();
 
+	private readonly onDeckColourEditEmitter = new EventEmitter<{
+		edit: DeckColourEdit;
+	}>();
+	/** An edit of the colours of the deck, which `deck-colors-section.plugin.js` sends. */
+	public readonly onDeckColourEdit = this.onDeckColourEditEmitter.asEvent();
+
 	public linkSelectedNodeWithData(linkedData: unknown) {
 		this.sendCustomAction({
 			action: "linkSelectedNodeWithData",
@@ -137,6 +143,8 @@ export class CustomizedDrawioClient extends DrawioClient<
 			this.onSelectedRectangleChangedEmitter.emit({
 				rectangle: evt.rect,
 			});
+		} else if (evt.event === "drawioSlidesEditColor") {
+			this.onDeckColourEditEmitter.emit({ edit: evt });
 		} else {
 			await super.handleEvent(evt);
 		}

@@ -1,8 +1,27 @@
-import { FileType, OutputChannel, Uri, workspace } from "vscode";
+import {
+	ConfigurationTarget,
+	FileType,
+	OutputChannel,
+	Range,
+	TextDocument,
+	Uri,
+	workspace,
+	WorkspaceEdit,
+} from "vscode";
 import * as path from "path";
 import { DiagramConfig } from "../Config";
 import { ColorScheme } from "./DrawioTypes";
 import { BufferImpl } from "../utils/buffer";
+import {
+	COLOR_NAME,
+	COLOR_VALUE,
+	hasColoursMember,
+	LIST_KINDS,
+	RefusedColourEdit,
+	SCHEME_COLOR_KEYS,
+	withColourEdit,
+	withColourEditInSettings,
+} from "./deckColourEdits";
 
 /**
  * The settings of a deck that the slide plugins follow without a reload, which the extension
@@ -25,11 +44,6 @@ export type SlideTemplate = SlideTemplatesAction["templates"][number];
 const DIAGRAM = /<diagram\b[^>]*>[\s\S]*?<\/diagram>/g;
 const DIAGRAM_NAME = /^<diagram\b[^>]*\sname="([^"]*)"/;
 
-/** A name of `drawioSlides.colors`, which TeX reads as the name of a colour. */
-const COLOR_NAME = /^[A-Za-z][A-Za-z0-9]*$/;
-const COLOR_VALUE = /^#[0-9A-Fa-f]{6}$/;
-const SCHEME_COLOR_KEYS = ["fill", "stroke", "gradient", "font"] as const;
-
 interface DeckColour {
 	readonly name: string;
 	/** The colour as six upper-case hexadecimal digits, as draw.io writes a colour. */
@@ -37,8 +51,8 @@ interface DeckColour {
 }
 
 /**
- * The live settings of a drawing: the colours of `drawioSlides.colors` as definitions of MathJax
- * before the commands that MathJax lacks, the presets and the names of the colour picker with the
+ * The live settings of a drawing: the valid colours of `drawioSlides.colors`, the same colours as
+ * definitions of MathJax before the commands that MathJax lacks, the presets and the names of the colour picker with the
  * colours added, and the swatches of `drawioSlides.customColorSchemes`, the list styles and the
  * list markers, in which each name of a colour stands for its value.
  */
@@ -117,6 +131,10 @@ export function readLiveSlideSettings(
 	];
 	return {
 		settings: {
+			colors: colours.map(({ name, hex }) => ({
+				name,
+				value: `#${hex}`,
+			})),
 			listStyles,
 			listMarkers: config.listMarkers,
 			mathDefinitions: [
@@ -128,6 +146,171 @@ export function readLiveSlideSettings(
 			colorSchemes,
 		},
 		problems,
+	};
+}
+
+/**
+ * Writes an edit of the colours of a drawing into `drawioSlides.colors` of the `.vscode/settings.json`
+ * of its workspace folder, as a text edit of that member and, for a rename, of the colours of
+ * `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` that name the colour, so every
+ * comment of the file stays. When the file is missing, or lacks the member while another scope
+ * defines the setting, VS Code writes the whole setting at the scope of the workspace folder.
+ * Raises `RefusedColourEdit` for an edit that the extension does not write, and `Error` when VS
+ * Code does not save the file.
+ */
+export async function writeDeckColourEdit(
+	config: DiagramConfig,
+	edit: DeckColourEdit
+): Promise<void> {
+	const folder = workspace.getWorkspaceFolder(config.uri);
+	if (folder === undefined) {
+		throw new RefusedColourEdit(
+			`The drawing ${config.uri.fsPath} lies in no workspace folder, so no .vscode/settings.json holds the colours of its deck.`
+		);
+	}
+	const settingsFile = Uri.joinPath(folder.uri, ".vscode", "settings.json");
+	const otherScope =
+		edit.operation === "set"
+			? undefined
+			: scopeDefiningColour(config.uri, edit.name);
+	if (otherScope !== undefined) {
+		throw new RefusedColourEdit(
+			`The colour ${edit.name} is also defined in ${otherScope}, so ${
+				edit.operation === "remove" ? "removing" : "renaming"
+			} it in ${settingsFile.fsPath} would leave it in the deck.`
+		);
+	}
+	const document = await openExistingDocument(settingsFile);
+	if (
+		document === undefined ||
+		(!hasColoursMember(document.getText()) &&
+			isColoursSettingDefined(config.uri))
+	) {
+		await workspace
+			.getConfiguration(undefined, config.uri)
+			.update(
+				"drawioSlides.colors",
+				withColourEdit(folderColours(config.uri), edit),
+				ConfigurationTarget.WorkspaceFolder
+			);
+		return;
+	}
+	if (document.isDirty) {
+		throw new RefusedColourEdit(
+			`${settingsFile.fsPath} has changes that are not saved, so drawioSlides.colors stays as it is.`
+		);
+	}
+	const text = document.getText();
+	const edited = withColourEditInSettings(text, edit);
+	if (edited === text) {
+		return;
+	}
+	const change = changedPart(text, edited);
+	const workspaceEdit = new WorkspaceEdit();
+	workspaceEdit.replace(
+		settingsFile,
+		new Range(
+			document.positionAt(change.start),
+			document.positionAt(change.end)
+		),
+		change.text
+	);
+	if (
+		!(await workspace.applyEdit(workspaceEdit)) ||
+		!(await document.save())
+	) {
+		throw new Error(
+			`VS Code did not write ${settingsFile.fsPath}, so drawioSlides.colors stays as it is.`
+		);
+	}
+}
+
+/** The settings file as a document, without a window, or `undefined` when the file is missing. */
+async function openExistingDocument(
+	file: Uri
+): Promise<TextDocument | undefined> {
+	try {
+		await workspace.fs.stat(file);
+	} catch {
+		return undefined;
+	}
+	return workspace.openTextDocument(file);
+}
+
+/** The colours that the settings of the workspace folder alone give `drawioSlides.colors`. */
+function folderColours(uri: Uri): Record<string, unknown> {
+	const value = workspace
+		.getConfiguration(undefined, uri)
+		.inspect("drawioSlides.colors")?.workspaceFolderValue;
+	return isPlainObject(value) ? value : {};
+}
+
+/**
+ * The settings other than those of the workspace folder that define the colour: the user settings,
+ * or the file of a workspace of several folders. In a window of one folder, VS Code gives the
+ * settings of the folder as the settings of the workspace as well.
+ */
+function scopeDefiningColour(uri: Uri, name: string): string | undefined {
+	const inspected = workspace
+		.getConfiguration(undefined, uri)
+		.inspect("drawioSlides.colors");
+	const defines = (value: unknown) =>
+		isPlainObject(value) && Object.prototype.hasOwnProperty.call(value, name);
+	if (defines(inspected?.globalValue)) {
+		return "the user settings";
+	}
+	if (
+		workspace.workspaceFile !== undefined &&
+		defines(inspected?.workspaceValue)
+	) {
+		return workspace.workspaceFile.fsPath;
+	}
+	return undefined;
+}
+
+/** Whether a settings file of the user, of the workspace or of the folder defines `drawioSlides.colors`. */
+function isColoursSettingDefined(uri: Uri): boolean {
+	const inspected = workspace
+		.getConfiguration(undefined, uri)
+		.inspect("drawioSlides.colors");
+	return (
+		inspected !== undefined &&
+		[
+			inspected.globalValue,
+			inspected.workspaceValue,
+			inspected.workspaceFolderValue,
+		].some((value) => value !== undefined)
+	);
+}
+
+/**
+ * The one span of a text that an edit changes: the offsets of its start and of its end in the text
+ * before, and the text that replaces it.
+ */
+function changedPart(
+	before: string,
+	after: string
+): { start: number; end: number; text: string } {
+	const longestCommon = (isSame: (index: number) => boolean): number => {
+		const limit = Math.min(before.length, after.length);
+		let count = 0;
+		while (count < limit && isSame(count)) {
+			count++;
+		}
+		return count;
+	};
+	const start = longestCommon((index) => before[index] === after[index]);
+	const end = longestCommon(
+		(index) =>
+			index < before.length - start &&
+			index < after.length - start &&
+			before[before.length - 1 - index] ===
+				after[after.length - 1 - index]
+	);
+	return {
+		start,
+		end: before.length - end,
+		text: after.slice(start, after.length - end),
 	};
 }
 
@@ -192,7 +375,7 @@ function isColourName(colour: string | undefined): colour is string {
 
 /** The levels of the bulleted and of the numbered lists of the list styles. */
 function listLevels(listStyles: SlideListStyles): SlideListLevelStyle[] {
-	return [...(listStyles.bulleted ?? []), ...(listStyles.numbered ?? [])];
+	return LIST_KINDS.flatMap((kind) => listStyles[kind] ?? []);
 }
 
 /** The colours of every swatch, in the order of the pages and of the keys of a swatch. */

@@ -5,12 +5,14 @@
 // loads.  After a change of the settings "drawioSlides.colors", "drawioSlides.listStyles",
 // "drawioSlides.listMarkers", "drawioSlides.customColorSchemes", "drawioSlides.presetColors" or
 // "drawioSlides.colorNames" of the drawing, the extension sends the action drawioSlidesSettings,
-// whose settings are listStyles, listMarkers, mathDefinitions, presetColors, colorNames and
-// colorSchemes, each name of a colour replaced by its value.  The script copies them into
-// window.drawioSlidesSettings and calls every listener with them, in the order of registration.
+// whose settings are colors, listStyles, listMarkers, mathDefinitions, presetColors, colorNames and
+// colorSchemes, with each name of a colour in listStyles and colorSchemes replaced by its value.
+// The script copies them into window.drawioSlidesSettings and calls every listener with them, in
+// the order of registration.
 //
-// The extension loads this file before math-definitions.plugin.js, deck-colors.plugin.js and
-// list-styles.plugin.js, and the script defines the one global function onSlideSettingsChange.
+// The extension loads this file before math-definitions.plugin.js, deck-colors.plugin.js,
+// deck-colors-section.plugin.js and list-styles.plugin.js, and the script defines the one global
+// function onSlideSettingsChange.
 var onSlideSettingsChange = (function () {
   var listeners = [];
 

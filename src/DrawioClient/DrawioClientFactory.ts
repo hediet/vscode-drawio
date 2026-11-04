@@ -33,14 +33,17 @@ import {
 	readMathCommands,
 	readTemplates,
 	SlideTemplate,
+	writeDeckColourEdit,
 } from "./slideSettings";
+import { countLabelsNamingColour, RefusedColourEdit } from "./deckColourEdits";
 import * as path from "path";
 
 /**
  * The plugins of the draw.io presentation framework in `drawio-custom-plugins/slides/`, in the
  * order of loading: `deck-files.js` before `deck-pictures.plugin.js`, `language-check.plugin.js`
  * and `media.plugin.js`, `slide-settings.js` before `math-definitions.plugin.js`,
- * `deck-colors.plugin.js` and `list-styles.plugin.js`, `list-marker-rules.js` before
+ * `deck-colors.plugin.js`, `deck-colors-section.plugin.js` and `list-styles.plugin.js`,
+ * `list-marker-rules.js` before
  * `list-styles.plugin.js`, and `media-bar.js` before `media.plugin.js`, which use them.
  */
 const SLIDE_PLUGINS = [
@@ -48,6 +51,7 @@ const SLIDE_PLUGINS = [
 	"slide-settings.js",
 	"math-definitions.plugin.js",
 	"deck-colors.plugin.js",
+	"deck-colors-section.plugin.js",
 	"single-page.plugin.js",
 	"click-through.plugin.js",
 	"edit-at-click.plugin.js",
@@ -260,6 +264,17 @@ export class DrawioClientFactory {
 			}
 		});
 
+		if (slides) {
+			// The edits of a drawing run one after the other, so that each reads the settings
+			// file that the edit before it saved.
+			let pendingEdit = Promise.resolve();
+			drawioClient.onDeckColourEdit.sub(({ edit }) => {
+				pendingEdit = pendingEdit
+					.then(() => this.editDeckColours(config, edit, drawioClient))
+					.catch((error) => this.log.appendLine(`${error}`));
+			});
+		}
+
 		const templateWatchers = slides
 			? this.watchTemplates(config, slides.deckFolder, (templates) => {
 					slideTemplates = templates;
@@ -434,6 +449,37 @@ export class DrawioClientFactory {
 			slideSize: config.slideSize,
 			languageTool: config.languageTool,
 		};
+	}
+
+	/**
+	 * Writes an edit of the colours that the section Deck colours of the Format panel sends, and
+	 * says in VS Code why the extension refuses an edit. After a rename, it says how many labels of
+	 * the drawing name the old name in a formula, which the rename leaves as they are.
+	 */
+	private async editDeckColours(
+		config: DiagramConfig,
+		edit: DeckColourEdit,
+		drawioClient: CustomizedDrawioClient
+	): Promise<void> {
+		try {
+			await writeDeckColourEdit(config, edit);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : `${error}`;
+			this.log.appendLine(message);
+			if (error instanceof RefusedColourEdit) {
+				window.showWarningMessage(message);
+			} else {
+				window.showErrorMessage(message);
+			}
+			return;
+		}
+		if (edit.operation === "rename" && edit.newName !== edit.name) {
+			const count = countLabelsNamingColour(
+				await drawioClient.getXml(),
+				edit.name
+			);
+			window.showInformationMessage(renamedColourMessage(edit, count));
+		}
 	}
 
 	/**
@@ -648,6 +694,20 @@ function slideSettingsScript(
 		`window.mediaPluginDeckFolders = ${deckFolders};\n` +
 		`window.drawioSlidesSettings = ${JSON.stringify(settings)};`
 	);
+}
+
+/** The message after a rename of a colour, with the number of labels whose formulas name the old name. */
+function renamedColourMessage(
+	edit: Extract<DeckColourEdit, { operation: "rename" }>,
+	count: number
+): string {
+	const renamed = `The colour ${edit.name} is now ${edit.newName} in drawioSlides.colors.`;
+	if (count === 0) {
+		return `${renamed} No formula of this drawing names ${edit.name}.`;
+	}
+	return count === 1
+		? `${renamed} 1 label of this drawing names ${edit.name} in a formula, and the formula keeps that name until it is edited.`
+		: `${renamed} ${count} labels of this drawing name ${edit.name} in a formula, and the formulas keep that name until they are edited.`;
 }
 
 function getNonce(): string {
