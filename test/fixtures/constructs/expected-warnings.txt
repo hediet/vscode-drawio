@@ -1,0 +1,19 @@
+warning: the page assets/plots/missing.html of the cell pg-res-h2 is missing, so the builds draw the cell as it is
+warning: the name "intro" starts slides 1, 3, so they are counted as different slides. Rename one of them or move its pages next to the others.
+warning: slide 2, "steps", has the steps 1, 2, 4 in page order, where 1 to 3 was expected
+warning: slide 1, "intro-1", colours formulas with foocolor, which neither the page nor the setting drawioSlides.colors defines
+warning: slide 4, "results-1", the cell pg-res-h1 of the page assets/plots/p.html is a rectangle shape, so the builds draw it as a rectangular picture of its page; give it the shape image
+warning: slide 4, "results-1", the cell pg-res-h4 of the page ../outside/o.html is a rectangle shape, so the builds draw it as a rectangular picture of its page; give it the shape image
+warning: slide 4, "results-1", names the picture assets/missing.png, which does not exist
+warning: slide 5, "nomath-1", holds a formula and has mathematical typesetting off, so the formula shows as raw text. Switch on Extras > Mathematical Typesetting on that page.
+warning: two pages have the id pg-res, so a link to it goes to the first
+warning: page 1, "intro-1": the cell pg-intro-l4 links to the page pg-hidden, which the deck does not show
+warning: page 1, "intro-1": the cell pg-intro-l5 has the link data:action/json,{"actions":[]}, which only the editor follows
+warning: page 1, "intro-1": the cell pg-intro-e1 is no vertex, such as an edge, and the HTML file follows the link of a vertex alone
+warning: page 1, "intro-1": a label links to the page nowhere, which the deck does not show
+warning: page 1, "intro-1": a label has the link data:action/json,{}, which only the editor follows
+warning: page 6, "results-1": the cell pg-res-v3 has fit=bogus, which is none of contain, stretch, crop, so it shows as contain
+warning: page 6, "results-1": the cell pg-res-v3 has barHideDelay=-1, which is no time of 0 s or more, so it takes 0
+warning: page 6, "results-1": the cell pg-res-v3 has barFadeOut=abc, which is no time of 0 s or more, so it takes 0.25
+warning: page 6, "results-1": the video assets/videos/missing.mp4 of the cell pg-res-v2 does not exist
+warning: page 6, "results-1": the page assets/plots/missing.html of the cell pg-res-h2 does not exist

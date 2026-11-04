@@ -597,7 +597,7 @@ export class DiagramConfig {
 		serializer: serializerWithDefault<boolean>(false),
 	});
 
-	/** Whether the drawing holds slides of the draw.io presentation framework. */
+	/** Whether the drawing holds slides of a deck, for which the editor loads the plugins of the slides. */
 	public get slides(): boolean {
 		return this._slides.get();
 	}

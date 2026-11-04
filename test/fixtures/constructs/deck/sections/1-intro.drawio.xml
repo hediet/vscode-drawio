@@ -1,0 +1,68 @@
+<mxfile host="test" pages="6">
+  <diagram id="pg-intro" name="intro-1">
+    <mxGraphModel grid="0" page="1" pageWidth="1920" pageHeight="1080" math="1">
+      <root>
+        <mxCell id="pg-intro-0"/>
+        <mxCell id="pg-intro-1" parent="pg-intro-0"/>
+        <mxCell id="pg-intro-num" parent="pg-intro-1" value="%slide%/%slides%" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="1700" y="1000" width="300" height="80" as="geometry"/></mxCell>
+        <mxCell id="pg-intro-f" parent="pg-intro-1" value="\(\textcolor{dpred}{x} + \textcolor{foocolor}{y} + \textcolor{Apricot}{z}\)" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="100" y="900" width="300" height="80" as="geometry"/></mxCell>
+        <UserObject label="to results" link="data:page/id,pg-res" id="pg-intro-l1"><mxCell parent="pg-intro-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="100" y="100" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="web" link="https://example.org/?a=1&amp;b=2" id="pg-intro-l2"><mxCell parent="pg-intro-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="500" y="100" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="self" link="https://example.org/self" linkTarget="_self" id="pg-intro-l3"><mxCell parent="pg-intro-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="900" y="100" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="to hidden" link="data:page/id,pg-hidden" id="pg-intro-l4"><mxCell parent="pg-intro-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="100" y="300" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="action" link="data:action/json,{&quot;actions&quot;:[]}" id="pg-intro-l5"><mxCell parent="pg-intro-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="500" y="300" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="" link="https://example.org/edge" id="pg-intro-e1"><mxCell parent="pg-intro-1" style="endArrow=classic;" edge="1"><mxGeometry relative="1" as="geometry"><mxPoint x="100" y="500" as="sourcePoint"/><mxPoint x="400" y="500" as="targetPoint"/></mxGeometry></mxCell></UserObject>
+        <mxCell id="pg-intro-a" parent="pg-intro-1" value="See &lt;a href=&quot;data:page/id,pg-res&quot;&gt;results&lt;/a&gt; and &lt;a href=&quot;data:page/id,nowhere&quot;&gt;nowhere&lt;/a&gt; and &lt;a href=&quot;data:action/json,{}&quot;&gt;act&lt;/a&gt;" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="100" y="600" width="300" height="80" as="geometry"/></mxCell>
+        <mxCell id="pg-intro-g" parent="pg-intro-1" style="group" vertex="1" connectable="0"><mxGeometry x="1000" y="400" width="600" height="400" as="geometry"/></mxCell>
+        <UserObject label="" video="assets/videos/v.mp4" fit="stretch" id="pg-intro-gv"><mxCell parent="pg-intro-g" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="50" y="50" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <mxCell id="pg-intro-hl" parent="pg-intro-0" visible="0"/>
+        <UserObject label="h" link="https://example.org/hidden-layer" id="pg-intro-hlink"><mxCell parent="pg-intro-hl" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="100" y="800" width="300" height="80" as="geometry"/></mxCell></UserObject>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg-hidden" name="intro-hide">
+    <mxGraphModel grid="0" page="1" pageWidth="1920" pageHeight="1080" math="1">
+      <root>
+        <mxCell id="pg-hidden-0"/>
+        <mxCell id="pg-hidden-1" parent="pg-hidden-0"/>
+        <mxCell id="h-t" parent="pg-hidden-1" value="hidden" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="100" y="100" width="300" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg-s1" name="steps-1">
+    <mxGraphModel grid="0" page="1" pageWidth="1920" pageHeight="1080" math="1">
+      <root>
+        <mxCell id="pg-s1-0"/>
+        <mxCell id="pg-s1-1" parent="pg-s1-0"/>
+        <mxCell id="s1-t" parent="pg-s1-1" value="step one" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="100" y="100" width="300" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg-s2" name="steps-2">
+    <mxGraphModel grid="0" page="1" pageWidth="1920" pageHeight="1080" math="1">
+      <root>
+        <mxCell id="pg-s2-0"/>
+        <mxCell id="pg-s2-1" parent="pg-s2-0"/>
+        <mxCell id="s2-t" parent="pg-s2-1" value="step two" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="100" y="100" width="300" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg-s4" name="steps-4">
+    <mxGraphModel grid="0" page="1" pageWidth="1920" pageHeight="1080" math="1">
+      <root>
+        <mxCell id="pg-s4-0"/>
+        <mxCell id="pg-s4-1" parent="pg-s4-0"/>
+        <mxCell id="s4-t" parent="pg-s4-1" value="step four" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="100" y="100" width="300" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg-again" name="intro-1">
+    <mxGraphModel grid="0" page="1" pageWidth="1920" pageHeight="1080" math="1">
+      <root>
+        <mxCell id="pg-again-0"/>
+        <mxCell id="pg-again-1" parent="pg-again-0"/>
+        <mxCell id="ag-t" parent="pg-again-1" value="again" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="100" y="100" width="300" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

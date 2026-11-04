@@ -79,15 +79,16 @@ test("a presentation with settings that do not load the plugins is set up, and t
 	}
 });
 
-test("a folder without slides lists each file that init refuses to replace, in the order of init", () => {
+test("a folder without slides lists each file that the set-up refuses to replace, in the order of initDeck", () => {
 	const folder = folderWith({
 		"package.json": "{}\n",
 		".vscode/settings.json": "{}\n",
 		"templates/slides.drawio.xml": section,
+		"drawio-slides.cjs": "",
 	});
 	assert.deepEqual(survey(folder), {
 		state: DeckFolderState.FilesInTheWay,
-		filesInTheWay: ["package.json", ".vscode/settings.json", "templates/slides.drawio.xml"],
+		filesInTheWay: ["package.json", ".vscode/settings.json", "templates/slides.drawio.xml", "drawio-slides.cjs"],
 	});
 });
 
@@ -96,55 +97,34 @@ test("a sections folder that is not empty is in the way when config names anothe
 	assert.deepEqual(survey(folder).filesInTheWay, ["package.json", "sections/"]);
 });
 
-test("init writes the files of its docstring, and git init only into a folder without .git", () => {
-	const framework = folderWith({ "tools/draw-io/build-slides.py": "" });
-	const script = path.join(framework, "tools/draw-io/build-slides.py");
+test("the set-up of a new presentation writes its files, and git init only into a folder without .git", () => {
 	const paths = (files) => plain(files.map((file) => file.path));
-	assert.deepEqual(paths(setUp.filesWrittenByInit(folderWith({}), script)), [
+	assert.deepEqual(paths(setUp.filesWrittenByInit(folderWith({}))), [
 		"sections/1-<title>.drawio.xml",
 		"package.json",
+		"drawio-slides.cjs",
 		".gitignore",
 		"templates/slides.drawio.xml",
 		".vscode/settings.json",
 		".git/",
 	]);
 	const repository = folderWith({ ".git/": "", ".gitignore": "build/\n" });
-	const written = setUp.filesWrittenByInit(repository, script);
+	const written = setUp.filesWrittenByInit(repository);
 	assert.deepEqual(paths(written), [
 		"sections/1-<title>.drawio.xml",
 		"package.json",
+		"drawio-slides.cjs",
 		".gitignore",
 		"templates/slides.drawio.xml",
 		".vscode/settings.json",
 	]);
-	assert.match(written[2].content, /where it lacks them/);
+	assert.match(written[3].content, /where it lacks them/);
 	for (const file of written) {
 		assert.ok(file.content.length > 0, file.path);
 	}
 });
 
-test("init inside the repository of the framework also names the .gitignore of that repository", () => {
-	const framework = folderWith({ ".git/": "", "tools/draw-io/build-slides.py": "", "talks/": "" });
-	const script = path.join(framework, "tools/draw-io/build-slides.py");
-	const written = setUp.filesWrittenByInit(path.join(framework, "talks"), script);
-	assert.equal(written[written.length - 1].path, path.join(framework, ".gitignore"));
-	assert.ok(written.every((file) => file.path !== path.join(framework, "talks", ".gitignore")));
-	assert.ok(setUp.filesWrittenByInit(framework, script).every((file) => !path.isAbsolute(file.path)));
-	const symbolicLink = path.join(folderWith({}), "framework");
-	fs.symlinkSync(framework, symbolicLink);
-	const throughLink = setUp.filesWrittenByInit(path.join(symbolicLink, "talks"), script);
-	assert.equal(throughLink[throughLink.length - 1].path, path.join(framework, ".gitignore"));
-});
-
-test("the root of the framework is the repository of the script, and a folder in it is not", () => {
-	const framework = folderWith({ ".git/": "", "tools/draw-io/build-slides.py": "", "talks/": "" });
-	const script = path.join(framework, "tools/draw-io/build-slides.py");
-	assert.equal(setUp.isRepositoryOfScript(framework, script), true);
-	assert.equal(setUp.isRepositoryOfScript(path.join(framework, "talks"), script), false);
-	assert.equal(setUp.isRepositoryOfScript(folderWith({}), script), false);
-});
-
-test("a sections folder of TeX files is no presentation and is in the way of init", () => {
+test("a sections folder of TeX files is no presentation and is in the way of the set-up", () => {
 	const folder = folderWith({ "sections/introduction.tex": "\\section{Introduction}\n" });
 	assert.deepEqual(survey(folder), {
 		state: DeckFolderState.FilesInTheWay,
@@ -152,7 +132,7 @@ test("a sections folder of TeX files is no presentation and is in the way of ini
 	});
 });
 
-test("vscode writes the settings, and the template only when the presentation lacks it", () => {
+test("the set-up of an existing presentation writes the settings, and the template only when the presentation lacks it", () => {
 	assert.deepEqual(plain(setUp.filesWrittenByVscode(folderWith({ "sections/1-a.drawio.xml": section })).map((file) => file.path)), [
 		".vscode/settings.json",
 		"templates/slides.drawio.xml",
@@ -161,21 +141,6 @@ test("vscode writes the settings, and the template only when the presentation la
 		plain(setUp.filesWrittenByVscode(folderWith({ "sections/1-a.drawio.xml": section, "templates/slides.drawio.xml": section })).map((file) => file.path)),
 		[".vscode/settings.json"]
 	);
-});
-
-test("findBuildScript finds the script in an absolute folder of the framework alone", () => {
-	const framework = folderWith({ "tools/draw-io/build-slides.py": "" });
-	assert.equal(setUp.findBuildScript(framework), path.join(framework, "tools/draw-io/build-slides.py"));
-	assert.equal(setUp.findBuildScript(path.join(framework, "tools")), undefined);
-	assert.equal(setUp.findBuildScript(folderWith({ "tools/draw-io/build-slides.py/": "" })), undefined);
-	assert.equal(setUp.findBuildScript(path.relative(process.cwd(), framework)), undefined);
-});
-
-test("withHomeExpanded reads a leading ~ as the home folder", () => {
-	assert.equal(setUp.withHomeExpanded("~", "/Users/a"), "/Users/a");
-	assert.equal(setUp.withHomeExpanded("~/framework", "/Users/a"), "/Users/a/framework");
-	assert.equal(setUp.withHomeExpanded("/opt/framework", "/Users/a"), "/opt/framework");
-	assert.equal(setUp.withHomeExpanded("~other/framework", "/Users/a"), "~other/framework");
 });
 
 test("firstSectionFile finds the section file of number 1", () => {
@@ -190,10 +155,4 @@ test("isFolder tells a folder from a file and from a missing path", () => {
 	assert.equal(setUp.isFolder(folder), true);
 	assert.equal(setUp.isFolder(path.join(folder, "a.txt")), false);
 	assert.equal(setUp.isFolder(path.join(folder, "missing")), false);
-});
-
-test("refusalOf gives the last line of the standard error", () => {
-	assert.equal(setUp.refusalOf("/x/.vscode/settings.json exists, and init writes only into a new folder\n"), "/x/.vscode/settings.json exists, and init writes only into a new folder");
-	assert.equal(setUp.refusalOf('Traceback (most recent call last):\n  File "b.py", line 1\nKeyError: \'x\'\n\n'), "KeyError: 'x'");
-	assert.equal(setUp.refusalOf(""), undefined);
 });

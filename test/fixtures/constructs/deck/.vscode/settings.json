@@ -1,0 +1,19 @@
+{
+  "workbench.editorAssociations": {
+    "*.drawio.xml": "drawioSlides.textEditor"
+  },
+  "files.associations": {
+    "*.drawio.xml": "drawio"
+  },
+  "drawioSlides.slides": true,
+  "drawioSlides.templates": [
+    "${deckFolder}/templates/*.drawio.xml"
+  ],
+  "drawioSlides.colors": {
+    "dpred": "#B20000",
+    "dpgreen": "#008000",
+    "functorpurple": "#800080",
+    "imporange": "#FF9410",
+    "specificationcolor": "#4286F4"
+  }
+}

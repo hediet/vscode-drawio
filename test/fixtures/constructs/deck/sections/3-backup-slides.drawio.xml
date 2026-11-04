@@ -1,0 +1,20 @@
+<mxfile host="test" pages="2">
+  <diagram id="pg-b1" name="backup-1">
+    <mxGraphModel grid="0" page="1" pageWidth="1920" pageHeight="1080" math="1">
+      <root>
+        <mxCell id="pg-b1-0"/>
+        <mxCell id="pg-b1-1" parent="pg-b1-0"/>
+        <mxCell id="b1-n" parent="pg-b1-1" value="%slide%/%slides%" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="100" y="100" width="300" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg-b2" name="backup-two-1">
+    <mxGraphModel grid="0" page="1" pageWidth="1920" pageHeight="1080" math="1">
+      <root>
+        <mxCell id="pg-b2-0"/>
+        <mxCell id="pg-b2-1" parent="pg-b2-0"/>
+        <mxCell id="b2-n" parent="pg-b2-1" value="%slide%/%slides%" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="100" y="100" width="300" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

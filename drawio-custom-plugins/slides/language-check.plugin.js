@@ -20,8 +20,8 @@
 // label is edited again.  Elsewhere the right button opens the menu of the browser as before.
 //
 // CHECK holds the language and the rules left out, which suit slides: an item of a list may start
-// with a small letter and end without a full stop.  The mode `check` of build-slides.py reads the
-// same object from this file and checks every slide of a deck.  A word of the list of the server
+// with a small letter and end without a full stop.  The check of a deck, src/deck/languageCheck.ts
+// of the extension, reads the same object from this file and checks every slide of the deck.  A word of the list of the server
 // counts as spelled right for every application that checks with the server.  A word of the file
 // language-check-words.txt in the folder of the deck, one per line, such as a name, counts as
 // spelled right in that deck alone, in both checks.  The plugin reads the file from the folders of
@@ -35,7 +35,7 @@
 Draw.loadPlugin(function (ui) {
   var graph = ui.editor.graph;
   var cellEditor = graph.cellEditor;
-  // The options of a check, which the mode `check` of build-slides.py reads as JSON.
+  // The options of a check, which the check of a deck reads as JSON.
   // A formula reads as the capital B, which LanguageTool takes after both a and an, as a noun and
   // as a subject, where X reads as "ex" and asks for an.
   var CHECK = {

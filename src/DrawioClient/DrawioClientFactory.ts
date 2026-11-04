@@ -39,7 +39,7 @@ import { countLabelsNamingColour, RefusedColourEdit } from "./deckColourEdits";
 import * as path from "path";
 
 /**
- * The plugins of the draw.io presentation framework in `drawio-custom-plugins/slides/`, in the
+ * The plugins of the slides in `drawio-custom-plugins/slides/`, in the
  * order of loading: `deck-files.js` before `deck-pictures.plugin.js`, `language-check.plugin.js`
  * and `media.plugin.js`, `slide-settings.js` before `math-definitions.plugin.js`,
  * `deck-colors.plugin.js`, `deck-colors-section.plugin.js` and `list-styles.plugin.js`,

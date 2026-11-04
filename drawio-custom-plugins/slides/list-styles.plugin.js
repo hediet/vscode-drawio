@@ -4,8 +4,8 @@
 // The setting "drawioSlides.listStyles" of the VS Code extension gives the style of each level of
 // a bulleted and of a numbered list, its indent, its marker and the colour and the size of the
 // marker, and the gap above each item apart from the first item of a first level.  Its default is
-// the style of the lists of the template formatsAndTemplates/draw-io/slide-format.drawio.xml of
-// the draw.io presentation framework.  draw.io's buttons Bulleted List, Numbered List,
+// the style of the lists of the slide template deck-templates/slide-format.drawio.xml of the
+// extension.  draw.io's buttons Bulleted List, Numbered List,
 // Increase Indent and Decrease Indent, and the key Tab in a list, make lists in the style of the
 // browser instead.  After each of them this plugin gives every list of the label that has no
 // marker of its own the template's style of its level, so a new list matches the template, and
@@ -35,6 +35,9 @@
 // The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
 // drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
 // without asking.
+//
+// Yujun Huang grants an additional permission for this file under section 7 of the GNU General
+// Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
 Draw.loadPlugin(function (ui) {
   var graph = ui.editor.graph;
   var cellEditor = graph.cellEditor;

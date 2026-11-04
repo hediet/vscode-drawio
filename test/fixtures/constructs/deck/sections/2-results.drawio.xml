@@ -1,0 +1,40 @@
+<mxfile host="test" pages="3">
+  <diagram id="pg-res" name="results-1">
+    <mxGraphModel grid="0" page="1" pageWidth="1920" pageHeight="1080" math="1">
+      <root>
+        <mxCell id="pg-res-0"/>
+        <mxCell id="pg-res-1" parent="pg-res-0"/>
+        <UserObject label="" video="assets/videos/v.mp4" autoplay="1" loop="1" muted="1" fit="crop" barHideDelay="1.5" id="pg-res-v1"><mxCell parent="pg-res-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="100" y="100" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="" video="assets/videos/missing.mp4" id="pg-res-v2"><mxCell parent="pg-res-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="500" y="100" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="" video="assets/videos/v.mp4" fit="bogus" barHideDelay="-1" barFadeOut="abc" id="pg-res-v3"><mxCell parent="pg-res-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="900" y="100" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="" video="../outside/o.mp4" id="pg-res-v4"><mxCell parent="pg-res-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="1300" y="100" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="" video="assets/videos/my vidé #1.mp4" id="pg-res-v5"><mxCell parent="pg-res-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="1300" y="300" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="" html="assets/plots/p.html" barFadeOut="0.5" id="pg-res-h1"><mxCell parent="pg-res-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="100" y="400" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="" html="assets/plots/missing.html" id="pg-res-h2"><mxCell parent="pg-res-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="500" y="400" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="" html="../outside/o.html" id="pg-res-h4"><mxCell parent="pg-res-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="900" y="400" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <UserObject label="" video="assets/videos/v.mp4" html="assets/plots/p.html" id="pg-res-vh"><mxCell parent="pg-res-1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1"><mxGeometry x="1300" y="500" width="300" height="80" as="geometry"/></mxCell></UserObject>
+        <mxCell id="pg-res-i1" parent="pg-res-1" style="shape=image;html=1;image=assets/pic.png;" vertex="1"><mxGeometry x="100" y="700" width="200" height="100" as="geometry"/></mxCell>
+        <mxCell id="pg-res-i2" parent="pg-res-1" style="shape=image;html=1;image=assets/missing.png;" vertex="1"><mxGeometry x="400" y="700" width="200" height="100" as="geometry"/></mxCell>
+        <mxCell id="pg-res-num" parent="pg-res-1" value="%slide%/%slides%" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="1700" y="1000" width="300" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg-nomath" name="nomath-1">
+    <mxGraphModel grid="0" page="1" pageWidth="1920" pageHeight="1080" math="0">
+      <root>
+        <mxCell id="pg-nomath-0"/>
+        <mxCell id="pg-nomath-1" parent="pg-nomath-0"/>
+        <mxCell id="pg-nomath-f" parent="pg-nomath-1" value="\(x^2\)" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="100" y="100" width="300" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg-res" name="dup-1">
+    <mxGraphModel grid="0" page="1" pageWidth="1920" pageHeight="1080" math="1">
+      <root>
+        <mxCell id="pg-res-0"/>
+        <mxCell id="pg-res-1" parent="pg-res-0"/>
+        <mxCell id="d-t" parent="pg-res-1x" value="dup" style="text;html=1;fontSize=30;" vertex="1"><mxGeometry x="100" y="100" width="300" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,667 @@
+<!doctype html>
+<!--
+  The page of a draw.io deck built into one HTML file, filled in by src/deck/htmlDeck.ts of the
+  extension Draw.io Slides.
+
+  The element #deck holds the deck as JSON: its size, its outline, and per page its address, its
+  SVG, and the links, the videos and the embedded pages of its cells, in the coordinates of the page.  One page shows
+  at a time, drawn at the size of the slide and scaled to the window.  Each SVG is parsed when its
+  page shows, so the ids that two SVGs share never meet in the document.
+
+  A video or an embedded page goes into the group of the SVG that draws the shape of its cell,
+  which src/deck/slideExport.ts marks with data-cell-id, at the rectangle of the cell, since the group
+  draws in the coordinates of the page.  It is then cut to the outline of the shape, and the cells
+  drawn after it cover it, as they cover the shape.  One whose shape carries no mark lies over the
+  rectangle of its cell, above the whole slide.  An embedded page takes the pointer, and when the
+  pointer leaves it the keys go back to the slide.  A video or a page at the same place on the next
+  step of a slide moves into the SVG of that step by Element.moveBefore, so it keeps playing or
+  keeps its state, and it takes the times of the bar and the fit of its cell on that step.
+
+  The keys are those that onKey below handles.  The address #12 shows slide 12, and #12.3 or #12-3 its third step.  The
+  label at the bottom left numbers a page as the slides do, 12-3/45 for the third step of slide 12
+  of 45, and 50/45-59 for a backup slide, with the total of the deck with its backup slides after
+  the hyphen.
+
+  A video or an embedded page shows the bar of media-bar.js right under its picture while the
+  pointer is over the shape or over the bar, the same bar that the editor shows for a selected
+  shape.  After the pointer has left both, the bar waits the barHideDelay of its cell, 0 s by
+  default, and fades out in its barFadeOut, 0.25 s by default.  The build writes media-bar.js into
+  the second <script> element.
+
+  Yujun Huang grants an additional permission for this file under section 7 of the GNU General
+  Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+:root { color-scheme: light; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+body { font-family: 'STIX Two Text', serif; }
+
+#viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+#stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; background: #fff; overflow: hidden; }
+#stage > svg { position: absolute; left: 0; top: 0; display: block; }
+.cell-link { position: absolute; display: block; border-radius: 4px; }
+.cell-link:hover { box-shadow: 0 0 0 3px rgba(0, 77, 128, 0.35); }
+.cell-video { position: absolute; background: transparent; }
+.cell-embed { position: absolute; border: 0; background: transparent; }
+foreignObject > .cell-video, foreignObject > .cell-embed { position: static; display: block;
+  width: 100%; height: 100%; }
+
+#outline { position: fixed; top: 0; bottom: 0; left: 0; width: min(420px, 85vw); overflow-y: auto;
+  background: rgba(255, 255, 255, 0.97); box-shadow: 2px 0 16px rgba(0, 0, 0, 0.25);
+  transform: translateX(-105%); transition: transform 0.2s ease; z-index: 3;
+  font-size: 17px; line-height: 1.35; padding: 18px 0 40px; box-sizing: border-box; }
+#outline.open { transform: none; }
+#outline h1 { font-size: 20px; margin: 0 20px 14px; }
+#outline ol { list-style: none; margin: 0; padding: 0; }
+#outline a { display: block; color: #1a1a1a; text-decoration: none; padding: 3px 20px; }
+#outline a:hover { background: #e0e6f1; }
+#outline .section > a { font-weight: 700; margin-top: 10px; }
+#outline .slide > a { padding-left: 34px; }
+#outline .step > a { padding-left: 62px; font-size: 15px; color: #555; }
+#outline a.current { background: #004d80; color: #fff; }
+
+#bars { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+#bar { position: fixed; left: 12px; bottom: 12px; display: flex; gap: 6px; align-items: center;
+  z-index: 2; opacity: 0; transition: opacity 0.3s ease; font: 15px/1 Helvetica, Arial, sans-serif; }
+#bar.shown, #bar:hover { opacity: 1; }
+#bar button, #bar span { background: rgba(0, 0, 0, 0.65); color: #fff; border: 0; border-radius: 4px;
+  padding: 7px 10px; font: inherit; }
+#bar button { cursor: pointer; }
+
+@media print {
+  #bar, #outline { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage"></div></div>
+<div id="bars"></div>
+<nav id="outline" aria-label="Outline"></nav>
+<div id="bar">
+  <button id="outline-button" title="Outline (O)">&#9776;</button>
+  <button id="previous-button" title="Previous page (Left)">&#8592;</button>
+  <span id="position"></span>
+  <button id="next-button" title="Next page (Right)">&#8594;</button>
+  <button id="fullscreen-button" title="Full screen (F)">&#9974;</button>
+</div>
+<script type="application/json" id="deck">{{deck}}</script>
+<script>
+{{media_bar}}
+</script>
+<script>
+(function () {
+  'use strict';
+  const deck = JSON.parse(document.getElementById('deck').textContent);
+  const stage = document.getElementById('stage');
+  const outline = document.getElementById('outline');
+  const bar = document.getElementById('bar');
+  const position = document.getElementById('position');
+  const pageOfLocation = new Map(deck.pages.map((page, index) => [page.location, index]));
+  let current = -1;
+  let shownMedia = new Map();
+  let typedNumber = '';
+
+  stage.style.width = deck.width + 'px';
+  stage.style.height = deck.height + 'px';
+
+  function fitStage() {
+    const scale = Math.min(window.innerWidth / deck.width, window.innerHeight / deck.height);
+    const left = (window.innerWidth - deck.width * scale) / 2;
+    const top = (window.innerHeight - deck.height * scale) / 2;
+    stage.style.transform = `translate(${left}px, ${top}px) scale(${scale})`;
+  }
+
+  function placeAt(element, rectangle) {
+    element.style.left = rectangle.x + 'px';
+    element.style.top = rectangle.y + 'px';
+    element.style.width = rectangle.width + 'px';
+    element.style.height = rectangle.height + 'px';
+  }
+
+  function parseSvg(text) {
+    const parsed = new DOMParser().parseFromString(text, 'image/svg+xml');
+    return document.importNode(parsed.documentElement, true);
+  }
+
+  // A video or a page at the same place on the next step of a slide keeps playing or keeps its
+  // state, because it moves into the next SVG instead of being made again.
+  function mediaKey(kind, media) {
+    const r = media.rectangle;
+    return [kind, media.cell, media.source, r.x, r.y, r.width, r.height].join('|');
+  }
+
+  // Moves an element without reloading the page of an <iframe>, where the browser offers
+  // Element.moveBefore and both places are in the document; elsewhere a page loads again.
+  function moveInto(parent, element) {
+    if (typeof parent.moveBefore === 'function' && parent.isConnected && element.isConnected) {
+      try {
+        parent.moveBefore(element, null);
+        return;
+      } catch (error) {
+        // A move that the browser refuses is done by an insertion.
+      }
+    }
+    parent.append(element);
+  }
+
+  const OBJECT_FIT = { contain: 'contain', stretch: 'fill', crop: 'cover' };
+  const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+  const OUTLINE_TAGS = new Set(['path', 'rect', 'ellipse', 'circle', 'polygon', 'polyline']);
+
+  function makeVideo(video) {
+    const element = document.createElement('video');
+    element.className = 'cell-video';
+    element.src = video.source;
+    element.preload = 'auto';
+    element.playsInline = true;
+    // The bar of media-bar.js, which the editor shows as well, takes the place of the controls of
+    // the browser, and shows while the pointer is over the video.  The menu of the right button of
+    // the browser stays.
+    element.controls = false;
+    element.barHideDelay = video.bar_hide_delay;
+    element.barFadeOut = video.bar_fade_out;
+    element.addEventListener('error', () => {
+      element.loadProblem = `${video.source} did not load`;
+      element.dispatchEvent(new Event('mediapluginproblem'));
+    });
+    element.loop = video.loop;
+    element.muted = video.muted;
+    element.style.objectFit = OBJECT_FIT[video.fit] || 'contain';
+    return element;
+  }
+
+  // The clip is a copy of the outline that draws the shape, so the video shows inside an ellipse
+  // or a rounded rectangle as the shape does.  A shape drawn by a picture alone is cut to its box.
+  function makeClip(group, rectangle, id) {
+    const clip = document.createElementNS(SVG_NAMESPACE, 'clipPath');
+    clip.id = id;
+    for (const child of group.children) {
+      if (OUTLINE_TAGS.has(child.localName)) clip.append(child.cloneNode(false));
+    }
+    if (!clip.children.length) {
+      const rect = document.createElementNS(SVG_NAMESPACE, 'rect');
+      for (const name of ['x', 'y', 'width', 'height']) rect.setAttribute(name, rectangle[name]);
+      clip.append(rect);
+    }
+    return clip;
+  }
+
+  // The keys go back to the slide when the pointer leaves an embedded page, which keeps every key
+  // while it has the focus.
+  function makeEmbed(embed) {
+    const element = document.createElement('iframe');
+    element.className = 'cell-embed';
+    element.embed = embed;
+    element.barHideDelay = embed.bar_hide_delay;
+    element.barFadeOut = embed.bar_fade_out;
+    element.src = embed.source;
+    element.setAttribute('allow', 'fullscreen; autoplay');
+    element.addEventListener('mouseleave', () => {
+      if (document.activeElement === element) element.blur();
+    });
+    element.addEventListener('load', () => {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        element.drawn = true;
+        hidePicture(element);
+      }));
+    });
+    return element;
+  }
+
+  // The shape of a page is drawn as a picture of the page as it first draws, which the build takes,
+  // so the slide shows the page while it loads, and the picture goes once the page has drawn over
+  // it, so that a page that changes or has no background shows alone.
+  function hidePicture(element) {
+    const group = element.closest('g[data-cell-id]');
+    if (!group) return;
+    for (const image of group.querySelectorAll(':scope > image')) image.style.opacity = '0';
+  }
+
+  // The bar of a video or a page shows right under the picture of the video or under the page,
+  // over the last pixel of it, so the rounding of its place leaves no gap and the pointer goes
+  // from one to the other without leaving both, while the pointer
+  // is over the shape or the bar, and while a control of the bar is in use, as the editor shows it
+  // for the selected shape.
+  const barLayer = document.getElementById('bars');
+  const bars = window.MediaBar ? {
+    video: MediaBar.makeVideoBar({ container: () => barLayer, gap: -1 }),
+    page: MediaBar.makePageBar({
+      container: () => barLayer,
+      gap: -1,
+      reload: iframe => reloadEmbed(iframe),
+      problem: () => null,
+      content: iframe => iframe,
+    }),
+  } : null;
+  let hideBars = null;
+  let fadeBars = null;
+
+  // Reload loads the page into a second frame, which stays invisible over the first until it has
+  // loaded and drawn, so the page shown never goes blank and never shows the image of its shape.
+  function reloadEmbed(element) {
+    if (element.pending) element.pending.remove();
+    const next = makeEmbed(element.embed);
+    element.pending = next;
+    element.after(next);
+    coverWithPending(element);
+    next.addEventListener('load', () => {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (element.pending !== next || !element.isConnected) return;
+        next.style.opacity = '';
+        next.style.marginTop = '';
+        for (const [key, value] of shownMedia) {
+          if (value === element) shownMedia.set(key, next);
+        }
+        hoverable = hoverable.map(item => (item === element ? next : item));
+        watchHover(next);
+        if (bars && bars.page.target === element) bars.page.retarget(next);
+        element.remove();
+      }));
+    }, { once: true });
+  }
+
+  // The second frame of a Reload, right after the frame it replaces, takes the place of that frame.
+  function coverWithPending(element) {
+    const next = element.pending;
+    next.style.cssText = element.style.cssText;
+    next.style.opacity = '0';
+    if (element.parentNode instanceof SVGForeignObjectElement) {
+      next.style.marginTop = `-${element.offsetHeight}px`;
+    }
+  }
+
+  // A frame moves with the second frame of a Reload that has not loaded yet, so that the Reload
+  // goes on when the next step of a slide shows.
+  function moveWithPending(parent, element) {
+    moveInto(parent, element);
+    if (!element.pending) return;
+    moveInto(parent, element.pending);
+    coverWithPending(element);
+  }
+
+  // A video or a page that stays on the next step of a slide takes the times of the bar, the fit
+  // and the page of its cell on that step.  The sound and the repetition stay as the bar left them.
+  function updateKept(element, entry) {
+    for (const target of [element, element.pending]) {
+      if (!target) continue;
+      target.barHideDelay = entry.item.bar_hide_delay;
+      target.barFadeOut = entry.item.bar_fade_out;
+      if (entry.kind === 'video') target.style.objectFit = OBJECT_FIT[entry.item.fit] || 'contain';
+      else target.embed = entry.item;
+    }
+  }
+
+  function anchorOf(element) {
+    return element.closest('foreignObject') || element;
+  }
+
+  // The box under which the bar of a video or a page sits: the picture of a video inside its
+  // shape, which `fit=contain` makes smaller than the shape, and the shape of a page.
+  function barAnchorOf(element) {
+    const shape = anchorOf(element);
+    if (!(element instanceof HTMLVideoElement)) return shape;
+    return {
+      get isConnected() { return element.isConnected; },
+      getBoundingClientRect() {
+        const box = shape.getBoundingClientRect();
+        if (element.style.objectFit !== 'contain' || !element.videoWidth || !element.videoHeight) {
+          return box;
+        }
+        const scale = Math.min(box.width / element.videoWidth, box.height / element.videoHeight);
+        const width = element.videoWidth * scale, height = element.videoHeight * scale;
+        const left = box.left + (box.width - width) / 2, top = box.top + (box.height - height) / 2;
+        return { left, top, width, height, right: left + width, bottom: top + height };
+      },
+    };
+  }
+
+  function showBarFor(element) {
+    if (!bars) return;
+    keepBars();
+    if (element instanceof HTMLVideoElement) {
+      bars.page.detach();
+      bars.video.attach(element, barAnchorOf(element));
+    } else {
+      bars.video.detach();
+      bars.page.attach(element, barAnchorOf(element));
+    }
+  }
+
+  // A bar stays while the pointer rests on it or on its shape and while a control of it is in use.
+  // After the pointer has left both, or the window, the bar waits the `barHideDelay` of its cell,
+  // 0 s by default, then fades out in its `barFadeOut`, 0.25 s by default, unless the pointer
+  // comes back first.
+  let pointer = null;
+
+  function isBarWanted() {
+    if (bars.video.isInUse() || bars.page.isInUse()) return true;
+    if (bars.video.element.matches(':hover') || bars.page.element.matches(':hover')) return true;
+    const element = pointer && mediaUnder(pointer.x, pointer.y);
+    return !!element && (element === bars.video.video || element === bars.page.target);
+  }
+
+  function barElements() {
+    return [bars.video.element, bars.page.element];
+  }
+
+  // The bars stay, and a bar that fades shows whole again.
+  function keepBars() {
+    if (!bars) return;
+    clearTimeout(hideBars);
+    clearTimeout(fadeBars);
+    hideBars = fadeBars = null;
+    for (const element of barElements()) {
+      element.style.transition = '';
+      element.style.opacity = '';
+    }
+  }
+
+  function hideBarsSoon() {
+    if (!bars || hideBars !== null || fadeBars !== null) return;
+    const target = bars.video.isShown() ? bars.video.video
+      : bars.page.isShown() ? bars.page.target : null;
+    const delay = target && target.barHideDelay != null ? target.barHideDelay : 0;
+    const fade = target && target.barFadeOut != null ? target.barFadeOut : 0.25;
+    hideBars = setTimeout(() => {
+      hideBars = null;
+      if (isBarWanted()) return;
+      for (const element of barElements()) {
+        element.style.transition = `opacity ${fade}s`;
+        element.style.opacity = '0';
+      }
+      fadeBars = setTimeout(() => {
+        fadeBars = null;
+        if (!isBarWanted()) {
+          bars.video.detach();
+          bars.page.detach();
+        }
+        keepBars();
+      }, fade * 1000);
+    }, delay * 1000);
+  }
+
+  // The pointer is over a video when it is inside the box of its shape, whatever cell is drawn
+  // above it, such as its own label, so the page tests the boxes on every move of the pointer.
+  // An embedded page keeps the moves of the pointer over it, so it tells its own enter and leave.
+  let hoverable = [];
+
+  function watchHover(element) {
+    if (element.watched || element instanceof HTMLVideoElement) return;
+    element.watched = true;
+    element.addEventListener('pointerenter', () => showBarFor(element));
+    element.addEventListener('pointerleave', hideBarsSoon);
+  }
+
+  function mediaUnder(x, y) {
+    for (let i = hoverable.length - 1; i >= 0; i--) {
+      const box = anchorOf(hoverable[i]).getBoundingClientRect();
+      if (x >= box.left && x <= box.right && y >= box.top && y <= box.bottom) return hoverable[i];
+    }
+    return null;
+  }
+
+  if (bars) {
+    for (const bar of [bars.video, bars.page]) {
+      bar.element.addEventListener('focusout', hideBarsSoon);
+    }
+    document.documentElement.addEventListener('pointerleave', () => {
+      pointer = null;
+      hideBarsSoon();
+    });
+    window.addEventListener('blur', hideBarsSoon);
+    document.addEventListener('pointermove', event => {
+      pointer = { x: event.clientX, y: event.clientY };
+      if (bars.video.element.contains(event.target) || bars.page.element.contains(event.target)) {
+        keepBars();
+        return;
+      }
+      const element = mediaUnder(event.clientX, event.clientY);
+      if (element) {
+        if (bars.video.video !== element && bars.page.target !== element) showBarFor(element);
+        else keepBars();
+      } else if (bars.video.isShown() || bars.page.isShown()) {
+        hideBarsSoon();
+      }
+    });
+  }
+
+  // The clip sits on a group around the <foreignObject>, because Chromium finds the pointer over
+  // only a part of a <foreignObject> that carries the clip itself, and over all of one inside a
+  // clipped group.
+  function placeInShape(svg, media, element, clipId) {
+    const group = svg.querySelector(`g[data-cell-id="${CSS.escape(media.cell)}"]`);
+    if (!group) return false;
+    const clipped = document.createElementNS(SVG_NAMESPACE, 'g');
+    clipped.setAttribute('clip-path', `url(#${clipId})`);
+    const frame = document.createElementNS(SVG_NAMESPACE, 'foreignObject');
+    for (const name of ['x', 'y', 'width', 'height']) frame.setAttribute(name, media.rectangle[name]);
+    clipped.append(frame);
+    group.append(makeClip(group, media.rectangle, clipId), clipped);
+    moveWithPending(frame, element);
+    if (element.drawn) hidePicture(element);
+    return true;
+  }
+
+  function makeLink(link) {
+    const element = document.createElement('a');
+    element.className = 'cell-link';
+    element.href = link.href;
+    if (link.opens_new_tab) {
+      element.target = '_blank';
+      element.rel = 'noopener';
+    }
+    placeAt(element, link.rectangle);
+    return element;
+  }
+
+  function openLabelLinksInNewTab(svg) {
+    for (const anchor of svg.querySelectorAll('a[href]')) {
+      const href = anchor.getAttribute('href');
+      if (!href.startsWith('#')) {
+        anchor.setAttribute('target', '_blank');
+        anchor.setAttribute('rel', 'noopener');
+      }
+    }
+  }
+
+  // The SVG of the next page joins the stage before the one shown leaves it, so that the videos
+  // and the pages that stay move from one to the other while both are in the document.
+  function show(index) {
+    index = Math.max(0, Math.min(deck.pages.length - 1, index));
+    if (index === current) return;
+    const page = deck.pages[index];
+    const media = [
+      ...page.videos.map(video => ({ kind: 'video', item: video, key: mediaKey('video', video) })),
+      ...(page.embeds || []).map(embed => ({ kind: 'embed', item: embed, key: mediaKey('embed', embed) })),
+    ];
+    const keys = new Set(media.map(entry => entry.key));
+    for (const [key, element] of shownMedia) {
+      if (!keys.has(key) && element instanceof HTMLVideoElement) element.pause();
+    }
+    const leaving = [...stage.children];
+    const svg = parseSvg(page.svg);
+    openLabelLinksInNewTab(svg);
+    stage.append(svg);
+    const overlays = page.links.map(makeLink);
+    const nextMedia = new Map();
+    media.forEach((entry, mediaIndex) => {
+      const kept = shownMedia.get(entry.key);
+      const element = kept || (entry.kind === 'video' ? makeVideo(entry.item) : makeEmbed(entry.item));
+      if (kept) updateKept(element, entry);
+      nextMedia.set(entry.key, element);
+      if (!placeInShape(svg, entry.item, element, `deck-media-clip-${mediaIndex}`)) {
+        placeAt(element, entry.item.rectangle);
+        overlays.push(element);
+      }
+      if (entry.kind === 'video' && entry.item.autoplay && !kept) element.play().catch(() => {});
+    });
+    // An element over the slide that stays on the next step stays on the stage, so it is not
+    // loaded again, and moves after the SVG of the step, which would otherwise cover it.
+    const staying = new Set(nextMedia.values());
+    for (const element of nextMedia.values()) {
+      if (element.pending) staying.add(element.pending);
+    }
+    for (const element of leaving) {
+      if (!staying.has(element)) element.remove();
+    }
+    for (const element of overlays) moveWithPending(stage, element);
+    hoverable = [...nextMedia.values()];
+    for (const element of hoverable) watchHover(element);
+    // A bar whose video or page stays on the next step follows its new place in the next SVG.
+    if (bars) {
+      const video = bars.video.video, page = bars.page.target;
+      if (video) {
+        if (staying.has(video)) bars.video.attach(video, barAnchorOf(video));
+        else bars.video.detach();
+      }
+      if (page) {
+        if (staying.has(page)) bars.page.attach(page, barAnchorOf(page));
+        else bars.page.detach();
+      }
+    }
+    shownMedia = nextMedia;
+    current = index;
+    position.textContent = numberLabel(page.number);
+    if (location.hash !== '#' + page.location) history.replaceState(null, '', '#' + page.location);
+    markOutline();
+  }
+
+  // The number of a page as the slides show theirs, with the step after a hyphen for a slide in
+  // steps: `12-2/45`, and for a backup slide the total with the backup slides, `50/45-59`.
+  function numberLabel(number) {
+    const step = number.steps > 1 ? `-${number.step}` : '';
+    const total = number.backup ? `${deck.total}-${deck.totalWithBackup}` : `${deck.total}`;
+    return `${number.slide}${step}/${total}`;
+  }
+
+  function showLocation(hash) {
+    let wanted = hash.replace(/^#/, '');
+    try {
+      wanted = decodeURIComponent(wanted);
+    } catch (error) {
+      // An address with a malformed escape, such as #%E0, is read as it stands.
+    }
+    wanted = wanted.replace('-', '.');
+    if (pageOfLocation.has(wanted)) return show(pageOfLocation.get(wanted));
+    const slide = wanted.split('.')[0];
+    if (pageOfLocation.has(slide)) return show(pageOfLocation.get(slide));
+    show(Math.max(current, 0));
+  }
+
+  function outlineLink(text, index, className) {
+    const item = document.createElement('li');
+    item.className = className;
+    const anchor = document.createElement('a');
+    anchor.href = '#' + deck.pages[index].location;
+    anchor.textContent = text;
+    anchor.dataset.page = index;
+    item.append(anchor);
+    return item;
+  }
+
+  function buildOutline() {
+    const heading = document.createElement('h1');
+    heading.textContent = deck.title;
+    const sections = document.createElement('ol');
+    for (const section of deck.outline) {
+      const sectionItem = outlineLink(section.title, section.slides[0].pages[0], 'section');
+      const slides = document.createElement('ol');
+      for (const slide of section.slides) {
+        const slideItem = outlineLink(`${slide.number}  ${slide.title}`, slide.pages[0], 'slide');
+        if (slide.pages.length > 1) {
+          const steps = document.createElement('ol');
+          slide.pages.forEach((index, step) =>
+            steps.append(outlineLink(`Step ${step + 1}`, index, 'step')));
+          slideItem.append(steps);
+        }
+        slides.append(slideItem);
+      }
+      sectionItem.append(slides);
+      sections.append(sectionItem);
+    }
+    outline.replaceChildren(heading, sections);
+  }
+
+  // The entry of the current page is its step, or its slide when the slide has one page.  A step
+  // follows its slide in the outline, so the last entry of the page is the one marked.
+  function markOutline() {
+    for (const anchor of outline.querySelectorAll('a.current')) anchor.classList.remove('current');
+    const entries = [...outline.querySelectorAll('.slide > a, .step > a')]
+      .filter(anchor => Number(anchor.dataset.page) === current);
+    const marked = entries[entries.length - 1];
+    if (!marked) return;
+    marked.classList.add('current');
+    if (outline.classList.contains('open')) marked.scrollIntoView({ block: 'nearest' });
+  }
+
+  function toggleOutline(open) {
+    outline.classList.toggle('open', open);
+    markOutline();
+  }
+
+  function toggleFullscreen() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(() => {});
+  }
+
+  function onKey(event) {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    const inVideo = event.target instanceof HTMLVideoElement;
+    if (inVideo && (event.key === ' ' || event.key === 'k')) return;
+    const key = event.key;
+    if (/^[0-9.]$/.test(key)) { typedNumber += key; return; }
+    if (key === 'Enter' && typedNumber) {
+      showLocation('#' + typedNumber);
+      typedNumber = '';
+      event.preventDefault();
+      return;
+    }
+    typedNumber = '';
+    const moves = {
+      ArrowRight: 1, ArrowDown: 1, PageDown: 1, ' ': 1,
+      ArrowLeft: -1, ArrowUp: -1, PageUp: -1, Backspace: -1,
+    };
+    if (key in moves) show(current + moves[key]);
+    else if (key === 'Home') show(0);
+    else if (key === 'End') show(deck.pages.length - 1);
+    else if (key === 'o' || key === 'O') toggleOutline(!outline.classList.contains('open'));
+    else if (key === 'f' || key === 'F') toggleFullscreen();
+    else if (key === 'Escape') toggleOutline(false);
+    else return;
+    if (inVideo) event.target.blur();
+    event.preventDefault();
+  }
+
+  let hideBar = null;
+  function revealBar() {
+    bar.classList.add('shown');
+    clearTimeout(hideBar);
+    hideBar = setTimeout(() => bar.classList.remove('shown'), 1800);
+  }
+
+  buildOutline();
+  fitStage();
+  window.addEventListener('resize', fitStage);
+  window.addEventListener('hashchange', () => showLocation(location.hash));
+  document.addEventListener('keydown', onKey);
+  document.addEventListener('mousemove', revealBar);
+  outline.addEventListener('click', event => {
+    if (event.target.closest('a')) toggleOutline(false);
+  });
+  document.getElementById('outline-button').addEventListener('click', () =>
+    toggleOutline(!outline.classList.contains('open')));
+  document.getElementById('previous-button').addEventListener('click', () => show(current - 1));
+  document.getElementById('next-button').addEventListener('click', () => show(current + 1));
+  document.getElementById('fullscreen-button').addEventListener('click', toggleFullscreen);
+  showLocation(location.hash);
+})();
+</script>
+</body>
+</html>

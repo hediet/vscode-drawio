@@ -22,6 +22,7 @@ import {
 	withColourEdit,
 	withColourEditInSettings,
 } from "./deckColourEdits";
+import { colourDefinition, mathCommandLines } from "../deck/texDefinitions";
 
 /**
  * The settings of a deck that the slide plugins follow without a reload, which the extension
@@ -125,7 +126,7 @@ export function readLiveSlideSettings(
 		),
 		...(config.hasColorDefinitions
 			? [
-					"The extension does not read drawioSlides.colorDefinitions. The command tools/draw-io/color-settings.py from-tex <file.tex> --project <deck> of the draw.io presentation framework writes the colours of a TeX file into drawioSlides.colors.",
+					"The extension does not read drawioSlides.colorDefinitions. The command Draw.io Slides: Import Colours from TeX writes the colours of a TeX file into drawioSlides.colors.",
 			  ]
 			: []),
 	];
@@ -327,10 +328,7 @@ export async function readMathCommands(extensionUri: Uri): Promise<string[]> {
 			"mathjax-commands.tex"
 		)
 	);
-	return commands
-		.split("\n")
-		.map((line) => line.trim())
-		.filter((line) => line !== "" && !line.startsWith("%"));
+	return mathCommandLines(commands);
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -534,8 +532,5 @@ async function readText(file: Uri): Promise<string> {
 
 /** The definition of a colour in the model `RGB`, which the MathJax of draw.io reads. */
 function rgbDefinition({ name, hex }: DeckColour): string {
-	const [red, green, blue] = [0, 2, 4].map((start) =>
-		parseInt(hex.slice(start, start + 2), 16)
-	);
-	return `\\definecolor{${name}}{RGB}{${red},${green},${blue}}`;
+	return colourDefinition(name, `#${hex}`);
 }

@@ -1,0 +1,361 @@
+{
+ "title": "Test <deck> & {{deck}}",
+ "width": 1920,
+ "height": 1080,
+ "total": 6,
+ "totalWithBackup": 8,
+ "outline": [
+  {
+   "title": "1 Intro",
+   "slides": [
+    {
+     "number": 1,
+     "title": "Intro",
+     "pages": [
+      0
+     ]
+    },
+    {
+     "number": 2,
+     "title": "Steps",
+     "pages": [
+      1,
+      2,
+      3
+     ]
+    },
+    {
+     "number": 3,
+     "title": "Intro",
+     "pages": [
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "title": "2 Results",
+   "slides": [
+    {
+     "number": 4,
+     "title": "Results",
+     "pages": [
+      5
+     ]
+    },
+    {
+     "number": 5,
+     "title": "Nomath",
+     "pages": [
+      6
+     ]
+    },
+    {
+     "number": 6,
+     "title": "Dup",
+     "pages": [
+      7
+     ]
+    }
+   ]
+  },
+  {
+   "title": "3 Backup slides",
+   "slides": [
+    {
+     "number": 7,
+     "title": "Backup",
+     "pages": [
+      8
+     ]
+    },
+    {
+     "number": 8,
+     "title": "Backup two",
+     "pages": [
+      9
+     ]
+    }
+   ]
+  }
+ ],
+ "pages": [
+  {
+   "location": "1",
+   "number": {
+    "slide": 1,
+    "step": 1,
+    "steps": 1,
+    "backup": false
+   },
+   "links": [
+    {
+     "cell": "pg-intro-l1",
+     "rectangle": {
+      "x": 100,
+      "y": 100,
+      "width": 300,
+      "height": 80
+     },
+     "href": "#4",
+     "opens_new_tab": false
+    },
+    {
+     "cell": "pg-intro-l2",
+     "rectangle": {
+      "x": 500,
+      "y": 100,
+      "width": 300,
+      "height": 80
+     },
+     "href": "https://example.org/?a=1&b=2",
+     "opens_new_tab": true
+    },
+    {
+     "cell": "pg-intro-l3",
+     "rectangle": {
+      "x": 900,
+      "y": 100,
+      "width": 300,
+      "height": 80
+     },
+     "href": "https://example.org/self",
+     "opens_new_tab": false
+    }
+   ],
+   "videos": [
+    {
+     "cell": "pg-intro-gv",
+     "rectangle": {
+      "x": 1050,
+      "y": 450,
+      "width": 300,
+      "height": 80
+     },
+     "source": "media/assets/videos/v.mp4",
+     "autoplay": false,
+     "loop": false,
+     "muted": false,
+     "fit": "stretch",
+     "bar_hide_delay": 0,
+     "bar_fade_out": 0.25
+    }
+   ],
+   "embeds": []
+  },
+  {
+   "location": "2",
+   "number": {
+    "slide": 2,
+    "step": 1,
+    "steps": 3,
+    "backup": false
+   },
+   "links": [],
+   "videos": [],
+   "embeds": []
+  },
+  {
+   "location": "2.2",
+   "number": {
+    "slide": 2,
+    "step": 2,
+    "steps": 3,
+    "backup": false
+   },
+   "links": [],
+   "videos": [],
+   "embeds": []
+  },
+  {
+   "location": "2.3",
+   "number": {
+    "slide": 2,
+    "step": 3,
+    "steps": 3,
+    "backup": false
+   },
+   "links": [],
+   "videos": [],
+   "embeds": []
+  },
+  {
+   "location": "3",
+   "number": {
+    "slide": 3,
+    "step": 1,
+    "steps": 1,
+    "backup": false
+   },
+   "links": [],
+   "videos": [],
+   "embeds": []
+  },
+  {
+   "location": "4",
+   "number": {
+    "slide": 4,
+    "step": 1,
+    "steps": 1,
+    "backup": false
+   },
+   "links": [],
+   "videos": [
+    {
+     "cell": "pg-res-v1",
+     "rectangle": {
+      "x": 100,
+      "y": 100,
+      "width": 300,
+      "height": 80
+     },
+     "source": "media/assets/videos/v.mp4",
+     "autoplay": true,
+     "loop": true,
+     "muted": true,
+     "fit": "crop",
+     "bar_hide_delay": 1.5,
+     "bar_fade_out": 0.25
+    },
+    {
+     "cell": "pg-res-v3",
+     "rectangle": {
+      "x": 900,
+      "y": 100,
+      "width": 300,
+      "height": 80
+     },
+     "source": "media/assets/videos/v.mp4",
+     "autoplay": false,
+     "loop": false,
+     "muted": false,
+     "fit": "contain",
+     "bar_hide_delay": 0,
+     "bar_fade_out": 0.25
+    },
+    {
+     "cell": "pg-res-v4",
+     "rectangle": {
+      "x": 1300,
+      "y": 100,
+      "width": 300,
+      "height": 80
+     },
+     "source": "media/outside/<hash>/o.mp4",
+     "autoplay": false,
+     "loop": false,
+     "muted": false,
+     "fit": "contain",
+     "bar_hide_delay": 0,
+     "bar_fade_out": 0.25
+    },
+    {
+     "cell": "pg-res-v5",
+     "rectangle": {
+      "x": 1300,
+      "y": 300,
+      "width": 300,
+      "height": 80
+     },
+     "source": "media/assets/videos/my%20vid%C3%A9%20%231.mp4",
+     "autoplay": false,
+     "loop": false,
+     "muted": false,
+     "fit": "contain",
+     "bar_hide_delay": 0,
+     "bar_fade_out": 0.25
+    },
+    {
+     "cell": "pg-res-vh",
+     "rectangle": {
+      "x": 1300,
+      "y": 500,
+      "width": 300,
+      "height": 80
+     },
+     "source": "media/assets/videos/v.mp4",
+     "autoplay": false,
+     "loop": false,
+     "muted": false,
+     "fit": "contain",
+     "bar_hide_delay": 0,
+     "bar_fade_out": 0.25
+    }
+   ],
+   "embeds": [
+    {
+     "cell": "pg-res-h1",
+     "rectangle": {
+      "x": 100,
+      "y": 400,
+      "width": 300,
+      "height": 80
+     },
+     "source": "media/assets/plots/p.html",
+     "bar_hide_delay": 0,
+     "bar_fade_out": 0.5
+    },
+    {
+     "cell": "pg-res-h4",
+     "rectangle": {
+      "x": 900,
+      "y": 400,
+      "width": 300,
+      "height": 80
+     },
+     "source": "media/outside/<hash>/o.html",
+     "bar_hide_delay": 0,
+     "bar_fade_out": 0.25
+    }
+   ]
+  },
+  {
+   "location": "5",
+   "number": {
+    "slide": 5,
+    "step": 1,
+    "steps": 1,
+    "backup": false
+   },
+   "links": [],
+   "videos": [],
+   "embeds": []
+  },
+  {
+   "location": "6",
+   "number": {
+    "slide": 6,
+    "step": 1,
+    "steps": 1,
+    "backup": false
+   },
+   "links": [],
+   "videos": [],
+   "embeds": []
+  },
+  {
+   "location": "7",
+   "number": {
+    "slide": 7,
+    "step": 1,
+    "steps": 1,
+    "backup": true
+   },
+   "links": [],
+   "videos": [],
+   "embeds": []
+  },
+  {
+   "location": "8",
+   "number": {
+    "slide": 8,
+    "step": 1,
+    "steps": 1,
+    "backup": true
+   },
+   "links": [],
+   "videos": [],
+   "embeds": []
+  }
+ ]
+}

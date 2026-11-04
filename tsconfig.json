@@ -7,6 +7,8 @@
 		"sourceMap": true,
 		"rootDir": "src",
 		"strict": true,
+		// The types of playwright-core name the classes of the DOM, which the extension does not load.
+		"skipLibCheck": true,
 		"experimentalDecorators": true
 	},
 	"include": ["./src/**/*", "./drawio-custom-plugins/src/types.d.ts"],

@@ -18,6 +18,9 @@
 // The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
 // drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
 // without asking.
+//
+// Yujun Huang grants an additional permission for this file under section 7 of the GNU General
+// Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
 Draw.loadPlugin(function (ui) {
   var templates = (window.drawioSlidesSettings || {}).templates || [];
 

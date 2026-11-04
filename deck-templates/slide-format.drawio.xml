@@ -1,0 +1,242 @@
+<!-- Yujun Huang grants an additional permission for this file under section 7 of the GNU General Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides. -->
+<mxfile host="65bd71144e" pages="6">
+    <diagram id="1-1-title-slide" name="title-slide-1">
+        <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="0" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="1" shadow="0">
+            <root>
+                <mxCell id="p1-0"/>
+                <mxCell id="p1-1" parent="p1-0"/>
+                <mxCell id="p1-title" parent="p1-1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=55;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;div style=&quot;line-height: 69px&quot;&gt;&lt;b&gt;The title of the talk, first line&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;line-height: 69px&quot;&gt;&lt;b&gt;and its second line&lt;/b&gt;&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="124" width="1307.24" x="306.38" y="166.83" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-date" parent="p1-1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=45;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;i&gt;The date of the talk&lt;/i&gt;" vertex="1">
+                    <mxGeometry height="45" width="600" x="660" y="416.33" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-author" parent="p1-1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=45;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;b&gt;Author Name&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="45" width="600" x="660" y="528.33" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-affiliation" parent="p1-1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;div style=&quot;line-height: 40px&quot;&gt;Department, Laboratory, Institute&lt;/div&gt;&lt;div style=&quot;line-height: 40px&quot;&gt;University, City (Country)&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="80" width="837.7" x="541.15" y="686.49" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="1-2-section-divider" name="section-divider-1">
+        <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="0" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="1" shadow="0">
+            <root>
+                <mxCell id="p2-0"/>
+                <mxCell id="p2-1" parent="p2-0"/>
+                <mxCell id="p2-title" parent="p2-1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=44;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;b&gt;Section title&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="44" width="281.73" x="819.13" y="32.63" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-number" parent="p2-1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=22;fontFamily=Helvetica;fontColor=#000000;" value="%slide%/%slides%" vertex="1">
+                    <mxGeometry height="26" width="200" x="1696" y="1037" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="1-3-title-and-body" name="title-and-body-1">
+        <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="0" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="1" shadow="0">
+            <root>
+                <mxCell id="p3-0"/>
+                <mxCell id="p3-1" parent="p3-0"/>
+                <mxCell id="p3-title" parent="p3-1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=44;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;b&gt;The title of the slide&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="44" width="842.73" x="538.63" y="33.06" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-body" parent="p3-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;div style=&quot;line-height: 40px&quot;&gt;&lt;ul style=&quot;margin: 0; padding-left: 26.07px; list-style-type: disclosure-closed&quot;&gt;&lt;li&gt;&lt;b&gt;A first point&lt;/b&gt;&lt;ul style=&quot;margin: 0; padding-left: 43.93px; list-style-type: &amp;#39;-  &amp;#39;&quot;&gt;&lt;li style=&quot;margin-top: 8.44px&quot;&gt;Something it needs, with a word in &lt;i&gt;italic&lt;/i&gt;&lt;/li&gt;&lt;li style=&quot;margin-top: 8.44px&quot;&gt;A cost \(\textcolor{dpred}{c} \in \mathbb{R}_{\geq 0}\) written inside the sentence&lt;/li&gt;&lt;li style=&quot;margin-top: 8.44px&quot;&gt;A line long enough to break, where the break is a&lt;br&gt;br element and the second line hangs at the text edge&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li style=&quot;margin-top: 8.44px&quot;&gt;&lt;b&gt;A second point&lt;/b&gt;&lt;ul style=&quot;margin: 0; padding-left: 43.93px; list-style-type: &amp;#39;-  &amp;#39;&quot;&gt;&lt;li style=&quot;margin-top: 8.44px&quot;&gt;Add an item by typing one more li element&lt;/li&gt;&lt;li style=&quot;margin-top: 8.44px&quot;&gt;Change the marker in list-style-type&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="400" width="932.66" x="486.62" y="158" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-number" parent="p3-1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=22;fontFamily=Helvetica;fontColor=#000000;" value="%slide%/%slides%" vertex="1">
+                    <mxGeometry height="26" width="200" x="1696" y="1037" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="slide-format" name="every-construct-1">
+        <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="0" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="1" shadow="0">
+            <root>
+                <mxCell id="L0"/>
+                <mxCell id="L1" parent="L0"/>
+                <mxCell id="lab-12" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Slide-number cell&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: text;html=1;align=right;whiteSpace=nowrap;fontSize=22;fontFamily=Helvetica;fontColor=#000000&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;value: %slide%/%slides%. The build writes the slide&#39;s number and the total in, so the slide shows 45/61, and the editor shows the tokens. On a slide the cell is 200 wide at x=1696, y=1037, with align=right, so the number ends at x=1896 and a longer number grows to the left.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="1523" y="790" as="geometry"/>
+                </mxCell>
+                <mxCell id="t-title" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;fontSize=32;fontFamily=Helvetica;fontStyle=1;" value="Slide format: one example of each construct, with the style keys that make it" vertex="1">
+                    <mxGeometry height="44" width="1500" x="40" y="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-text1" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000;" value="One line of text" vertex="1">
+                    <mxGeometry height="40" width="230" x="40" y="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="lab-1" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Text box of one line&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: text;html=1;whiteSpace=nowrap;overflow=visible;align=left;verticalAlign=middle;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;One cell per line, with a geometry height of the font size or a little more.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="280" y="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-text2" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;fontSize=24;fontFamily=STIX Two Text;fontColor=#004d7f;" value="&lt;div style=&quot;line-height: 36px&quot;&gt;&lt;i&gt;Several lines of text&lt;/i&gt;&lt;/div&gt;&lt;div style=&quot;line-height: 36px&quot;&gt;&lt;b&gt;with their own&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;line-height: 36px&quot;&gt;line height&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="108" width="230" x="660" y="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="lab-2" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Text box of several lines&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: the same keys as one line, with fontSize=24&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;value: one div per line, each with style=&amp;quot;line-height: 36px&amp;quot;; geometry height is lines times line height.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="900" y="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-rect" parent="L1" style="rounded=0;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#000000;strokeWidth=2;" value="" vertex="1">
+                    <mxGeometry height="110" width="200" x="1280" y="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="lab-3" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Rectangle&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: rounded=0;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#000000;strokeWidth=2&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;Use strokeColor=none for a fill alone and fillColor=none for an outline alone.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="1520" y="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-round" parent="L1" style="rounded=1;absoluteArcSize=1;arcSize=23;html=1;whiteSpace=wrap;fillColor=none;strokeColor=#000000;strokeWidth=2;" value="" vertex="1">
+                    <mxGeometry height="110" width="200" x="40" y="380" as="geometry"/>
+                </mxCell>
+                <mxCell id="lab-4" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Rounded rectangle, absolute corner radius&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: rounded=1;absoluteArcSize=1;arcSize=23;html=1;whiteSpace=wrap;fillColor=none;strokeColor=#000000;strokeWidth=2&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;arcSize is the corner radius in units because absoluteArcSize=1.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="280" y="330" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-ellipse" parent="L1" style="ellipse;html=1;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#000000;strokeWidth=2;" value="" vertex="1">
+                    <mxGeometry height="110" width="200" x="660" y="380" as="geometry"/>
+                </mxCell>
+                <mxCell id="lab-5" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Ellipse&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: ellipse;html=1;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#000000;strokeWidth=2&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;A circle is an ellipse with equal width and height.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="900" y="330" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-stencil" parent="L1" style="shape=stencil(fVHREoIgEPwaXhnkchyfzf4DlYKRwEHS+vtgriZ0qrfbvd27PSDQzEpMknA2B+9GueohKAJHwrm2SnodYhW7L65gtKg4UitSNS1ZhYyYJ9kHpBfhteiMTB1oCTSd6MeLdzc7IJ5EWpSqq1tSgDsaGc565OiEQqNtJgR64OVGnKX76siivh0UeP3b8CdLLD4XRLA/7+y83GBtDD5xPmKvihT+B7RP);html=1;whiteSpace=wrap;fillColor=#000000;strokeColor=none;" value="" vertex="1">
+                    <mxGeometry height="107" width="100" x="1340" y="385" as="geometry"/>
+                </mxCell>
+                <mxCell id="lab-6" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Shape that no draw.io shape matches&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: shape=stencil(...);html=1;whiteSpace=wrap;fillColor=#000000;strokeColor=none&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;The stencil text is the path of the shape, compressed as draw.io compresses a stencil. Copy the whole cell, then change the size in mxGeometry and the colours in the style.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="1520" y="330" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-att-a" parent="L1" style="rounded=0;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;" value="" vertex="1">
+                    <mxGeometry height="70" width="80" x="40" y="590" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-att-b" parent="L1" style="rounded=0;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;" value="" vertex="1">
+                    <mxGeometry height="70" width="80" x="170" y="690" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-att-edge" edge="1" parent="L1" source="ex-att-a" style="edgeStyle=none;html=1;rounded=0;endArrow=block;endFill=1;endSize=8;startArrow=none;strokeColor=#c82506;strokeWidth=3;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;entryPerimeter=0;" target="ex-att-b" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="lab-7" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Edge attached at both ends&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: edgeStyle=none;html=1;endArrow=block;endFill=1;strokeColor=#c82506;strokeWidth=3;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;entryPerimeter=0&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;Edge attributes: source and target name the shapes. exitX and exitY are fractions along the side. Give no sourcePoint and no targetPoint, so that draw.io computes the ends.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="280" y="570" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-curve" edge="1" parent="L1" style="edgeStyle=none;curved=1;html=1;endArrow=block;endFill=1;endSize=8;startArrow=none;strokeColor=#000000;strokeWidth=2;" value="">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="765" y="600"/>
+                        </Array>
+                        <mxPoint x="660" y="740" as="sourcePoint"/>
+                        <mxPoint x="870" y="740" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="lab-8" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Curved edge with one waypoint&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: edgeStyle=none;curved=1;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=2&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;One mxPoint in Array as=&amp;quot;points&amp;quot; sets the depth of the bow. This edge has free ends, set by sourcePoint and targetPoint.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="900" y="570" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-oval-box" parent="L1" style="rounded=0;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;" value="" vertex="1">
+                    <mxGeometry height="110" width="100" x="1280" y="620" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-oval-edge" edge="1" parent="L1" style="edgeStyle=none;html=1;rounded=0;startArrow=none;endArrow=oval;endFill=1;endSize=11;strokeColor=#0e8005;strokeWidth=2;entryX=1;entryY=0.5;entryDx=6.5;entryDy=0;entryPerimeter=0;" target="ex-oval-box" value="">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1495" y="675" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="lab-9" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Edge with a round terminal&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: edgeStyle=none;html=1;endArrow=oval;endFill=1;endSize=11;strokeColor=#0e8005;strokeWidth=2;entryX=1;entryY=0.5;entryDx=6.5;entryDy=0;entryPerimeter=0&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;entryDx=6.5 is the radius of the terminal, (endSize + strokeWidth) / 2, along the outward normal of the right-hand side. The terminal then sits against the shape.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="1520" y="570" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-eq" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;fontSize=40;fontColor=#000000;" value="\(\textcolor{dpgreen}{F_1}\)" vertex="1">
+                    <mxGeometry height="60" width="120" x="40" y="870" as="geometry"/>
+                </mxCell>
+                <mxCell id="lab-10" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Equation label with a defined colour&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: text;html=1;overflow=visible;fontSize=40;fontColor=#000000&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;value: \&lt;span&gt;&lt;/span&gt;(\textcolor{dpgreen}{F_1}\&lt;span&gt;&lt;/span&gt;). The colour dpgreen comes from the setting drawioSlides.colors of the deck.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="280" y="810" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-pic" parent="L1" style="shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;aspect=fill;image=data:image/png,iVBORw0KGgoAAAANSUhEUgAAAGAAAAA2CAIAAAC3LQuFAAAB7klEQVR42u3YvW4CMQwA4BTdM/A0nZg6dWDkEToz3sh4U1UxMt7IwMTUR+iD9Ck6IFVRfhzHsZNwZw9IQMQlHz47uZfp62I04jEYY/bvbwoRjOvtvlEFOBRIgRRIgWrEOM0KlNAJGg2LXPDv94f9drs7I3NnnObT8bBkIIfG/jDI5GSNo7M0oKCO/a1t5N9Qvs6iahCs44xB6iy2BmU1rBhNvQwCekTN9AmOhHVqANk6okaESOqIA/ki/RhhdGSBYhbjNDdnQurU62L+hBoa4XUEgez1PyZ0Oh6cmTEawXtl2khBIGDlckZPc5pP7jKEjDCpkZs+/EDIPZhvxMIEr5+gwwyUtUMVKtvb3fnz59X/kKYjeNTAdIrHGPhpA+0f+jcq+TXmDPLbFo2SnEf482cDoMK7o9zIv7tZdHiAskoP3gjPxDIBKSDGydHKtqhOKRD75HJ329I6RUByk0MaVdBhK9Lsk4ON/AolpEMHIjf18rIt1M45gaqdMJNlm7GdswFVy+0kgfSlKUCVdfCPBLoAaqVjX85+7QuorY5v1B1Qc51WsclNn1XpoID6f2zcEqiH0tMvkOpAQKqTUaRXqxMFWnPbSgOtvG0lgLT0JIBsEdUJ32JNjjxPVqRVp+iwqkAaCoSOwRhzvd0VIhZ/cpEOTZx0jh4AAAAASUVORK5CYII=;" value="" vertex="1">
+                    <mxGeometry height="115" width="213" x="660" y="840" as="geometry"/>
+                </mxCell>
+                <mxCell id="lab-11" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=hidden;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Picture, embedded&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;style: shape=image;html=1;imageAspect=0;aspect=fill;image=data:image/png,...&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;The picture is embedded as data, which every draw.io editor shows. A cell with image=assets/name.png shows its picture in the editor of Draw.io Slides from the file, and in another draw.io editor after the mode embed-pictures of the command line of Draw.io Slides writes the picture into the cell. The build writes the picture into the slides by itself.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="225" width="350" x="900" y="810" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex-slide" parent="L1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;fontSize=22;fontFamily=Helvetica;fontColor=#000000;" value="%slide%/%slides%" vertex="1">
+                    <mxGeometry height="26" width="200" x="1696" y="1037" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="1-5-text-with-mathematics" name="text-with-mathematics-1">
+        <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="0" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="1" shadow="0">
+            <root>
+                <mxCell id="p5-0"/>
+                <mxCell id="p5-1" parent="p5-0"/>
+                <mxCell id="p5-title" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=44;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;b&gt;Text with mathematics in one cell&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="44" width="1000" x="460" y="33" as="geometry"/>
+                </mxCell>
+                <mxCell id="p5-sentence" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="The cost \(\textcolor{dpred}{c}\) of a design is at most \(\textcolor{dpred}{r_1} + \textcolor{dpred}{r_2}\)." vertex="1">
+                    <mxGeometry height="44" width="860" x="120" y="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="p5-lab-sentence" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=15;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;A formula inside a sentence&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;value: The cost \&lt;span&gt;&lt;/span&gt;(\textcolor{dpred}{c}\&lt;span&gt;&lt;/span&gt;) of a design is at most \&lt;span&gt;&lt;/span&gt;(\textcolor{dpred}{r_1} + \textcolor{dpred}{r_2}\&lt;span&gt;&lt;/span&gt;).&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;The formula is written between \&lt;span&gt;&lt;/span&gt;( and \&lt;span&gt;&lt;/span&gt;) inside the label of the sentence, so the sentence is one cell that a person edits as one line. MathJax sets the formula in the font size of the words around it.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="170" width="760" x="1060" y="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="p5-list" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;div style=&quot;line-height: 40px&quot;&gt;&lt;ul style=&quot;margin: 0; padding-left: 26.07px; list-style-type: disclosure-closed&quot;&gt;&lt;li&gt;A functionality \(\textcolor{dpgreen}{F}\) the design provides&lt;ul style=&quot;margin: 0; padding-left: 43.93px; list-style-type: &amp;#39;-  &amp;#39;&quot;&gt;&lt;li style=&quot;margin-top: 8.44px&quot;&gt;at the price of a resource \(\textcolor{dpred}{R}\)&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="96" width="860" x="120" y="360" as="geometry"/>
+                </mxCell>
+                <mxCell id="p5-lab-list" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=15;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;A formula inside a list item&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;value: &amp;lt;li&amp;gt;at the price of a resource \&lt;span&gt;&lt;/span&gt;(\textcolor{dpred}{R}\&lt;span&gt;&lt;/span&gt;)&amp;lt;/li&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;An item is written as a sentence is, and the list stays one cell with one li per item.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="170" width="760" x="1060" y="350" as="geometry"/>
+                </mxCell>
+                <mxCell id="p5-symbol" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;b&gt;can&lt;/b&gt; &lt;i&gt;achieve&lt;/i&gt; &lt;font color=&quot;#008000&quot;&gt;&lt;i&gt;e&lt;/i&gt;&lt;sub style=&quot;line-height: 0&quot;&gt;1&lt;/sub&gt;&lt;/font&gt; &lt;i&gt;with&lt;/i&gt; &lt;font color=&quot;#b20000&quot;&gt;&lt;i&gt;w&lt;/i&gt;&lt;/font&gt;&lt;i&gt;,&lt;/i&gt;" vertex="1">
+                    <mxGeometry height="44" width="860" x="120" y="560" as="geometry"/>
+                </mxCell>
+                <mxCell id="p5-lab-symbol" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=15;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;A symbol written as text&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;value: &amp;lt;i&amp;gt;e&amp;lt;/i&amp;gt;&amp;lt;sub style=&amp;quot;line-height: 0&amp;quot;&amp;gt;1&amp;lt;/sub&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;A symbol such as e1 goes into the line of its sentence as an italic letter with a sub or a sup, rather than into a text box of its own. A sub or a sup takes line-height: 0, or its line grows taller than the lines around it.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="170" width="760" x="1060" y="530" as="geometry"/>
+                </mxCell>
+                <mxCell id="p5-sized" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="A formula larger than its words: &lt;span style=&quot;font-size: 40px&quot;&gt;\(\textcolor{dpgreen}{F_1}\)&lt;/span&gt;" vertex="1">
+                    <mxGeometry height="50" width="860" x="120" y="760" as="geometry"/>
+                </mxCell>
+                <mxCell id="p5-lab-sized" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=15;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;A formula at a size of its own&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;value: &amp;lt;span style=&amp;quot;font-size: 40px&amp;quot;&amp;gt;\&lt;span&gt;&lt;/span&gt;(\textcolor{dpgreen}{F_1}\&lt;span&gt;&lt;/span&gt;)&amp;lt;/span&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;A span with a font-size around the formula sets it apart from the words. Give the span the size of the formula and font-family: Helvetica, because MathJax scales a formula to the ex-height of the face around it.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="170" width="760" x="1060" y="720" as="geometry"/>
+                </mxCell>
+                <mxCell id="p5-display" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=40;fontFamily=Helvetica;fontColor=#000000;" value="\(\textcolor{dpgreen}{F_1} = \textcolor{dpgreen}{\{ e_1 \}}\)" vertex="1">
+                    <mxGeometry height="60" width="400" x="120" y="930" as="geometry"/>
+                </mxCell>
+                <mxCell id="p5-lab-display" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=15;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;A formula on its own&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;A formula that sits on no line of text stays a cell of its own, as on the page every-construct-1.&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;The colours of every formula on this page come from the setting drawioSlides.colors of the deck.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="160" width="760" x="1060" y="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="w8VE--zxg7rw2U7bOJ7l-0" parent="p5-1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;fontSize=22;fontFamily=Helvetica;fontColor=#000000;" value="%slide%/%slides%" vertex="1">
+                    <mxGeometry height="26" width="200" x="1696" y="1037" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram name="text-with-mathematics-2" id="Av_GfrzxETuXMI_izi8V">
+        <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="0" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="1" shadow="0">
+            <root>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-0"/>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-3" parent="XJcQbYN_5dyGYyAC7l0g-0"/>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-5" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=44;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;b&gt;Text with mathematics in one cell continues&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="44" width="1000" x="460" y="33" as="geometry"/>
+                </mxCell>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-6" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="The cost \(\textcolor{dpred}{c}\) of a design is at most \(\textcolor{dpred}{r_1} + \textcolor{dpred}{r_2}\)." vertex="1">
+                    <mxGeometry height="44" width="860" x="120" y="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-7" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=15;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;A formula inside a sentence&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;value: The cost \&lt;span&gt;&lt;/span&gt;(\textcolor{dpred}{c}\&lt;span&gt;&lt;/span&gt;) of a design is at most \&lt;span&gt;&lt;/span&gt;(\textcolor{dpred}{r_1} + \textcolor{dpred}{r_2}\&lt;span&gt;&lt;/span&gt;).&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;The formula is written between \&lt;span&gt;&lt;/span&gt;( and \&lt;span&gt;&lt;/span&gt;) inside the label of the sentence, so the sentence is one cell that a person edits as one line. MathJax sets the formula in the font size of the words around it.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="170" width="760" x="1060" y="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-8" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;div style=&quot;line-height: 40px&quot;&gt;&lt;ul style=&quot;margin: 0; padding-left: 26.07px; list-style-type: disclosure-closed&quot;&gt;&lt;li&gt;A functionality \(\textcolor{dpgreen}{F}\) the design provides&lt;ul style=&quot;margin: 0; padding-left: 43.93px; list-style-type: &amp;#39;-  &amp;#39;&quot;&gt;&lt;li style=&quot;margin-top: 8.44px&quot;&gt;at the price of a resource \(\textcolor{dpred}{R}\)&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="96" width="860" x="120" y="360" as="geometry"/>
+                </mxCell>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-9" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=15;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;A formula inside a list item&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;value: &amp;lt;li&amp;gt;at the price of a resource \&lt;span&gt;&lt;/span&gt;(\textcolor{dpred}{R}\&lt;span&gt;&lt;/span&gt;)&amp;lt;/li&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;An item is written as a sentence is, and the list stays one cell with one li per item.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="170" width="760" x="1060" y="350" as="geometry"/>
+                </mxCell>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-10" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="&lt;b&gt;can&lt;/b&gt; &lt;i&gt;achieve&lt;/i&gt; &lt;font color=&quot;#008000&quot;&gt;&lt;i&gt;e&lt;/i&gt;&lt;sub style=&quot;line-height: 0&quot;&gt;1&lt;/sub&gt;&lt;/font&gt; &lt;i&gt;with&lt;/i&gt; &lt;font color=&quot;#b20000&quot;&gt;&lt;i&gt;w&lt;/i&gt;&lt;/font&gt;&lt;i&gt;,&lt;/i&gt;" vertex="1">
+                    <mxGeometry height="44" width="860" x="120" y="560" as="geometry"/>
+                </mxCell>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-11" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=15;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;A symbol written as text&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;value: &amp;lt;i&amp;gt;e&amp;lt;/i&amp;gt;&amp;lt;sub style=&amp;quot;line-height: 0&amp;quot;&amp;gt;1&amp;lt;/sub&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;A symbol such as e1 goes into the line of its sentence as an italic letter with a sub or a sup, rather than into a text box of its own. A sub or a sup takes line-height: 0, or its line grows taller than the lines around it.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="170" width="760" x="1060" y="530" as="geometry"/>
+                </mxCell>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-12" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=32;fontFamily=STIX Two Text;fontColor=#000000;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DSTIX%2BTwo%2BText%3Aital%2Cwght%400%2C400%3B0%2C700%3B1%2C400%3B1%2C700%26display%3Dswap;" value="A formula larger than its words: &lt;span style=&quot;font-size: 40px&quot;&gt;\(\textcolor{dpgreen}{F_1}\)&lt;/span&gt;" vertex="1">
+                    <mxGeometry height="50" width="860" x="120" y="760" as="geometry"/>
+                </mxCell>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-13" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=15;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;A formula at a size of its own&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px; word-break: break-all&quot;&gt;value: &amp;lt;span style=&amp;quot;font-size: 40px&amp;quot;&amp;gt;\&lt;span&gt;&lt;/span&gt;(\textcolor{dpgreen}{F_1}\&lt;span&gt;&lt;/span&gt;)&amp;lt;/span&amp;gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;A span with a font-size around the formula sets it apart from the words. Give the span the size of the formula and font-family: Helvetica, because MathJax scales a formula to the ex-height of the face around it.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="170" width="760" x="1060" y="720" as="geometry"/>
+                </mxCell>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-14" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=nowrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=40;fontFamily=Helvetica;fontColor=#000000;" value="\(\textcolor{dpgreen}{F_1} = \textcolor{dpgreen}{\{ e_1 \}}\)" vertex="1">
+                    <mxGeometry height="60" width="400" x="120" y="930" as="geometry"/>
+                </mxCell>
+                <mxCell id="XJcQbYN_5dyGYyAC7l0g-15" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;overflow=visible;spacing=0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;fontSize=15;fontFamily=Helvetica;fontColor=#000000;" value="&lt;div style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;A formula on its own&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;A formula that sits on no line of text stays a cell of its own, as on the page every-construct-1.&lt;/div&gt;&lt;div style=&quot;font-size: 15px; margin-top: 4px&quot;&gt;The colours of every formula on this page come from the setting drawioSlides.colors of the deck.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="160" width="760" x="1060" y="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="WB4fnHfAr1MO4X2qlTHy-0" parent="XJcQbYN_5dyGYyAC7l0g-3" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=nowrap;overflow=visible;spacing=0;fontSize=22;fontFamily=Helvetica;fontColor=#000000;" value="%slide%/%slides%" vertex="1">
+                    <mxGeometry height="26" width="200" x="1696" y="1037" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,8 +1,9 @@
 // The bars of controls of a video and of an embedded page, shared by the draw.io editor and the
 // HTML deck, so that both show the same bar.
 //
-// The editor loads this file as a plugin before media.plugin.js, which uses it, and deck_html.py
-// writes its text into the HTML deck, whose page html-deck.html uses it.  The file defines
+// The editor loads this file as a plugin before media.plugin.js, which uses it, and the build of a
+// deck, src/deck/htmlDeck.ts of the extension, writes its text into the HTML deck, whose page
+// deck-templates/html-deck.html uses it.  The file defines
 // window.MediaBar and nothing else, and does nothing until a bar is made.
 //
 // The bar of a video offers: back to the start, back 5 s, play and pause, forward 5 s, a slider of
@@ -31,6 +32,9 @@
 // the bar.  Tab then goes round the controls of the bar, and a key with which the browser would
 // scroll the view, such as an arrow on a button, does nothing unless its control uses it.  The
 // caller gives the focus back to the page.
+//
+// Yujun Huang grants an additional permission for this file under section 7 of the GNU General
+// Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
 (function (global) {
   'use strict';
 

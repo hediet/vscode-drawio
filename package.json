@@ -36,7 +36,7 @@
 		"workspace"
 	],
 	"engines": {
-		"vscode": "^1.70.0"
+		"vscode": "^1.90.0"
 	},
 	"categories": [
 		"Visualization"
@@ -53,12 +53,12 @@
 	"capabilities": {
 		"untrustedWorkspaces": {
 			"supported": "limited",
-			"description": "In Restricted Mode, workspace settings cannot load custom libraries or plugins, or change which Draw.io app the editor loads.",
+			"description": "In Restricted Mode, workspace settings cannot load custom libraries or plugins, or change which Draw.io app the editor loads, and the commands that set up, build, watch, check or outline a presentation or convert its colours do not run.",
 			"restrictedConfigurations": [
 				"drawioSlides.customLibraries",
 				"drawioSlides.plugins",
 				"drawioSlides.slides",
-				"drawioSlides.frameworkFolder",
+				"drawioSlides.browserPath",
 				"drawioSlides.offline",
 				"drawioSlides.online-url"
 			]
@@ -176,6 +176,56 @@
 			{
 				"command": "drawioSlides.setUpDeck",
 				"title": "Set Up a Presentation in This Folder",
+				"category": "Draw.io Slides"
+			},
+			{
+				"command": "drawioSlides.buildDeck",
+				"title": "Build the Presentation",
+				"category": "Draw.io Slides"
+			},
+			{
+				"command": "drawioSlides.buildDeckHtml",
+				"title": "Build the HTML File of the Presentation",
+				"category": "Draw.io Slides"
+			},
+			{
+				"command": "drawioSlides.buildDeckPdf",
+				"title": "Build the PDF of the Presentation",
+				"category": "Draw.io Slides"
+			},
+			{
+				"command": "drawioSlides.watchDeck",
+				"title": "Watch the Presentation",
+				"category": "Draw.io Slides"
+			},
+			{
+				"command": "drawioSlides.stopWatchingDeck",
+				"title": "Stop Watching the Presentation",
+				"category": "Draw.io Slides"
+			},
+			{
+				"command": "drawioSlides.checkDeck",
+				"title": "Check the Spelling and Grammar of the Presentation",
+				"category": "Draw.io Slides"
+			},
+			{
+				"command": "drawioSlides.outlineDeck",
+				"title": "Show the Outline of the Presentation",
+				"category": "Draw.io Slides"
+			},
+			{
+				"command": "drawioSlides.importColoursFromTex",
+				"title": "Import Colours from TeX",
+				"category": "Draw.io Slides"
+			},
+			{
+				"command": "drawioSlides.exportColoursToTex",
+				"title": "Export Colours to TeX",
+				"category": "Draw.io Slides"
+			},
+			{
+				"command": "drawioSlides.installBrowser",
+				"title": "Install Chromium for the Build",
 				"category": "Draw.io Slides"
 			},
 			{
@@ -415,13 +465,13 @@
 						"type": "boolean",
 						"default": false,
 						"scope": "resource",
-						"description": "Treat the drawings as slides of the draw.io presentation framework: load its plugins, which play the videos and pages of the cells, style the lists and check the language, and draw the pictures of the deck folder."
+						"description": "Treat the drawings as slides of a deck: load the plugins of the slides, which play the videos and pages of the cells, style the lists and check the language, and draw the pictures of the deck folder."
 					},
-					"drawioSlides.frameworkFolder": {
+					"drawioSlides.browserPath": {
 						"type": "string",
 						"scope": "machine",
 						"default": "",
-						"description": "The folder of the draw.io presentation framework, which holds `tools/draw-io/build-slides.py`, as an absolute path or a path that starts with `~/`. The command Set Up a Presentation in This Folder runs that script, and asks for the folder when this setting names none. Only the user settings set it, because the command runs a script from it."
+						"description": "The path of the program of a Chrome, an Edge or a Chromium, with which the commands that build a presentation export its pages and print its PDF. When this setting is empty, the build launches the first that starts of the Chromium that the command Install Chromium for the Build installs, Google Chrome and Microsoft Edge. Only the user settings set it, because the build runs the program."
 					},
 					"drawioSlides.listStyles": {
 						"type": "object",
@@ -460,7 +510,7 @@
 								}
 							]
 						},
-						"description": "The style of each level of a bulleted and of a numbered list that the list buttons of draw.io make, and the gap above each item but the first of a first level. A level deeper than the lists give takes the last style. The editor follows a change of this setting without a reload. The build of the draw.io presentation framework reads the same setting.",
+						"description": "The style of each level of a bulleted and of a numbered list that the list buttons of draw.io make, and the gap above each item but the first of a first level. A level deeper than the lists give takes the last style. The editor follows a change of this setting without a reload. The build of a deck reads the same setting.",
 						"properties": {
 							"itemGap": {
 								"type": "string"
@@ -626,13 +676,13 @@
 						"type": "string",
 						"scope": "resource",
 						"default": "http://localhost:8081",
-						"description": "The address of the LanguageTool server that checks the spelling and the grammar of the label being edited. The check of every slide of the draw.io presentation framework, `npm run check`, reads the same setting."
+						"description": "The address of the LanguageTool server that checks the spelling and the grammar of the label being edited. The command Check the Spelling and Grammar of the Presentation and `npm run check` of a presentation check every slide with the same server."
 					},
 					"drawioSlides.colors": {
 						"type": "object",
 						"scope": "resource",
 						"default": {},
-						"description": "The colours of a deck, each a name of letters and digits that starts with a letter and a value `#RRGGBB`. In a drawing whose `drawioSlides.slides` is true, the editor defines each colour for the formulas of every page, which name it as in `\\textcolor{accent}{x}`, names it in the colour picker, adds it to the presets of the picker in the order of this setting and follows a change of this setting without a reload. A colour of `drawioSlides.listStyles` and of `drawioSlides.customColorSchemes` may be the name of a colour of this setting. The build of the draw.io presentation framework reads the same setting, and its `tools/draw-io/color-settings.py` converts the `\\definecolor` lines of a TeX file into this setting and back.",
+						"description": "The colours of a deck, each a name of letters and digits that starts with a letter and a value `#RRGGBB`. In a drawing whose `drawioSlides.slides` is true, the editor defines each colour for the formulas of every page, which name it as in `\\textcolor{accent}{x}`, names it in the colour picker, adds it to the presets of the picker in the order of this setting and follows a change of this setting without a reload. A colour of `drawioSlides.listStyles` and of `drawioSlides.customColorSchemes` may be the name of a colour of this setting. The build of a presentation reads the same setting, and the commands Import Colours from TeX and Export Colours to TeX convert the `\\definecolor` lines of a TeX file into this setting and back.",
 						"propertyNames": {
 							"pattern": "^[A-Za-z][A-Za-z0-9]*$",
 							"patternErrorMessage": "A name of a colour is letters and digits and starts with a letter."
@@ -899,7 +949,7 @@
 	},
 	"scripts": {
 		"lint": "echo 'add linting'",
-		"test": "node --test test/slide-colors/*.test.js test/deck-setup/*.test.js test/codeblock-editor/*.test.js",
+		"test": "node --test test/slide-colors/*.test.js test/deck-setup/*.test.js test/codeblock-editor/*.test.js test/deck/*.test.js",
 		"build": "yarn build-extension && yarn build-plugins && yarn package-extension",
 		"build-extension": "webpack --mode production",
 		"build-plugins": "webpack --mode production --config ./drawio-custom-plugins/webpack.config.ts",
@@ -913,7 +963,11 @@
 	"files": [
 		"dist/custom-drawio-plugins/**/*",
 		"drawio-custom-plugins/slides/**/*",
+		"deck-templates/**/*",
+		"skills/**/*",
+		"node_modules/playwright-core/**/*",
 		"dist/extension/**/*",
+		"dist/cli.js",
 		"dist/codeblock-editor/**/*",
 		"src/inline-editor/**/*",
 		"media/**/*",
@@ -932,7 +986,8 @@
 		"drawio/src/main/webapp/styles/**/*",
 		"drawio/src/main/webapp/templates/**/*",
 		"drawio/src/main/webapp/index.html",
-		"LICENSE.md"
+		"LICENSE{,-EXCEPTION}.md",
+		"dist/THIRD-PARTY-NOTICES.md"
 	],
 	"devDependencies": {
 		"@actions/exec": "^1.0.4",
@@ -941,7 +996,8 @@
 		"@types/copy-webpack-plugin": "^8.0.1",
 		"@types/mithril": "^2.0.4",
 		"@types/node": "^22.10.10",
-		"@types/vscode": "1.70.0",
+		"@types/pngjs": "6.0.5",
+		"@types/vscode": "1.90.0",
 		"@types/xml-formatter": "^1.1.0",
 		"@vscode/vsce": "^3.2.1",
 		"@vscode/web-editors": "0.0.2-76",
@@ -969,12 +1025,15 @@
 		"@hediet/std": "0.6.0",
 		"@knuddels/mobx-logger": "^1.1.1",
 		"buffer": "^6.0.3",
+		"entities": "^4.5.0",
 		"js-sha256": "^0.9.0",
 		"jsonc-parser": "^3.3.1",
 		"mithril": "^2.0.4",
 		"mobx": "5.15.4",
 		"mobx-utils": "5.5.7",
 		"path-browserify": "^1.0.1",
+		"playwright-core": "1.64.1",
+		"pngjs": "7.0.0",
 		"vsls": "^1.0.3015",
 		"xml-formatter": "^2.0.1",
 		"xml-parser-xo": "^3.0.0"
