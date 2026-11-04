@@ -7,8 +7,9 @@
 // label is edited, it sits in the tab Text, the one tab that draw.io then shows, before the section
 // Advanced, and gives the label its font colour.
 //
-// Each row of the section holds a swatch, the name and the buttons Fill, Line and Font of a
-// colour, a button ✎ that changes the value of the colour, and a button × that removes the colour.
+// Each row of the section holds a swatch and the name of a colour on one line, and under them the
+// buttons Fill, Line and Font, a button ✎ that changes the value of the colour, and a button × that
+// removes the colour.
 // A click on the swatch gives the selection the colour.  While a label of formatted text is
 // edited, the selected text takes the colour as its font colour, as with the button Font, and
 // while a label of plain text is edited, the cell takes it as its font colour.  Otherwise each selected cell
@@ -355,13 +356,24 @@ Draw.loadPlugin(function (ui) {
   function colourRow(colourOfSettings, action, buttons) {
     // A copy of the colour of the settings, whose name a rename in the row changes.
     var colour = {name: colourOfSettings.name, value: colourOfSettings.value};
+    // The swatch and the name take a line of their own, so that a narrow panel cuts no name, and
+    // the buttons follow on a second line under the name.
     var row = document.createElement('div');
-    row.style.display = 'flex';
-    row.style.alignItems = 'center';
-    row.style.gap = '2px';
-    row.style.padding = '1px 0';
-    row.appendChild(swatch(colour, action));
-    row.appendChild(nameField(colour));
+    row.style.padding = '2px 0';
+    var head = document.createElement('div');
+    head.style.display = 'flex';
+    head.style.alignItems = 'center';
+    head.style.gap = '2px';
+    head.appendChild(swatch(colour, action));
+    head.appendChild(nameField(colour));
+    row.appendChild(head);
+    var controls = document.createElement('div');
+    controls.style.display = 'flex';
+    controls.style.flexWrap = 'wrap';
+    controls.style.gap = '2px';
+    controls.style.marginTop = '1px';
+    controls.style.paddingLeft = '31px';
+    row.appendChild(controls);
 
     buttons.forEach(function (button) {
       var restoreTextSelection = null;
@@ -371,13 +383,13 @@ Draw.loadPlugin(function (ui) {
       });
 
       restoreTextSelection = saveTextSelectionOnPress(element);
-      row.appendChild(element);
+      controls.appendChild(element);
     });
 
-    row.appendChild(smallButton('✎', mxResources.get('edit') + ': ' + colour.name, function () {
+    controls.appendChild(smallButton('✎', mxResources.get('edit') + ': ' + colour.name, function () {
       pickColourValue(colour);
     }));
-    row.appendChild(smallButton('×', mxResources.get('remove') + ': ' + colour.name,
+    controls.appendChild(smallButton('×', mxResources.get('remove') + ': ' + colour.name,
       function () {
         sendEdit({operation: 'remove', name: colour.name});
       }));
