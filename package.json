@@ -52,6 +52,7 @@
 				"drawioSlides.customLibraries",
 				"drawioSlides.plugins",
 				"drawioSlides.slides",
+				"drawioSlides.frameworkFolder",
 				"drawioSlides.offline",
 				"drawioSlides.online-url"
 			]
@@ -164,6 +165,11 @@
 			{
 				"command": "drawioSlides.newDiagram",
 				"title": "New Draw.io Diagram",
+				"category": "Draw.io Slides"
+			},
+			{
+				"command": "drawioSlides.setUpDeck",
+				"title": "Set Up a Presentation in This Folder",
 				"category": "Draw.io Slides"
 			},
 			{
@@ -404,6 +410,12 @@
 						"default": false,
 						"scope": "resource",
 						"description": "Treat the drawings as slides of the draw.io presentation framework: load its plugins, which play the videos and pages of the cells, style the lists and check the language, and draw the pictures of the deck folder."
+					},
+					"drawioSlides.frameworkFolder": {
+						"type": "string",
+						"scope": "machine",
+						"default": "",
+						"description": "The folder of the draw.io presentation framework, which holds `tools/draw-io/build-slides.py`, as an absolute path or a path that starts with `~/`. The command Set Up a Presentation in This Folder runs that script, and asks for the folder when this setting names none. Only the user settings set it, because the command runs a script from it."
 					},
 					"drawioSlides.listStyles": {
 						"type": "object",
@@ -863,6 +875,11 @@
 				{
 					"when": "drawioSlides.active",
 					"command": "drawioSlides.linkFileWithSelectedNode",
+					"group": "Draw.io"
+				},
+				{
+					"when": "explorerResourceIsFolder",
+					"command": "drawioSlides.setUpDeck",
 					"group": "Draw.io"
 				}
 			],

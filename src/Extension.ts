@@ -7,6 +7,7 @@ import { DrawioEditorService } from "./DrawioEditorService";
 import { LinkCodeWithSelectedNodeService } from "./features/CodeLinkFeature";
 import { EditDiagramAsTextFeature } from "./features/EditDiagramAsTextFeature";
 import { LiveshareFeature } from "./features/LiveshareFeature";
+import { DeckSetUpFeature } from "./features/DeckSetUpFeature/DeckSetUpFeature";
 import { DrawioClientFactory } from "./DrawioClient";
 import { registerFailableCommand } from "./utils/registerFailableCommand";
 
@@ -34,6 +35,9 @@ export class Extension {
 	);
 	private readonly liveshareFeature = this.dispose.track(
 		new LiveshareFeature(this.editorService, this.config)
+	);
+	private readonly deckSetUpFeature = this.dispose.track(
+		new DeckSetUpFeature(this.log)
 	);
 
 	constructor(private readonly context: vscode.ExtensionContext) {
