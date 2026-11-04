@@ -103,6 +103,9 @@
 					},
 					{
 						"filenamePattern": "*.drawio.svg"
+					},
+					{
+						"filenamePattern": "*.drawio.xml"
 					}
 				],
 				"priority": "default"

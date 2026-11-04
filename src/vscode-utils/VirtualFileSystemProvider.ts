@@ -16,7 +16,7 @@ export class DrawioFileSystemController {
 	public readonly dispose = Disposable.fn();
 
 	private readonly fs = new VirtualFileSystemProvider();
-	public readonly scheme = "drawio";
+	public readonly scheme = "drawio-slides";
 
 	constructor() {
 		this.dispose.track(
