@@ -404,6 +404,188 @@
 						"scope": "resource",
 						"description": "Treat the drawings as slides of the draw.io presentation framework: load its plugins, which play the videos and pages of the cells, style the lists and check the language, and draw the pictures of the deck folder."
 					},
+					"drawioSlides.listStyles": {
+						"type": "object",
+						"scope": "resource",
+						"default": {
+							"itemGap": "8.44px",
+							"bulleted": [
+								{
+									"indent": "26.07px",
+									"marker": "disclosure-closed",
+									"color": "#004D80",
+									"size": "0.7em"
+								},
+								{
+									"indent": "43.93px",
+									"marker": "'-  '",
+									"color": "#004D80"
+								},
+								{
+									"indent": "43.93px",
+									"marker": "'·  '"
+								}
+							],
+							"numbered": [
+								{
+									"indent": "36px",
+									"marker": "decimal"
+								},
+								{
+									"indent": "43.93px",
+									"marker": "lower-alpha"
+								},
+								{
+									"indent": "43.93px",
+									"marker": "lower-roman"
+								}
+							]
+						},
+						"description": "The style of each level of a bulleted and of a numbered list that the list buttons of draw.io make, and the gap above each item but the first of a first level. A level deeper than the lists give takes the last style. The build of the draw.io presentation framework reads the same setting.",
+						"properties": {
+							"itemGap": {
+								"type": "string"
+							},
+							"bulleted": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"required": [
+										"indent",
+										"marker"
+									],
+									"properties": {
+										"indent": {
+											"type": "string",
+											"description": "The left padding of the list, as CSS, such as `26.07px`."
+										},
+										"marker": {
+											"type": "string",
+											"description": "The `list-style-type` of the list, such as `disclosure-closed` or `'-  '`."
+										},
+										"color": {
+											"type": "string",
+											"description": "The colour of the marker, as CSS."
+										},
+										"size": {
+											"type": "string",
+											"description": "The size of the marker, as CSS, such as `0.7em`."
+										}
+									}
+								}
+							},
+							"numbered": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"required": [
+										"indent",
+										"marker"
+									],
+									"properties": {
+										"indent": {
+											"type": "string",
+											"description": "The left padding of the list, as CSS, such as `26.07px`."
+										},
+										"marker": {
+											"type": "string",
+											"description": "The `list-style-type` of the list, such as `disclosure-closed` or `'-  '`."
+										},
+										"color": {
+											"type": "string",
+											"description": "The colour of the marker, as CSS."
+										},
+										"size": {
+											"type": "string",
+											"description": "The size of the marker, as CSS, such as `0.7em`."
+										}
+									}
+								}
+							}
+						}
+					},
+					"drawioSlides.listMarkers": {
+						"type": "array",
+						"scope": "resource",
+						"default": [
+							[
+								"template",
+								"Template"
+							],
+							[
+								"disclosure-closed",
+								"▸ Triangle"
+							],
+							[
+								"'-  '",
+								"- Dash"
+							],
+							[
+								"'–  '",
+								"– En dash"
+							],
+							[
+								"'·  '",
+								"· Dot"
+							],
+							[
+								"disc",
+								"• Disc"
+							],
+							[
+								"circle",
+								"◦ Circle"
+							],
+							[
+								"square",
+								"▪ Square"
+							],
+							[
+								"decimal",
+								"1. Numbers"
+							],
+							[
+								"lower-alpha",
+								"a. Letters"
+							],
+							[
+								"upper-alpha",
+								"A. Capitals"
+							],
+							[
+								"lower-roman",
+								"i. Roman"
+							],
+							[
+								"upper-roman",
+								"I. Roman capitals"
+							],
+							[
+								"none",
+								"None"
+							]
+						],
+						"description": "The markers of the menu List style, each as its `list-style-type` and its name. The marker `template` gives a list the style of its level again.",
+						"items": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							},
+							"minItems": 2,
+							"maxItems": 2
+						}
+					},
+					"drawioSlides.colorDefinitions": {
+						"type": "array",
+						"scope": "resource",
+						"default": [
+							"${deckFolder}/templates/color-definitions.tex"
+						],
+						"description": "TeX files of `\\definecolor` lines, in the models rgb, RGB, gray or HTML. The editor defines their colours for the formulas of every page and names them in the colour picker, and the build of the draw.io presentation framework writes them into each page that uses them. A path may hold `${deckFolder}`, the nearest folder above the drawing with a `package.json`, and `${workspaceFolder}`.",
+						"items": {
+							"type": "string"
+						}
+					},
 					"drawioSlides.plugins": {
 						"type": "array",
 						"items": {

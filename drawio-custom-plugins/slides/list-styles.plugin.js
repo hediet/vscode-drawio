@@ -1,30 +1,30 @@
 // Gives the lists of a label the style of the slide template, and adds a menu List style to the
 // Text tab of the Format panel, in the draw.io editor.
 //
-// The template formatsAndTemplates/draw-io/slide-format.drawio.xml writes each list with its own
-// style: the first level with the marker disclosure-closed and an indent of 26.07 px, the second
-// with the marker '-  ' and an indent of 43.93 px, and each item 8.44 px below the one before,
-// apart from the first item of a first level.  draw.io's buttons Bulleted List, Numbered List,
+// The setting "drawioSlides.listStyles" of the VS Code extension gives the style of each level of
+// a bulleted and of a numbered list, its indent, its marker and the colour and the size of the
+// marker, and the gap above each item apart from the first item of a first level.  Its default is
+// the style of the lists of the template formatsAndTemplates/draw-io/slide-format.drawio.xml of
+// the draw.io presentation framework.  draw.io's buttons Bulleted List, Numbered List,
 // Increase Indent and Decrease Indent, and the key Tab in a list, make lists in the style of the
 // browser instead.  After each of them this plugin gives every list of the label that has no
 // marker of its own the template's style of its level, so a new list matches the template, and
 // gives every item of every list the gap of the template, so an item moved into another list sits
-// as the items around it.  A level below the second takes the indent of the second and a marker
-// of its own, and a numbered list takes 1., a. and i. by level.
+// as the items around it.  A level deeper than the setting gives takes the style of
+// the last level of the setting.
 //
 // The menu List style shows while a label is edited, beside the list buttons, and says the marker
-// of the list at the caret.  Choosing a marker sets it on that list, and Template gives the list
-// the template's style of its level again.  Both write inline HTML into the label, so the editor,
-// the HTML deck and the PDF show the same marker.  A choice in the menu is not in the history of
+// of the list at the caret, from the markers of the setting "drawioSlides.listMarkers".  Choosing
+// a marker sets it on that list, and Template gives the list the style of its level again.  Both
+// write inline HTML into the label, so the editor, the HTML deck and the PDF show the same marker.  A choice in the menu is not in the history of
 // the browser, so Undo inside the label does not take it back and takes back the change before it
 // instead.  Undo of the drawing after the edit takes back the whole edit, the choice included.
 //
-// The markers of the template take the colour and the size of the points of the Keynote deck of
-// the template, by the rules of MARKER_CSS, which this plugin gives the page of the editor and
-// export-pages.mjs copies into the SVG of each page, so the HTML deck and the PDF show them alike.
-// The triangle is #004D80 at 0.7 of the size of the text, which covers about the area of the
-// narrower triangle of Keynote, and sits on the baseline, and the dash is #004D80.  A rule of a
-// marker reaches no inline style, so the rules find a list by the marker in its style attribute.
+// The markers take the colour and the size of their level by the rules of listMarkerCss in
+// list-marker-rules.js, which this plugin gives the page of the editor and export-pages.mjs copies
+// into the SVG of each page.  In the default, the triangle is #004D80 at 0.7 of the size of the
+// text, which covers about the area of the narrower triangle of the Keynote deck of the template,
+// and sits on the baseline, and the dash is #004D80.
 //
 // The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
 // drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
@@ -32,41 +32,17 @@
 Draw.loadPlugin(function (ui) {
   var graph = ui.editor.graph;
   var cellEditor = graph.cellEditor;
-  var ITEM_GAP = '8.44px';
-  // The template's styles of the levels of a bulleted list, and those of a numbered list.
-  var BULLET_LEVELS = [
-    { indent: '26.07px', marker: 'disclosure-closed' },
-    { indent: '43.93px', marker: "'-  '" },
-    { indent: '43.93px', marker: "'\u00b7  '" }
-  ];
-  var NUMBER_LEVELS = [
-    { indent: '36px', marker: 'decimal' },
-    { indent: '43.93px', marker: 'lower-alpha' },
-    { indent: '43.93px', marker: 'lower-roman' }
-  ];
+  var settings = window.drawioSlidesSettings || {};
+  var listStyles = settings.listStyles;
   // The markers of the menu, as written into list-style-type, with their names.
-  var MARKERS = [
-    ['template', 'Template'],
-    ['disclosure-closed', '\u25b8 Triangle'],
-    ["'-  '", '- Dash'],
-    ["'\u2013  '", '\u2013 En dash'],
-    ["'\u00b7  '", '\u00b7 Dot'],
-    ['disc', '\u2022 Disc'],
-    ['circle', '\u25e6 Circle'],
-    ['square', '\u25aa Square'],
-    ['decimal', '1. Numbers'],
-    ['lower-alpha', 'a. Letters'],
-    ['upper-alpha', 'A. Capitals'],
-    ['lower-roman', 'i. Roman'],
-    ['upper-roman', 'I. Roman capitals'],
-    ['none', 'None']
-  ];
-  // The rules of the markers, which export-pages.mjs reads from this array as it stands.  The
-  // browser writes a marker of text with double quotes, and the template with single quotes.
-  var MARKER_CSS = [
-    'ul[style*="disclosure-closed"] > li::marker { color: #004D80; font-size: 0.7em; }',
-    'ul[style*="\'-  \'"] > li::marker, ul[style*=\'"-  "\'] > li::marker { color: #004D80; }'
-  ].join('\n');
+  var MARKERS = settings.listMarkers || [];
+
+  if (listStyles == null || typeof listMarkerCss != 'function') {
+    console.warn('list-styles.plugin.js: the extension gave no list styles, so lists keep the ' +
+      'style of the browser');
+    return;
+  }
+
   var LIST_INPUTS = { insertOrderedList: true, insertUnorderedList: true, formatIndent: true,
     formatOutdent: true };
 
@@ -88,7 +64,7 @@ Draw.loadPlugin(function (ui) {
   }
 
   function templateLevel(list, level) {
-    var levels = (list.nodeName == 'OL') ? NUMBER_LEVELS : BULLET_LEVELS;
+    var levels = (list.nodeName == 'OL') ? listStyles.numbered : listStyles.bulleted;
     return levels[Math.min(level, levels.length) - 1];
   }
 
@@ -99,7 +75,7 @@ Draw.loadPlugin(function (ui) {
       var item = list.children[i];
 
       if (item.nodeName == 'LI' && !(level == 1 && i == 0) && item.style.marginTop == '') {
-        item.style.marginTop = ITEM_GAP;
+        item.style.marginTop = listStyles.itemGap;
       }
     }
   }
@@ -160,7 +136,7 @@ Draw.loadPlugin(function (ui) {
 
   var markerStyle = document.createElement('style');
   markerStyle.id = 'list-styles-markers';
-  markerStyle.textContent = MARKER_CSS;
+  markerStyle.textContent = listMarkerCss(listStyles);
   document.head.appendChild(markerStyle);
 
   var watched = null;

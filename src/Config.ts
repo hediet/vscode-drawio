@@ -592,6 +592,51 @@ export class DiagramConfig {
 		return this._slides.get();
 	}
 
+	private readonly _listStyles = new VsCodeSetting<unknown>(
+		`${settingPrefix}.listStyles`,
+		{ scope: this.uri }
+	);
+
+	/** The style of each level of a list, which `list-styles.plugin.js` reads. */
+	public get listStyles(): unknown {
+		return this._listStyles.get();
+	}
+
+	private readonly _listMarkers = new VsCodeSetting<unknown>(
+		`${settingPrefix}.listMarkers`,
+		{ scope: this.uri }
+	);
+
+	/** The markers of the menu List style. */
+	public get listMarkers(): unknown {
+		return this._listMarkers.get();
+	}
+
+	private readonly _colorDefinitions = new VsCodeSetting<string[]>(
+		`${settingPrefix}.colorDefinitions`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<string[]>([]),
+		}
+	);
+
+	/**
+	 * The files of `\definecolor` lines of the drawing, with `${deckFolder}` and
+	 * `${workspaceFolder}` filled in.
+	 */
+	public colorDefinitionFiles(deckFolder: Uri): Uri[] {
+		return this._colorDefinitions.get().map((path) =>
+			Uri.file(
+				new SimpleTemplate(path).render({
+					deckFolder: () => deckFolder.fsPath,
+					workspaceFolder: () =>
+						(workspace.getWorkspaceFolder(this.uri)?.uri ?? deckFolder)
+							.fsPath,
+				})
+			)
+		);
+	}
+
 	public get plugins(): { file: Uri }[] {
 		return this._plugins.get().map((entry) => {
 			const fullFilePath = this.evaluateTemplate(entry.file, "plugins");

@@ -18,15 +18,18 @@ import { autorun, observable, runInAction, untracked } from "mobx";
 import { sha256 } from "js-sha256";
 import { getDrawioExtensions } from "../DrawioExtensionApi";
 import { BufferImpl } from "../utils/buffer";
+import { DefinedColour, readSlideSettings } from "./slideSettings";
 
 /**
  * The plugins of the draw.io presentation framework in `drawio-custom-plugins/slides/`, in the
  * order of loading: `media-bar.js` before `media.plugin.js`, which uses it.
  */
 const SLIDE_PLUGINS = [
+	"math-definitions.plugin.js",
 	"single-page.plugin.js",
 	"click-through.plugin.js",
 	"edit-at-click.plugin.js",
+	"list-marker-rules.js",
 	"list-styles.plugin.js",
 	"language-check.plugin.js",
 	"view-position.plugin.js",
@@ -51,7 +54,12 @@ export class DrawioClientFactory {
 		options: DrawioClientOptions
 	): Promise<CustomizedDrawioClient> {
 		const config = this.config.getDiagramConfig(uri);
-		const plugins = await this.getPlugins(config);
+		const slides = config.slides ? await this.getSlides(config) : undefined;
+		const plugins = [
+			...(slides?.plugins ?? []),
+			...(await this.getPlugins(config)),
+		];
+		const definedColours = slides?.colours ?? [];
 
 		const webview = webviewPanel.webview;
 
@@ -119,12 +127,18 @@ export class DrawioClientFactory {
 				return {
 					compressXml: false,
 					customFonts: config.customFonts,
-					presetColors: config.presetColors,
+					presetColors: withDefinedPresets(
+						config.presetColors,
+						definedColours
+					),
 					customColorSchemes: config.customColorSchemes,
 					styles: config.styles,
 					defaultVertexStyle: config.defaultVertexStyle,
 					defaultEdgeStyle: config.defaultEdgeStyle,
-					colorNames: config.colorNames,
+					colorNames: withDefinedNames(
+						config.colorNames,
+						definedColours
+					),
 					simpleLabels: config.simpleLabels,
 					defaultLibraries: "general",
 					libraries: simpleDrawioLibrary(libs),
@@ -195,9 +209,6 @@ export class DrawioClientFactory {
 		const pluginsToLoad = new Array<{ jsCode: string }>();
 		const promises = new Array<Promise<void>>();
 
-		if (config.slides) {
-			pluginsToLoad.push(...(await this.getSlidePlugins(config.uri)));
-		}
 
 		for (const ext of getDrawioExtensions()) {
 			promises.push(
@@ -273,15 +284,23 @@ export class DrawioClientFactory {
 	}
 
 	/**
-	 * The slide plugins, after one line that gives `media.plugin.js`, `language-check.plugin.js`
-	 * and `deck-pictures.plugin.js` the folder of the deck. The extension ships the plugins, so
-	 * they load without the question that a plugin of the settings asks.
+	 * The slide plugins, after one line that gives them the folder of the deck and the settings
+	 * of the slides, and the colours of the colour definitions. The extension ships the plugins,
+	 * so they load without the question that a plugin of the settings asks.
 	 */
-	private async getSlidePlugins(uri: Uri): Promise<{ jsCode: string }[]> {
-		const deckFolder = await findDeckFolder(uri);
-		const folderLine = `window.mediaPluginDeckFolders = ${JSON.stringify([
-			deckFolder.fsPath,
-		])};`;
+	private async getSlides(
+		config: DiagramConfig
+	): Promise<{ plugins: { jsCode: string }[]; colours: readonly DefinedColour[] }> {
+		const deckFolder = await findDeckFolder(config.uri);
+		const settings = await readSlideSettings(
+			config,
+			deckFolder,
+			this.extensionUri,
+			this.log
+		);
+		const settingsLine =
+			`window.mediaPluginDeckFolders = ${JSON.stringify([deckFolder.fsPath])};\n` +
+			`window.drawioSlidesSettings = ${JSON.stringify(settings.pluginSettings)};`;
 		const plugins = await Promise.all(
 			SLIDE_PLUGINS.map(async (name) => ({
 				jsCode: BufferImpl.from(
@@ -296,7 +315,10 @@ export class DrawioClientFactory {
 				).toString("utf-8"),
 			}))
 		);
-		return [{ jsCode: folderLine }, ...plugins];
+		return {
+			plugins: [{ jsCode: settingsLine }, ...plugins],
+			colours: settings.colours,
+		};
 	}
 
 	private getHtml(
@@ -465,6 +487,34 @@ async function findDeckFolder(uri: Uri): Promise<Uri> {
 		}
 		folder = parent;
 	}
+}
+
+/** The colour names of the settings, with a name for each defined colour that has none. */
+function withDefinedNames(
+	names: Record<string, string>,
+	colours: readonly DefinedColour[]
+): Record<string, string> {
+	const result = { ...names };
+	for (const colour of colours) {
+		if (!(colour.hex in result)) {
+			result[colour.hex] = colour.name;
+		}
+	}
+	return result;
+}
+
+/** The preset colours of the settings, followed by each defined colour that they lack. */
+function withDefinedPresets(
+	presets: string[],
+	colours: readonly DefinedColour[]
+): string[] {
+	const result = [...presets];
+	for (const colour of colours) {
+		if (!result.some((preset) => preset.toUpperCase() === colour.hex)) {
+			result.push(colour.hex);
+		}
+	}
+	return result;
 }
 
 function getNonce(): string {
