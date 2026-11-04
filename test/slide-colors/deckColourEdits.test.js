@@ -1,21 +1,8 @@
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const vm = require("node:vm");
 const { test } = require("node:test");
-const ts = require("typescript");
+const { loadTsModule } = require("../loadTsModule");
 
-function loadModule(relativePath) {
-	const filename = path.resolve(__dirname, "../../src", relativePath);
-	const source = ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-		compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
-	}).outputText;
-	const exports = {};
-	vm.runInNewContext(source, { exports, require }, { filename });
-	return exports;
-}
-
-const edits = loadModule("DrawioClient/deckColourEdits.ts");
+const edits = loadTsModule("DrawioClient/deckColourEdits.ts");
 
 const settings = `{
   "drawioSlides.slides": true,

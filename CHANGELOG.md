@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## yujunhuang.drawio-slides [0.1.0]
+
+The first version of the fork yujunhuang.drawio-slides, the editor of the decks of the draw.io presentation framework.
+The versions below are those of the original hediet.vscode-drawio, from which the fork starts at version 1.18.0.
+
+### Added
+
+- The settings of the extension read `drawioSlides.<name>`, the editor is `drawioSlides.textEditor`, and `*.drawio.xml` opens in it.
+- The extension loads the plugins of the framework from its own folder for a drawing whose setting `drawioSlides.slides` is true: single page, click-through, edit at click, list styles and markers, language check, view position, deck pictures, Insert slide from the templates of the deck, and media.
+- The colours of a deck are the setting `drawioSlides.colors`, which defines them for the formulas, the colour picker, the swatches and the list styles, and which the editor follows without a reload.
+- The section Deck colours of the Format panel applies a colour of the deck by a click on its swatch, and renames, recolours, adds and removes the colours, written back into `.vscode/settings.json` with its comments kept.
+- The command Set Up a Presentation in This Folder starts a deck or sets up the editor for one, through `build-slides.py` of the framework that the setting `drawioSlides.frameworkFolder` names.
+
+### Removed
+
+- The workflows of the original that published to the Marketplace, triaged issues and opened pull requests for new versions of draw.io.
+
 ## [1.18.0]
 
 ### Added

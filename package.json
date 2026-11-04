@@ -20,9 +20,15 @@
 		"ai"
 	],
 	"author": {
-		"email": "henning.dieterichs@live.de",
-		"name": "Henning Dieterichs"
+		"name": "Yujun Huang"
 	},
+	"contributors": [
+		{
+			"name": "Henning Dieterichs",
+			"email": "henning.dieterichs@live.de",
+			"url": "https://github.com/hediet/vscode-drawio"
+		}
+	],
 	"readme": "./README.md",
 	"icon": "docs/logo.drawio.png",
 	"extensionKind": [
@@ -655,7 +661,7 @@
 						},
 						"default": [],
 						"title": "Plugins",
-						"markdownDescription": "Loads Draw.io plugins from the local filesystem.  See description of the `file` property. See [plugins documentation](https://github.com/hediet/vscode-drawio/blob/master/docs/plugins.md).",
+						"markdownDescription": "Loads Draw.io plugins from the local filesystem.  See description of the `file` property. See [plugins documentation](https://github.com/HuangYujun-JunkyTalent/vscode-drawio-slides/blob/main/docs/plugins.md).",
 						"order": 10
 					},
 					"drawioSlides.knownPlugins": {
@@ -676,7 +682,7 @@
 						},
 						"default": [],
 						"title": "Known Plugins",
-						"markdownDescription": "List of allowed or denied plugins. The extension will read and write to this list based on what the used decides when loading specific plugins. See [plugins documentation](https://github.com/hediet/vscode-drawio/blob/master/docs/plugins.md).",
+						"markdownDescription": "List of allowed or denied plugins. The extension will read and write to this list based on what the used decides when loading specific plugins. See [plugins documentation](https://github.com/HuangYujun-JunkyTalent/vscode-drawio-slides/blob/main/docs/plugins.md).",
 						"scope": "application",
 						"order": 15
 					},
@@ -892,9 +898,8 @@
 		}
 	},
 	"scripts": {
-		"run-script": "node ./scripts/run-script",
 		"lint": "echo 'add linting'",
-		"_lint": "yarn run-script check-version && prettier --check ./src",
+		"test": "node --test test/slide-colors/*.test.js test/deck-setup/*.test.js test/codeblock-editor/*.test.js",
 		"build": "yarn build-extension && yarn build-plugins && yarn package-extension",
 		"build-extension": "webpack --mode production",
 		"build-plugins": "webpack --mode production --config ./drawio-custom-plugins/webpack.config.ts",

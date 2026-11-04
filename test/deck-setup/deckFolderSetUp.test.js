@@ -2,21 +2,10 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const vm = require("node:vm");
 const { test } = require("node:test");
-const ts = require("typescript");
+const { loadTsModule } = require("../loadTsModule");
 
-function loadModule(relativePath) {
-	const filename = path.resolve(__dirname, "../../src", relativePath);
-	const source = ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-		compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
-	}).outputText;
-	const exports = {};
-	vm.runInNewContext(source, { exports, require }, { filename });
-	return exports;
-}
-
-const setUp = loadModule("features/DeckSetUpFeature/deckFolderSetUp.ts");
+const setUp = loadTsModule("features/DeckSetUpFeature/deckFolderSetUp.ts");
 const { DeckFolderState } = setUp;
 
 /** A value of the context of the module as a value of this context, whose objects and arrays `deepEqual` compares. */
