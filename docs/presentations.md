@@ -13,7 +13,7 @@ The folder `deck-templates/` holds what every presentation starts from:
 | `slide-format.drawio.xml` | the template: six pages to copy slides from, three of which start a new presentation |
 | `color-definitions.tex` | the starting palette, which the set-up writes into the setting `drawioSlides.colors` of a presentation, to change there: the `\definecolor` lines of the colours that the formulas of the co-design decks of the author name, whose header says where they come from |
 | `named-colors.template.jsonc` | a colour configuration of the editor to copy, with the names of the parts of draw.io that read its three settings |
-| `named-colors-example.json` | an example colour configuration of the editor, to replace with that of your own decks: the 26 colours of a deck of the author, with the names of their `\definecolor` for the colours of `color-definitions.tex` and of the codesign package, such as `dpgreen` and `cdF`, and names edited by hand for the others, so that no two names differ by a bracket or a shade word alone |
+| `named-colors-example.json` | an example colour configuration of the editor, to replace with that of your own decks: the 26 colours of a deck of the author, with the names of their `\definecolor` for the colours of `color-definitions.tex` and of the codesign package, such as `green` and `cdF`, and names edited by hand for the others, so that no two names differ by a bracket or a shade word alone |
 | `drawio-slides.cjs` | the launcher that the set-up copies into each presentation, which runs the command line of the newest installed version of the extension |
 | `html-deck.html` | the page of the HTML file, whose placeholders the build fills in |
 
@@ -207,7 +207,7 @@ The table points to the place of each part of a slide, and the sections below sa
 |---|---|
 | `45/61` at the bottom right of every slide that carries the number cell, which the title slide of the template does not | a cell holding `%slide%/%slides%`, which the build fills in |
 | a formula inside a sentence | `\(...\)` in the label, typeset by MathJax in draw.io |
-| a coloured formula such as `\textcolor{dpgreen}{F}` | the setting `drawioSlides.colors` of `.vscode/settings.json` of the deck, whose colours the extension gives the editor and the build gives each page |
+| a coloured formula such as `\textcolor{green}{F}` | the setting `drawioSlides.colors` of `.vscode/settings.json` of the deck, whose colours the extension gives the editor and the build gives each page |
 | the title, the body and the fonts | the pages of the template of the deck, `templates/slides.drawio.xml` by default, which the set-up copies from `deck-templates/slide-format.drawio.xml` |
 | no slide at all for a page whose name ends in `-hide` | the build, which leaves the page out and gives it no number |
 
@@ -228,7 +228,7 @@ A title slide carries no number cell, and still counts, so the three slides of a
 A formula goes between `\(` and `\)` inside the label of its sentence, so the sentence stays one cell:
 
 ```html
-The cost \(\textcolor{dpred}{c}\) of a design is at most \(\textcolor{dpred}{r_1} + \textcolor{dpred}{r_2}\).
+The cost \(\textcolor{red}{c}\) of a design is at most \(\textcolor{red}{r_1} + \textcolor{red}{r_2}\).
 ```
 
 draw.io typesets a formula when the edit of the label ends, on a page whose mathematical typesetting is on.
@@ -243,14 +243,14 @@ The page `text-with-mathematics-1` of the template shows each of these with its 
 
 ### The colours of a formula come from the setting `drawioSlides.colors` of the presentation
 
-The MathJax of draw.io knows no colour by a name such as `dpgreen` and draws it black, so a name needs a `\definecolor` before the formula is typeset.
+The MathJax of draw.io knows no colour by a name of your own, such as `accent`, and draws it black, so a name needs a `\definecolor` before the formula is typeset.
 The colours of a presentation are the setting `drawioSlides.colors` of its `.vscode/settings.json`, which maps each name to a value `#RRGGBB`, with a comment before a colour where its use needs one:
 
 ```jsonc
 "drawioSlides.colors": {
   // The colour of the markers of the lists.
   "accent": "#004D80",
-  "dpgreen": "#008000"
+  "green": "#008000"
 }
 ```
 
@@ -266,7 +266,7 @@ Two places read the setting:
 - In the build, every page gets a locked layer `Equation colours, added by the build` with the definitions its formulas use, before the export.
   The section files stay as they were saved.
 
-The extension and the build give MathJax each colour in the model `RGB`, such as `\definecolor{dpgreen}{RGB}{0,128,0}`, so the colour picker, the formulas of the editor and the build take one value.
+The extension and the build give MathJax each colour in the model `RGB`, such as `\definecolor{green}{RGB}{0,128,0}`, so the colour picker, the formulas of the editor and the build take one value.
 A page may still carry its own locked layer `Equation colours`, and the build then leaves the colours it defines to the page.
 The commands that MathJax lacks are defined the same way, from `drawio-custom-plugins/slides/mathjax-commands.tex`, which lists them.
 
@@ -409,7 +409,7 @@ The file it writes reads, without the swatches and with two of the colours of th
   "files.associations": { "*.drawio.xml": "drawio" },
   "drawioSlides.slides": true,
   "drawioSlides.templates": ["${deckFolder}/templates/*.drawio.xml"],
-  "drawioSlides.colors": { "dpred": "#B20000", "dpgreen": "#008000" }
+  "drawioSlides.colors": { "red": "#B20000", "green": "#008000" }
 }
 ```
 
@@ -710,7 +710,7 @@ A name of a hue there keeps its letters and digits alone, in lower case, such as
 The colours are a start to edit by hand into a few colours named by their role, such as `accent` for the markers of the lists.
 
 The mode keeps every colour used at least `--least` times, eight by default.
-The mode names a colour that a file passed to `--definecolor` defines after the name of its `\definecolor`, such as `dpgreen`, and any other colour after its hue.
+The mode names a colour that a file passed to `--definecolor` defines after the name of its `\definecolor`, such as `green`, and any other colour after its hue.
 A near-white colour, of lightness above 0.9 and a chroma, the largest channel less the smallest, below 0.05, takes the name White, so a pale tint such as `#dae8fc` keeps the name of its hue.
 A hue of one colour gives it the plain name, such as `Blue`, and each colour of a hue of several carries its hex value after the name, such as `Grey 8B959E`, so that no two names differ by a shade word alone.
 `--definecolor` may be given more than once, such as for the colours of a deck that the export to TeX wrote and for a `.sty` file of the deck.

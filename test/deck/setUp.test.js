@@ -14,7 +14,7 @@ const plain = (value) => JSON.parse(JSON.stringify(value));
 test("the starting palette leaves out its header and keeps the comments of its colours", () => {
 	const { colours, warnings } = setUp.startingPalette(extensionRoot);
 	assert.deepEqual(plain(warnings), []);
-	assert.equal(colours.members[0].key, "dpred");
+	assert.equal(colours.members[0].key, "red");
 	assert.deepEqual(plain(colours.members[0].comments), []);
 	assert.ok(
 		colours.members.every((member) => /^#[0-9A-F]{6}$/.test(member.value))

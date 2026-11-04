@@ -7,6 +7,9 @@
 // label is edited, it sits in the tab Text, the one tab that draw.io then shows, before the section
 // Advanced, and gives the label its font colour.
 //
+// With no colour in the setting, the section shows a line that says what a colour of the deck is
+// for, above the button Add colour.
+//
 // Each row of the section holds a swatch and the name of a colour on one line, and under them the
 // buttons Fill, Line and Font, a button ✎ that changes the value of the colour, and a button × that
 // removes the colour.
@@ -397,6 +400,18 @@ Draw.loadPlugin(function (ui) {
     return row;
   }
 
+  // The line that an empty list shows, which says what a colour of the deck is for.
+  function emptyListHint() {
+    var hint = document.createElement('div');
+    hint.style.padding = '2px 0 4px 0';
+    hint.style.whiteSpace = 'normal';
+    hint.style.opacity = '0.7';
+    mxUtils.write(hint, 'The deck names no colour yet. A named colour can colour formulas, as in ' +
+      '\\textcolor{blue}{x}, swatches and list markers, and a click on its swatch applies it.');
+
+    return hint;
+  }
+
   function addButton() {
     var button = mxUtils.button('Add colour', function (evt) {
       ui.pickColorModal('#000000', function (color) {
@@ -422,6 +437,10 @@ Draw.loadPlugin(function (ui) {
     colours().forEach(function (colour) {
       content.appendChild(colourRow(colour, action, buttons));
     });
+
+    if (colours().length == 0) {
+      content.appendChild(emptyListHint());
+    }
 
     content.appendChild(addButton());
     section.contentDiv.appendChild(content);

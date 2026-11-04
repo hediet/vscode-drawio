@@ -11,13 +11,13 @@
  * The module also reads the `\definecolor` lines of a TeX file, in the models `rgb`, `RGB`,
  * `HTML`, `gray`, `Gray`, `cmy` and `cmyk`, converted as the package xcolor converts them:
  *
- *     readCommentedColours("% The greens.\n\\definecolor{dpgreen}{rgb}{0.0, 0.5, 0.0}")
+ *     readCommentedColours("% The greens.\n\\definecolor{green}{rgb}{0.0, 0.5, 0.0}")
  *
- * gives the member `dpgreen` with the value `#008000` and the comment `The greens.`, which
+ * gives the member `green` with the value `#008000` and the comment `The greens.`, which
  * `colourLines` writes back as
  *
  *     % The greens.
- *     \definecolor{dpgreen}{HTML}{008000}
+ *     \definecolor{green}{HTML}{008000}
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
  * Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.

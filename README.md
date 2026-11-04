@@ -1,15 +1,29 @@
-# Draw.io Slides: a fork of the Draw.io VS Code Integration for decks of the draw.io presentation framework
+# Draw.io Slides: a fork of the Draw.io VS Code Integration that edits and builds slide decks drawn in draw.io
 
-This fork of [hediet/vscode-drawio](https://github.com/hediet/vscode-drawio), by Henning Dieterichs, is the editor of the decks of the draw.io presentation framework.
-It installs beside the original, because every command, editor, setting and context key carries the prefix `drawioSlides.` and the extension is `yujunhuang.drawio-slides`.
-The rest of this README is the README of the original, whose commands and settings read `drawioSlides.<name>` here in place of `hediet.vscode-drawio.<name>`.
+This fork of [hediet/vscode-drawio](https://github.com/hediet/vscode-drawio), by Henning Dieterichs, edits slide decks drawn in draw.io and builds them into one HTML file and a PDF.
+A deck is a folder of draw.io files, one per section, whose slides are draw.io XML that version control tracks and an agent can edit.
+The HTML file presents the slides in a browser with their links, videos and interactive pages, and the PDF holds the same slides.
+The fork installs beside the original, because every command, editor, setting and context key carries the prefix `drawioSlides.` and the extension is `yujunhuang.drawio-slides`.
+The README of the original follows the sections of the fork, and its commands and settings read `drawioSlides.<name>` here in place of `hediet.vscode-drawio.<name>`.
 The editor `hediet.vscode-drawio-text` of the original is `drawioSlides.textEditor` here, and the commands of the original show under the category `Draw.io Slides` in place of `Draw.io`.
 
-## The fork loads the plugins of the framework without asking
+The guide for authors of slides, [docs/presentations.md](./docs/presentations.md), says how to start a deck and how the build numbers the slides.
+The guide also says how a formula, a colour, a link, a video and an embedded page work, and what each warning of the build means.
+
+| folder or file | what it holds |
+|---|---|
+| `src/deck/` | the build of a deck, which imports no `vscode`, so that the commands of the extension and the command line `dist/cli.js` run it alike |
+| `deck-templates/` | what a new deck starts from: the slide template, the starting palette of the colours, the colour configurations of the editor and the launcher, and the page of the HTML file |
+| `drawio-custom-plugins/slides/` | the plugins of the editor of a deck, which the build shares |
+| `docs/presentations.md` | the guide for authors of slides |
+| `skills/` | the skills of an agent that starts a deck, `deck-skeleton`, builds its HTML file, `deck-html`, or builds its PDF, `deck-pdf`, which the installed extension holds as well |
+| `GOALS.md` | the principles of building the slides and of their content, which a fork may change to steer an agent that changes the fork |
+
+## The fork loads the plugins of the slides without asking
 
 The setting `drawioSlides.slides`, `false` by default and `true` in the `.vscode/settings.json` of a deck, loads the plugins in `drawio-custom-plugins/slides/` into the editor of every drawing it covers, without asking.
 The plugins play the videos and show the pages of the cells, style the lists of the template and check the language with LanguageTool on this machine.
-They also draw the pictures named relative to the deck, and keep the page view and the saved files as the build of the framework expects.
+They also draw the pictures named relative to the deck, and keep the page view and the saved files as the build expects.
 Their headers say what each one does.
 The fork tells them the folder of the deck, the nearest folder above the drawing that holds a `package.json`.
 The page of the editor gives the text of a label its font colour, where the original gives it the colour of the interface.
@@ -57,32 +71,41 @@ The formulas, the presets and the names of the colour picker, the swatches, the 
 A colour taken out of `drawioSlides.colors` stays defined for the formulas until the editor reloads.
 The editor also follows a save of a template file, whose pages the submenu Insert slide then offers.
 
-The build of the framework reads the draw.io viewer, the plugins it shares with the editor and the defaults of these settings from the newest installed version of this extension, so that the slides it draws match the editor.
-Its script `tools/draw-io/color-settings.py` writes the `\definecolor` lines of a TeX file into `drawioSlides.colors`, and the colours of the setting into a TeX file.
+## The commands and the command line build a deck into an HTML file and a PDF
+
+The build of `src/deck/` exports each page of a deck to SVG with the draw.io viewer that the extension bundles, so the slides it draws match the editor.
+It then writes the HTML file, which shows the SVGs with the links, the videos and the embedded pages of the cells, and prints the SVGs into the PDF.
+The commands of the category Draw.io Slides, the command line `dist/cli.js` and the launcher `drawio-slides.cjs` of each deck are in the section The scripts of package.json and the commands of VS Code build the presentation of [docs/presentations.md](./docs/presentations.md).
+The section of the same guide on what the build needs names the command Install Chromium for the Build, and the section on the colours of a formula names the commands Import Colours from TeX and Export Colours to TeX.
+
+The build drives a headless browser through `playwright-core`, the first that starts of the Chromium of Playwright, Google Chrome and Microsoft Edge.
+The user setting `drawioSlides.browserPath` names another browser by the path of its program, and a build that finds no browser offers to install Chromium or to set the path.
+The extension needs VS Code 1.90 or later, whose Node.js 20 `playwright-core` needs.
+`dist/cli.js` runs the same build without VS Code, with Node.js 20 or later, so that an agent, a script or a CI job builds a deck.
 
 ## The command Set Up a Presentation in This Folder starts a deck or sets up the editor for one
 
-The command *Draw.io Slides: Set Up a Presentation in This Folder*, in the command palette and in the context menu of a folder in the Explorer, runs `tools/draw-io/build-slides.py` of the draw.io presentation framework on a folder.
-The command sets up the folder clicked in the Explorer, or else the workspace folder, and asks which one when the workspace has several.
-The setting `drawioSlides.frameworkFolder` names the folder of the framework.
-When the setting names no folder that holds the script, the command opens a dialog to choose the folder, and the user settings keep the choice.
-The setting has the scope `machine`, so the settings of a workspace cannot set it, because the command runs a script from that folder.
-The command runs only in a trusted workspace, and needs `python3` on the path of VS Code, and `git` as well to start a presentation.
+The command *Draw.io Slides: Set Up a Presentation in This Folder*, in the command palette and in the context menu of a folder in the Explorer, sets up the folder clicked in the Explorer, or else the workspace folder, and asks which one when the workspace has several.
+The command runs only in a trusted workspace, and needs `git` on the path of VS Code to start a presentation.
 
-The command chooses what to run by what the folder holds:
+The command chooses what to do by what the folder holds:
 
 | the folder holds | the command |
 |---|---|
-| no presentation and none of the files of a new one | asks for the title, the name of the folder by default, and runs `build-slides.py init`, which starts a presentation as a git repository of its own |
-| a presentation, as its section files ending in `.drawio.xml` or its multi-page file, without `.vscode/settings.json` | runs `build-slides.py vscode`, which writes the settings and copies the template that the presentation lacks |
+| no presentation and none of the files of a new one | asks for the title, the name of the folder by default, and starts a presentation as a git repository of its own, as the mode `init` of the command line does |
+| a presentation, as its section files ending in `.drawio.xml` or its multi-page file, without `.vscode/settings.json` | writes the settings and copies the template that the presentation lacks, as the mode `vscode` does |
 | a presentation with `.vscode/settings.json` | says that the folder is set up, and says how to load the plugins when the file does not set `drawioSlides.slides` to `true` |
-| no presentation, and a `package.json`, a `.vscode/settings.json` or another file that `init` refuses to replace | names those files, suggests a new folder for the presentation, and runs nothing |
-| the root of the framework itself | suggests a new folder for the presentation in it, and runs nothing |
+| no presentation, and a `package.json`, a `.vscode/settings.json` or another file that `init` refuses to replace | names those files, suggests a new folder for the presentation, and writes nothing |
 
-Before the script runs, a dialog lists the files that it writes.
-The output channel Drawio Integration Log shows the output of the script, and a message gives the reason when the script stops.
-After `init`, a message says that `npm run build` in the folder builds the deck after `npm install` in `tools/` of the framework has run once.
+Before the command writes, a dialog lists the files that it writes.
+The output channel Drawio Integration Log shows what the command wrote, and a message gives the reason when the command stops.
+After the start, a message says that the command Build the Presentation and `npm run build` in the folder build the deck.
 VS Code reads the `.vscode/settings.json` of a workspace folder alone, so the editor opens the first section file only when the folder is a workspace folder, and the message otherwise offers to open the folder in a new window.
+
+A presentation that the Python build of the draw.io presentation framework started runs `build-slides.py` of the framework in the scripts of its `package.json`.
+On such a presentation, the command also offers to move it to the launcher, in a dialog that lists the changes.
+The move copies `drawio-slides.cjs` into the folder and rewrites each such script to `node drawio-slides.cjs <mode>`, and keeps `config` and every other key of `package.json`.
+The mode `migrate` of the command line makes the same move.
 
 ## Build the extension and install it
 
@@ -92,11 +115,13 @@ The continuous integration of the original builds with Node.js 22, and Node.js 2
 ```sh
 git submodule update --init --depth 1 drawio
 yarn install --frozen-lockfile
-NODE_OPTIONS=--no-experimental-strip-types yarn build    # dist/extension.vsix
+NODE_OPTIONS=--no-experimental-strip-types yarn build    # dist/extension.vsix and dist/cli.js
+yarn test
 code --install-extension dist/extension.vsix --force
 ```
 
 Reload the window of VS Code after an installation, with *Developer: Reload Window*.
+A clone serves the command line after its build, through `DRAWIO_SLIDES_EXTENSION=<clone>` or `node <clone>/dist/cli.js`.
 
 ## The README of the original
 
@@ -195,7 +220,7 @@ You won't be able to edit arbitrary SVG files though - only those that have been
 ### Light and Dark `.drawio.svg` Files
 
 By default, `.drawio.svg` files are saved with light colors, whatever theme the editor uses.
-Set `hediet.vscode-drawio.svgAppearance` to `auto` to make them adapt to the color scheme of the page that shows them, for example a README on GitHub in dark mode, or to `dark` to always save them with dark colors.
+Set `drawioSlides.svgAppearance` to `auto` to make them adapt to the color scheme of the page that shows them, for example a README on GitHub in dark mode, or to `dark` to always save them with dark colors.
 The setting applies the next time a diagram is saved. Add it to the workspace settings so that everyone on a team saves the same file.
 
 ### Inline Diagrams in VS Code's Markdown Editor (Experimental, Insiders only)
@@ -238,7 +263,7 @@ When an agent edits the XML, the change shows up in the open diagram right away,
 Other extensions, keybindings and automations can export a diagram file to SVG, PNG or `.drawio` without opening it and without prompts:
 
 ```ts
-const uri = await vscode.commands.executeCommand("hediet.vscode-drawio.export", {
+const uri = await vscode.commands.executeCommand("drawioSlides.export", {
 	source: "diagrams/architecture.drawio",
 	destination: "public/diagrams/architecture.svg", // optional
 	format: "svg", // optional: "svg", "png" or "drawio"
@@ -251,7 +276,7 @@ const uri = await vscode.commands.executeCommand("hediet.vscode-drawio.export", 
 -   The saved file is exported, with the first page for multi-page diagrams. It is briefly rendered in a temporary editor tab that closes again.
 -   The command resolves to the `Uri` of the written file and rejects with the reason if the export fails, e.g. because the destination exists and `overwrite` is not set.
 
-Without arguments, the command is `Draw.io: Export To...`, which asks for the format and file of the diagram in the active editor.
+Without arguments, the command is `Draw.io Slides: Export To...`, which asks for the format and file of the diagram in the active editor.
 
 ### Contributors
 
@@ -262,3 +287,12 @@ Without arguments, the command is `Draw.io: Export To...`, which asks for the fo
 
 -   [Draw.io](https://app.diagrams.net/) - This extension relies on the giant work of Draw.io. Their embedding feature enables this extension! This extension bundles a recent version of Draw.io.
 -   [vscode-drawio](https://github.com/eightHundreds/vscode-drawio) by eightHundreds.
+
+## License
+
+The extension is under the GNU General Public License, version 3, as the original hediet.vscode-drawio is, in [LICENSE.md](./LICENSE.md).
+The original is copyright Henning Dieterichs and its contributors, and the changes of the fork, which `CHANGELOG.md` and the git history of this repository name, are copyright 2026 Yujun Huang.
+The additional permission in [LICENSE-EXCEPTION.md](./LICENSE-EXCEPTION.md) frees every file that the extension writes or copies for a presentation, so the author of a presentation may keep it closed, sell it and give it under terms of the author's choice.
+The submodule `drawio`, the draw.io web application of JGraph, is under the Apache License, version 2.0, in `drawio/LICENSE`.
+A contribution comes under the same license and the same permission, as [CONTRIBUTING.md](./CONTRIBUTING.md) says.
+The build writes the licenses and the notices of the packages that the files of `dist/` bundle into `dist/THIRD-PARTY-NOTICES.md`, which the vsix holds.

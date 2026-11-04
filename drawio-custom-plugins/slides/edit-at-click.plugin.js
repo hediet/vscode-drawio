@@ -2,7 +2,7 @@
 // the point of the double-click instead of selecting the whole label, in the draw.io editor.
 //
 // While a label is edited, the editor shows the source of its formulas, such as
-// `\(\textcolor{dpgreen}{F}\)`, which is far longer than the formula drawn.  draw.io scrolls the
+// `\(\textcolor{green}{F}\)`, which is far longer than the formula drawn.  draw.io scrolls the
 // view to show the whole box of that source, and selects the whole label, which leaves the caret
 // at its end.  This plugin runs after draw.io has opened the box: it scrolls the view back and
 // puts the caret at the character of the source under the point of the double-click, or at the

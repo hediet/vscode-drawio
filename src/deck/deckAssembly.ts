@@ -248,7 +248,7 @@ function isLowerCaseLetter(character: string): boolean {
 
 /**
  * The definitions a page's formulas use and the page does not write, and the names of colours
- * that neither the page nor the colours define. A person who types `\textcolor{dpgreen}{x}` on a
+ * that neither the page nor the colours define. A person who types `\textcolor{accent}{x}` on a
  * page without definitions sees the colour in the editor through the plugin, and every other
  * renderer needs the definition on the page. A definition the page writes in its own layer of
  * definitions is left to the page.
