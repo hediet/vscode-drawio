@@ -1,6 +1,8 @@
 import {
 	commands,
+	Disposable,
 	env,
+	RelativePattern,
 	Webview,
 	OutputChannel,
 	Uri,
@@ -18,7 +20,8 @@ import { autorun, observable, runInAction, untracked } from "mobx";
 import { sha256 } from "js-sha256";
 import { getDrawioExtensions } from "../DrawioExtensionApi";
 import { BufferImpl } from "../utils/buffer";
-import { DefinedColour, readSlideSettings } from "./slideSettings";
+import { DefinedColour, readSlideSettings, readTemplates } from "./slideSettings";
+import * as path from "path";
 
 /**
  * The plugins of the draw.io presentation framework in `drawio-custom-plugins/slides/`, in the
@@ -34,6 +37,7 @@ const SLIDE_PLUGINS = [
 	"language-check.plugin.js",
 	"view-position.plugin.js",
 	"deck-pictures.plugin.js",
+	"insert-slide.plugin.js",
 	"media-bar.js",
 	"media.plugin.js",
 ];
@@ -195,9 +199,14 @@ export class DrawioClientFactory {
 			}
 		});
 
+		const templateWatchers = slides
+			? this.watchTemplates(config, slides.deckFolder, drawioClient)
+			: [];
+
 		webviewPanel.onDidDispose(() => {
 			disposeAutorun();
 			drawioClient.dispose();
+			templateWatchers.forEach((watcher) => watcher.dispose());
 		});
 
 		return drawioClient;
@@ -290,7 +299,11 @@ export class DrawioClientFactory {
 	 */
 	private async getSlides(
 		config: DiagramConfig
-	): Promise<{ plugins: { jsCode: string }[]; colours: readonly DefinedColour[] }> {
+	): Promise<{
+		plugins: { jsCode: string }[];
+		colours: readonly DefinedColour[];
+		deckFolder: Uri;
+	}> {
 		const deckFolder = await findDeckFolder(config.uri);
 		const settings = await readSlideSettings(
 			config,
@@ -318,7 +331,37 @@ export class DrawioClientFactory {
 		return {
 			plugins: [{ jsCode: settingsLine }, ...plugins],
 			colours: settings.colours,
+			deckFolder,
 		};
+	}
+
+	/**
+	 * Watches the template files of a drawing, and gives `insert-slide.plugin.js` their pages
+	 * again after a file is saved, added or deleted.
+	 */
+	private watchTemplates(
+		config: DiagramConfig,
+		deckFolder: Uri,
+		drawioClient: CustomizedDrawioClient
+	): Disposable[] {
+		const patterns = config.templatePatterns(deckFolder);
+		const send = async () => {
+			drawioClient.updateSlideTemplates(
+				await readTemplates(patterns, this.log)
+			);
+		};
+		return patterns.map((pattern) => {
+			const watcher = workspace.createFileSystemWatcher(
+				new RelativePattern(
+					Uri.file(path.dirname(pattern)),
+					path.basename(pattern)
+				)
+			);
+			watcher.onDidChange(send);
+			watcher.onDidCreate(send);
+			watcher.onDidDelete(send);
+			return watcher;
+		});
 	}
 
 	private getHtml(

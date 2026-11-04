@@ -5,7 +5,8 @@
 // reaches past the edge of a slide adds a page beside it.  The build cuts every slide at the edge
 // of its page, so content past the edge is hidden from the slide, and the extra page only gets
 // in the way.  This plugin gives the graph a page layout of the one page at the origin when the
-// page view is on and the page has the size of a slide of slide-format.drawio.xml, 1920 by 1080.
+// page view is on and the page has the size of a slide, the setting "drawioSlides.slideSize" of the
+// extension, 1920 by 1080 by default, which the extension gives in window.drawioSlidesSettings.
 // Content past the edge stays on the grey canvas, where it can still be selected and edited.
 // Every other page keeps the layout of the editor.
 //
@@ -15,11 +16,13 @@
 Draw.loadPlugin(function (ui) {
   var graph = ui.editor.graph;
   var getPageLayout = graph.getPageLayout;
+  var size = (window.drawioSlidesSettings || {}).slideSize || {};
 
   graph.getPageLayout = function () {
     var format = this.pageFormat;
 
-    if (this.pageVisible && format != null && format.width == 1920 && format.height == 1080) {
+    if (this.pageVisible && format != null && format.width == size.width &&
+        format.height == size.height) {
       return new mxRectangle(0, 0, 1, 1);
     }
 

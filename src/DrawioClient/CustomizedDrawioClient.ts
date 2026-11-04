@@ -87,6 +87,11 @@ export class CustomizedDrawioClient extends DrawioClient<
 		});
 	}
 
+	/** Gives `insert-slide.plugin.js` the pages of the templates again. */
+	public updateSlideTemplates(templates: SlideTemplatesAction["templates"]) {
+		this.sendCustomAction({ action: "drawioSlidesTemplates", templates });
+	}
+
 	public updateLiveshareViewState(update: {
 		cursors: ParticipantCursorInfo[];
 		selectedCells: ParticipantSelectedCellsInfo[];

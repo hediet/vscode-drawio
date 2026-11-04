@@ -626,14 +626,53 @@ export class DiagramConfig {
 	 */
 	public colorDefinitionFiles(deckFolder: Uri): Uri[] {
 		return this._colorDefinitions.get().map((path) =>
-			Uri.file(
-				new SimpleTemplate(path).render({
-					deckFolder: () => deckFolder.fsPath,
-					workspaceFolder: () =>
-						(workspace.getWorkspaceFolder(this.uri)?.uri ?? deckFolder)
-							.fsPath,
-				})
-			)
+			Uri.file(this.renderDeckPath(path, deckFolder))
+		);
+	}
+
+	private renderDeckPath(path: string, deckFolder: Uri): string {
+		return new SimpleTemplate(path).render({
+			deckFolder: () => deckFolder.fsPath,
+			workspaceFolder: () =>
+				(workspace.getWorkspaceFolder(this.uri)?.uri ?? deckFolder).fsPath,
+		});
+	}
+
+	private readonly _slideSize = new VsCodeSetting<unknown>(
+		`${settingPrefix}.slideSize`,
+		{ scope: this.uri }
+	);
+
+	/** The width and the height of a slide, which `single-page.plugin.js` reads. */
+	public get slideSize(): unknown {
+		return this._slideSize.get();
+	}
+
+	private readonly _languageTool = new VsCodeSetting<unknown>(
+		`${settingPrefix}.languageTool`,
+		{ scope: this.uri }
+	);
+
+	/** The address of the LanguageTool server of `language-check.plugin.js`. */
+	public get languageTool(): unknown {
+		return this._languageTool.get();
+	}
+
+	private readonly _templates = new VsCodeSetting<string[]>(
+		`${settingPrefix}.templates`,
+		{
+			scope: this.uri,
+			serializer: serializerWithDefault<string[]>([]),
+		}
+	);
+
+	/**
+	 * The patterns of the template files of the drawing, with `${deckFolder}` and
+	 * `${workspaceFolder}` filled in. The last part of a pattern may hold `*`.
+	 */
+	public templatePatterns(deckFolder: Uri): string[] {
+		return this._templates.get().map((path) =>
+			this.renderDeckPath(path, deckFolder)
 		);
 	}
 

@@ -1,6 +1,7 @@
 
 declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | GetVerticesAction
-    | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction | UpdateLiveshareViewState;
+    | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction | UpdateLiveshareViewState
+    | SlideTemplatesAction;
 declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent
     | UpdateLocalStorage | PluginLoaded | CursorChangedEvent | SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent | SelectionRectangleChangedEvent;
 
@@ -80,6 +81,12 @@ declare interface SelectionRectangleChangedEvent {
 declare interface Rectangle {
     start: { x: number, y: number },
     end: { x: number, y: number },
+}
+
+/** The pages of the templates of a deck, for insert-slide.plugin.js. */
+declare interface SlideTemplatesAction {
+    action: "drawioSlidesTemplates";
+    templates: { name: string; pages: { name: string; xml: string }[] }[];
 }
 
 declare interface UpdateLiveshareViewState {

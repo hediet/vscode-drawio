@@ -6,8 +6,9 @@
 //     brew install languagetool
 //     brew services start languagetool
 //
-// The server answers at http://localhost:8081, or at window.languageToolServer when a plugin sets
-// it, and no text leaves the machine.  While a label is edited, the plugin sends its text to the
+// The server answers at the address of the setting "drawioSlides.languageTool" of the extension,
+// http://localhost:8081 by default, which the extension gives in
+// window.drawioSlidesSettings.languageTool, and no text leaves the machine.  While a label is edited, the plugin sends its text to the
 // server half a second after the last change, and underlines what the server finds: a wavy red
 // line under a word that may be misspelt, a wavy blue line under a fault of grammar or of style.
 // The lines are highlights of the browser, so the label keeps its HTML as it is.  A formula
@@ -56,7 +57,7 @@ Draw.loadPlugin(function (ui) {
   var menu = null;
 
   function server() {
-    return (window.languageToolServer || 'http://localhost:8081').replace(/\/+$/, '');
+    return ((window.drawioSlidesSettings || {}).languageTool || '').replace(/\/+$/, '');
   }
 
   var style = document.createElement('style');

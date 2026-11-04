@@ -575,6 +575,40 @@
 							"maxItems": 2
 						}
 					},
+					"drawioSlides.templates": {
+						"type": "array",
+						"scope": "resource",
+						"default": [
+							"${deckFolder}/templates/*.drawio.xml"
+						],
+						"description": "The template files of a deck, multi-page draw.io files whose pages are the layouts of its slides, each named by its layout. The menus Insert and Pages of the editor offer Insert slide, which inserts a copy of a layout after the current page. The last part of a path may hold `*`, and a path may hold `${deckFolder}`, the nearest folder above the drawing with a `package.json`, and `${workspaceFolder}`.",
+						"items": {
+							"type": "string"
+						}
+					},
+					"drawioSlides.slideSize": {
+						"type": "object",
+						"scope": "resource",
+						"default": {
+							"width": 1920,
+							"height": 1080
+						},
+						"description": "The size of a slide. The page view keeps a page of this size at one page, as the build cuts each slide at the edge of its page.",
+						"properties": {
+							"width": {
+								"type": "number"
+							},
+							"height": {
+								"type": "number"
+							}
+						}
+					},
+					"drawioSlides.languageTool": {
+						"type": "string",
+						"scope": "resource",
+						"default": "http://localhost:8081",
+						"description": "The address of the LanguageTool server that checks the spelling and the grammar of the label being edited. The check of every slide of the draw.io presentation framework, `npm run check`, reads the same setting."
+					},
 					"drawioSlides.colorDefinitions": {
 						"type": "array",
 						"scope": "resource",
