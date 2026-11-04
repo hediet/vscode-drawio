@@ -2,7 +2,7 @@
 // Text tab of the Format panel, in the draw.io editor.
 //
 // The setting "drawioSlides.listStyles" of the VS Code extension gives the style of each level of
-// a bulleted and of a numbered list, its indent, its marker and the colour and the size of the
+// a bulleted and of a numbered list, its indent, its marker and the color and the size of the
 // marker, and the gap above each item apart from the first item of a first level.  Its default is
 // the style of the lists of the slide template deck-templates/slide-format.drawio.xml of the
 // extension.  draw.io's buttons Bulleted List, Numbered List,
@@ -21,13 +21,13 @@
 // it back and takes back the change before it instead.  Undo of the drawing after the edit takes
 // back the whole edit, the choice included.
 //
-// The markers take the colour and the size of their level by the rules of listMarkerCss in
+// The markers take the color and the size of their level by the rules of listMarkerCss in
 // list-marker-rules.js, which this plugin gives the page of the editor and export-pages.mjs copies
-// into the SVG of each page.  The colour of a level may name a colour of the setting
+// into the SVG of each page.  The color of a level may name a color of the setting
 // "drawioSlides.colors", which the extension replaces by its value.  After a change of the list
-// styles, of the markers or of the colours, the extension sends them again through
+// styles, of the markers or of the colors, the extension sends them again through
 // slide-settings.js, and the plugin takes them for the next list and the next menu and gives the
-// markers on the page their new colours and sizes.  A list that has its style already keeps its
+// markers on the page their new colors and sizes.  A list that has its style already keeps its
 // indent and its marker.  In the default, the triangle is #004D80 at 0.7 of the size of the
 // text, which covers about the area of the narrower triangle of the Keynote deck of the template,
 // and sits on the baseline, and the dash is #004D80.

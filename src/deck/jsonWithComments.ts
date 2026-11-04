@@ -19,7 +19,7 @@
  *       }
  *     }
  *
- * The edits of single colours that the colour panel makes are in `deckColourEdits.ts`, which
+ * The edits of single colors that the color panel makes are in `deckColorEdits.ts`, which
  * edits through `jsonc-parser`. This module writes a whole object with the comment lines before
  * each member, which `jsonc-parser` does not write.
  */

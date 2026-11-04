@@ -17,11 +17,11 @@ The covered files are the files of this repository whose copyright Yujun Huang h
 | `drawio-custom-plugins/slides/list-marker-rules.js` | the CSS rules of the list markers that it writes, in the SVG of each page with a list, and through the SVGs in the HTML file and the PDF |
 | `drawio-custom-plugins/slides/mathjax-commands.tex` | the definitions of the commands that a page uses, in `build/assembled.drawio.xml` and through it in the drawing of the formulas |
 | `deck-templates/slide-format.drawio.xml` | the pages that the set-up copies into the first section file and into `templates/slides.drawio.xml`, and the slides that the editor inserts from them |
-| `deck-templates/color-definitions.tex` | the colours and their comments, in the setting `drawioSlides.colors` of `.vscode/settings.json` |
+| `deck-templates/color-definitions.tex` | the colors and their comments, in the setting `drawioSlides.colors` of `.vscode/settings.json` |
 | `deck-templates/named-colors-example.json` | the swatches, in the setting `drawioSlides.customColorSchemes` when the set-up is given the file |
 | `deck-templates/drawio-slides.cjs` | the whole launcher, in the folder of the presentation |
 | `src/deck/deckSetUp.ts`, `src/deck/deckMigration.ts` | the text that the set-up and the move to the launcher write into `package.json`, `.gitignore` and `.vscode/settings.json` |
-| `src/deck/colourSettings.ts`, `src/deck/colourConfig.ts` | the colours that the import of colours writes into `.vscode/settings.json`, the TeX file of the export of colours, and the colour configuration of the mode `color-config` |
+| `src/deck/colorSettings.ts`, `src/deck/colorConfig.ts` | the colors that the import of colors writes into `.vscode/settings.json`, the TeX file of the export of colors, and the color configuration of the mode `color-config` |
 | `src/deck/deckAssembly.ts`, `src/deck/texDefinitions.ts`, `src/deck/pageSnapshots.ts`, `src/deck/deckPictures.ts` | `build/assembled.drawio.xml` and `build/outline.json`, with the label of the TeX definitions of a page, the cells drawn as pictures of their embedded pages and the pictures of `assets/` written as data, which the mode `embed-pictures` also writes into the section files |
 | `src/deck/slideExport.ts` | the marks of the cells with a video or a page, the style element and the white page that the export writes into the SVG of each page |
 | `src/deck/htmlDeck.ts` | the deck as JSON in the HTML file, and the list `build/media/.deck-media.json` |

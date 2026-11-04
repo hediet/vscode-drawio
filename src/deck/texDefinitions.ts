@@ -1,9 +1,9 @@
 /**
  * The TeX definitions a draw.io page needs before MathJax can typeset its formulas, and the
- * `\definecolor` lines of TeX files of colours.
+ * `\definecolor` lines of TeX files of colors.
  *
- * draw.io's MathJax knows no colour by the name a deck gives it and lacks a few commands of LaTeX
- * packages, so a page carries the definitions in a label of its own. The colours of a deck are
+ * draw.io's MathJax knows no color by the name a deck gives it and lacks a few commands of LaTeX
+ * packages, so a page carries the definitions in a label of its own. The colors of a deck are
  * the setting `drawioSlides.colors`, and this module writes the definitions a text uses in the
  * model RGB, which the MathJax of draw.io reads, as the editor gives them to MathJax. The commands
  * that MathJax lacks are the lines of `drawio-custom-plugins/slides/mathjax-commands.tex`.
@@ -11,10 +11,10 @@
  * The module also reads the `\definecolor` lines of a TeX file, in the models `rgb`, `RGB`,
  * `HTML`, `gray`, `Gray`, `cmy` and `cmyk`, converted as the package xcolor converts them:
  *
- *     readCommentedColours("% The greens.\n\\definecolor{green}{rgb}{0.0, 0.5, 0.0}")
+ *     readCommentedColors("% The greens.\n\\definecolor{green}{rgb}{0.0, 0.5, 0.0}")
  *
  * gives the member `green` with the value `#008000` and the comment `The greens.`, which
- * `colourLines` writes back as
+ * `colorLines` writes back as
  *
  *     % The greens.
  *     \definecolor{green}{HTML}{008000}
@@ -23,7 +23,7 @@
  * Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
  */
 import { DeckError } from "./deckError";
-import { COLOR_NAME } from "./deckColours";
+import { COLOR_NAME } from "./deckColors";
 import {
 	CommentedMember,
 	CommentedObject,
@@ -32,38 +32,38 @@ import {
 import { roundHalfToEven, splitLines, trimEnd } from "./textFormats";
 
 const COMMAND_LINE = /^\\def\\([A-Za-z]+)\{(.*)\}\s*$/;
-const DEFINE_COLOUR =
+const DEFINE_COLOR =
 	/\\definecolor\s*\{([^}]*)\}\s*\{([^}]*)\}\s*\{([^}]*)\}/g;
 /** A comment of TeX starts at a `%` that no backslash escapes. */
 const TEX_COMMENT = /(?<!\\)%/;
 const DECIMAL = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/;
 /**
- * The start of the comment on the first line of a file of colours that the export to TeX writes,
+ * The start of the comment on the first line of a file of colors that the export to TeX writes,
  * which the import leaves out, so that the file converts back without it.
  */
 export const GENERATED_MARK =
-	"Written by the command Export Colours to TeX of Draw.io Slides";
-/** The marks of the files of colours that earlier exports wrote, which the import leaves out as well. */
+	"Written by the command Export Colors to TeX of Draw.io Slides";
+/** The marks of the files of colors that earlier exports wrote, which the import leaves out as well. */
 const EARLIER_GENERATED_MARKS = [
 	"Written by tools/draw-io/color-settings.py to-tex",
 ];
 
 /**
- * One `\definecolor` of a TeX text: the name, the colour as `#rrggbb`, or undefined for a model
+ * One `\definecolor` of a TeX text: the name, the color as `#rrggbb`, or undefined for a model
  * or values that this module does not read, and the model.
  */
-export interface ColourDefinition {
+export interface ColorDefinition {
 	readonly name: string;
 	readonly value: string | undefined;
 	readonly model: string;
 }
 
 /**
- * The colours of a TeX text, as members of `drawioSlides.colors` with the comment lines before
+ * The colors of a TeX text, as members of `drawioSlides.colors` with the comment lines before
  * each, the definitions that the setting cannot hold, and the numbers of the lines of other TeX.
  */
-export interface CommentedColours {
-	readonly colours: CommentedObject;
+export interface CommentedColors {
+	readonly colors: CommentedObject;
 	readonly problems: readonly string[];
 	readonly otherLines: readonly number[];
 }
@@ -73,7 +73,7 @@ function parseNumber(text: string): number | undefined {
 }
 
 /**
- * The red, green and blue between 0 and 1 of a colour of the models `rgb`, `RGB`, `gray`,
+ * The red, green and blue between 0 and 1 of a color of the models `rgb`, `RGB`, `gray`,
  * `Gray`, `cmy` and `cmyk`, converted as the package xcolor converts them, or undefined.
  */
 export function toRedGreenBlue(
@@ -113,8 +113,8 @@ export function toRedGreenBlue(
 	return undefined;
 }
 
-/** A colour of one of the models of `\definecolor` as `#rrggbb`, or undefined. */
-export function colourValue(model: string, values: string): string | undefined {
+/** A color of one of the models of `\definecolor` as `#rrggbb`, or undefined. */
+export function colorValue(model: string, values: string): string | undefined {
 	if (model === "HTML") {
 		const digits = values.trim().toLowerCase();
 		return /^[0-9a-f]{6}$/.test(digits) ? "#" + digits : undefined;
@@ -136,7 +136,7 @@ export function colourValue(model: string, values: string): string | undefined {
 }
 
 function definitionMatches(text: string): RegExpExecArray[] {
-	const pattern = new RegExp(DEFINE_COLOUR.source, "g");
+	const pattern = new RegExp(DEFINE_COLOR.source, "g");
 	const found = new Array<RegExpExecArray>();
 	for (
 		let match = pattern.exec(text);
@@ -149,24 +149,24 @@ function definitionMatches(text: string): RegExpExecArray[] {
 }
 
 /** Every `\definecolor` of a TeX text, in the order of the text. */
-export function readDefinitions(text: string): ColourDefinition[] {
+export function readDefinitions(text: string): ColorDefinition[] {
 	return definitionMatches(text).map(([_whole, name, model, values]) => ({
 		name,
-		value: colourValue(model.trim(), values),
+		value: colorValue(model.trim(), values),
 		model: model.trim(),
 	}));
 }
 
-/** A warning for each definition of a file of colours that this module cannot read. */
+/** A warning for each definition of a file of colors that this module cannot read. */
 export function unreadDefinitionWarnings(
 	file: string,
-	definitions: readonly ColourDefinition[]
+	definitions: readonly ColorDefinition[]
 ): string[] {
 	return definitions
 		.filter((definition) => definition.value === undefined)
 		.map(
 			(definition) =>
-				`${file} defines ${definition.name} in the model ${definition.model} with values that are not converted, so the colour is left out`
+				`${file} defines ${definition.name} in the model ${definition.model} with values that are not converted, so the color is left out`
 		);
 }
 
@@ -193,7 +193,7 @@ function isGeneratedMark(comment: string): boolean {
 }
 
 /**
- * The colours of every `\definecolor` of a TeX text, in its order, each as `#RRGGBB` in capitals
+ * The colors of every `\definecolor` of a TeX text, in its order, each as `#RRGGBB` in capitals
  * with the comment lines between it and the definition before it, `null` for a blank line among
  * them, and the comment after it on its line.
  *
@@ -201,7 +201,7 @@ function isGeneratedMark(comment: string): boolean {
  * letters and digits that start with a letter, and a second definition of a name are problems.
  * A line that holds TeX other than definitions is left out and listed by its number.
  */
-export function readCommentedColours(text: string): CommentedColours {
+export function readCommentedColors(text: string): CommentedColors {
 	const members = new Array<CommentedMember>();
 	const problems = new Array<string>();
 	const otherLines = new Array<number>();
@@ -210,7 +210,7 @@ export function readCommentedColours(text: string): CommentedColours {
 		const number = lineIndex + 1;
 		const { tex, comment } = splitComment(line);
 		const definitions = definitionMatches(tex);
-		const holdsOtherTex = tex.replace(DEFINE_COLOUR, "").trim() !== "";
+		const holdsOtherTex = tex.replace(DEFINE_COLOR, "").trim() !== "";
 		if (definitions.length === 0) {
 			if (holdsOtherTex) {
 				otherLines.push(number);
@@ -235,7 +235,7 @@ export function readCommentedColours(text: string): CommentedColours {
 			const [name, model, values] = found
 				.slice(1)
 				.map((part) => part.trim());
-			const value = colourValue(model, values);
+			const value = colorValue(model, values);
 			if (value === undefined) {
 				problems.push(
 					`line ${number} defines ${name} in the model ${model} with values that are not converted`
@@ -268,33 +268,33 @@ export function readCommentedColours(text: string): CommentedColours {
 		});
 	});
 	return {
-		colours: { members, closingComments: withoutTrailingBlanks(pending) },
+		colors: { members, closingComments: withoutTrailingBlanks(pending) },
 		problems,
 		otherLines,
 	};
 }
 
-/** The colours of a TeX file read by `readCommentedColours`, and a warning for the lines of other TeX. */
-export interface ColourFile {
-	readonly colours: CommentedObject;
+/** The colors of a TeX file read by `readCommentedColors`, and a warning for the lines of other TeX. */
+export interface ColorFile {
+	readonly colors: CommentedObject;
 	readonly warnings: readonly string[];
 }
 
 /**
- * The colours of the text of a TeX file, with their comments. Raises `DeckError` on a problem of
- * `readCommentedColours`.
+ * The colors of the text of a TeX file, with their comments. Raises `DeckError` on a problem of
+ * `readCommentedColors`.
  */
-export function readColourFileText(file: string, text: string): ColourFile {
-	const read = readCommentedColours(text);
+export function readColorFileText(file: string, text: string): ColorFile {
+	const read = readCommentedColors(text);
 	if (read.problems.length > 0) {
 		throw new DeckError(
-			`${file} holds colours that drawioSlides.colors cannot hold:\n  ${read.problems.join(
+			`${file} holds colors that drawioSlides.colors cannot hold:\n  ${read.problems.join(
 				"\n  "
 			)}`
 		);
 	}
 	return {
-		colours: read.colours,
+		colors: read.colors,
 		warnings:
 			read.otherLines.length > 0
 				? [
@@ -307,14 +307,14 @@ export function readColourFileText(file: string, text: string): ColourFile {
 }
 
 /**
- * The colours as `\definecolor` lines in the model HTML, each comment of a member before it as a
+ * The colors as `\definecolor` lines in the model HTML, each comment of a member before it as a
  * `%` line, and a trailing comment after its definition.
  */
-export function colourLines(colours: CommentedObject): string {
+export function colorLines(colors: CommentedObject): string {
 	const comment = (line: string | null | undefined): string =>
 		line === null || line === undefined ? "" : line ? "% " + line : "%";
 	const lines = new Array<string>();
-	for (const member of colours.members) {
+	for (const member of colors.members) {
 		lines.push(...member.comments.map(comment));
 		const definition = `\\definecolor{${member.key}}{HTML}{${String(
 			member.value
@@ -327,12 +327,12 @@ export function colourLines(colours: CommentedObject): string {
 				: definition + " " + comment(member.trailing)
 		);
 	}
-	lines.push(...colours.closingComments.map(comment));
+	lines.push(...colors.closingComments.map(comment));
 	return lines.map((line) => line + "\n").join("");
 }
 
-/** The definition of a colour `#RRGGBB` in the model `RGB`, which the MathJax of draw.io reads. */
-export function colourDefinition(name: string, value: string): string {
+/** The definition of a color `#RRGGBB` in the model `RGB`, which the MathJax of draw.io reads. */
+export function colorDefinition(name: string, value: string): string {
 	const [red, green, blue] = [1, 3, 5].map((start) =>
 		parseInt(value.slice(start, start + 2), 16)
 	);

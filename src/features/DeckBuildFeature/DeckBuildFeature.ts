@@ -41,12 +41,12 @@ import {
 	watchDeck,
 } from "../../deck/deckBuild";
 import {
-	coloursFromTex,
-	exportColoursToTex,
-	importColoursFromTex,
+	colorsFromTex,
+	exportColorsToTex,
+	importColorsFromTex,
 	settingsFile,
-} from "../../deck/colourSettings";
-import { COLOURS } from "../../deck/deckSettings";
+} from "../../deck/colorSettings";
+import { COLORS } from "../../deck/deckSettings";
 import { registerFailableCommand } from "../../utils/registerFailableCommand";
 import {
 	cellPlace,
@@ -104,7 +104,7 @@ interface DeckWatch {
 
 /**
  * The commands that build a presentation, watch it, check its language, show its outline,
- * convert its colours from and to TeX, and install the browser of the build. A command runs on
+ * convert its colors from and to TeX, and install the browser of the build. A command runs on
  * the deck of the drawing of the active editor, or else of a workspace folder, the one that the
  * user picks when the workspace has several. The output goes to the output channel, the issues of
  * the check to the Problems view, and a build shows its progress in a notification whose button
@@ -135,11 +135,11 @@ export class DeckBuildFeature {
 		this.register("drawioSlides.outlineDeck", (target) =>
 			this.showOutline(target)
 		);
-		this.register("drawioSlides.importColoursFromTex", (target) =>
-			this.importColours(target)
+		this.register("drawioSlides.importColorsFromTex", (target) =>
+			this.importColors(target)
 		);
-		this.register("drawioSlides.exportColoursToTex", (target) =>
-			this.exportColours(target)
+		this.register("drawioSlides.exportColorsToTex", (target) =>
+			this.exportColors(target)
 		);
 		this.register("drawioSlides.installBrowser", () =>
 			this.installBrowser()
@@ -568,17 +568,17 @@ export class DeckBuildFeature {
 	}
 
 	/**
-	 * Writes the colours of TeX files that the user chooses into `drawioSlides.colors` of the
-	 * deck, after a confirmation, since the colours replace those of the setting.
+	 * Writes the colors of TeX files that the user chooses into `drawioSlides.colors` of the
+	 * deck, after a confirmation, since the colors replace those of the setting.
 	 */
-	private async importColours(target: unknown): Promise<void> {
-		const title = "Import Colours from TeX";
+	private async importColors(target: unknown): Promise<void> {
+		const title = "Import Colors from TeX";
 		const deck = await this.chooseDeck(target, title);
 		if (deck === undefined) {
 			return;
 		}
 		const files = await window.showOpenDialog({
-			title: `${title}: the TeX files whose \\definecolor lines give the colours of ${path.basename(
+			title: `${title}: the TeX files whose \\definecolor lines give the colors of ${path.basename(
 				deck
 			)}`,
 			defaultUri: Uri.file(deck),
@@ -586,7 +586,7 @@ export class DeckBuildFeature {
 			canSelectFolders: false,
 			canSelectMany: true,
 			filters: { TeX: ["tex", "sty"] },
-			openLabel: "Import Colours",
+			openLabel: "Import Colors",
 		});
 		if (files === undefined || files.length === 0) {
 			return;
@@ -606,12 +606,12 @@ export class DeckBuildFeature {
 		const paths = files.map((file) => file.fsPath);
 		let count: number;
 		try {
-			count = coloursFromTex(paths).colours.members.length;
+			count = colorsFromTex(paths).colors.members.length;
 		} catch (error) {
 			return this.showStop(title, error);
 		}
 		const answer = await window.showInformationMessage(
-			`Replace the colours of ${COLOURS} in ${settings} with the ${count} colours of ${paths
+			`Replace the colors of ${COLORS} in ${settings} with the ${count} colors of ${paths
 				.map((file) => path.basename(file))
 				.join(", ")}?`,
 			{
@@ -624,7 +624,7 @@ export class DeckBuildFeature {
 			return;
 		}
 		try {
-			const result = importColoursFromTex(deck, paths);
+			const result = importColorsFromTex(deck, paths);
 			this.log.appendLine(result.line);
 			result.warnings.forEach((warning) =>
 				this.log.appendLine(`warning: ${warning}`)
@@ -641,26 +641,26 @@ export class DeckBuildFeature {
 		}
 	}
 
-	/** Writes the colours of `drawioSlides.colors` of the deck into a TeX file that the user names. */
-	private async exportColours(target: unknown): Promise<void> {
-		const title = "Export Colours to TeX";
+	/** Writes the colors of `drawioSlides.colors` of the deck into a TeX file that the user names. */
+	private async exportColors(target: unknown): Promise<void> {
+		const title = "Export Colors to TeX";
 		const deck = await this.chooseDeck(target, title);
 		if (deck === undefined) {
 			return;
 		}
 		const file = await window.showSaveDialog({
-			title: `${title}: the TeX file of the colours of ${path.basename(
+			title: `${title}: the TeX file of the colors of ${path.basename(
 				deck
 			)}`,
-			defaultUri: Uri.file(path.join(deck, "colours.tex")),
+			defaultUri: Uri.file(path.join(deck, "colors.tex")),
 			filters: { TeX: ["tex"] },
-			saveLabel: "Export Colours",
+			saveLabel: "Export Colors",
 		});
 		if (file === undefined) {
 			return;
 		}
 		try {
-			const result = exportColoursToTex(deck, file.fsPath);
+			const result = exportColorsToTex(deck, file.fsPath);
 			this.log.appendLine(result.line);
 			const choice = await window.showInformationMessage(
 				`${result.line}.`,

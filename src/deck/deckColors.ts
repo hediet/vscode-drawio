@@ -1,7 +1,7 @@
-/** A name of `drawioSlides.colors`, which TeX reads as the name of a colour. */
+/** A name of `drawioSlides.colors`, which TeX reads as the name of a color. */
 export const COLOR_NAME = /^[A-Za-z][A-Za-z0-9]*$/;
 export const COLOR_VALUE = /^#[0-9A-Fa-f]{6}$/;
-/** The keys of a swatch of `drawioSlides.customColorSchemes` that hold a colour. */
+/** The keys of a swatch of `drawioSlides.customColorSchemes` that hold a color. */
 export const SCHEME_COLOR_KEYS = [
 	"fill",
 	"stroke",

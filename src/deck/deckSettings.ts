@@ -11,16 +11,16 @@
  * `.vscode/settings.json` of the folder that its window opens alone, so the editor and the build
  * read the same settings only in a window opened at the deck folder.
  *
- * The colours of a deck are the setting `drawioSlides.colors`, an object of names and values
+ * The colors of a deck are the setting `drawioSlides.colors`, an object of names and values
  * `#RRGGBB`. An entry whose name is not letters and digits that start with a letter, or whose
- * value is not `#RRGGBB`, is left out with a warning. A colour of a level of
- * `drawioSlides.listStyles` may name a colour of the setting, and `readListStyles` gives the value
+ * value is not `#RRGGBB`, is left out with a warning. A color of a level of
+ * `drawioSlides.listStyles` may name a color of the setting, and `readListStyles` gives the value
  * in its place.
  */
 import * as fs from "fs";
 import * as path from "path";
 import { DeckError } from "./deckError";
-import { COLOR_NAME, COLOR_VALUE, LIST_KINDS } from "./deckColours";
+import { COLOR_NAME, COLOR_VALUE, LIST_KINDS } from "./deckColors";
 import { isFile, isPlainObject } from "./deckFiles";
 import { JsonWithCommentsError, withoutComments } from "./jsonWithComments";
 import { jsonText } from "./textFormats";
@@ -28,8 +28,8 @@ import { jsonText } from "./textFormats";
 export const SETTING_PREFIX = "drawioSlides.";
 /** The settings file of a deck, by its path with `/` below the deck folder, which `path.join` reads on every system. */
 export const DECK_SETTINGS = ".vscode/settings.json";
-export const COLOURS = SETTING_PREFIX + "colors";
-const RETIRED_COLOUR_SETTING = SETTING_PREFIX + "colorDefinitions";
+export const COLORS = SETTING_PREFIX + "colors";
+const RETIRED_COLOR_SETTING = SETTING_PREFIX + "colorDefinitions";
 const PATH_VARIABLE = /\$\{(deckFolder|workspaceFolder)\}/g;
 
 /** A value read from the settings, with a warning for each entry left out or left as written. */
@@ -128,79 +128,79 @@ export function settingPath(deck: string, template: string): string {
 }
 
 /**
- * The colours of the setting `drawioSlides.colors` of a deck, name to `#RRGGBB` in capitals, in
+ * The colors of the setting `drawioSlides.colors` of a deck, name to `#RRGGBB` in capitals, in
  * the order of the setting, with a warning for each entry that the extension leaves out. Raises
  * `DeckError` for settings that still hold `drawioSlides.colorDefinitions`, the TeX files of
- * colours that the setting replaced, and for a setting that is no object.
+ * colors that the setting replaced, and for a setting that is no object.
  */
-export function readDeckColours(
+export function readDeckColors(
 	deck: string,
 	settings: Record<string, unknown>,
 	extensionRoot: string
 ): SettingReading<Map<string, string>> {
 	const file = path.join(deck, DECK_SETTINGS);
 	if (
-		Object.prototype.hasOwnProperty.call(settings, RETIRED_COLOUR_SETTING)
+		Object.prototype.hasOwnProperty.call(settings, RETIRED_COLOR_SETTING)
 	) {
-		const given = settings[RETIRED_COLOUR_SETTING];
+		const given = settings[RETIRED_COLOR_SETTING];
 		const files = (Array.isArray(given) ? given : [given]).map((entry) =>
 			settingPath(deck, String(entry))
 		);
 		throw new DeckError(
-			`${file} holds the setting ${RETIRED_COLOUR_SETTING}, whose colours the setting ${COLOURS} has taken over. The command Import Colours from TeX, given ${
+			`${file} holds the setting ${RETIRED_COLOR_SETTING}, whose colors the setting ${COLORS} has taken over. The command Import Colors from TeX, given ${
 				files.join(" and ") || "the TeX files"
-			}, writes them into ${COLOURS}, and the build stops while the settings hold ${RETIRED_COLOUR_SETTING}.`
+			}, writes them into ${COLORS}, and the build stops while the settings hold ${RETIRED_COLOR_SETTING}.`
 		);
 	}
 	const setting = slideSetting(settings, extensionRoot, "colors");
 	if (!isPlainObject(setting)) {
 		throw new DeckError(
-			`${COLOURS} of ${file} holds ${jsonText(
+			`${COLORS} of ${file} holds ${jsonText(
 				setting
-			)}, where an object of names and colours was expected`
+			)}, where an object of names and colors was expected`
 		);
 	}
-	const colours = new Map<string, string>();
+	const colors = new Map<string, string>();
 	const warnings = new Array<string>();
 	for (const [name, value] of Object.entries(setting)) {
 		if (!COLOR_NAME.test(name)) {
 			warnings.push(
-				`${COLOURS} names a colour ${jsonText(
+				`${COLORS} names a color ${jsonText(
 					name
-				)}, which is not letters and digits that start with a letter, so the colour is left out`
+				)}, which is not letters and digits that start with a letter, so the color is left out`
 			);
 		} else if (typeof value !== "string" || !COLOR_VALUE.test(value)) {
 			warnings.push(
-				`${COLOURS} gives ${name} the value ${jsonText(
+				`${COLORS} gives ${name} the value ${jsonText(
 					value
-				)}, which is not # and six hexadecimal digits, so the colour is left out`
+				)}, which is not # and six hexadecimal digits, so the color is left out`
 			);
 		} else {
-			colours.set(name, "#" + value.slice(1).toUpperCase());
+			colors.set(name, "#" + value.slice(1).toUpperCase());
 		}
 	}
-	return { value: colours, warnings };
+	return { value: colors, warnings };
 }
 
-/** Whether a colour of a setting is a name, which the values `none` and `#RRGGBB` are not. */
-function isColourName(colour: unknown): colour is string {
+/** Whether a color of a setting is a name, which the values `none` and `#RRGGBB` are not. */
+function isColorName(color: unknown): color is string {
 	return (
-		typeof colour === "string" &&
-		colour !== "none" &&
-		COLOR_NAME.test(colour)
+		typeof color === "string" &&
+		color !== "none" &&
+		COLOR_NAME.test(color)
 	);
 }
 
 /**
- * The setting `drawioSlides.listStyles` of a deck, with the value of each colour of
- * `drawioSlides.colors` that a level names, and a warning for each name that the colours do not
+ * The setting `drawioSlides.listStyles` of a deck, with the value of each color of
+ * `drawioSlides.colors` that a level names, and a warning for each name that the colors do not
  * define, which stays as written.
  */
 export function readListStyles(
 	deck: string,
 	settings: Record<string, unknown>,
 	extensionRoot: string,
-	colours: ReadonlyMap<string, string>
+	colors: ReadonlyMap<string, string>
 ): SettingReading<Record<string, unknown>> {
 	const styles = slideSetting(settings, extensionRoot, "listStyles");
 	if (!isPlainObject(styles)) {
@@ -222,8 +222,8 @@ export function readListStyles(
 			if (!isPlainObject(level) || typeof level.color !== "string") {
 				return level;
 			}
-			const color = colours.get(level.color) ?? level.color;
-			if (isColourName(color)) {
+			const color = colors.get(level.color) ?? level.color;
+			if (isColorName(color)) {
 				unknown.add(color);
 			}
 			return { ...level, color };
@@ -235,7 +235,7 @@ export function readListStyles(
 			.sort()
 			.map(
 				(name) =>
-					`${SETTING_PREFIX}listStyles names the colour ${name}, which ${COLOURS} does not define, so the value stays as written`
+					`${SETTING_PREFIX}listStyles names the color ${name}, which ${COLORS} does not define, so the value stays as written`
 			),
 	};
 }

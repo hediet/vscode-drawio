@@ -10,8 +10,8 @@ const logos = loadTsModule("deck/logoPlacement.ts");
 const commandLine = loadTsModule("deck/commandLine.ts");
 const { extensionRoot } = require("./deckHelpers");
 
-/** A PNG of the size, transparent apart from an opaque rectangle of the colour. */
-function pngFile(folder, name, width, height, box, colour) {
+/** A PNG of the size, transparent apart from an opaque rectangle of the color. */
+function pngFile(folder, name, width, height, box, color) {
 	const png = new PNG({ width, height });
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
@@ -21,7 +21,7 @@ function pngFile(folder, name, width, height, box, colour) {
 				y >= box.top &&
 				y < box.bottom;
 			png.data.set(
-				inside ? [...colour, 255] : [0, 0, 0, 0],
+				inside ? [...color, 255] : [0, 0, 0, 0],
 				(y * width + x) * 4
 			);
 		}

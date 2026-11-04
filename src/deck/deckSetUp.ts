@@ -6,12 +6,12 @@
  * starting pages of the template, a `package.json` of the commands of the deck and of the key
  * `config`, the launcher `drawio-slides.cjs` that the commands run, the lines that the
  * `.gitignore` of the folder lacks, `templates/slides.drawio.xml` and `.vscode/settings.json` with
- * the colours of the starting palette. `writeVscodeSettings` and
+ * the colors of the starting palette. `writeVscodeSettings` and
  * `copyMissingTemplates` set up the editor for a presentation that lacks its settings.
  *
  * The settings associate `.drawio.xml` with the editor of the extension, set `drawioSlides.slides`,
  * with which the extension loads the plugins of the slides, name the files in `templates/` of the
- * presentation in `drawioSlides.templates`, and give `drawioSlides.colors` the colours and the
+ * presentation in `drawioSlides.templates`, and give `drawioSlides.colors` the colors and the
  * comments of the starting palette, without the header of the palette, the comment lines before its
  * first blank line.
  *
@@ -38,15 +38,15 @@ import {
 	SLIDES_DIR,
 	slug,
 } from "./deckFiles";
-import { COLOURS, DECK_SETTINGS, SETTING_PREFIX } from "./deckSettings";
+import { COLORS, DECK_SETTINGS, SETTING_PREFIX } from "./deckSettings";
 import { CommentedObject, withMemberObject } from "./jsonWithComments";
-import { readColourFileText } from "./texDefinitions";
+import { readColorFileText } from "./texDefinitions";
 import { jsonText } from "./textFormats";
 
 export { DECK_COMMAND_LINE, DECK_LAUNCHER, launcherFile, TEMPLATE_FOLDER };
 
 const TEMPLATE = "slide-format.drawio.xml";
-/** The colours that a new deck starts with in its setting `drawioSlides.colors`. */
+/** The colors that a new deck starts with in its setting `drawioSlides.colors`. */
 const STARTING_PALETTE = "color-definitions.tex";
 /** The folder of a presentation that holds its copies of the template files. */
 export const DECK_TEMPLATES = "templates";
@@ -87,11 +87,11 @@ export const DECK_IGNORED = [
 	".claude/settings.local.json",
 ] as const;
 /**
- * The colour settings of a colour configuration that `writeVscodeSettings` writes. The extension
- * names the colours of `drawioSlides.colors` in the picker by itself, so `colorNames` and
+ * The color settings of a color configuration that `writeVscodeSettings` writes. The extension
+ * names the colors of `drawioSlides.colors` in the picker by itself, so `colorNames` and
  * `presetColors` stay out.
  */
-const COLOUR_SETTINGS = ["customColorSchemes"] as const;
+const COLOR_SETTINGS = ["customColorSchemes"] as const;
 
 /** A text that the set-up writes, with the warnings of the reading of its sources. */
 export interface SetUpResult {
@@ -117,42 +117,42 @@ export function templateFile(extensionRoot: string): string {
 }
 
 /**
- * The colours of the starting palette with their comments, without the header of the file, the
- * comment lines before its first blank line, which describe the file and no colour.
+ * The colors of the starting palette with their comments, without the header of the file, the
+ * comment lines before its first blank line, which describe the file and no color.
  */
 export function startingPalette(extensionRoot: string): {
-	colours: CommentedObject;
+	colors: CommentedObject;
 	warnings: readonly string[];
 } {
 	const file = path.join(extensionRoot, TEMPLATE_FOLDER, STARTING_PALETTE);
-	const { colours, warnings } = readColourFileText(
+	const { colors, warnings } = readColorFileText(
 		file,
 		fs.readFileSync(file, "utf8")
 	);
-	const [first, ...rest] = colours.members;
+	const [first, ...rest] = colors.members;
 	if (first === undefined || !first.comments.includes(null)) {
-		return { colours, warnings };
+		return { colors, warnings };
 	}
 	const own = first.comments.slice(first.comments.indexOf(null) + 1);
 	return {
-		colours: {
-			...colours,
+		colors: {
+			...colors,
 			members: [{ ...first, comments: own }, ...rest],
 		},
 		warnings,
 	};
 }
 
-/** A colour configuration of the editor in plain JSON, such as `make-color-config` writes. */
-export function readColourConfiguration(file: string): Record<string, unknown> {
+/** A color configuration of the editor in plain JSON, such as `make-color-config` writes. */
+export function readColorConfiguration(file: string): Record<string, unknown> {
 	if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
-		throw new DeckError(`the colour configuration ${file} does not exist`);
+		throw new DeckError(`the color configuration ${file} does not exist`);
 	}
 	try {
 		return JSON.parse(fs.readFileSync(file, "utf8"));
 	} catch (error) {
 		throw new DeckError(
-			`the colour configuration ${file} does not read as plain JSON: ${
+			`the color configuration ${file} does not read as plain JSON: ${
 				(error as Error).message
 			}. A file with comments reads only after they are removed.`
 		);
@@ -161,7 +161,7 @@ export function readColourConfiguration(file: string): Record<string, unknown> {
 
 /**
  * The text of `.vscode/settings.json` of a presentation. The setting `drawioSlides.colors` takes
- * the colours of the palette with their comments, which JSON alone cannot hold, so
+ * the colors of the palette with their comments, which JSON alone cannot hold, so
  * `withMemberObject` adds it to the text.
  */
 export function vscodeSettingsText(
@@ -180,12 +180,12 @@ export function vscodeSettingsText(
 			`\${deckFolder}/${DECK_TEMPLATES}/*.drawio.xml`,
 		],
 	};
-	for (const name of COLOUR_SETTINGS) {
+	for (const name of COLOR_SETTINGS) {
 		if (Object.prototype.hasOwnProperty.call(configuration, name)) {
 			settings[SETTING_PREFIX + name] = configuration[name];
 		}
 	}
-	return withMemberObject(jsonText(settings, 2) + "\n", COLOURS, palette);
+	return withMemberObject(jsonText(settings, 2) + "\n", COLORS, palette);
 }
 
 /**
@@ -195,7 +195,7 @@ export function vscodeSettingsText(
 export function writeVscodeSettings(
 	project: string,
 	palette: CommentedObject,
-	colourConfiguration?: string
+	colorConfiguration?: string
 ): string {
 	const target = path.join(project, DECK_SETTINGS);
 	if (fs.existsSync(target)) {
@@ -204,9 +204,9 @@ export function writeVscodeSettings(
 		);
 	}
 	const configuration =
-		colourConfiguration === undefined
+		colorConfiguration === undefined
 			? {}
-			: readColourConfiguration(colourConfiguration);
+			: readColorConfiguration(colorConfiguration);
 	const text = vscodeSettingsText(palette, configuration);
 	fs.mkdirSync(path.dirname(target), { recursive: true });
 	fs.writeFileSync(target, text, "utf8");
@@ -236,14 +236,14 @@ export function copyMissingTemplates(
 export function setUpEditor(
 	project: string,
 	extensionRoot: string,
-	colourConfiguration?: string
+	colorConfiguration?: string
 ): SetUpResult {
 	const folder = path.resolve(project);
 	const palette = startingPalette(extensionRoot);
 	const settings = writeVscodeSettings(
 		folder,
-		palette.colours,
-		colourConfiguration
+		palette.colors,
+		colorConfiguration
 	);
 	const copies = copyMissingTemplates(folder, extensionRoot);
 	const offer = migrationOffer(folder, extensionRoot);
@@ -420,7 +420,7 @@ export function initDeck(options: InitOptions): SetUpResult {
 		: "";
 	fs.writeFileSync(gitignore, withDeckIgnored(existing), "utf8");
 	copyMissingTemplates(realProject, options.extensionRoot);
-	const settings = writeVscodeSettings(realProject, palette.colours);
+	const settings = writeVscodeSettings(realProject, palette.colors);
 	return {
 		lines: [
 			`${path.relative(

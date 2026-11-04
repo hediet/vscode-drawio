@@ -1,19 +1,19 @@
 /**
- * The conversion of the colours of a deck between TeX files of `\definecolor` lines and the setting
+ * The conversion of the colors of a deck between TeX files of `\definecolor` lines and the setting
  * `drawioSlides.colors` of its `.vscode/settings.json`.
  *
- * The setting is the one place of the colours of a deck: the editor and the build read it, and VS
- * Code shows a swatch and its colour picker beside each value. A TeX file is for a paper, or for a
- * deck that kept its colours in one.
+ * The setting is the one place of the colors of a deck: the editor and the build read it, and VS
+ * Code shows a swatch and its color picker beside each value. A TeX file is for a paper, or for a
+ * deck that kept its colors in one.
  *
- * The import writes the colours of every `\definecolor` of the files, in their order and in any
+ * The import writes the colors of every `\definecolor` of the files, in their order and in any
  * model that `texDefinitions.ts` converts, into `drawioSlides.colors` as `#RRGGBB`. The comment
- * lines before a definition become `//` lines before its colour, and a comment after a definition
- * on its line becomes a comment after its colour. The import replaces the value of that one key in
+ * lines before a definition become `//` lines before its color, and a comment after a definition
+ * on its line becomes a comment after its color. The import replaces the value of that one key in
  * the text of the settings file, or adds the key, and keeps every other key and comment. It stops
  * before it writes on a definition that the setting cannot hold, such as a name with a hyphen.
  *
- * The export writes the colours of the setting as `\definecolor{<name>}{HTML}{<RRGGBB>}` lines,
+ * The export writes the colors of the setting as `\definecolor{<name>}{HTML}{<RRGGBB>}` lines,
  * with the comments of the setting as `%` lines, after a first line that names the export and the
  * settings file. The import leaves that first line out, so the two convert back and forth.
  *
@@ -23,8 +23,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import { DeckError } from "./deckError";
-import { COLOR_NAME, COLOR_VALUE } from "./deckColours";
-import { COLOURS, DECK_SETTINGS } from "./deckSettings";
+import { COLOR_NAME, COLOR_VALUE } from "./deckColors";
+import { COLORS, DECK_SETTINGS } from "./deckSettings";
 import {
 	CommentedMember,
 	CommentedObject,
@@ -34,9 +34,9 @@ import {
 	withMemberObject,
 } from "./jsonWithComments";
 import {
-	colourLines,
+	colorLines,
 	GENERATED_MARK,
-	readColourFileText,
+	readColorFileText,
 } from "./texDefinitions";
 
 /** What a conversion wrote, in one line, and the warnings of the reading of its sources. */
@@ -49,20 +49,20 @@ export function settingsFile(project: string): string {
 	return path.join(path.resolve(project), DECK_SETTINGS);
 }
 
-/** The colours of the TeX files, in order. Raises `DeckError` on a name that two files define. */
-export function coloursFromTex(files: readonly string[]): {
-	colours: CommentedObject;
+/** The colors of the TeX files, in order. Raises `DeckError` on a name that two files define. */
+export function colorsFromTex(files: readonly string[]): {
+	colors: CommentedObject;
 	warnings: string[];
 } {
 	const members = new Array<CommentedMember>();
 	const warnings = new Array<string>();
 	let closing: readonly (string | null)[] = [];
 	for (const file of files) {
-		const read = readColourFileText(file, fs.readFileSync(file, "utf8"));
+		const read = readColorFileText(file, fs.readFileSync(file, "utf8"));
 		warnings.push(...read.warnings);
 		const known = new Set(members.map((member) => member.key));
 		const repeated = [
-			...new Set(read.colours.members.map((member) => member.key)),
+			...new Set(read.colors.members.map((member) => member.key)),
 		]
 			.filter((key) => known.has(key))
 			.sort();
@@ -73,33 +73,33 @@ export function coloursFromTex(files: readonly string[]): {
 				)}, which an earlier file defines already`
 			);
 		}
-		const [first, ...rest] = read.colours.members;
+		const [first, ...rest] = read.colors.members;
 		if (members.length > 0 && first !== undefined) {
 			members.push(
 				{ ...first, comments: [...closing, null, ...first.comments] },
 				...rest
 			);
 		} else {
-			members.push(...read.colours.members);
+			members.push(...read.colors.members);
 		}
-		closing = read.colours.closingComments;
+		closing = read.colors.closingComments;
 	}
-	return { colours: { members, closingComments: closing }, warnings };
+	return { colors: { members, closingComments: closing }, warnings };
 }
 
-/** Writes the colours of the TeX files into `drawioSlides.colors` of the deck. */
-export function importColoursFromTex(
+/** Writes the colors of the TeX files into `drawioSlides.colors` of the deck. */
+export function importColorsFromTex(
 	project: string,
 	files: readonly string[]
 ): ConversionResult {
-	const { colours, warnings } = coloursFromTex(files);
+	const { colors, warnings } = colorsFromTex(files);
 	const target = settingsFile(project);
 	const text = fs.existsSync(target)
 		? fs.readFileSync(target, "utf8")
 		: "{\n}\n";
 	let written: string;
 	try {
-		written = withMemberObject(text, COLOURS, colours);
+		written = withMemberObject(text, COLORS, colors);
 	} catch (error) {
 		if (
 			error instanceof JsonWithCommentsError ||
@@ -114,25 +114,25 @@ export function importColoursFromTex(
 	fs.mkdirSync(path.dirname(target), { recursive: true });
 	fs.writeFileSync(target, written, "utf8");
 	return {
-		line: `${colours.members.length} colours of ${files.join(
+		line: `${colors.members.length} colors of ${files.join(
 			", "
-		)} written into ${COLOURS} of ${target}`,
+		)} written into ${COLORS} of ${target}`,
 		warnings,
 	};
 }
 
 /**
- * The colours of `drawioSlides.colors` of the text of a settings file, with their comments.
- * Raises `DeckError` on an entry that is no colour.
+ * The colors of `drawioSlides.colors` of the text of a settings file, with their comments.
+ * Raises `DeckError` on an entry that is no color.
  */
-export function settingColours(target: string, text: string): CommentedObject {
-	let colours: CommentedObject;
+export function settingColors(target: string, text: string): CommentedObject {
+	let colors: CommentedObject;
 	try {
-		const span = objectLayout(text).values.get(COLOURS);
+		const span = objectLayout(text).values.get(COLORS);
 		if (span === undefined) {
-			throw new DeckError(`${target} holds no ${COLOURS}`);
+			throw new DeckError(`${target} holds no ${COLORS}`);
 		}
-		colours = readCommentedObject(text, span[0], span[1]);
+		colors = readCommentedObject(text, span[0], span[1]);
 	} catch (error) {
 		if (error instanceof JsonWithCommentsError) {
 			throw new DeckError(
@@ -141,7 +141,7 @@ export function settingColours(target: string, text: string): CommentedObject {
 		}
 		throw error;
 	}
-	const problems = colours.members
+	const problems = colors.members
 		.filter(
 			(member) =>
 				!COLOR_NAME.test(member.key) ||
@@ -151,28 +151,28 @@ export function settingColours(target: string, text: string): CommentedObject {
 		.map((member) => `${member.key}: ${JSON.stringify(member.value)}`);
 	if (problems.length > 0) {
 		throw new DeckError(
-			`${COLOURS} of ${target} holds entries that are no name of letters and digits with a value #RRGGBB:\n  ${problems.join(
+			`${COLORS} of ${target} holds entries that are no name of letters and digits with a value #RRGGBB:\n  ${problems.join(
 				"\n  "
 			)}`
 		);
 	}
-	return colours;
+	return colors;
 }
 
-/** The text of a TeX file of the colours of a settings file, which `file` is the path of. */
-export function colourFileText(
-	colours: CommentedObject,
+/** The text of a TeX file of the colors of a settings file, which `file` is the path of. */
+export function colorFileText(
+	colors: CommentedObject,
 	source: string,
 	file: string
 ): string {
 	const relative = path.relative(path.dirname(path.resolve(file)), source);
-	return `% ${GENERATED_MARK} from ${COLOURS} of ${relative}.\n${colourLines(
-		colours
+	return `% ${GENERATED_MARK} from ${COLORS} of ${relative}.\n${colorLines(
+		colors
 	)}`;
 }
 
-/** Writes the colours of `drawioSlides.colors` of the deck into a TeX file. */
-export function exportColoursToTex(
+/** Writes the colors of `drawioSlides.colors` of the deck into a TeX file. */
+export function exportColorsToTex(
 	project: string,
 	file: string
 ): ConversionResult {
@@ -180,10 +180,10 @@ export function exportColoursToTex(
 	if (!fs.existsSync(source)) {
 		throw new DeckError(`${source} does not exist`);
 	}
-	const colours = settingColours(source, fs.readFileSync(source, "utf8"));
-	fs.writeFileSync(file, colourFileText(colours, source, file), "utf8");
+	const colors = settingColors(source, fs.readFileSync(source, "utf8"));
+	fs.writeFileSync(file, colorFileText(colors, source, file), "utf8");
 	return {
-		line: `${colours.members.length} colours of ${COLOURS} of ${source} written into ${file}`,
+		line: `${colors.members.length} colors of ${COLORS} of ${source} written into ${file}`,
 		warnings: [],
 	};
 }

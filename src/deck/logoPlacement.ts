@@ -199,8 +199,8 @@ function resampledAlong(
 }
 
 /**
- * The picture resampled to the size, through colours multiplied by their alpha, so that the
- * colour of a transparent pixel does not bleed into the edge of the logo. Each stage keeps 8-bit
+ * The picture resampled to the size, through colors multiplied by their alpha, so that the
+ * color of a transparent pixel does not bleed into the edge of the logo. Each stage keeps 8-bit
  * values, as `Image.resize` of Pillow does for RGBA.
  */
 function resampled(picture: Picture, width: number, height: number): Picture {

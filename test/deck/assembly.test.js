@@ -27,7 +27,7 @@ function deckWith(sections, extra = {}) {
 
 const inputs = (project, overrides = {}) => ({
 	project,
-	colours: new Map([["dpgreen", "#008000"]]),
+	colors: new Map([["dpgreen", "#008000"]]),
 	missingCommands: new Map([["fatsemi", "\\mathbin{\\unicode{x2A1F}}"]]),
 	pictures: new Map(),
 	...overrides,
@@ -80,7 +80,7 @@ test("a page with formulas gets the definitions it lacks in a layer of its own b
 					"f",
 					"\\(\\textcolor{dpgreen}{F} \\fatsemi \\color{nosuch}{G} \\color{red}{H}\\)"
 				) +
-					'<mxCell id="defs" parent="0" value="Equation colours" />' +
+					'<mxCell id="defs" parent="0" value="Equation colors" />' +
 					label("own", "\\definecolor{other}{HTML}{000000}").replace(
 						'parent="1"',
 						'parent="defs"'
@@ -97,7 +97,7 @@ test("a page with formulas gets the definitions it lacks in a layer of its own b
 	const assembled = assembly.assembleDeck(slides, inputs(project));
 	assert.ok(
 		assembled.text.includes(
-			'<mxCell id="0" /><mxCell id="page-1-build-definitions" parent="0" style="locked=1;" value="Equation colours, added by the build" />' +
+			'<mxCell id="0" /><mxCell id="page-1-build-definitions" parent="0" style="locked=1;" value="Equation colors, added by the build" />' +
 				'<mxCell id="page-1-build-definitions-label" parent="page-1-build-definitions" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=nowrap;overflow=visible;fontSize=1;" ' +
 				'value="\\(\\definecolor{dpgreen}{RGB}{0,128,0}\\def\\fatsemi{\\mathbin{\\unicode{x2A1F}}}\\)" vertex="1">'
 		)
@@ -108,7 +108,7 @@ test("a page with formulas gets the definitions it lacks in a layer of its own b
 		height: 720,
 	});
 	assert.deepEqual(plain(assembled.warnings), [
-		'slide 1, "x-1", colours formulas with nosuch, which neither the page nor the setting drawioSlides.colors defines',
+		'slide 1, "x-1", colors formulas with nosuch, which neither the page nor the setting drawioSlides.colors defines',
 	]);
 });
 

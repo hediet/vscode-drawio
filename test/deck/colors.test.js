@@ -7,8 +7,8 @@ const { extensionRoot, folderWith } = require("./deckHelpers");
 
 const tex = loadTsModule("deck/texDefinitions.ts");
 const settings = loadTsModule("deck/deckSettings.ts");
-const conversion = loadTsModule("deck/colourSettings.ts");
-const config = loadTsModule("deck/colourConfig.ts");
+const conversion = loadTsModule("deck/colorSettings.ts");
+const config = loadTsModule("deck/colorConfig.ts");
 
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
@@ -26,7 +26,7 @@ test("each model of \\definecolor converts as xcolor converts it", () => {
 			["rgb", "1, 2"],
 			["hsb", "0.5, 0.5, 0.5"],
 			["rgb", "a, b, c"],
-		].map(([model, values]) => tex.colourValue(model, values)),
+		].map(([model, values]) => tex.colorValue(model, values)),
 		[
 			"#b20000",
 			"#4c801a",
@@ -43,10 +43,10 @@ test("each model of \\definecolor converts as xcolor converts it", () => {
 	);
 });
 
-test("the colours of a TeX text keep their comments, and the definitions the setting cannot hold are problems", () => {
-	const read = tex.readCommentedColours(
+test("the colors of a TeX text keep their comments, and the definitions the setting cannot hold are problems", () => {
+	const read = tex.readCommentedColors(
 		[
-			"% Written by the command Export Colours to TeX of Draw.io Slides from drawioSlides.colors of x.",
+			"% Written by the command Export Colors to TeX of Draw.io Slides from drawioSlides.colors of x.",
 			"% The reds.",
 			"\\definecolor{dpred}{rgb}{0.7, 0.0, 0.0} % the loss",
 			"",
@@ -57,7 +57,7 @@ test("the colours of a TeX text keep their comments, and the definitions the set
 			"",
 		].join("\n")
 	);
-	assert.deepEqual(plain(read.colours), {
+	assert.deepEqual(plain(read.colors), {
 		members: [
 			{
 				key: "dpred",
@@ -76,21 +76,21 @@ test("the colours of a TeX text keep their comments, and the definitions the set
 	assert.deepEqual(plain(read.otherLines), [7]);
 	assert.throws(
 		() =>
-			tex.readColourFileText("x.tex", "\\definecolor{a-b}{HTML}{000000}"),
-		/x.tex holds colours that drawioSlides.colors cannot hold/
+			tex.readColorFileText("x.tex", "\\definecolor{a-b}{HTML}{000000}"),
+		/x.tex holds colors that drawioSlides.colors cannot hold/
 	);
 });
 
-test("colours write back as \\definecolor lines in the model HTML", () => {
-	const colours = tex.readCommentedColours(
+test("colors write back as \\definecolor lines in the model HTML", () => {
+	const colors = tex.readCommentedColors(
 		"% A.\n\\definecolor{a}{rgb}{0,0.5,0} % first\n\n% B.\n\\definecolor{b}{HTML}{abcdef}\n"
-	).colours;
+	).colors;
 	assert.equal(
-		tex.colourLines(colours),
+		tex.colorLines(colors),
 		"% A.\n\\definecolor{a}{HTML}{008000} % first\n\n% B.\n\\definecolor{b}{HTML}{ABCDEF}\n"
 	);
 	assert.equal(
-		tex.colourDefinition("dpgreen", "#008000"),
+		tex.colorDefinition("dpgreen", "#008000"),
 		"\\definecolor{dpgreen}{RGB}{0,128,0}"
 	);
 });
@@ -142,7 +142,7 @@ test("a setting of the deck merges over the default of package.json key by key",
 	);
 });
 
-test("the colours of a deck leave out an entry that is no colour, and the list styles take their values", () => {
+test("the colors of a deck leave out an entry that is no color, and the list styles take their values", () => {
 	const deck = folderWith({
 		".vscode/settings.json": JSON.stringify({
 			"drawioSlides.colors": {
@@ -162,20 +162,20 @@ test("the colours of a deck leave out an entry that is no colour, and the list s
 		}),
 	});
 	const deckSettings = settings.readDeckSettings(deck);
-	const colours = settings.readDeckColours(deck, deckSettings, extensionRoot);
+	const colors = settings.readDeckColors(deck, deckSettings, extensionRoot);
 	assert.deepEqual(
-		[...colours.value],
+		[...colors.value],
 		[
 			["accent", "#004D80"],
 			["text", "#000000"],
 		]
 	);
-	assert.equal(colours.warnings.length, 2);
+	assert.equal(colors.warnings.length, 2);
 	const styles = settings.readListStyles(
 		deck,
 		deckSettings,
 		extensionRoot,
-		colours.value
+		colors.value
 	);
 	assert.deepEqual(plain(styles.value.bulleted), [
 		{ color: "#004D80" },
@@ -184,25 +184,25 @@ test("the colours of a deck leave out an entry that is no colour, and the list s
 		"odd",
 	]);
 	assert.deepEqual(plain(styles.warnings), [
-		"drawioSlides.listStyles names the colour missing, which drawioSlides.colors does not define, so the value stays as written",
+		"drawioSlides.listStyles names the color missing, which drawioSlides.colors does not define, so the value stays as written",
 	]);
 });
 
 test("a deck that still holds drawioSlides.colorDefinitions stops with the command that converts it", () => {
 	const deck = folderWith({
 		".vscode/settings.json":
-			'{"drawioSlides.colorDefinitions": "${deckFolder}/colours.tex"}',
+			'{"drawioSlides.colorDefinitions": "${deckFolder}/colors.tex"}',
 	});
 	assert.throws(
 		() =>
-			settings.readDeckColours(
+			settings.readDeckColors(
 				deck,
 				settings.readDeckSettings(deck),
 				extensionRoot
 			),
 		(error) =>
-			error.message.includes("Import Colours from TeX") &&
-			error.message.includes(path.join(deck, "colours.tex"))
+			error.message.includes("Import Colors from TeX") &&
+			error.message.includes(path.join(deck, "colors.tex"))
 	);
 	assert.equal(
 		settings.settingPath(deck, "${workspaceFolder}/a/../b.tex"),
@@ -211,7 +211,7 @@ test("a deck that still holds drawioSlides.colorDefinitions stops with the comma
 	assert.equal(settings.settingPath(deck, "/x/y.tex"), "/x/y.tex");
 });
 
-test("colours convert from TeX files into the setting and back with their comments", () => {
+test("colors convert from TeX files into the setting and back with their comments", () => {
 	const folder = folderWith({
 		"one.tex":
 			"% The reds.\n\\definecolor{dpred}{rgb}{0.7,0,0} % the loss\n% after one\n",
@@ -221,7 +221,7 @@ test("colours convert from TeX files into the setting and back with their commen
 			'{\n  // The editor.\n  "drawioSlides.slides": true\n}\n',
 	});
 	const files = ["one.tex", "two.tex"].map((name) => path.join(folder, name));
-	conversion.importColoursFromTex(folder, files);
+	conversion.importColorsFromTex(folder, files);
 	const written = fs.readFileSync(
 		path.join(folder, ".vscode/settings.json"),
 		"utf8"
@@ -231,19 +231,19 @@ test("colours convert from TeX files into the setting and back with their commen
 		'{\n  // The editor.\n  "drawioSlides.slides": true,\n  "drawioSlides.colors": {\n    // The reds.\n    "dpred": "#B20000", // the loss\n    // after one\n\n    "other": "#123456"\n  }\n}\n'
 	);
 	const exported = path.join(folder, "out.tex");
-	conversion.exportColoursToTex(folder, exported);
+	conversion.exportColorsToTex(folder, exported);
 	assert.equal(
 		fs.readFileSync(exported, "utf8"),
-		"% Written by the command Export Colours to TeX of Draw.io Slides from drawioSlides.colors of .vscode/settings.json.\n% The reds.\n\\definecolor{dpred}{HTML}{B20000} % the loss\n% after one\n\n\\definecolor{other}{HTML}{123456}\n"
+		"% Written by the command Export Colors to TeX of Draw.io Slides from drawioSlides.colors of .vscode/settings.json.\n% The reds.\n\\definecolor{dpred}{HTML}{B20000} % the loss\n% after one\n\n\\definecolor{other}{HTML}{123456}\n"
 	);
-	conversion.importColoursFromTex(folder, [exported]);
+	conversion.importColorsFromTex(folder, [exported]);
 	assert.equal(
 		fs.readFileSync(path.join(folder, ".vscode/settings.json"), "utf8"),
 		written
 	);
 	assert.throws(
 		() =>
-			conversion.importColoursFromTex(folder, [
+			conversion.importColorsFromTex(folder, [
 				...files,
 				path.join(folder, "again.tex"),
 			]),
@@ -251,17 +251,17 @@ test("colours convert from TeX files into the setting and back with their commen
 	);
 });
 
-test("the export refuses a setting entry that is no colour", () => {
+test("the export refuses a setting entry that is no color", () => {
 	const folder = folderWith({
 		".vscode/settings.json": '{"drawioSlides.colors": {"a": "red"}}',
 	});
 	assert.throws(
-		() => conversion.exportColoursToTex(folder, path.join(folder, "x.tex")),
+		() => conversion.exportColorsToTex(folder, path.join(folder, "x.tex")),
 		/holds entries that are no name/
 	);
 });
 
-test("a colour is named after its hue, and a grey by its chroma", () => {
+test("a color is named after its hue, and a grey by its chroma", () => {
 	assert.deepEqual(
 		[
 			"#dae8fc",
@@ -290,11 +290,11 @@ test("a colour is named after its hue, and a grey by its chroma", () => {
 	);
 });
 
-test("the configuration names the colours of a drawing, most used first", () => {
+test("the configuration names the colors of a drawing, most used first", () => {
 	const drawingText =
 		'style="fillColor=#004D80;strokeColor=#004d80;fontColor=#ffffff" style="fillColor=#004d80" ' +
 		'value="&lt;font color=&quot;#b20000&quot;&gt;" value="\\textcolor{#B20000}{x}" style="color: #00ff00"';
-	const counts = config.countColours(drawingText);
+	const counts = config.countColors(drawingText);
 	assert.deepEqual(
 		[...counts],
 		[
@@ -304,7 +304,7 @@ test("the configuration names the colours of a drawing, most used first", () => 
 			["#00ff00", 1],
 		]
 	);
-	const names = config.nameColours(counts, new Map([["#b20000", "dpred"]]));
+	const names = config.nameColors(counts, new Map([["#b20000", "dpred"]]));
 	assert.deepEqual([...names].sort(), [
 		["#004d80", "Blue"],
 		["#00ff00", "Green"],
@@ -336,19 +336,19 @@ test("the configuration names the colours of a drawing, most used first", () => 
 		"deck.drawio.xml": drawingText,
 		"names.tex": "\\definecolor{dpred}{HTML}{B20000}\n",
 	});
-	const written = config.writeColourConfiguration(
+	const written = config.writeColorConfiguration(
 		path.join(folder, "deck.drawio.xml"),
-		path.join(folder, "colours.json"),
+		path.join(folder, "colors.json"),
 		[path.join(folder, "names.tex")],
 		2
 	);
 	assert.deepEqual(
-		JSON.parse(fs.readFileSync(path.join(folder, "colours.json"), "utf8"))
+		JSON.parse(fs.readFileSync(path.join(folder, "colors.json"), "utf8"))
 			.colorNames,
 		{ "004D80": "Blue", B20000: "dpred" }
 	);
-	assert.equal(written.lines[0], "2 colours of 4 kept, 5 uses");
-	const definitions = config.makeColourConfiguration(
+	assert.equal(written.lines[0], "2 colors of 4 kept, 5 uses");
+	const definitions = config.makeColorConfiguration(
 		path.join(folder, "deck.drawio.xml"),
 		"x.tex",
 		[path.join(folder, "names.tex")],

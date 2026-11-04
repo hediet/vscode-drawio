@@ -1,46 +1,46 @@
-// Adds the section Deck colours to the Format panel of the draw.io editor, which lists the colours
-// of the setting "drawioSlides.colors" of the deck, gives the selection a colour of the list, and
+// Adds the section Deck colors to the Format panel of the draw.io editor, which lists the colors
+// of the setting "drawioSlides.colors" of the deck, gives the selection a color of the list, and
 // edits the list.
 //
 // The section sits in the Style tab, after the swatches and before the sections Fill and Line.
 // With nothing selected it sits in the Style tab of the diagram and edits the list alone.  While a
 // label is edited, it sits in the tab Text, the one tab that draw.io then shows, before the section
-// Advanced, and gives the label its font colour.
+// Advanced, and gives the label its font color.
 //
-// With no colour in the setting, the section shows a line that says what a colour of the deck is
-// for, above the button Add colour.
+// With no color in the setting, the section shows a line that says what a color of the deck is
+// for, above the button Add color.
 //
-// Each row of the section holds a swatch and the name of a colour on one line, and under them the
-// buttons Fill, Line and Font, a button ✎ that changes the value of the colour, and a button × that
-// removes the colour.
-// A click on the swatch gives the selection the colour.  While a label of formatted text is
-// edited, the selected text takes the colour as its font colour, as with the button Font, and
-// while a label of plain text is edited, the cell takes it as its font colour.  Otherwise each selected cell
-// takes the colour by its kind: a text shape as its font colour, an edge and a shape whose fill
-// draw.io does not draw as its line colour, and any other cell as its fill colour.  A group gives
-// the colour to the cells in it.  With an empty selection, a click on the swatch leaves the
+// Each row of the section holds a swatch and the name of a color on one line, and under them the
+// buttons Fill, Line and Font, a button ✎ that changes the value of the color, and a button × that
+// removes the color.
+// A click on the swatch gives the selection the color.  While a label of formatted text is
+// edited, the selected text takes the color as its font color, as with the button Font, and
+// while a label of plain text is edited, the cell takes it as its font color.  Otherwise each selected cell
+// takes the color by its kind: a text shape as its font color, an edge and a shape whose fill
+// draw.io does not draw as its line color, and any other cell as its fill color.  A group gives
+// the color to the cells in it.  With an empty selection, a click on the swatch leaves the
 // drawing as it is.  The tooltip of the swatch says what a click does for the selection.  A click
-// on ✎ opens the colour dialog of draw.io, and the colour takes the value chosen.  The name is a
-// text field, and a new name renames the colour.  The button Add colour at the end of the section
-// opens the colour dialog and adds a colour with the first free name of color1, color2 and so on,
+// on ✎ opens the color dialog of draw.io, and the color takes the value chosen.  The name is a
+// text field, and a new name renames the color.  The button Add color at the end of the section
+// opens the color dialog and adds a color with the first free name of color1, color2 and so on,
 // and with the value chosen, or #000000 when the dialog gives no value #RRGGBB.
 //
-// The swatch and the buttons Fill, Line and Font set the keys of the style that the colour
+// The swatch and the buttons Fill, Line and Font set the keys of the style that the color
 // options Fill, Line and Font Color of draw.io set: fillColor, or swimlaneFillColor for a lane of
 // a table and imageBackground for an image, strokeColor, or imageBorder for an image, and
 // fontColor.  The keys of every selected cell change in one edit, which one Undo takes back.
-// While a label of formatted text is edited, the swatch and Font give the selected text the colour
+// While a label of formatted text is edited, the swatch and Font give the selected text the color
 // as the option Font Color of draw.io does, through Graph.setEditingFontColor.  While a label of
-// plain text is edited, they give the cell the colour as its font colour.  A cell takes the value #RRGGBB
-// of the colour and keeps no link to its name.
+// plain text is edited, they give the cell the color as its font color.  A cell takes the value #RRGGBB
+// of the color and keeps no link to its name.
 //
-// The VS Code extension yujunhuang.drawio-slides gives the plugin the colours in
+// The VS Code extension yujunhuang.drawio-slides gives the plugin the colors in
 // window.drawioSlidesSettings.colors, a list of names and values #RRGGBB in the order of the
 // setting.  The plugin sends an edit of the list to the extension as the event
 // drawioSlidesEditColor with the operation set, rename or remove, and the extension writes it into
 // the .vscode/settings.json of the workspace folder of the drawing.  The extension then sends the
-// colours again through slide-settings.js, and the section shows the new list.  The extension
-// refuses an edit with a message in VS Code, such as a name that another colour has or that is not
+// colors again through slide-settings.js, and the section shows the new list.  The extension
+// refuses an edit with a message in VS Code, such as a name that another color has or that is not
 // letters and digits starting with a letter, and the section then shows the list as it was.
 //
 // The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
@@ -48,17 +48,17 @@
 // "drawioSlides.slides" is true, without asking.
 Draw.loadPlugin(function (ui) {
   var graph = ui.editor.graph;
-  var sectionTitle = 'Deck colours';
+  var sectionTitle = 'Deck colors';
 
   if (typeof onSlideSettingsChange != 'function' || window.drawioSlidesSettings == null) {
     return;
   }
 
-  function colours() {
+  function colors() {
     return window.drawioSlidesSettings.colors || [];
   }
 
-  // The colour #RRGGBB that the colour dialog gives, or null for none or another value.
+  // The color #RRGGBB that the color dialog gives, or null for none or another value.
   function hexValue(color) {
     var match = /^#?([0-9A-Fa-f]{6})$/.exec(color);
 
@@ -66,8 +66,8 @@ Draw.loadPlugin(function (ui) {
   }
 
   function freeName() {
-    var names = colours().map(function (colour) {
-      return colour.name;
+    var names = colors().map(function (color) {
+      return color.name;
     });
 
     for (var count = 1; ; count++) {
@@ -78,7 +78,7 @@ Draw.loadPlugin(function (ui) {
   }
 
   // Sends the edit to the extension, and draws the list as it is until the extension sends the
-  // colours again.
+  // colors again.
   function sendEdit(edit) {
     window.opener.postMessage(JSON.stringify(Object.assign({event: 'drawioSlidesEditColor'},
       edit)), '*');
@@ -112,8 +112,8 @@ Draw.loadPlugin(function (ui) {
       graph.isEdgeLabelCell(cell);
   }
 
-  // The key that a click on a swatch sets: the font colour of a text shape, the line colour of an
-  // edge, and the fill colour of any other cell whose fill draw.io draws, or else its line colour.
+  // The key that a click on a swatch sets: the font color of a text shape, the line color of an
+  // edge, and the fill color of any other cell whose fill draw.io draws, or else its line color.
   function swatchKey(cell) {
     if (isTextShape(cell)) {
       return fontKey();
@@ -128,7 +128,7 @@ Draw.loadPlugin(function (ui) {
     return (state == null || graph.isFillState(state)) ? fillKey(cell) : strokeKey(cell);
   }
 
-  // The cells that a click on a swatch colours: the selected cells, with each group of draw.io
+  // The cells that a click on a swatch colors: the selected cells, with each group of draw.io
   // replaced by the cells in it, because draw.io draws a group with neither fill nor line.
   function swatchCells(cells) {
     return cells.reduce(function (result, cell) {
@@ -139,10 +139,10 @@ Draw.loadPlugin(function (ui) {
     }, []);
   }
 
-  // Gives each cell the colour under the key of the cell, in one edit, as
-  // BaseFormatPanel.createCellColorOption does.  The cells that take a font colour also show their
-  // label and lose the colours of its text, as with the option Font Color.
-  function setCellColours(keyOf, color, cells) {
+  // Gives each cell the color under the key of the cell, in one edit, as
+  // BaseFormatPanel.createCellColorOption does.  The cells that take a font color also show their
+  // label and lose the colors of its text, as with the option Font Color.
+  function setCellColors(keyOf, color, cells) {
     var keys = [];
     var groups = {};
 
@@ -183,32 +183,32 @@ Draw.loadPlugin(function (ui) {
     }
   }
 
-  // Gives the selected text of the label being edited the colour, as the option Font Color of the
+  // Gives the selected text of the label being edited the color, as the option Font Color of the
   // tab Text does while a label is edited.
-  function setEditingFontColour(color) {
+  function setEditingFontColor(color) {
     var cell = graph.setEditingFontColor(color);
 
     ui.fireEvent(new mxEventObject('styleChanged', 'keys', [mxConstants.STYLE_FONTCOLOR],
       'values', [color], 'cells', (cell != null) ? [cell] : ui.getSelectionState().cells));
   }
 
-  // The function that gives the label being edited a colour as its font colour: the selected text
+  // The function that gives the label being edited a color as its font color: the selected text
   // of a label of formatted text, or the cell of a label of plain text.
-  function editingFontColourSetter() {
-    return graph.cellEditor.isContentEditing() ? setEditingFontColour : function (color) {
-      setCellColours(fontKey, color, ui.getSelectionState().cells);
+  function editingFontColorSetter() {
+    return graph.cellEditor.isContentEditing() ? setEditingFontColor : function (color) {
+      setCellColors(fontKey, color, ui.getSelectionState().cells);
     };
   }
 
   // What a click on a swatch does for the selection state: the tooltip after the value of the
-  // colour, and the function that gives the selection the colour, or null for an empty selection.
+  // color, and the function that gives the selection the color, or null for an empty selection.
   function swatchAction(selection) {
     if (graph.isEditing()) {
       return {
         tooltip: graph.cellEditor.isContentEditing() ?
-          'A click gives the selected text the colour.' :
-          'A click gives the label the colour as font colour.',
-        apply: editingFontColourSetter()
+          'A click gives the selected text the color.' :
+          'A click gives the label the color as font color.',
+        apply: editingFontColorSetter()
       };
     } else if (selection.cells.length == 0) {
       return {
@@ -218,37 +218,37 @@ Draw.loadPlugin(function (ui) {
     }
 
     return {
-      tooltip: 'A click gives the colour to each selected text shape as font colour, to each ' +
-        'edge and each shape without a fill as line colour, and to each other shape as fill ' +
-        'colour, and a selected group gives it to the cells in it.',
+      tooltip: 'A click gives the color to each selected text shape as font color, to each ' +
+        'edge and each shape without a fill as line color, and to each other shape as fill ' +
+        'color, and a selected group gives it to the cells in it.',
       apply: function (color) {
-        setCellColours(swatchKey, color, swatchCells(ui.getSelectionState().cells));
+        setCellColors(swatchKey, color, swatchCells(ui.getSelectionState().cells));
       }
     };
   }
 
-  // The buttons of a row that give the selection the colour, for the selection state.
+  // The buttons of a row that give the selection the color, for the selection state.
   function applyButtons(selection) {
     if (graph.isEditing()) {
-      return [{label: mxResources.get('font'), apply: editingFontColourSetter()}];
+      return [{label: mxResources.get('font'), apply: editingFontColorSetter()}];
     }
 
     var buttons = [];
 
     if (selection.fill) {
       buttons.push({label: mxResources.get('fill'), apply: function (color) {
-        setCellColours(fillKey, color, ui.getSelectionState().cells);
+        setCellColors(fillKey, color, ui.getSelectionState().cells);
       }});
     }
 
     if (!selection.containsLabel) {
       buttons.push({label: mxResources.get('line'), apply: function (color) {
-        setCellColours(strokeKey, color, ui.getSelectionState().cells);
+        setCellColors(strokeKey, color, ui.getSelectionState().cells);
       }});
     }
 
     buttons.push({label: mxResources.get('font'), apply: function (color) {
-      setCellColours(fontKey, color, ui.getSelectionState().cells);
+      setCellColors(fontKey, color, ui.getSelectionState().cells);
     }});
 
     return buttons;
@@ -256,7 +256,7 @@ Draw.loadPlugin(function (ui) {
 
   // A press on an element outside the label being edited loses the selection of its text.  The
   // function saves that selection at each press of the element, and returns the function that
-  // gives it back before a colour is set, as the colour options of draw.io do.
+  // gives it back before a color is set, as the color options of draw.io do.
   function saveTextSelectionOnPress(element) {
     var selectionState = null;
 
@@ -287,12 +287,12 @@ Draw.loadPlugin(function (ui) {
     return button;
   }
 
-  function swatch(colour, action) {
+  function swatch(color, action) {
     var restoreTextSelection = null;
     var button = mxUtils.button('', function (evt) {
       if (action.apply != null) {
         restoreTextSelection();
-        action.apply(colour.value);
+        action.apply(color.value);
       }
 
       mxEvent.consume(evt);
@@ -303,32 +303,32 @@ Draw.loadPlugin(function (ui) {
     fill.style.height = '12px';
     fill.style.margin = '3px';
     fill.style.border = '1px solid';
-    fill.style.backgroundColor = colour.value;
+    fill.style.backgroundColor = color.value;
     button.appendChild(fill);
     button.className = 'geColorBtn';
-    button.setAttribute('title', colour.name + ' ' + colour.value + '. ' + action.tooltip);
+    button.setAttribute('title', color.name + ' ' + color.value + '. ' + action.tooltip);
     button.style.flex = '0 0 auto';
     restoreTextSelection = saveTextSelectionOnPress(button);
 
     return button;
   }
 
-  // Opens the colour dialog of draw.io at the value of the colour, and sends the value chosen.
-  function pickColourValue(colour) {
-    ui.pickColorModal(colour.value, function (color) {
+  // Opens the color dialog of draw.io at the value of the color, and sends the value chosen.
+  function pickColorValue(color) {
+    ui.pickColorModal(color.value, function (color) {
       var value = hexValue(color);
 
-      if (value != null && value != colour.value) {
-        sendEdit({operation: 'set', name: colour.name, value: value});
+      if (value != null && value != color.value) {
+        sendEdit({operation: 'set', name: color.name, value: value});
       }
-    }, null, null, true, colour.name);
+    }, null, null, true, color.name);
   }
 
-  function nameField(colour) {
+  function nameField(color) {
     var input = document.createElement('input');
     input.setAttribute('type', 'text');
     input.setAttribute('title', mxResources.get('name'));
-    input.value = colour.name;
+    input.value = color.name;
     input.style.flex = '1 1 auto';
     input.style.minWidth = '0';
     input.style.textAlign = 'left';
@@ -336,11 +336,11 @@ Draw.loadPlugin(function (ui) {
     mxEvent.addListener(input, 'change', function () {
       var name = mxUtils.trim(input.value);
 
-      if (name != colour.name) {
-        sendEdit({operation: 'rename', name: colour.name, newName: name});
+      if (name != color.name) {
+        sendEdit({operation: 'rename', name: color.name, newName: name});
         // The row now stands for the new name, so that a new value or a removal before the list
-        // is drawn again names the renamed colour.
-        colour.name = name;
+        // is drawn again names the renamed color.
+        color.name = name;
       }
     });
 
@@ -348,7 +348,7 @@ Draw.loadPlugin(function (ui) {
       if (evt.keyCode == 13) {
         input.blur();
       } else if (evt.keyCode == 27) {
-        input.value = colour.name;
+        input.value = color.name;
         input.blur();
       }
     });
@@ -356,9 +356,9 @@ Draw.loadPlugin(function (ui) {
     return input;
   }
 
-  function colourRow(colourOfSettings, action, buttons) {
-    // A copy of the colour of the settings, whose name a rename in the row changes.
-    var colour = {name: colourOfSettings.name, value: colourOfSettings.value};
+  function colorRow(colorOfSettings, action, buttons) {
+    // A copy of the color of the settings, whose name a rename in the row changes.
+    var color = {name: colorOfSettings.name, value: colorOfSettings.value};
     // The swatch and the name take a line of their own, so that a narrow panel cuts no name, and
     // the buttons follow on a second line under the name.
     var row = document.createElement('div');
@@ -367,8 +367,8 @@ Draw.loadPlugin(function (ui) {
     head.style.display = 'flex';
     head.style.alignItems = 'center';
     head.style.gap = '2px';
-    head.appendChild(swatch(colour, action));
-    head.appendChild(nameField(colour));
+    head.appendChild(swatch(color, action));
+    head.appendChild(nameField(color));
     row.appendChild(head);
     var controls = document.createElement('div');
     controls.style.display = 'flex';
@@ -380,43 +380,43 @@ Draw.loadPlugin(function (ui) {
 
     buttons.forEach(function (button) {
       var restoreTextSelection = null;
-      var element = smallButton(button.label, button.label + ': ' + colour.name, function () {
+      var element = smallButton(button.label, button.label + ': ' + color.name, function () {
         restoreTextSelection();
-        button.apply(colour.value);
+        button.apply(color.value);
       });
 
       restoreTextSelection = saveTextSelectionOnPress(element);
       controls.appendChild(element);
     });
 
-    controls.appendChild(smallButton('✎', mxResources.get('edit') + ': ' + colour.name, function () {
-      pickColourValue(colour);
+    controls.appendChild(smallButton('✎', mxResources.get('edit') + ': ' + color.name, function () {
+      pickColorValue(color);
     }));
-    controls.appendChild(smallButton('×', mxResources.get('remove') + ': ' + colour.name,
+    controls.appendChild(smallButton('×', mxResources.get('remove') + ': ' + color.name,
       function () {
-        sendEdit({operation: 'remove', name: colour.name});
+        sendEdit({operation: 'remove', name: color.name});
       }));
 
     return row;
   }
 
-  // The line that an empty list shows, which says what a colour of the deck is for.
+  // The line that an empty list shows, which says what a color of the deck is for.
   function emptyListHint() {
     var hint = document.createElement('div');
     hint.style.padding = '2px 0 4px 0';
     hint.style.whiteSpace = 'normal';
     hint.style.opacity = '0.7';
-    mxUtils.write(hint, 'The deck names no colour yet. A named colour can colour formulas, as in ' +
+    mxUtils.write(hint, 'The deck names no color yet. A named color can color formulas, as in ' +
       '\\textcolor{blue}{x}, swatches and list markers, and a click on its swatch applies it.');
 
     return hint;
   }
 
   function addButton() {
-    var button = mxUtils.button('Add colour', function (evt) {
+    var button = mxUtils.button('Add color', function (evt) {
       ui.pickColorModal('#000000', function (color) {
         sendEdit({operation: 'set', name: freeName(), value: hexValue(color) || '#000000'});
-      }, null, null, true, 'Add colour');
+      }, null, null, true, 'Add color');
       mxEvent.consume(evt);
     });
 
@@ -427,18 +427,18 @@ Draw.loadPlugin(function (ui) {
   }
 
   // Puts the section before the first section of the panel that folds, which is Fill or Line in
-  // the Style tab and Advanced, after the font colour, in the tab Text, or at the end of a panel
+  // the Style tab and Advanced, after the font color, in the tab Text, or at the end of a panel
   // without such a section.
   function addSection(panel, buttons) {
     var section = panel.createCollapsibleSection(sectionTitle, false);
     var content = panel.createPanel();
     var action = swatchAction(panel.editorUi.getSelectionState());
 
-    colours().forEach(function (colour) {
-      content.appendChild(colourRow(colour, action, buttons));
+    colors().forEach(function (color) {
+      content.appendChild(colorRow(color, action, buttons));
     });
 
-    if (colours().length == 0) {
+    if (colors().length == 0) {
       content.appendChild(emptyListHint());
     }
 

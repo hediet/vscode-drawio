@@ -630,7 +630,7 @@ export class DiagramConfig {
 		}
 	);
 
-	/** The colours of the deck by name, as the setting gives them, before they are checked. */
+	/** The colors of the deck by name, as the setting gives them, before they are checked. */
 	public get colors(): Record<string, unknown> {
 		return this._colors.get();
 	}
@@ -641,7 +641,7 @@ export class DiagramConfig {
 	);
 
 	/**
-	 * Whether the settings hold `drawioSlides.colorDefinitions`, a list of TeX files of colours,
+	 * Whether the settings hold `drawioSlides.colorDefinitions`, a list of TeX files of colors,
 	 * which the extension does not read.
 	 */
 	public get hasColorDefinitions(): boolean {

@@ -46,7 +46,7 @@ test("a text file is read with its line breaks as new lines", () => {
 	);
 });
 
-test("an SVG is made light: the light colour of each pair, a light scheme and a white page", () => {
+test("an SVG is made light: the light color of each pair, a light scheme and a white page", () => {
 	assert.equal(
 		slideExport.firstOfLightDark(
 			'fill="light-dark(rgb(0, 136, 43), #fff)" x light-dark(#000,#111) light-dark(a'

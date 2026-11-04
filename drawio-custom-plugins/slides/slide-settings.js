@@ -6,7 +6,7 @@
 // "drawioSlides.listMarkers", "drawioSlides.customColorSchemes", "drawioSlides.presetColors" or
 // "drawioSlides.colorNames" of the drawing, the extension sends the action drawioSlidesSettings,
 // whose settings are colors, listStyles, listMarkers, mathDefinitions, presetColors, colorNames and
-// colorSchemes, with each name of a colour in listStyles and colorSchemes replaced by its value.
+// colorSchemes, with each name of a color in listStyles and colorSchemes replaced by its value.
 // The script copies them into window.drawioSlidesSettings and calls every listener with them, in
 // the order of registration.
 //

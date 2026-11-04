@@ -85,8 +85,8 @@ const settings = `{
 
 test("a commented object keeps its comments, its blank lines and its trailing comments", () => {
 	const span = json.objectLayout(settings).values.get("drawioSlides.colors");
-	const colours = json.readCommentedObject(settings, span[0], span[1]);
-	assert.deepEqual(JSON.parse(JSON.stringify(colours)), {
+	const colors = json.readCommentedObject(settings, span[0], span[1]);
+	assert.deepEqual(JSON.parse(JSON.stringify(colors)), {
 		members: [
 			{
 				key: "black",
@@ -132,20 +132,20 @@ test("a member object replaces the value of its key and keeps every other commen
 });
 
 test("a member object goes last after a comma, or into an empty object", () => {
-	const colours = {
+	const colors = {
 		members: [{ key: "a", value: "#000000", comments: [] }],
 		closingComments: [],
 	};
 	assert.equal(
-		json.withMemberObject('{\n  "x": 1 // one\n}\n', "c", colours),
+		json.withMemberObject('{\n  "x": 1 // one\n}\n', "c", colors),
 		'{\n  "x": 1, // one\n  "c": {\n    "a": "#000000"\n  }\n}\n'
 	);
 	assert.equal(
-		json.withMemberObject("{\n}\n", "c", colours),
+		json.withMemberObject("{\n}\n", "c", colors),
 		'{\n  "c": {\n    "a": "#000000"\n  }\n}\n'
 	);
 	assert.equal(
-		json.withMemberObject("{ // nothing yet\n}", "c", colours),
+		json.withMemberObject("{ // nothing yet\n}", "c", colors),
 		'{\n  "c": {\n    "a": "#000000"\n  } // nothing yet\n}'
 	);
 });

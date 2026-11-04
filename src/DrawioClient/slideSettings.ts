@@ -15,14 +15,14 @@ import { BufferImpl } from "../utils/buffer";
 import {
 	COLOR_NAME,
 	COLOR_VALUE,
-	hasColoursMember,
+	hasColorsMember,
 	LIST_KINDS,
-	RefusedColourEdit,
+	RefusedColorEdit,
 	SCHEME_COLOR_KEYS,
-	withColourEdit,
-	withColourEditInSettings,
-} from "./deckColourEdits";
-import { colourDefinition, mathCommandLines } from "../deck/texDefinitions";
+	withColorEdit,
+	withColorEditInSettings,
+} from "./deckColorEdits";
+import { colorDefinition, mathCommandLines } from "../deck/texDefinitions";
 
 /**
  * The settings of a deck that the slide plugins follow without a reload, which the extension
@@ -45,17 +45,17 @@ export type SlideTemplate = SlideTemplatesAction["templates"][number];
 const DIAGRAM = /<diagram\b[^>]*>[\s\S]*?<\/diagram>/g;
 const DIAGRAM_NAME = /^<diagram\b[^>]*\sname="([^"]*)"/;
 
-interface DeckColour {
+interface DeckColor {
 	readonly name: string;
-	/** The colour as six upper-case hexadecimal digits, as draw.io writes a colour. */
+	/** The color as six upper-case hexadecimal digits, as draw.io writes a color. */
 	readonly hex: string;
 }
 
 /**
- * The live settings of a drawing: the valid colours of `drawioSlides.colors`, the same colours as
- * definitions of MathJax before the commands that MathJax lacks, the presets and the names of the colour picker with the
- * colours added, and the swatches of `drawioSlides.customColorSchemes`, the list styles and the
- * list markers, in which each name of a colour stands for its value.
+ * The live settings of a drawing: the valid colors of `drawioSlides.colors`, the same colors as
+ * definitions of MathJax before the commands that MathJax lacks, the presets and the names of the color picker with the
+ * colors added, and the swatches of `drawioSlides.customColorSchemes`, the list styles and the
+ * list markers, in which each name of a color stands for its value.
  */
 export function readLiveSlideSettings(
 	config: DiagramConfig,
@@ -67,7 +67,7 @@ export function readLiveSlideSettings(
 		: [];
 	if (!isPlainObject(config.colors)) {
 		structureProblems.push(
-			`drawioSlides.colors holds ${JSON.stringify(config.colors)}, where an object of names and colours was expected, so no colour is defined.`
+			`drawioSlides.colors holds ${JSON.stringify(config.colors)}, where an object of names and colors was expected, so no color is defined.`
 		);
 	}
 	let givenListStyles = config.listStyles;
@@ -94,56 +94,56 @@ export function readLiveSlideSettings(
 				`drawioSlides.customColorSchemes holds the page ${JSON.stringify(page)}, where an array of swatches was expected, so the page is left out.`
 			)
 		);
-	const colours = entries
-		.filter(isValidColour)
+	const colors = entries
+		.filter(isValidColor)
 		.map(([name, value]) => ({ name, hex: value.slice(1).toUpperCase() }));
 	const values = new Map(
-		colours.map((colour) => [colour.name, `#${colour.hex}`])
+		colors.map((color) => [color.name, `#${color.hex}`])
 	);
-	const valueOf = (colour: string): string => values.get(colour) ?? colour;
-	const listStyles = withListColourValues(givenListStyles, valueOf);
+	const valueOf = (color: string): string => values.get(color) ?? color;
+	const listStyles = withListColorValues(givenListStyles, valueOf);
 	const colorSchemes = givenSchemes
 		.filter(isSchemePage)
 		.map((page) =>
-			page.map((scheme) => withSchemeColourValues(scheme, valueOf))
+			page.map((scheme) => withSchemeColorValues(scheme, valueOf))
 		);
 	// A known name stands for its value now, so a name that is left is unknown.
-	const unknownListColours = listLevels(listStyles)
+	const unknownListColors = listLevels(listStyles)
 		.map((level) => level.color)
-		.filter(isColourName);
-	const unknownSchemeColours =
-		schemeColours(colorSchemes).filter(isColourName);
+		.filter(isColorName);
+	const unknownSchemeColors =
+		schemeColors(colorSchemes).filter(isColorName);
 	const problems = [
 		...structureProblems,
 		...entries
-			.filter((entry) => !isValidColour(entry))
-			.map(([name, value]) => invalidColourProblem(name, value)),
-		...[...new Set(unknownListColours)].map((name) =>
+			.filter((entry) => !isValidColor(entry))
+			.map(([name, value]) => invalidColorProblem(name, value)),
+		...[...new Set(unknownListColors)].map((name) =>
 			unknownNameProblem("drawioSlides.listStyles", name)
 		),
-		...[...new Set(unknownSchemeColours)].map((name) =>
+		...[...new Set(unknownSchemeColors)].map((name) =>
 			unknownNameProblem("drawioSlides.customColorSchemes", name)
 		),
 		...(config.hasColorDefinitions
 			? [
-					"The extension does not read drawioSlides.colorDefinitions. The command Draw.io Slides: Import Colours from TeX writes the colours of a TeX file into drawioSlides.colors.",
+					"The extension does not read drawioSlides.colorDefinitions. The command Draw.io Slides: Import Colors from TeX writes the colors of a TeX file into drawioSlides.colors.",
 			  ]
 			: []),
 	];
 	return {
 		settings: {
-			colors: colours.map(({ name, hex }) => ({
+			colors: colors.map(({ name, hex }) => ({
 				name,
 				value: `#${hex}`,
 			})),
 			listStyles,
 			listMarkers: config.listMarkers,
 			mathDefinitions: [
-				...colours.map(rgbDefinition),
+				...colors.map(rgbDefinition),
 				...mathCommands,
 			].join(""),
-			presetColors: withColourPresets(config.presetColors, colours),
-			colorNames: withColourNames(config.colorNames, colours),
+			presetColors: withColorPresets(config.presetColors, colors),
+			colorNames: withColorNames(config.colorNames, colors),
 			colorSchemes,
 		},
 		problems,
@@ -151,32 +151,32 @@ export function readLiveSlideSettings(
 }
 
 /**
- * Writes an edit of the colours of a drawing into `drawioSlides.colors` of the `.vscode/settings.json`
- * of its workspace folder, as a text edit of that member and, for a rename, of the colours of
- * `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` that name the colour, so every
+ * Writes an edit of the colors of a drawing into `drawioSlides.colors` of the `.vscode/settings.json`
+ * of its workspace folder, as a text edit of that member and, for a rename, of the colors of
+ * `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` that name the color, so every
  * comment of the file stays. When the file is missing, or lacks the member while another scope
  * defines the setting, VS Code writes the whole setting at the scope of the workspace folder.
- * Raises `RefusedColourEdit` for an edit that the extension does not write, and `Error` when VS
+ * Raises `RefusedColorEdit` for an edit that the extension does not write, and `Error` when VS
  * Code does not save the file.
  */
-export async function writeDeckColourEdit(
+export async function writeDeckColorEdit(
 	config: DiagramConfig,
-	edit: DeckColourEdit
+	edit: DeckColorEdit
 ): Promise<void> {
 	const folder = workspace.getWorkspaceFolder(config.uri);
 	if (folder === undefined) {
-		throw new RefusedColourEdit(
-			`The drawing ${config.uri.fsPath} lies in no workspace folder, so no .vscode/settings.json holds the colours of its deck.`
+		throw new RefusedColorEdit(
+			`The drawing ${config.uri.fsPath} lies in no workspace folder, so no .vscode/settings.json holds the colors of its deck.`
 		);
 	}
 	const settingsFile = Uri.joinPath(folder.uri, ".vscode", "settings.json");
 	const otherScope =
 		edit.operation === "set"
 			? undefined
-			: scopeDefiningColour(config.uri, edit.name);
+			: scopeDefiningColor(config.uri, edit.name);
 	if (otherScope !== undefined) {
-		throw new RefusedColourEdit(
-			`The colour ${edit.name} is also defined in ${otherScope}, so ${
+		throw new RefusedColorEdit(
+			`The color ${edit.name} is also defined in ${otherScope}, so ${
 				edit.operation === "remove" ? "removing" : "renaming"
 			} it in ${settingsFile.fsPath} would leave it in the deck.`
 		);
@@ -184,25 +184,25 @@ export async function writeDeckColourEdit(
 	const document = await openExistingDocument(settingsFile);
 	if (
 		document === undefined ||
-		(!hasColoursMember(document.getText()) &&
-			isColoursSettingDefined(config.uri))
+		(!hasColorsMember(document.getText()) &&
+			isColorsSettingDefined(config.uri))
 	) {
 		await workspace
 			.getConfiguration(undefined, config.uri)
 			.update(
 				"drawioSlides.colors",
-				withColourEdit(folderColours(config.uri), edit),
+				withColorEdit(folderColors(config.uri), edit),
 				ConfigurationTarget.WorkspaceFolder
 			);
 		return;
 	}
 	if (document.isDirty) {
-		throw new RefusedColourEdit(
+		throw new RefusedColorEdit(
 			`${settingsFile.fsPath} has changes that are not saved, so drawioSlides.colors stays as it is.`
 		);
 	}
 	const text = document.getText();
-	const edited = withColourEditInSettings(text, edit);
+	const edited = withColorEditInSettings(text, edit);
 	if (edited === text) {
 		return;
 	}
@@ -238,8 +238,8 @@ async function openExistingDocument(
 	return workspace.openTextDocument(file);
 }
 
-/** The colours that the settings of the workspace folder alone give `drawioSlides.colors`. */
-function folderColours(uri: Uri): Record<string, unknown> {
+/** The colors that the settings of the workspace folder alone give `drawioSlides.colors`. */
+function folderColors(uri: Uri): Record<string, unknown> {
 	const value = workspace
 		.getConfiguration(undefined, uri)
 		.inspect("drawioSlides.colors")?.workspaceFolderValue;
@@ -247,11 +247,11 @@ function folderColours(uri: Uri): Record<string, unknown> {
 }
 
 /**
- * The settings other than those of the workspace folder that define the colour: the user settings,
+ * The settings other than those of the workspace folder that define the color: the user settings,
  * or the file of a workspace of several folders. In a window of one folder, VS Code gives the
  * settings of the folder as the settings of the workspace as well.
  */
-function scopeDefiningColour(uri: Uri, name: string): string | undefined {
+function scopeDefiningColor(uri: Uri, name: string): string | undefined {
 	const inspected = workspace
 		.getConfiguration(undefined, uri)
 		.inspect("drawioSlides.colors");
@@ -270,7 +270,7 @@ function scopeDefiningColour(uri: Uri, name: string): string | undefined {
 }
 
 /** Whether a settings file of the user, of the workspace or of the folder defines `drawioSlides.colors`. */
-function isColoursSettingDefined(uri: Uri): boolean {
+function isColorsSettingDefined(uri: Uri): boolean {
 	const inspected = workspace
 		.getConfiguration(undefined, uri)
 		.inspect("drawioSlides.colors");
@@ -345,7 +345,7 @@ function defaultSetting<T>(name: string): T {
 	return workspace.getConfiguration().inspect<T>(name)!.defaultValue!;
 }
 
-function isValidColour(entry: [string, unknown]): entry is [string, string] {
+function isValidColor(entry: [string, unknown]): entry is [string, string] {
 	const [name, value] = entry;
 	return (
 		COLOR_NAME.test(name) &&
@@ -354,21 +354,21 @@ function isValidColour(entry: [string, unknown]): entry is [string, string] {
 	);
 }
 
-function invalidColourProblem(name: string, value: unknown): string {
+function invalidColorProblem(name: string, value: unknown): string {
 	const shownName = JSON.stringify(name);
 	const shownValue = JSON.stringify(value);
 	return COLOR_NAME.test(name)
-		? `drawioSlides.colors gives ${name} the value ${shownValue}, which is not # and six hexadecimal digits, so the colour is left out.`
-		: `drawioSlides.colors names a colour ${shownName}, which is not letters and digits that start with a letter, so the colour is left out.`;
+		? `drawioSlides.colors gives ${name} the value ${shownValue}, which is not # and six hexadecimal digits, so the color is left out.`
+		: `drawioSlides.colors names a color ${shownName}, which is not letters and digits that start with a letter, so the color is left out.`;
 }
 
 function unknownNameProblem(setting: string, name: string): string {
-	return `${setting} names the colour ${name}, which drawioSlides.colors does not define, so the value stays as written.`;
+	return `${setting} names the color ${name}, which drawioSlides.colors does not define, so the value stays as written.`;
 }
 
-/** Whether a colour of a setting is a name, which the values `none` and `#RRGGBB` are not. */
-function isColourName(colour: string | undefined): colour is string {
-	return colour !== undefined && colour !== "none" && COLOR_NAME.test(colour);
+/** Whether a color of a setting is a name, which the values `none` and `#RRGGBB` are not. */
+function isColorName(color: string | undefined): color is string {
+	return color !== undefined && color !== "none" && COLOR_NAME.test(color);
 }
 
 /** The levels of the bulleted and of the numbered lists of the list styles. */
@@ -376,13 +376,13 @@ function listLevels(listStyles: SlideListStyles): SlideListLevelStyle[] {
 	return LIST_KINDS.flatMap((kind) => listStyles[kind] ?? []);
 }
 
-/** The colours of every swatch, in the order of the pages and of the keys of a swatch. */
-function schemeColours(schemes: ColorScheme[][]): (string | undefined)[] {
+/** The colors of every swatch, in the order of the pages and of the keys of a swatch. */
+function schemeColors(schemes: ColorScheme[][]): (string | undefined)[] {
 	return new Array<ColorScheme>()
 		.concat(...schemes)
 		.reduce(
-			(colours, scheme) => [
-				...colours,
+			(colors, scheme) => [
+				...colors,
 				...SCHEME_COLOR_KEYS.map((key) => scheme[key]),
 			],
 			new Array<string | undefined>()
@@ -390,12 +390,12 @@ function schemeColours(schemes: ColorScheme[][]): (string | undefined)[] {
 }
 
 /**
- * The list styles with the value of each colour that they name. Levels that the setting leaves out
+ * The list styles with the value of each color that they name. Levels that the setting leaves out
  * stay left out.
  */
-function withListColourValues(
+function withListColorValues(
 	listStyles: SlideListStyles,
-	valueOf: (colour: string) => string
+	valueOf: (color: string) => string
 ): SlideListStyles {
 	const withValues = (levels: SlideListLevelStyle[]): SlideListLevelStyle[] =>
 		levels?.map((level) =>
@@ -410,43 +410,43 @@ function withListColourValues(
 	};
 }
 
-function withSchemeColourValues(
+function withSchemeColorValues(
 	scheme: ColorScheme,
-	valueOf: (colour: string) => string
+	valueOf: (color: string) => string
 ): ColorScheme {
 	const result = { ...scheme };
 	for (const key of SCHEME_COLOR_KEYS) {
-		const colour = scheme[key];
-		if (typeof colour === "string") {
-			result[key] = valueOf(colour);
+		const color = scheme[key];
+		if (typeof color === "string") {
+			result[key] = valueOf(color);
 		}
 	}
 	return result;
 }
 
-/** The colour names of the settings, with a name for each colour of the deck that has none. */
-function withColourNames(
+/** The color names of the settings, with a name for each color of the deck that has none. */
+function withColorNames(
 	names: Record<string, string>,
-	colours: readonly DeckColour[]
+	colors: readonly DeckColor[]
 ): Record<string, string> {
 	const result = { ...names };
-	for (const colour of colours) {
-		if (!(colour.hex in result)) {
-			result[colour.hex] = colour.name;
+	for (const color of colors) {
+		if (!(color.hex in result)) {
+			result[color.hex] = color.name;
 		}
 	}
 	return result;
 }
 
-/** The preset colours of the settings, followed by each colour of the deck that they lack. */
-function withColourPresets(
+/** The preset colors of the settings, followed by each color of the deck that they lack. */
+function withColorPresets(
 	presets: string[],
-	colours: readonly DeckColour[]
+	colors: readonly DeckColor[]
 ): string[] {
 	const result = [...presets];
-	for (const colour of colours) {
-		if (!result.some((preset) => preset.toUpperCase() === colour.hex)) {
-			result.push(colour.hex);
+	for (const color of colors) {
+		if (!result.some((preset) => preset.toUpperCase() === color.hex)) {
+			result.push(color.hex);
 		}
 	}
 	return result;
@@ -530,7 +530,7 @@ async function readText(file: Uri): Promise<string> {
 	return BufferImpl.from(await workspace.fs.readFile(file)).toString("utf-8");
 }
 
-/** The definition of a colour in the model `RGB`, which the MathJax of draw.io reads. */
-function rgbDefinition({ name, hex }: DeckColour): string {
-	return colourDefinition(name, `#${hex}`);
+/** The definition of a color in the model `RGB`, which the MathJax of draw.io reads. */
+function rgbDefinition({ name, hex }: DeckColor): string {
+	return colorDefinition(name, `#${hex}`);
 }

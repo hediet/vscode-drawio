@@ -38,7 +38,7 @@ import {
 } from "./deckFiles";
 import { embedPictures } from "./deckPictures";
 import { PagePictures, withPagePictures } from "./pageSnapshots";
-import { colourDefinition, commandDefinition } from "./texDefinitions";
+import { colorDefinition, commandDefinition } from "./texDefinitions";
 import { escapeHtml, jsonText, unescapeHtml } from "./textFormats";
 
 /** What a cell writes to have the build fill in the slide's number. */
@@ -48,14 +48,14 @@ export const TOTAL_PLACEHOLDER = "%slides%";
 /** The `host` of the assembled file, which names the program that wrote it. */
 const ASSEMBLED_HOST = "Draw.io Slides";
 
-const DEFINITIONS_LAYER = "Equation colours, added by the build";
+const DEFINITIONS_LAYER = "Equation colors, added by the build";
 /**
  * The root cell of a page, written as a bare cell, or by the editor as an object that carries
  * data, `<UserObject id="0"><mxCell /></UserObject>`.
  */
 const ROOT_CELL =
 	/<mxCell id="([^"]+)"(?![^>]*parent=)[^>]*\/>|<(UserObject|object)\b[^>]*?\bid="([^"]+)"[^>]*>\s*<mxCell\s*\/>\s*<\/\2>/;
-const COLOUR_USE =
+const COLOR_USE =
 	/\\(?:textcolor|color|colorbox)\{([^}]*)\}|\\fcolorbox\{([^}]*)\}\{([^}]*)\}/g;
 const FORMULA = /\\\(|\$\$/;
 const CELL = /<mxCell\b([^>]*)>/g;
@@ -63,12 +63,12 @@ const ATTRIBUTE = /(\w+)="([^"]*)"/g;
 const MATH_ON = /<mxGraphModel\b[^>]*\bmath="1"/;
 const MODEL = /<mxGraphModel ([^>]*)>/;
 /**
- * Names MathJax draws without a definition. Its colour extension knows the dvips names, which are
+ * Names MathJax draws without a definition. Its color extension knows the dvips names, which are
  * capitalised, such as `Apricot`, and passes any other name on to the browser, which knows the
- * colour keywords of CSS. A lower-case name outside the setting drawioSlides.colors and outside
+ * color keywords of CSS. A lower-case name outside the setting drawioSlides.colors and outside
  * this list is most likely a typo, which MathJax would draw black.
  */
-const CSS_COLOURS = new Set(
+const CSS_COLORS = new Set(
 	`aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet
 brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue
 darkcyan darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen
@@ -123,8 +123,8 @@ export interface AssembledDeck {
 export interface AssemblyInputs {
 	/** The folder of the deck, whose `assets/` the pictures are read from. */
 	readonly project: string;
-	/** The colours of `drawioSlides.colors`, name to `#RRGGBB`. */
-	readonly colours: ReadonlyMap<string, string>;
+	/** The colors of `drawioSlides.colors`, name to `#RRGGBB`. */
+	readonly colors: ReadonlyMap<string, string>;
 	/** The commands that MathJax lacks, name to body. */
 	readonly missingCommands: ReadonlyMap<string, string>;
 	readonly pictures: PagePictures;
@@ -227,7 +227,7 @@ export function pageDefinitions(diagram: string): string {
 		cells
 			.filter(
 				(cell) =>
-					cell.value === "Equation colours" ||
+					cell.value === "Equation colors" ||
 					cell.value === DEFINITIONS_LAYER
 			)
 			.map((cell) => cell.id)
@@ -247,20 +247,20 @@ function isLowerCaseLetter(character: string): boolean {
 }
 
 /**
- * The definitions a page's formulas use and the page does not write, and the names of colours
- * that neither the page nor the colours define. A person who types `\textcolor{accent}{x}` on a
- * page without definitions sees the colour in the editor through the plugin, and every other
+ * The definitions a page's formulas use and the page does not write, and the names of colors
+ * that neither the page nor the colors define. A person who types `\textcolor{accent}{x}` on a
+ * page without definitions sees the color in the editor through the plugin, and every other
  * renderer needs the definition on the page. A definition the page writes in its own layer of
  * definitions is left to the page.
  */
 export function missingDefinitions(
 	diagram: string,
-	colours: ReadonlyMap<string, string>,
+	colors: ReadonlyMap<string, string>,
 	missingCommands: ReadonlyMap<string, string>
 ): { definitions: string; unknown: string[] } {
 	const own = pageDefinitions(diagram);
 	const names = new Set<string>();
-	for (const match of matchesOf(COLOUR_USE, diagram)) {
+	for (const match of matchesOf(COLOR_USE, diagram)) {
 		match.slice(1).forEach((name) => name && names.add(name));
 	}
 	const needed = new Array<string>();
@@ -271,12 +271,12 @@ export function missingDefinitions(
 		) {
 			continue;
 		}
-		const value = colours.get(name);
+		const value = colors.get(name);
 		if (value !== undefined) {
-			needed.push(colourDefinition(name, value));
+			needed.push(colorDefinition(name, value));
 		} else if (
 			isLowerCaseLetter(name.slice(0, 1)) &&
-			!CSS_COLOURS.has(name)
+			!CSS_COLORS.has(name)
 		) {
 			unknown.push(name);
 		}
@@ -395,7 +395,7 @@ export function assembleDeck(
 		if (isMathEnabled(diagram)) {
 			const { definitions, unknown } = missingDefinitions(
 				diagram,
-				inputs.colours,
+				inputs.colors,
 				inputs.missingCommands
 			);
 			diagram = withDefinitions(
@@ -405,7 +405,7 @@ export function assembleDeck(
 			);
 			if (unknown.length > 0) {
 				warnings.push(
-					`${where}, colours formulas with ${unknown.join(
+					`${where}, colors formulas with ${unknown.join(
 						", "
 					)}, which neither the page nor the setting drawioSlides.colors defines`
 				);

@@ -11,9 +11,9 @@ The folder `deck-templates/` holds what every presentation starts from:
 | file | what it is |
 |---|---|
 | `slide-format.drawio.xml` | the template: six pages to copy slides from, three of which start a new presentation |
-| `color-definitions.tex` | the starting palette, which the set-up writes into the setting `drawioSlides.colors` of a presentation, to change there: the `\definecolor` lines of the colours that the formulas of the co-design decks of the author name, whose header says where they come from |
-| `named-colors.template.jsonc` | a colour configuration of the editor to copy, with the names of the parts of draw.io that read its three settings |
-| `named-colors-example.json` | an example colour configuration of the editor, to replace with that of your own decks: the 26 colours of a deck of the author, with the names of their `\definecolor` for the colours of `color-definitions.tex` and of the codesign package, such as `green` and `cdF`, and names edited by hand for the others, so that no two names differ by a bracket or a shade word alone |
+| `color-definitions.tex` | the starting palette, which the set-up writes into the setting `drawioSlides.colors` of a presentation, to change there: the `\definecolor` lines of the colors that the formulas of the co-design decks of the author name, whose header says where they come from |
+| `named-colors.template.jsonc` | a color configuration of the editor to copy, with the names of the parts of draw.io that read its three settings |
+| `named-colors-example.json` | an example color configuration of the editor, to replace with that of your own decks: the 26 colors of a deck of the author, with the names of their `\definecolor` for the colors of `color-definitions.tex` and of the codesign package, such as `green` and `cdF`, and names edited by hand for the others, so that no two names differ by a bracket or a shade word alone |
 | `drawio-slides.cjs` | the launcher that the set-up copies into each presentation, which runs the command line of the newest installed version of the extension |
 | `html-deck.html` | the page of the HTML file, whose placeholders the build fills in |
 
@@ -68,8 +68,8 @@ The new folder holds three slides, copied from the template: a title slide, a se
 Their text says what goes in each cell, in the style of real text, to overwrite in the `value` of each cell.
 That text is the title, the date, the author and the affiliation of the title slide, and the title and the list of the body, whose formula and whose example of a word in italic show those constructs.
 
-`init` writes the colours of `deck-templates/color-definitions.tex` into the setting `drawioSlides.colors` of `.vscode/settings.json` of the presentation, with the comment lines before each colour and without the header of the file.
-The formulas of the presentation then name those colours, as the section on colours below says.
+`init` writes the colors of `deck-templates/color-definitions.tex` into the setting `drawioSlides.colors` of `.vscode/settings.json` of the presentation, with the comment lines before each color and without the header of the file.
+The formulas of the presentation then name those colors, as the section on colors below says.
 `init` copies `deck-templates/slide-format.drawio.xml` to `templates/slides.drawio.xml`, the template of the presentation, from which the editor inserts a slide, as the section on VS Code below says.
 `npm run build` prints what it did:
 
@@ -103,7 +103,7 @@ Six scripts of `package.json` work on the presentation, and each has a command o
 | `npm run build` | Build the Presentation | exports the slides, then writes the HTML file and the PDF |
 | `npm run html` | Build the HTML File of the Presentation | exports the slides, then writes `build/<folder>.html`, which presents the deck in a browser with an outline, the links, the videos and the embedded pages, and copies the videos and the pages into `build/media/` |
 | `npm run pdf` | Build the PDF of the Presentation | exports the slides, then prints them into `build/<folder>.pdf`, with bookmarks of the sections, of their slides and of the pages of a slide in steps |
-| `npm run watch` | Watch the Presentation | writes the HTML file again whenever a section file is saved, renamed, added or deleted, a file under `assets/` changes, or `.vscode/settings.json`, which holds the colours, changes. `watch` reads the key `config` of `package.json` at its start, so a change of the key takes effect when `watch` starts again |
+| `npm run watch` | Watch the Presentation | writes the HTML file again whenever a section file is saved, renamed, added or deleted, a file under `assets/` changes, or `.vscode/settings.json`, which holds the colors, changes. `watch` reads the key `config` of `package.json` at its start, so a change of the key takes effect when `watch` starts again |
 | `npm run outline` | Show the Outline of the Presentation | prints the sections, the slides and their pages, without building |
 | `npm run check` | Check the Spelling and Grammar of the Presentation | checks the spelling and the grammar of every label with LanguageTool on this machine, and prints each issue with its slide, as the section on spelling below says. The script ends with exit status 1 when it finds an issue, and the command puts each issue into the Problems view |
 
@@ -150,7 +150,7 @@ The command Set Up a Presentation in This Folder offers the same move, in a dial
 my-talk/
 ├── .git/                             the repository of the presentation
 ├── .gitignore                        leaves out what the build, macOS and Claude Code write
-├── .vscode/settings.json             the editor set-up and the colours of the presentation, written by the set-up
+├── .vscode/settings.json             the editor set-up and the colors of the presentation, written by the set-up
 ├── package.json                      the scripts, and the title under config
 ├── drawio-slides.cjs                 the launcher of the command line, which the scripts run
 ├── templates/slides.drawio.xml       the template of the slides, copied by the set-up
@@ -199,7 +199,7 @@ A name that ends in no `-<step>` is step 1.
 Give two different slides two different names, or the build takes them for the steps of one slide.
 A page whose name ends in `-hide`, such as `reset-metrics-example-1-hide`, stays in its file and out of the deck, and takes no slide number.
 
-## The template defines the slide numbers, the formulas and the colours of a slide
+## The template defines the slide numbers, the formulas and the colors of a slide
 
 The table points to the place of each part of a slide, and the sections below say more.
 
@@ -207,7 +207,7 @@ The table points to the place of each part of a slide, and the sections below sa
 |---|---|
 | `45/61` at the bottom right of every slide that carries the number cell, which the title slide of the template does not | a cell holding `%slide%/%slides%`, which the build fills in |
 | a formula inside a sentence | `\(...\)` in the label, typeset by MathJax in draw.io |
-| a coloured formula such as `\textcolor{green}{F}` | the setting `drawioSlides.colors` of `.vscode/settings.json` of the deck, whose colours the extension gives the editor and the build gives each page |
+| a colored formula such as `\textcolor{green}{F}` | the setting `drawioSlides.colors` of `.vscode/settings.json` of the deck, whose colors the extension gives the editor and the build gives each page |
 | the title, the body and the fonts | the pages of the template of the deck, `templates/slides.drawio.xml` by default, which the set-up copies from `deck-templates/slide-format.drawio.xml` |
 | no slide at all for a page whose name ends in `-hide` | the build, which leaves the page out and gives it no number |
 
@@ -241,14 +241,14 @@ A `span` with a `font-size` and `font-family: Helvetica` sets it apart, `<span s
 A symbol set as text, such as e₁, is `<i>e</i><sub style="line-height: 0">1</sub>`, and the `line-height` keeps the line as tall as the others.
 The page `text-with-mathematics-1` of the template shows each of these with its source beside it.
 
-### The colours of a formula come from the setting `drawioSlides.colors` of the presentation
+### The colors of a formula come from the setting `drawioSlides.colors` of the presentation
 
-The MathJax of draw.io knows no colour by a name of your own, such as `accent`, and draws it black, so a name needs a `\definecolor` before the formula is typeset.
-The colours of a presentation are the setting `drawioSlides.colors` of its `.vscode/settings.json`, which maps each name to a value `#RRGGBB`, with a comment before a colour where its use needs one:
+The MathJax of draw.io knows no color by a name of your own, such as `accent`, and draws it black, so a name needs a `\definecolor` before the formula is typeset.
+The colors of a presentation are the setting `drawioSlides.colors` of its `.vscode/settings.json`, which maps each name to a value `#RRGGBB`, with a comment before a color where its use needs one:
 
 ```jsonc
 "drawioSlides.colors": {
-  // The colour of the markers of the lists.
+  // The color of the markers of the lists.
   "accent": "#004D80",
   "green": "#008000"
 }
@@ -256,43 +256,43 @@ The colours of a presentation are the setting `drawioSlides.colors` of its `.vsc
 
 A name is letters and digits and starts with a letter, so that TeX reads it, and a value is `#` and six hexadecimal digits.
 The extension and the build leave out an entry of another form, and the output channel Drawio Integration Log of the extension and a warning of the build name it.
-The colour picker offers the colours as presets after those of `drawioSlides.presetColors`, in the order of the names.
-VS Code shows a swatch before each value in the settings file, and a click on the swatch opens its colour picker, which writes the value back.
-The section Deck colours of the Format panel of the editor lists the same colours, gives the selection a colour of the list, and renames, recolours, adds and removes a colour, as the README of this repository says.
+The color picker offers the colors as presets after those of `drawioSlides.presetColors`, in the order of the names.
+VS Code shows a swatch before each value in the settings file, and a click on the swatch opens its color picker, which writes the value back.
+The section Deck colors of the Format panel of the editor lists the same colors, gives the selection a color of the list, and renames, recolors, adds and removes a color, as the README of this repository says.
 Two places read the setting:
 
-- In the editor, the extension defines every colour on every page, so a new page needs no definitions of its own, and names the colours in the colour picker and adds them to its presets.
+- In the editor, the extension defines every color on every page, so a new page needs no definitions of its own, and names the colors in the color picker and adds them to its presets.
   The editor follows a change of the setting without a reload, as the section on VS Code below says.
-- In the build, every page gets a locked layer `Equation colours, added by the build` with the definitions its formulas use, before the export.
+- In the build, every page gets a locked layer `Equation colors, added by the build` with the definitions its formulas use, before the export.
   The section files stay as they were saved.
 
-The extension and the build give MathJax each colour in the model `RGB`, such as `\definecolor{green}{RGB}{0,128,0}`, so the colour picker, the formulas of the editor and the build take one value.
-A page may still carry its own locked layer `Equation colours`, and the build then leaves the colours it defines to the page.
+The extension and the build give MathJax each color in the model `RGB`, such as `\definecolor{green}{RGB}{0,128,0}`, so the color picker, the formulas of the editor and the build take one value.
+A page may still carry its own locked layer `Equation colors`, and the build then leaves the colors it defines to the page.
 The commands that MathJax lacks are defined the same way, from `drawio-custom-plugins/slides/mathjax-commands.tex`, which lists them.
 
-### The commands Import Colours from TeX and Export Colours to TeX convert the colours between the setting and a TeX file
+### The commands Import Colors from TeX and Export Colors to TeX convert the colors between the setting and a TeX file
 
-A paper in LaTeX holds its colours as `\definecolor` lines of a TeX file.
-The command *Draw.io Slides: Import Colours from TeX* asks for TeX files and writes their colours into `drawioSlides.colors` of the presentation, after a confirmation that names the number of colours.
-The command *Draw.io Slides: Export Colours to TeX* writes the colours of the setting into a TeX file, `colours.tex` of the presentation by default.
+A paper in LaTeX holds its colors as `\definecolor` lines of a TeX file.
+The command *Draw.io Slides: Import Colors from TeX* asks for TeX files and writes their colors into `drawioSlides.colors` of the presentation, after a confirmation that names the number of colors.
+The command *Draw.io Slides: Export Colors to TeX* writes the colors of the setting into a TeX file, `colors.tex` of the presentation by default.
 The command line does the same, in the folder of the presentation:
 
 ```sh
-node drawio-slides.cjs from-tex colours.tex
-node drawio-slides.cjs to-tex colours.tex
+node drawio-slides.cjs from-tex colors.tex
+node drawio-slides.cjs to-tex colors.tex
 ```
 
-The import writes the colour of every `\definecolor` of the files into `drawioSlides.colors`, in the order of the files.
-It reads the models `rgb`, `RGB`, `HTML`, `gray`, `Gray`, `cmy` and `cmyk`, and converts each colour as the package xcolor converts it.
-The comment lines before a definition become `//` lines before its colour, so the comments of the TeX file stay with the colours.
+The import writes the color of every `\definecolor` of the files into `drawioSlides.colors`, in the order of the files.
+It reads the models `rgb`, `RGB`, `HTML`, `gray`, `Gray`, `cmy` and `cmyk`, and converts each color as the package xcolor converts it.
+The comment lines before a definition become `//` lines before its color, so the comments of the TeX file stay with the colors.
 The import replaces the value of `drawioSlides.colors` in the text of the settings file, or adds the key, and keeps every other key and comment of the file.
 It stops before it writes on a definition that the setting cannot hold, such as a name with a hyphen.
 The command refuses to import while the settings file has unsaved changes.
 
-The export writes the colours of the setting as `\definecolor{<name>}{HTML}{<RRGGBB>}` lines, with the comments of the setting as `%` lines, for a paper to `\input`.
+The export writes the colors of the setting as `\definecolor{<name>}{HTML}{<RRGGBB>}` lines, with the comments of the setting as `%` lines, for a paper to `\input`.
 Its first line names the export and the settings file, and the import leaves that line out, so the two convert back and forth.
 
-A presentation whose settings still hold `drawioSlides.colorDefinitions`, the list of the TeX files that held its colours before, stops the build with a message that names the files for the import.
+A presentation whose settings still hold `drawioSlides.colorDefinitions`, the list of the TeX files that held its colors before, stops the build with a message that names the files for the import.
 Import the files, remove `drawioSlides.colorDefinitions`, and delete the TeX files that nothing else reads.
 The extension reads no `drawioSlides.colorDefinitions`, and its output channel names the import while the settings hold it.
 
@@ -392,16 +392,16 @@ The table of keys above is the one place that gives them, and `onKey` of `deck-t
 The extension opens a `.drawio.xml` file as a drawing only when a setting associates the two, and it loads the plugins of the slides only when the setting `drawioSlides.slides` is `true`.
 Open the folder of a presentation in VS Code, with *File > Open Folder…* or `code my-talk`, and its `.vscode/settings.json` holds both.
 The set-up writes that file.
-For a presentation that has none, the command Set Up a Presentation in This Folder writes it, and so does the mode `vscode` of the command line, which also takes the swatches of a colour configuration:
+For a presentation that has none, the command Set Up a Presentation in This Folder writes it, and so does the mode `vscode` of the command line, which also takes the swatches of a color configuration:
 
 ```sh
 # in the folder of the presentation
-node <extension folder>/dist/cli.js vscode --colours <extension folder>/deck-templates/named-colors-example.json
+node <extension folder>/dist/cli.js vscode --colors <extension folder>/deck-templates/named-colors-example.json
 ```
 
 The set-up refuses to replace a settings file that exists.
 After it writes the file, the set-up copies the template into `templates/` when the presentation lacks it, because the settings name it.
-The file it writes reads, without the swatches and with two of the colours of the starting palette:
+The file it writes reads, without the swatches and with two of the colors of the starting palette:
 
 ```jsonc
 {
@@ -417,9 +417,9 @@ On a presentation with `.vscode/settings.json`, the command says that the folder
 
 With `drawioSlides.slides` on, the extension loads the plugins in its folder `drawio-custom-plugins/slides/` without asking:
 
-- `math-definitions.plugin.js` defines the colours of `drawioSlides.colors` and the commands of `mathjax-commands.tex` on every page, as the section on colours above says, and starts every new page with mathematical typesetting on.
-- `deck-colors.plugin.js` gives the colour picker its presets and its names, and the Style tab of the Format panel its swatches, again after a change of the settings.
-- `deck-colors-section.plugin.js` adds the section Deck colours to the Format panel, as the section on colours above says.
+- `math-definitions.plugin.js` defines the colors of `drawioSlides.colors` and the commands of `mathjax-commands.tex` on every page, as the section on colors above says, and starts every new page with mathematical typesetting on.
+- `deck-colors.plugin.js` gives the color picker its presets and its names, and the Style tab of the Format panel its swatches, again after a change of the settings.
+- `deck-colors-section.plugin.js` adds the section Deck colors to the Format panel, as the section on colors above says.
 - `slide-settings.js` receives the settings that the extension sends after a change, and passes them to `math-definitions.plugin.js`, `deck-colors.plugin.js`, `deck-colors-section.plugin.js` and `list-styles.plugin.js`, as the paragraph after the templates says.
 - `single-page.plugin.js` keeps a page of the size of the setting `drawioSlides.slideSize`, 1920 by 1080 by default, at one page in the page view, so content past the edge is cut as the build cuts it.
 - `click-through.plugin.js` lets a click on the empty inside of a shape or a text box without fill select the shape behind it.
@@ -437,10 +437,10 @@ With `drawioSlides.slides` on, the extension loads the plugins in its folder `dr
 - `media.plugin.js` plays the video of a shape with the property `video` and shows the page of a shape with the property `html`, inside the shape, as the HTML file shows them.
 
 The extension tells the plugins the folder of the presentation, the nearest folder above the drawing that holds a `package.json`.
-Its page gives the words, the bullets and the formulas of a label the font colour of the label, as the build does.
+Its page gives the words, the bullets and the formulas of a label the font color of the label, as the build does.
 
 `list-styles.plugin.js` acts when the buttons Bulleted List, Numbered List, Increase Indent and Decrease Indent of *Format panel › Text*, or Tab in a list, make or move a list.
-The setting `drawioSlides.listStyles` gives each level of a bulleted and of a numbered list its indent, its marker and the colour and the size of the marker, and `itemGap`, the gap above every item but the first of a first level.
+The setting `drawioSlides.listStyles` gives each level of a bulleted and of a numbered list its indent, its marker and the color and the size of the marker, and `itemGap`, the gap above every item but the first of a first level.
 Its default, in `contributes.configuration` of the `package.json` of the extension, is the style of the template, which this paragraph restates.
 The first level takes the marker `disclosure-closed` and an indent of 26.07 px, the second the marker `'-  '` and an indent of 43.93 px, and a deeper level a dot.
 Every item but the first of a first level sits 8.44 px below the one before.
@@ -450,8 +450,8 @@ Choosing a marker sets it on that list alone, and *Template* gives the list the 
 Both write the style into the HTML of the label, so the HTML file and the PDF show the same marker.
 A choice in the menu stays out of the history of the browser, so Undo inside the label takes back the change before the choice instead.
 The Undo of the drawing after the edit takes back the whole edit, the choice included.
-The default draws the triangle and the dash in the colour and the size of the points of the Keynote deck of the template, as the header of the plugin says.
-The colour of a level may be the name of a colour of `drawioSlides.colors`, such as `accent`, which the editor and the build replace by its value.
+The default draws the triangle and the dash in the color and the size of the points of the Keynote deck of the template, as the header of the plugin says.
+The color of a level may be the name of a color of `drawioSlides.colors`, such as `accent`, which the editor and the build replace by its value.
 A name that `drawioSlides.colors` does not define stays as written, with a line in the output channel of the extension and a warning of the build.
 The build reads the same setting from `.vscode/settings.json` of the presentation, or its default, and copies the rules of the markers into the SVG of each slide with a list.
 A slide setting in the user settings of VS Code is out of the sight of the build, so a presentation keeps its slide settings in its own folder.
@@ -459,7 +459,7 @@ A slide setting in the user settings of VS Code is out of the sight of the build
 The setting `drawioSlides.templates` lists the templates of the presentation, multi-page draw.io files whose pages are the layouts of the slides, each named by its layout.
 The set-up writes `["${deckFolder}/templates/*.drawio.xml"]`, the default of the extension, so `templates/slides.drawio.xml` is the template of a new presentation, and a presentation changes its copy or adds another file there.
 `${deckFolder}` stands for the folder of the presentation, and a relative path of the setting is read from that folder, in the editor and in the build alike.
-Each presentation holds its templates and its colours in its own repository, so a change of the template or of the starting palette of the extension reaches a presentation only when the presentation copies it again.
+Each presentation holds its templates and its colors in its own repository, so a change of the template or of the starting palette of the extension reaches a presentation only when the presentation copies it again.
 *Insert slide* inserts a copy of a layout after the current page, named after the layout with `new` and a number, such as `title-and-body-new-1`, so that the build counts it as a slide of its own until it is renamed.
 The menu shows a template as it was last saved, without a reload of the window.
 
@@ -607,10 +607,10 @@ The skills in `skills/` of the extension give an agent the steps to start a deck
 | `the name "x" starts slides 3, 7` | two slides apart from each other share a name | rename one, or move its pages next to the others |
 | `slide 4, "x", has the steps 2, 1 in page order` | the steps of one slide are out of order | reorder the page tabs or rename the steps |
 | `holds a formula and has mathematical typesetting off` | the switch of the page is off | *Extras > Mathematical Typesetting* on that page |
-| `colours formulas with dpgren, which neither the page nor the setting drawioSlides.colors defines` | a name of a colour that `drawioSlides.colors` lacks, often a typo | fix the name, or add the colour to `drawioSlides.colors` |
-| `drawioSlides.colors names a colour "dp-red", which is not letters and digits that start with a letter, so the colour is left out` | a name that TeX cannot read | rename the colour, and the formulas that name it |
-| `drawioSlides.colors gives accent the value "#04D80", which is not # and six hexadecimal digits, so the colour is left out` | a value other than `#RRGGBB` | write the value as `#RRGGBB` |
-| `drawioSlides.listStyles names the colour acent, which drawioSlides.colors does not define, so the value stays as written` | a colour of a level of the list styles that is a name `drawioSlides.colors` lacks, often a typo, or a name of CSS, such as `red`, which the marker still takes | fix the name, add the colour to `drawioSlides.colors`, or write the value as `#RRGGBB` |
+| `colors formulas with dpgren, which neither the page nor the setting drawioSlides.colors defines` | a name of a color that `drawioSlides.colors` lacks, often a typo | fix the name, or add the color to `drawioSlides.colors` |
+| `drawioSlides.colors names a color "dp-red", which is not letters and digits that start with a letter, so the color is left out` | a name that TeX cannot read | rename the color, and the formulas that name it |
+| `drawioSlides.colors gives accent the value "#04D80", which is not # and six hexadecimal digits, so the color is left out` | a value other than `#RRGGBB` | write the value as `#RRGGBB` |
+| `drawioSlides.listStyles names the color acent, which drawioSlides.colors does not define, so the value stays as written` | a color of a level of the list styles that is a name `drawioSlides.colors` lacks, often a typo, or a name of CSS, such as `red`, which the marker still takes | fix the name, add the color to `drawioSlides.colors`, or write the value as `#RRGGBB` |
 | `names the picture assets/a.png, which does not exist` | the path of a picture `image=assets/<name>` names no file | fix the path, relative to the presentation folder |
 | `3-a.drawio.xml and 3-b.drawio.xml both carry the section number 3` | two files share a section number | renumber one of them |
 | `notes.drawio.xml does not start with its section number` | a file in `sections/` without its number | name it `<number>-<name>.drawio.xml` |
@@ -632,8 +632,8 @@ The skills in `skills/` of the extension give an agent the steps to start a deck
 | `the cell x of the page p is a rectangle shape, so the builds draw it as a rectangular picture of its page` | an embedded page in a shape other than `image` | give the shape the style `shape=image` |
 | `two pages have the id p` | two pages share an id, usually after copying a page as text | give one of them a new `id` |
 | `the key config of .../package.json holds "x", which is none of title, slides-dir, deck`, or `config.title of .../package.json holds [...], where a text was expected` | a key of `config` that the build does not know, or a value of the wrong kind, and the build stops | write the key as the section on the scripts above shows |
-| `config.palette of .../package.json has moved to the setting drawioSlides.colors of .vscode/settings.json, which the command Import Colours from TeX writes from a TeX file` | a presentation whose `package.json` names the TeX files of its colours, and the build stops | import the colours of the files into `drawioSlides.colors`, as the section on colours says, and remove the key |
-| `.../.vscode/settings.json holds the setting drawioSlides.colorDefinitions, whose colours the setting drawioSlides.colors has taken over` | a presentation whose settings name the TeX files of its colours, and the build stops | import the files, then remove `drawioSlides.colorDefinitions` |
+| `config.palette of .../package.json has moved to the setting drawioSlides.colors of .vscode/settings.json, which the command Import Colors from TeX writes from a TeX file` | a presentation whose `package.json` names the TeX files of its colors, and the build stops | import the colors of the files into `drawioSlides.colors`, as the section on colors says, and remove the key |
+| `.../.vscode/settings.json holds the setting drawioSlides.colorDefinitions, whose colors the setting drawioSlides.colors has taken over` | a presentation whose settings name the TeX files of its colors, and the build stops | import the files, then remove `drawioSlides.colorDefinitions` |
 
 ## The six pages of the template
 
@@ -662,14 +662,14 @@ The page `every-construct-1` draws twelve constructs:
 - a curved edge with one waypoint, and an edge whose end carries a round terminal
 - an equation label, a picture embedded as a data URI, and the slide-number cell
 
-## The colour configuration gives each hex value a name in the colour dialog
+## The color configuration gives each hex value a name in the color dialog
 
-draw.io shows a colour as a hex value, and its configuration can give each value a name, so the colour dialog offers `cdF`, the green of functionality of the codesign package, where it offered `#0E8005`.
+draw.io shows a color as a hex value, and its configuration can give each value a name, so the color dialog offers `cdF`, the green of functionality of the codesign package, where it offered `#0E8005`.
 A configuration carries three settings, and `deck-templates/named-colors.template.jsonc` is one to copy.
 
 - `colorNames` gives a name to a hex value.
   The key is the value in upper case with no leading `#`.
-  draw.io shows the name as a tooltip in the colour dialog and matches it when you type there.
+  draw.io shows the name as a tooltip in the color dialog and matches it when you type there.
 - `presetColors` fills the top row of that dialog, in the order given, with values in the same form.
 - `customColorSchemes` adds rows of swatches to the top of the Style tab of the Format panel, before the rows of draw.io.
   A swatch takes `fill`, `stroke`, `font` and `gradient`, each a hex value with a leading `#`, or `none`.
@@ -680,17 +680,17 @@ A swatch sets the fill, the stroke and the font of everything selected at once, 
 The mode `color-config` of the command line therefore gives each swatch a font that contrasts with its fill and leaves white out of both rows, and a configuration written by hand does the same.
 
 The extension ignores a configuration pasted into draw.io and offers no dialog for one.
-In VS Code a deck names its colours in the setting `drawioSlides.colors`, as the section on colours above says.
-The extension adds those colours to `colorNames` and `presetColors` by itself, so the setting stays the one place of the colours of the deck.
-A deck keeps `drawioSlides.customColorSchemes` alone, because a swatch sets a fill, a stroke and a font together, which no single colour gives.
-In a deck, each colour of a swatch may be the name of a colour of `drawioSlides.colors`, such as `"fill": "accent"`, so a swatch follows a change of the colour.
+In VS Code a deck names its colors in the setting `drawioSlides.colors`, as the section on colors above says.
+The extension adds those colors to `colorNames` and `presetColors` by itself, so the setting stays the one place of the colors of the deck.
+A deck keeps `drawioSlides.customColorSchemes` alone, because a swatch sets a fill, a stroke and a font together, which no single color gives.
+In a deck, each color of a swatch may be the name of a color of `drawioSlides.colors`, such as `"fill": "accent"`, so a swatch follows a change of the color.
 A name that the setting does not define stays as written, with a line in the output channel of the extension.
 In VS Code the three are settings of the extension, under the prefix `drawioSlides.` in `.vscode/settings.json`.
 The mode `vscode` writes `drawioSlides.customColorSchemes` alone from a configuration in plain JSON, such as `named-colors-example.json` or a copy of `named-colors.template.jsonc` without its comments, as the section on VS Code above says.
 A settings file that exists takes the setting by hand.
 In the desktop and web applications, paste the three settings into *Extras > Configuration…*, save, and restart the application, which reads the configuration once at start.
 
-The mode `color-config` of the command line writes the three settings from the colours a deck uses:
+The mode `color-config` of the command line writes the three settings from the colors a deck uses:
 
 ```sh
 node <extension folder>/dist/cli.js color-config path/to/deck.drawio.xml \
@@ -698,20 +698,20 @@ node <extension folder>/dist/cli.js color-config path/to/deck.drawio.xml \
     --definecolor <extension folder>/deck-templates/color-definitions.tex
 ```
 
-An output file that ends in `.tex` gets the colours as `\definecolor` lines in the model `HTML` instead, which the import writes into `drawioSlides.colors`, to start the colours of a deck from the colours that its slides use:
+An output file that ends in `.tex` gets the colors as `\definecolor` lines in the model `HTML` instead, which the import writes into `drawioSlides.colors`, to start the colors of a deck from the colors that its slides use:
 
 ```sh
 # in the folder of the presentation
-node drawio-slides.cjs color-config sections/1-opening.drawio.xml --out colours.tex
-node drawio-slides.cjs from-tex colours.tex
+node drawio-slides.cjs color-config sections/1-opening.drawio.xml --out colors.tex
+node drawio-slides.cjs from-tex colors.tex
 ```
 
 A name of a hue there keeps its letters and digits alone, in lower case, such as `grey8b959e` for `Grey 8B959E`, and the name of a `\definecolor`, such as `cdF`, stays as written.
-The colours are a start to edit by hand into a few colours named by their role, such as `accent` for the markers of the lists.
+The colors are a start to edit by hand into a few colors named by their role, such as `accent` for the markers of the lists.
 
-The mode keeps every colour used at least `--least` times, eight by default.
-The mode names a colour that a file passed to `--definecolor` defines after the name of its `\definecolor`, such as `green`, and any other colour after its hue.
-A near-white colour, of lightness above 0.9 and a chroma, the largest channel less the smallest, below 0.05, takes the name White, so a pale tint such as `#dae8fc` keeps the name of its hue.
-A hue of one colour gives it the plain name, such as `Blue`, and each colour of a hue of several carries its hex value after the name, such as `Grey 8B959E`, so that no two names differ by a shade word alone.
-`--definecolor` may be given more than once, such as for the colours of a deck that the export to TeX wrote and for a `.sty` file of the deck.
+The mode keeps every color used at least `--least` times, eight by default.
+The mode names a color that a file passed to `--definecolor` defines after the name of its `\definecolor`, such as `green`, and any other color after its hue.
+A near-white color, of lightness above 0.9 and a chroma, the largest channel less the smallest, below 0.05, takes the name White, so a pale tint such as `#dae8fc` keeps the name of its hue.
+A hue of one color gives it the plain name, such as `Blue`, and each color of a hue of several carries its hex value after the name, such as `Grey 8B959E`, so that no two names differ by a shade word alone.
+`--definecolor` may be given more than once, such as for the colors of a deck that the export to TeX wrote and for a `.sty` file of the deck.
 Run it again after the deck changes, because its output is generated.

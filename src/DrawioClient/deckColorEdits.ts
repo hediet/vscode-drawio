@@ -4,45 +4,45 @@ import {
 	COLOR_VALUE,
 	LIST_KINDS,
 	SCHEME_COLOR_KEYS,
-} from "../deck/deckColours";
+} from "../deck/deckColors";
 
 export { COLOR_NAME, COLOR_VALUE, LIST_KINDS, SCHEME_COLOR_KEYS };
 
 const COLORS = "drawioSlides.colors";
 const LIST_STYLES = "drawioSlides.listStyles";
 const COLOR_SCHEMES = "drawioSlides.customColorSchemes";
-const OPERATIONS: Record<DeckColourEdit["operation"], true> = {
+const OPERATIONS: Record<DeckColorEdit["operation"], true> = {
 	set: true,
 	rename: true,
 	remove: true,
 };
 
 /**
- * A colour command of a formula that names a colour, as `\textcolor{accent}{x}` names `accent`,
+ * A color command of a formula that names a color, as `\textcolor{accent}{x}` names `accent`,
  * with `NAME` in place of the name.
  */
-const COLOUR_COMMAND =
+const COLOR_COMMAND =
 	"\\\\(?:textcolor|color|colorbox|fcolorbox)\\s*\\{NAME\\}|\\\\fcolorbox\\s*\\{[^{}]*\\}\\s*\\{NAME\\}";
 /** The label of a cell in the XML of a drawing, as the attribute `value` or `label`. */
 const LABEL_ATTRIBUTE = /\s(?:value|label)="[^"]*"/g;
 
 /** An edit of `drawioSlides.colors` that the extension refuses, with the reason. */
-export class RefusedColourEdit extends Error {
-	public readonly name = "RefusedColourEdit";
+export class RefusedColorEdit extends Error {
+	public readonly name = "RefusedColorEdit";
 }
 
 /**
- * The colours of `drawioSlides.colors` after the edit, in the order of the setting, with a renamed
- * colour in its place and a new colour last.
+ * The colors of `drawioSlides.colors` after the edit, in the order of the setting, with a renamed
+ * color in its place and a new color last.
  */
-export function withColourEdit(
-	colours: Record<string, unknown>,
-	edit: DeckColourEdit
+export function withColorEdit(
+	colors: Record<string, unknown>,
+	edit: DeckColorEdit
 ): Record<string, unknown> {
-	checkColourEdit(colours, edit);
-	return Object.keys(colours)
+	checkColorEdit(colors, edit);
+	return Object.keys(colors)
 		.concat(
-			edit.operation === "set" && !hasColour(colours, edit.name)
+			edit.operation === "set" && !hasColor(colors, edit.name)
 				? [edit.name]
 				: []
 		)
@@ -51,37 +51,37 @@ export function withColourEdit(
 				return result;
 			}
 			if (edit.operation === "rename" && name === edit.name) {
-				return { ...result, [edit.newName]: colours[name] };
+				return { ...result, [edit.newName]: colors[name] };
 			}
 			if (edit.operation === "set" && name === edit.name) {
 				return { ...result, [name]: edit.value };
 			}
-			return { ...result, [name]: colours[name] };
+			return { ...result, [name]: colors[name] };
 		}, {} as Record<string, unknown>);
 }
 
 /**
  * The text of a settings file of VS Code after the edit of its member `drawioSlides.colors`, with
- * every other member and every comment as they were. A rename also renames the colour where
+ * every other member and every comment as they were. A rename also renames the color where
  * `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` of the file name it.
  */
-export function withColourEditInSettings(
+export function withColorEditInSettings(
 	text: string,
-	edit: DeckColourEdit
+	edit: DeckColorEdit
 ): string {
 	const root = parseSettings(text);
-	const coloursNode = root && jsoncParser.findNodeAtLocation(root, [COLORS]);
-	const colours: unknown = coloursNode
-		? jsoncParser.getNodeValue(coloursNode)
+	const colorsNode = root && jsoncParser.findNodeAtLocation(root, [COLORS]);
+	const colors: unknown = colorsNode
+		? jsoncParser.getNodeValue(colorsNode)
 		: {};
-	if (!isPlainObject(colours)) {
-		throw new RefusedColourEdit(
+	if (!isPlainObject(colors)) {
+		throw new RefusedColorEdit(
 			`The settings file gives drawioSlides.colors the value ${JSON.stringify(
-				colours
-			)}, where an object of names and colours was expected, so the file stays as it is.`
+				colors
+			)}, where an object of names and colors was expected, so the file stays as it is.`
 		);
 	}
-	checkColourEdit(colours, edit);
+	checkColorEdit(colors, edit);
 	const options = { formattingOptions: formattingOf(text) };
 	if (edit.operation === "rename" && edit.newName === edit.name) {
 		return text;
@@ -102,7 +102,7 @@ export function withColourEditInSettings(
 		text.slice(0, key.offset) +
 		JSON.stringify(edit.newName) +
 		text.slice(key.offset + key.length);
-	return pathsNamingColour(parseSettings(renamed)!, edit.name).reduce(
+	return pathsNamingColor(parseSettings(renamed)!, edit.name).reduce(
 		(result, path) =>
 			jsoncParser.applyEdits(
 				result,
@@ -113,7 +113,7 @@ export function withColourEditInSettings(
 }
 
 /** Whether a settings file of VS Code holds the member `drawioSlides.colors`. */
-export function hasColoursMember(text: string): boolean {
+export function hasColorsMember(text: string): boolean {
 	const root = parseSettings(text);
 	return (
 		root !== undefined &&
@@ -123,11 +123,11 @@ export function hasColoursMember(text: string): boolean {
 
 /**
  * The number of labels of a drawing, given as the uncompressed XML of its pages, whose formulas
- * name the colour, as `\textcolor{accent}{x}` names `accent`.
+ * name the color, as `\textcolor{accent}{x}` names `accent`.
  */
-export function countLabelsNamingColour(xml: string, name: string): number {
+export function countLabelsNamingColor(xml: string, name: string): number {
 	const command = new RegExp(
-		COLOUR_COMMAND.replace(
+		COLOR_COMMAND.replace(
 			/NAME/g,
 			name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 		)
@@ -137,12 +137,12 @@ export function countLabelsNamingColour(xml: string, name: string): number {
 	).length;
 }
 
-function checkColourEdit(
-	colours: Record<string, unknown>,
-	edit: DeckColourEdit
+function checkColorEdit(
+	colors: Record<string, unknown>,
+	edit: DeckColorEdit
 ): void {
 	if (!Object.prototype.hasOwnProperty.call(OPERATIONS, edit.operation)) {
-		throw new RefusedColourEdit(
+		throw new RefusedColorEdit(
 			`The edit of drawioSlides.colors names the operation ${JSON.stringify(
 				edit.operation
 			)}, where set, rename or remove was expected, so the setting stays as it is.`
@@ -150,14 +150,14 @@ function checkColourEdit(
 	}
 	if (edit.operation === "set") {
 		if (typeof edit.name !== "string" || !COLOR_NAME.test(edit.name)) {
-			throw new RefusedColourEdit(
+			throw new RefusedColorEdit(
 				`The name ${JSON.stringify(
 					edit.name
 				)} is not letters and digits that start with a letter, so drawioSlides.colors stays as it is.`
 			);
 		}
 		if (typeof edit.value !== "string" || !COLOR_VALUE.test(edit.value)) {
-			throw new RefusedColourEdit(
+			throw new RefusedColorEdit(
 				`The value ${JSON.stringify(edit.value)} of ${
 					edit.name
 				} is not # and six hexadecimal digits, so drawioSlides.colors stays as it is.`
@@ -165,9 +165,9 @@ function checkColourEdit(
 		}
 		return;
 	}
-	if (!hasColour(colours, edit.name)) {
-		throw new RefusedColourEdit(
-			`drawioSlides.colors defines no colour ${JSON.stringify(
+	if (!hasColor(colors, edit.name)) {
+		throw new RefusedColorEdit(
+			`drawioSlides.colors defines no color ${JSON.stringify(
 				edit.name
 			)}, so the setting stays as it is.`
 		);
@@ -177,7 +177,7 @@ function checkColourEdit(
 			typeof edit.newName !== "string" ||
 			!COLOR_NAME.test(edit.newName)
 		) {
-			throw new RefusedColourEdit(
+			throw new RefusedColorEdit(
 				`The name ${JSON.stringify(
 					edit.newName
 				)} is not letters and digits that start with a letter, so ${
@@ -185,9 +185,9 @@ function checkColourEdit(
 				} keeps its name.`
 			);
 		}
-		if (edit.newName !== edit.name && hasColour(colours, edit.newName)) {
-			throw new RefusedColourEdit(
-				`drawioSlides.colors already defines a colour ${edit.newName}, so ${edit.name} keeps its name.`
+		if (edit.newName !== edit.name && hasColor(colors, edit.newName)) {
+			throw new RefusedColorEdit(
+				`drawioSlides.colors already defines a color ${edit.newName}, so ${edit.name} keeps its name.`
 			);
 		}
 	}
@@ -260,7 +260,7 @@ function parseSettings(text: string): jsoncParser.Node | undefined {
 	});
 	if (errors.length > 0) {
 		const [error] = errors;
-		throw new RefusedColourEdit(
+		throw new RefusedColorEdit(
 			`The settings file does not read as JSON with comments, with the error ${jsoncParser.printParseErrorCode(
 				error.error
 			)} at offset ${error.offset}, so the file stays as it is.`
@@ -271,9 +271,9 @@ function parseSettings(text: string): jsoncParser.Node | undefined {
 
 /**
  * The places of `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` that name the
- * colour: the colour of a level of a list, and a colour of a swatch.
+ * color: the color of a level of a list, and a color of a swatch.
  */
-function pathsNamingColour(
+function pathsNamingColor(
 	root: jsoncParser.Node,
 	name: string
 ): jsoncParser.JSONPath[] {
@@ -331,11 +331,11 @@ function formattingOf(text: string): jsoncParser.FormattingOptions {
 }
 
 /**
- * Whether the colours define a colour of the name, which a name of the prototype of an object,
+ * Whether the colors define a color of the name, which a name of the prototype of an object,
  * such as `constructor`, does not make them do.
  */
-function hasColour(colours: Record<string, unknown>, name: string): boolean {
-	return Object.prototype.hasOwnProperty.call(colours, name);
+function hasColor(colors: Record<string, unknown>, name: string): boolean {
+	return Object.prototype.hasOwnProperty.call(colors, name);
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

@@ -38,7 +38,7 @@ The skill uses one file of the extension.
    A deck whose scripts run `build-slides.py` of the draw.io presentation framework moves to the launcher first, with `node <extension folder>/dist/cli.js migrate`, as `docs/presentations.md` says.
 2. Fix what the warnings of the build name, as the table of warnings of `docs/presentations.md` says.
 3. To write the PDF to another place, run `node drawio-slides.cjs pdf --pdf <file>` in the folder of the deck.
-   The mode reads the title from the key `config` of the `package.json` of the deck, and the colours from `drawioSlides.colors` of its `.vscode/settings.json`, as the scripts of the deck do.
+   The mode reads the title from the key `config` of the `package.json` of the deck, and the colors from `drawioSlides.colors` of its `.vscode/settings.json`, as the scripts of the deck do.
 
 The mode `pdf` needs a browser, the Chromium that the command *Draw.io Slides: Install Chromium for the Build* installs once for every deck, or Chrome or Edge.
 When the build stops because no browser starts, tell the user to run that command, or pass the program of a browser with `--browser <path>`.

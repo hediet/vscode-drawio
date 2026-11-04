@@ -209,9 +209,9 @@ test("init starts a presentation whose commands run the launcher, and vscode set
 	]);
 });
 
-test("from-tex, to-tex and color-config convert the colours of a deck", async () => {
+test("from-tex, to-tex and color-config convert the colors of a deck", async () => {
 	const folder = folderWith({
-		"colours.tex":
+		"colors.tex":
 			"% The accent.\n\\definecolor{accent}{HTML}{004D80}\n\\definecolor{warm}{rgb}{1,0.5,0}\n",
 		"drawing.drawio.xml": drawing(
 			page(
@@ -222,14 +222,14 @@ test("from-tex, to-tex and color-config convert the colours of a deck", async ()
 	});
 	const fromTex = await run([
 		"from-tex",
-		path.join(folder, "colours.tex"),
+		path.join(folder, "colors.tex"),
 		"--project",
 		folder,
 	]);
 	assert.equal(fromTex.status, ExitStatus.DONE);
 	assert.match(
 		fromTex.out[0],
-		/^2 colours of .* written into drawioSlides.colors of /
+		/^2 colors of .* written into drawioSlides.colors of /
 	);
 	const back = path.join(folder, "back.tex");
 	const toTex = await run(["to-tex", back, "--project", folder]);
@@ -247,10 +247,10 @@ test("from-tex, to-tex and color-config convert the colours of a deck", async ()
 		"--least",
 		"2",
 		"--definecolor",
-		path.join(folder, "colours.tex"),
+		path.join(folder, "colors.tex"),
 	]);
 	assert.equal(config.status, ExitStatus.DONE);
-	assert.equal(config.out[0], "1 colours of 1 kept, 2 uses");
+	assert.equal(config.out[0], "1 colors of 1 kept, 2 uses");
 	assert.deepEqual(JSON.parse(fs.readFileSync(out, "utf8")).colorNames, {
 		"004D80": "accent",
 	});

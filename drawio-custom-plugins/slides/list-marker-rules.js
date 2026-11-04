@@ -1,4 +1,4 @@
-// The CSS rules that give the markers of a list the colour and the size of its level, from the
+// The CSS rules that give the markers of a list the color and the size of its level, from the
 // setting "drawioSlides.listStyles" of the VS Code extension yujunhuang.drawio-slides.
 //
 // list-styles.plugin.js gives the rules to the page of the editor, and the build of a deck,

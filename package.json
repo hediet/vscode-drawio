@@ -53,7 +53,7 @@
 	"capabilities": {
 		"untrustedWorkspaces": {
 			"supported": "limited",
-			"description": "In Restricted Mode, workspace settings cannot load custom libraries or plugins, or change which Draw.io app the editor loads, and the commands that set up, build, watch, check or outline a presentation or convert its colours do not run.",
+			"description": "In Restricted Mode, workspace settings cannot load custom libraries or plugins, or change which Draw.io app the editor loads, and the commands that set up, build, watch, check or outline a presentation or convert its colors do not run.",
 			"restrictedConfigurations": [
 				"drawioSlides.customLibraries",
 				"drawioSlides.plugins",
@@ -214,13 +214,13 @@
 				"category": "Draw.io Slides"
 			},
 			{
-				"command": "drawioSlides.importColoursFromTex",
-				"title": "Import Colours from TeX",
+				"command": "drawioSlides.importColorsFromTex",
+				"title": "Import Colors from TeX",
 				"category": "Draw.io Slides"
 			},
 			{
-				"command": "drawioSlides.exportColoursToTex",
-				"title": "Export Colours to TeX",
+				"command": "drawioSlides.exportColorsToTex",
+				"title": "Export Colors to TeX",
 				"category": "Draw.io Slides"
 			},
 			{
@@ -534,7 +534,7 @@
 										},
 										"color": {
 											"type": "string",
-											"description": "The colour of the marker, as CSS, such as `#004D80`, or the name of a colour of `drawioSlides.colors`, such as `accent`."
+											"description": "The color of the marker, as CSS, such as `#004D80`, or the name of a color of `drawioSlides.colors`, such as `accent`."
 										},
 										"size": {
 											"type": "string",
@@ -562,7 +562,7 @@
 										},
 										"color": {
 											"type": "string",
-											"description": "The colour of the marker, as CSS, such as `#004D80`, or the name of a colour of `drawioSlides.colors`, such as `accent`."
+											"description": "The color of the marker, as CSS, such as `#004D80`, or the name of a color of `drawioSlides.colors`, such as `accent`."
 										},
 										"size": {
 											"type": "string",
@@ -682,16 +682,16 @@
 						"type": "object",
 						"scope": "resource",
 						"default": {},
-						"description": "The colours of a deck, each a name of letters and digits that starts with a letter and a value `#RRGGBB`. In a drawing whose `drawioSlides.slides` is true, the editor defines each colour for the formulas of every page, which name it as in `\\textcolor{accent}{x}`, names it in the colour picker, adds it to the presets of the picker in the order of this setting and follows a change of this setting without a reload. A colour of `drawioSlides.listStyles` and of `drawioSlides.customColorSchemes` may be the name of a colour of this setting. The build of a presentation reads the same setting, and the commands Import Colours from TeX and Export Colours to TeX convert the `\\definecolor` lines of a TeX file into this setting and back.",
+						"description": "The colors of a deck, each a name of letters and digits that starts with a letter and a value `#RRGGBB`. In a drawing whose `drawioSlides.slides` is true, the editor defines each color for the formulas of every page, which name it as in `\\textcolor{accent}{x}`, names it in the color picker, adds it to the presets of the picker in the order of this setting and follows a change of this setting without a reload. A color of `drawioSlides.listStyles` and of `drawioSlides.customColorSchemes` may be the name of a color of this setting. The build of a presentation reads the same setting, and the commands Import Colors from TeX and Export Colors to TeX convert the `\\definecolor` lines of a TeX file into this setting and back.",
 						"propertyNames": {
 							"pattern": "^[A-Za-z][A-Za-z0-9]*$",
-							"patternErrorMessage": "A name of a colour is letters and digits and starts with a letter."
+							"patternErrorMessage": "A name of a color is letters and digits and starts with a letter."
 						},
 						"additionalProperties": {
 							"type": "string",
 							"format": "color-hex",
 							"pattern": "^#[0-9A-Fa-f]{6}$",
-							"patternErrorMessage": "A colour is `#` and six hexadecimal digits, such as `#004D80`."
+							"patternErrorMessage": "A color is `#` and six hexadecimal digits, such as `#004D80`."
 						}
 					},
 					"drawioSlides.plugins": {
@@ -870,19 +870,19 @@
 									},
 									"fill": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a colour of `drawioSlides.colors`, such as `accent`."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a color of `drawioSlides.colors`, such as `accent`."
 									},
 									"stroke": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a colour of `drawioSlides.colors`, such as `accent`."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a color of `drawioSlides.colors`, such as `accent`."
 									},
 									"gradient": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a colour of `drawioSlides.colors`, such as `accent`."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a color of `drawioSlides.colors`, such as `accent`."
 									},
 									"font": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a colour of `drawioSlides.colors`, such as `accent`."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a color of `drawioSlides.colors`, such as `accent`."
 									}
 								}
 							}

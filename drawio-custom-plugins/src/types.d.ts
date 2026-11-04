@@ -4,7 +4,7 @@ declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | Get
     | SlideTemplatesAction | SlideSettingsAction;
 declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent
     | UpdateLocalStorage | PluginLoaded | CursorChangedEvent | SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent | SelectionRectangleChangedEvent
-    | DeckColourEditEvent;
+    | DeckColorEditEvent;
 
 declare interface InvokeCommandEvent {
     event: "invokeCommand";
@@ -92,10 +92,10 @@ declare interface SlideTemplatesAction {
 
 /**
  * The settings of a deck that the slide plugins follow without a reload, as the extension gives
- * them in `window.drawioSlidesSettings` and again after a change: the valid colours of
- * `drawioSlides.colors` in the order of the setting, the same colours as definitions of MathJax,
- * presets and names of the colour picker, and the swatches, the list styles and the markers of the
- * menu List style, with each name of a colour replaced by its value.
+ * them in `window.drawioSlidesSettings` and again after a change: the valid colors of
+ * `drawioSlides.colors` in the order of the setting, the same colors as definitions of MathJax,
+ * presets and names of the color picker, and the swatches, the list styles and the markers of the
+ * menu List style, with each name of a color replaced by its value.
  */
 declare interface SlideSettingsAction {
     action: "drawioSlidesSettings";
@@ -117,16 +117,16 @@ declare interface SlideSettingsAction {
 }
 
 /**
- * An edit of the colours of a deck, which `deck-colors-section.plugin.js` sends and the extension
- * writes into `drawioSlides.colors`: `set` gives a colour, new or not, its value `#RRGGBB`,
- * `rename` gives a colour a new name, and `remove` takes a colour out.
+ * An edit of the colors of a deck, which `deck-colors-section.plugin.js` sends and the extension
+ * writes into `drawioSlides.colors`: `set` gives a color, new or not, its value `#RRGGBB`,
+ * `rename` gives a color a new name, and `remove` takes a color out.
  */
-declare type DeckColourEdit =
+declare type DeckColorEdit =
     | { operation: "set"; name: string; value: string }
     | { operation: "rename"; name: string; newName: string }
     | { operation: "remove"; name: string };
 
-declare type DeckColourEditEvent = { event: "drawioSlidesEditColor" } & DeckColourEdit;
+declare type DeckColorEditEvent = { event: "drawioSlidesEditColor" } & DeckColorEdit;
 
 /** The setting `drawioSlides.listStyles`. */
 declare interface SlideListStyles {

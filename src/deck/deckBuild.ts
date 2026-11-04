@@ -11,7 +11,7 @@
  *
  *     my-talk/
  *     ├── package.json                    the title, under the key config
- *     ├── .vscode/settings.json           the settings of the editor and the colours of the slides
+ *     ├── .vscode/settings.json           the settings of the editor and the colors of the slides
  *     ├── sections/1-opening.drawio.xml   one file per section
  *     └── build/                          written by the build
  *         ├── my-talk.html, media/        the HTML file and the videos and pages it shows
@@ -63,7 +63,7 @@ import { DeckError, failureText } from "./deckError";
 import { embedSlideFilePictures } from "./deckPictures";
 import {
 	DECK_SETTINGS,
-	readDeckColours,
+	readDeckColors,
 	readDeckSettings,
 	readListStyles,
 	slideSetting,
@@ -211,13 +211,13 @@ async function exportSlides(
 	fs.mkdirSync(outdir, { recursive: true });
 	const { slides, source } = readSlides(options, deck);
 	const settings = readDeckSettings(project);
-	const colours = readDeckColours(project, settings, extensionRoot);
-	reportWarnings(reporter, colours.warnings);
+	const colors = readDeckColors(project, settings, extensionRoot);
+	reportWarnings(reporter, colors.warnings);
 	const listStyles = readListStyles(
 		project,
 		settings,
 		extensionRoot,
-		colours.value
+		colors.value
 	);
 	reportWarnings(reporter, listStyles.warnings);
 	throwIfCancelled(signal);
@@ -233,7 +233,7 @@ async function exportSlides(
 	const commandsFile = pluginFile(extensionRoot, MATHJAX_COMMANDS);
 	const written = writeAssembly(slides, {
 		project,
-		colours: colours.value,
+		colors: colors.value,
 		missingCommands: readMissingCommands(
 			commandsFile,
 			fs.readFileSync(commandsFile, "utf8")
@@ -393,7 +393,7 @@ function filesBelow(folder: string): string[] {
 
 /**
  * The name and the time of each file a build reads: the slides, the files of `assets/` and the
- * settings, which hold the colours. A file renamed, added or deleted changes the state as a saved
+ * settings, which hold the colors. A file renamed, added or deleted changes the state as a saved
  * one does.
  */
 function deckState(options: DeckBuildOptions, deck: DeckOptions): string {

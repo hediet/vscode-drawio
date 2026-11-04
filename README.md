@@ -8,12 +8,12 @@ The README of the original follows the sections of the fork, and its commands an
 The editor `hediet.vscode-drawio-text` of the original is `drawioSlides.textEditor` here, and the commands of the original show under the category `Draw.io Slides` in place of `Draw.io`.
 
 The guide for authors of slides, [docs/presentations.md](./docs/presentations.md), says how to start a deck and how the build numbers the slides.
-The guide also says how a formula, a colour, a link, a video and an embedded page work, and what each warning of the build means.
+The guide also says how a formula, a color, a link, a video and an embedded page work, and what each warning of the build means.
 
 | folder or file | what it holds |
 |---|---|
 | `src/deck/` | the build of a deck, which imports no `vscode`, so that the commands of the extension and the command line `dist/cli.js` run it alike |
-| `deck-templates/` | what a new deck starts from: the slide template, the starting palette of the colours, the colour configurations of the editor and the launcher, and the page of the HTML file |
+| `deck-templates/` | what a new deck starts from: the slide template, the starting palette of the colors, the color configurations of the editor and the launcher, and the page of the HTML file |
 | `drawio-custom-plugins/slides/` | the plugins of the editor of a deck, which the build shares |
 | `docs/presentations.md` | the guide for authors of slides |
 | `skills/` | the skills of an agent that starts a deck, `deck-skeleton`, builds its HTML file, `deck-html`, or builds its PDF, `deck-pdf`, which the installed extension holds as well |
@@ -26,49 +26,49 @@ The plugins play the videos and show the pages of the cells, style the lists of 
 They also draw the pictures named relative to the deck, and keep the page view and the saved files as the build expects.
 Their headers say what each one does.
 The fork tells them the folder of the deck, the nearest folder above the drawing that holds a `package.json`.
-The page of the editor gives the text of a label its font colour, where the original gives it the colour of the interface.
+The page of the editor gives the text of a label its font color, where the original gives it the color of the interface.
 The editor also opens `*.drawio.xml`, the files of the decks.
 
 Six settings of scope `resource` describe a deck, so that the `.vscode/settings.json` of each deck holds its own:
 
 | setting | what it gives |
 |---|---|
-| `drawioSlides.colors` | the colours of the deck, each a name of letters and digits, such as `accent`, with a value `#RRGGBB`, which the formulas of every page may name, as in `\textcolor{accent}{x}`, and which the colour picker names and offers as presets |
-| `drawioSlides.listStyles` | the indent, the marker and the colour and the size of the marker of each level of a bulleted and of a numbered list, and the gap between the items |
+| `drawioSlides.colors` | the colors of the deck, each a name of letters and digits, such as `accent`, with a value `#RRGGBB`, which the formulas of every page may name, as in `\textcolor{accent}{x}`, and which the color picker names and offers as presets |
+| `drawioSlides.listStyles` | the indent, the marker and the color and the size of the marker of each level of a bulleted and of a numbered list, and the gap between the items |
 | `drawioSlides.listMarkers` | the markers of the menu List style |
 | `drawioSlides.templates` | the multi-page template files of the deck, `${deckFolder}/templates/*.drawio.xml` by default, whose pages the submenu Insert slide of the menus Insert and Pages inserts |
 | `drawioSlides.slideSize` | the size of a slide, 1920 by 1080 by default, which the page view keeps at one page |
 | `drawioSlides.languageTool` | the address of the LanguageTool server that checks the label being edited, `http://localhost:8081` by default |
 
 `${deckFolder}` in a path stands for the folder of the deck, and a relative path is read from that folder.
-A colour of a level of `drawioSlides.listStyles` and a `fill`, `stroke`, `font` or `gradient` of `drawioSlides.customColorSchemes`, the swatches of the Style tab of the Format panel, may be the name of a colour of `drawioSlides.colors`.
-The output channel Drawio Integration Log names each colour that the extension leaves out and each name of a colour that `drawioSlides.colors` does not define.
-VS Code shows a swatch before each value of `drawioSlides.colors` in `settings.json`, and its colour picker edits the value.
+A color of a level of `drawioSlides.listStyles` and a `fill`, `stroke`, `font` or `gradient` of `drawioSlides.customColorSchemes`, the swatches of the Style tab of the Format panel, may be the name of a color of `drawioSlides.colors`.
+The output channel Drawio Integration Log names each color that the extension leaves out and each name of a color that `drawioSlides.colors` does not define.
+VS Code shows a swatch before each value of `drawioSlides.colors` in `settings.json`, and its color picker edits the value.
 
-The section Deck colours of the Format panel lists the colours of `drawioSlides.colors` in the editor of a drawing, each with its swatch and its name.
+The section Deck colors of the Format panel lists the colors of `drawioSlides.colors` in the editor of a drawing, each with its swatch and its name.
 It sits in the Style tab, after the swatches and before Fill, in the Style tab of the diagram while nothing is selected, where it edits the list alone, and in the tab Text while a label is edited.
-A click on a swatch gives each selected shape the colour by its kind: a text shape takes it as font colour, an edge and a shape whose fill draw.io does not draw as line colour, and any other shape as fill colour.
-A selected group gives the colour to the shapes in it.
-The buttons Fill, Line and Font of the row give the selected shapes the colour as fill, line or font colour alone.
-A click on a swatch, on Fill, on Line or on Font sets the style keys of the colour options of draw.io, in one step of the undo history.
-While a label of formatted text is edited, a click on a swatch or on Font gives the selected text the colour, as the option Font Color of draw.io does.
-While a label of plain text is edited, the click gives the whole label the colour.
+A click on a swatch gives each selected shape the color by its kind: a text shape takes it as font color, an edge and a shape whose fill draw.io does not draw as line color, and any other shape as fill color.
+A selected group gives the color to the shapes in it.
+The buttons Fill, Line and Font of the row give the selected shapes the color as fill, line or font color alone.
+A click on a swatch, on Fill, on Line or on Font sets the style keys of the color options of draw.io, in one step of the undo history.
+While a label of formatted text is edited, a click on a swatch or on Font gives the selected text the color, as the option Font Color of draw.io does.
+While a label of plain text is edited, the click gives the whole label the color.
 With an empty selection, a click on a swatch leaves the drawing as it is.
 The tooltip of a swatch says what a click on it does for the selection at hand.
-A shape takes the value `#RRGGBB` of the colour and keeps no link to its name.
-The button ✎ opens the colour dialog of draw.io, which gives the colour a new value, and a new name in the text field renames the colour.
-The button × removes a colour, and Add colour adds one, named `color1` or the next free number, with the value that the colour dialog gives.
+A shape takes the value `#RRGGBB` of the color and keeps no link to its name.
+The button ✎ opens the color dialog of draw.io, which gives the color a new value, and a new name in the text field renames the color.
+The button × removes a color, and Add color adds one, named `color1` or the next free number, with the value that the color dialog gives.
 The extension writes each change into `drawioSlides.colors` of the `.vscode/settings.json` of the workspace folder of the drawing, as an edit of that setting alone, so the comments of the file stay.
-When the file is missing, or holds no `drawioSlides.colors` while another settings file defines it, VS Code writes the colours of the folder with the change into the `.vscode/settings.json` of the workspace folder.
-A colour that the user settings or the file of a workspace of several folders define can be recoloured there, and the extension refuses to rename or remove it.
-A rename also renames the colour where `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` of the file name it, and leaves the formulas as they are, and a message says how many labels of the drawing name the old name in a formula.
-The extension refuses a name that another colour has, a name of other characters than letters and digits starting with a letter, and a value other than `#RRGGBB`.
+When the file is missing, or holds no `drawioSlides.colors` while another settings file defines it, VS Code writes the colors of the folder with the change into the `.vscode/settings.json` of the workspace folder.
+A color that the user settings or the file of a workspace of several folders define can be recolored there, and the extension refuses to rename or remove it.
+A rename also renames the color where `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` of the file name it, and leaves the formulas as they are, and a message says how many labels of the drawing name the old name in a formula.
+The extension refuses a name that another color has, a name of other characters than letters and digits starting with a letter, and a value other than `#RRGGBB`.
 The extension also refuses a change while the settings file has unsaved changes.
-A message in VS Code then gives the reason, and the section shows the colours as they were.
+A message in VS Code then gives the reason, and the section shows the colors as they were.
 
 The editor follows a change of `drawioSlides.colors`, `drawioSlides.listStyles`, `drawioSlides.listMarkers`, `drawioSlides.customColorSchemes`, `drawioSlides.presetColors` and `drawioSlides.colorNames` without a reload, so the zoom and the undo history stay.
-The formulas, the presets and the names of the colour picker, the swatches, the colours of the list markers and the menu List style take the new settings, and a list made after the change takes the new list style.
-A colour taken out of `drawioSlides.colors` stays defined for the formulas until the editor reloads.
+The formulas, the presets and the names of the color picker, the swatches, the colors of the list markers and the menu List style take the new settings, and a list made after the change takes the new list style.
+A color taken out of `drawioSlides.colors` stays defined for the formulas until the editor reloads.
 The editor also follows a save of a template file, whose pages the submenu Insert slide then offers.
 
 ## The commands and the command line build a deck into an HTML file and a PDF
@@ -76,7 +76,7 @@ The editor also follows a save of a template file, whose pages the submenu Inser
 The build of `src/deck/` exports each page of a deck to SVG with the draw.io viewer that the extension bundles, so the slides it draws match the editor.
 It then writes the HTML file, which shows the SVGs with the links, the videos and the embedded pages of the cells, and prints the SVGs into the PDF.
 The commands of the category Draw.io Slides, the command line `dist/cli.js` and the launcher `drawio-slides.cjs` of each deck are in the section The scripts of package.json and the commands of VS Code build the presentation of [docs/presentations.md](./docs/presentations.md).
-The section of the same guide on what the build needs names the command Install Chromium for the Build, and the section on the colours of a formula names the commands Import Colours from TeX and Export Colours to TeX.
+The section of the same guide on what the build needs names the command Install Chromium for the Build, and the section on the colors of a formula names the commands Import Colors from TeX and Export Colors to TeX.
 
 The build drives a headless browser through `playwright-core`, the first that starts of the Chromium of Playwright, Google Chrome and Microsoft Edge.
 The user setting `drawioSlides.browserPath` names another browser by the path of its program, and a build that finds no browser offers to install Chromium or to set the path.

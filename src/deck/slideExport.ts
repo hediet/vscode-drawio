@@ -31,7 +31,7 @@
  * keeps the file in the cache of the other export. At its start, an export removes the page
  * shells and the partial SVGs of an export whose process no longer runs.
  *
- * Each SVG in `build/slides/` is then written in its light colours on a white page, so a slide
+ * Each SVG in `build/slides/` is then written in its light colors on a white page, so a slide
  * looks the same on a system in dark mode. The cache keeps the SVGs as the viewer drew them.
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
@@ -509,7 +509,7 @@ function removeUnusedCacheFiles(
 }
 
 /**
- * The text with every `light-dark(<light>, <dark>)` replaced by its light colour. A colour may
+ * The text with every `light-dark(<light>, <dark>)` replaced by its light color. A color may
  * hold commas and brackets of its own, as `rgb(0, 136, 43)` does, so the two arguments are split
  * at the comma outside every bracket.
  */
@@ -550,7 +550,7 @@ export function firstOfLightDark(text: string): string {
 }
 
 /**
- * The SVG in its light colours on a white page. draw.io writes a colour as
+ * The SVG in its light colors on a white page. draw.io writes a color as
  * `light-dark(<light>, <dark>)` and the root as `color-scheme: light dark` on a transparent
  * background, so a browser on a system in dark mode would draw the slide dark.
  */
@@ -570,7 +570,7 @@ export function lightSvg(svg: string): string {
 	return styled + light.slice(headEnd);
 }
 
-/** Writes each SVG of the folder, from the first page to the last, in its light colours. */
+/** Writes each SVG of the folder, from the first page to the last, in its light colors. */
 export function makeSlidesLight(outdir: string, pageCount: number): void {
 	for (let number = 1; number <= pageCount; number++) {
 		const file = path.join(outdir, slideFileName(number));

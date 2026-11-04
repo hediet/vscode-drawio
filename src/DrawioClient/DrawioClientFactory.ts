@@ -33,9 +33,9 @@ import {
 	readMathCommands,
 	readTemplates,
 	SlideTemplate,
-	writeDeckColourEdit,
+	writeDeckColorEdit,
 } from "./slideSettings";
-import { countLabelsNamingColour, RefusedColourEdit } from "./deckColourEdits";
+import { countLabelsNamingColor, RefusedColorEdit } from "./deckColorEdits";
 import * as path from "path";
 
 /**
@@ -135,7 +135,7 @@ export class DrawioClientFactory {
 				config.appearanceFollowsSystem;
 				// The slide plugins of a drawing of slides in the offline mode follow a change of
 				// its live settings without a reload, through the reaction below, so the zoom and
-				// the undo history stay. Every other drawing reloads when its colours change.
+				// the undo history stay. Every other drawing reloads when its colors change.
 				const isUpdatedInPlace =
 					slides !== undefined && config.mode.kind === "offline";
 				if (!isUpdatedInPlace) {
@@ -268,9 +268,9 @@ export class DrawioClientFactory {
 			// The edits of a drawing run one after the other, so that each reads the settings
 			// file that the edit before it saved.
 			let pendingEdit = Promise.resolve();
-			drawioClient.onDeckColourEdit.sub(({ edit }) => {
+			drawioClient.onDeckColorEdit.sub(({ edit }) => {
 				pendingEdit = pendingEdit
-					.then(() => this.editDeckColours(config, edit, drawioClient))
+					.then(() => this.editDeckColors(config, edit, drawioClient))
 					.catch((error) => this.log.appendLine(`${error}`));
 			});
 		}
@@ -452,21 +452,21 @@ export class DrawioClientFactory {
 	}
 
 	/**
-	 * Writes an edit of the colours that the section Deck colours of the Format panel sends, and
+	 * Writes an edit of the colors that the section Deck colors of the Format panel sends, and
 	 * says in VS Code why the extension refuses an edit. After a rename, it says how many labels of
 	 * the drawing name the old name in a formula, which the rename leaves as they are.
 	 */
-	private async editDeckColours(
+	private async editDeckColors(
 		config: DiagramConfig,
-		edit: DeckColourEdit,
+		edit: DeckColorEdit,
 		drawioClient: CustomizedDrawioClient
 	): Promise<void> {
 		try {
-			await writeDeckColourEdit(config, edit);
+			await writeDeckColorEdit(config, edit);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : `${error}`;
 			this.log.appendLine(message);
-			if (error instanceof RefusedColourEdit) {
+			if (error instanceof RefusedColorEdit) {
 				window.showWarningMessage(message);
 			} else {
 				window.showErrorMessage(message);
@@ -474,11 +474,11 @@ export class DrawioClientFactory {
 			return;
 		}
 		if (edit.operation === "rename" && edit.newName !== edit.name) {
-			const count = countLabelsNamingColour(
+			const count = countLabelsNamingColor(
 				await drawioClient.getXml(),
 				edit.name
 			);
-			window.showInformationMessage(renamedColourMessage(edit, count));
+			window.showInformationMessage(renamedColorMessage(edit, count));
 		}
 	}
 
@@ -696,12 +696,12 @@ function slideSettingsScript(
 	);
 }
 
-/** The message after a rename of a colour, with the number of labels whose formulas name the old name. */
-function renamedColourMessage(
-	edit: Extract<DeckColourEdit, { operation: "rename" }>,
+/** The message after a rename of a color, with the number of labels whose formulas name the old name. */
+function renamedColorMessage(
+	edit: Extract<DeckColorEdit, { operation: "rename" }>,
 	count: number
 ): string {
-	const renamed = `The colour ${edit.name} is now ${edit.newName} in drawioSlides.colors.`;
+	const renamed = `The color ${edit.name} is now ${edit.newName} in drawioSlides.colors.`;
 	if (count === 0) {
 		return `${renamed} No formula of this drawing names ${edit.name}.`;
 	}

@@ -14,12 +14,12 @@ The versions below are those of the original hediet.vscode-drawio, from which th
 
 - The settings of the extension read `drawioSlides.<name>`, the editor is `drawioSlides.textEditor`, and `*.drawio.xml` opens in it.
 - The extension loads the plugins of the slides from its own folder for a drawing whose setting `drawioSlides.slides` is true: single page, click-through, edit at click, list styles and markers, language check, view position, deck pictures, Insert slide from the templates of the deck, and media.
-- The colours of a deck are the setting `drawioSlides.colors`, which defines them for the formulas, the colour picker, the swatches and the list styles, and which the editor follows without a reload.
-- The section Deck colours of the Format panel applies a colour of the deck by a click on its swatch, and renames, recolours, adds and removes the colours, written back into `.vscode/settings.json` with its comments kept.
+- The colors of a deck are the setting `drawioSlides.colors`, which defines them for the formulas, the color picker, the swatches and the list styles, and which the editor follows without a reload.
+- The section Deck colors of the Format panel applies a color of the deck by a click on its swatch, and renames, recolors, adds and removes the colors, written back into `.vscode/settings.json` with its comments kept.
 - The build of a deck in TypeScript, in `src/deck/`, with no Python.
   The build exports the pages with the draw.io viewer of the extension in a headless Chrome, Edge or Chromium driven through `playwright-core`.
   The build then writes the HTML file with the links, the videos and the embedded pages of the cells, and the PDF with its bookmarks.
-- The commands Build the Presentation, Build the HTML File of the Presentation, Build the PDF of the Presentation, Watch the Presentation, Stop Watching the Presentation, Check the Spelling and Grammar of the Presentation, Show the Outline of the Presentation, Import Colours from TeX, Export Colours to TeX and Install Chromium for the Build.
+- The commands Build the Presentation, Build the HTML File of the Presentation, Build the PDF of the Presentation, Watch the Presentation, Stop Watching the Presentation, Check the Spelling and Grammar of the Presentation, Show the Outline of the Presentation, Import Colors from TeX, Export Colors to TeX and Install Chromium for the Build.
   The build, the check and the installation of Chromium show their progress in a notification that cancels, and a watch shows an item in the status bar.
   Every command writes its lines into the output channel, and the check puts its issues into the Problems view.
 - The setting `drawioSlides.browserPath`, the browser of the build.

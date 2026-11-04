@@ -5,7 +5,7 @@
  *
  *     node dist/cli.js init ../my-talk --title "My talk"   a new presentation, as a repository
  *     node dist/cli.js build                               build/<folder>.html and .pdf
- *     node dist/cli.js from-tex colours.tex --project ../my-talk
+ *     node dist/cli.js from-tex colors.tex --project ../my-talk
  *     node dist/cli.js migrate ../old-talk --yes               the scripts of a deck of the
  *                                                            framework moved to the launcher
  *
@@ -15,8 +15,8 @@
 import * as path from "path";
 import { parseArgs } from "util";
 import { BuildCancelled, BuildReporter } from "./buildEvents";
-import { importColoursFromTex, exportColoursToTex } from "./colourSettings";
-import { writeColourConfiguration } from "./colourConfig";
+import { importColorsFromTex, exportColorsToTex } from "./colorSettings";
+import { writeColorConfiguration } from "./colorConfig";
 import {
 	buildDeck,
 	buildDeckHtml,
@@ -52,7 +52,7 @@ export enum CommandLineMode {
 	FROM_TEX = "from-tex",
 	TO_TEX = "to-tex",
 	EMBED_PICTURES = "embed-pictures",
-	COLOUR_CONFIG = "color-config",
+	COLOR_CONFIG = "color-config",
 	MIGRATE = "migrate",
 	PLACE_LOGOS = "place-logos",
 	SCREENSHOTS = "screenshots",
@@ -104,7 +104,7 @@ modes:
   embed-pictures   write the pictures of assets/ into the slide files as data, for the editor
   from-tex <file.tex>...   write the \\definecolor lines of the files into drawioSlides.colors
   to-tex <file.tex>        write drawioSlides.colors into a TeX file
-  color-config <drawing> --out <file>   write a colour configuration of the colours of a drawing
+  color-config <drawing> --out <file>   write a color configuration of the colors of a drawing
   migrate          copy the launcher drawio-slides.cjs into a presentation whose package.json
                    runs build-slides.py of the framework, and rewrite those scripts to run it,
                    after a confirmation, or at once with --yes
@@ -124,11 +124,11 @@ options:
   --interval <seconds>   for watch, the seconds between two looks at the slides, 1 by default
   --browser <path>       the Chrome, Edge or Chromium of the export, in place of the first that
                          starts of Playwright's Chromium, Google Chrome and Microsoft Edge
-  --colours <file>       for vscode, a colour configuration of the editor, as color-config writes
+  --colors <file>       for vscode, a color configuration of the editor, as color-config writes
   --out <file>           for color-config, the file to write, of \\definecolor lines for .tex
-  --definecolor <file>   for color-config, a TeX file whose \\definecolor lines name colours,
+  --definecolor <file>   for color-config, a TeX file whose \\definecolor lines name colors,
                          which may be given more than once
-  --least <count>        for color-config, leave out a colour used fewer times, 8 by default
+  --least <count>        for color-config, leave out a color used fewer times, 8 by default
   --yes                  for migrate, make the changes without asking
   --height <px>          for place-logos, the height of each logo on the slide, 100 by default
   --centre-y <px>        for place-logos, the line the logos are centred on, 925 by default
@@ -161,7 +161,7 @@ export interface CommandLine {
 	readonly pdfFile?: string;
 	readonly intervalMs?: number;
 	readonly browser?: string;
-	readonly colours?: string;
+	readonly colors?: string;
 	readonly out?: string;
 	readonly definitionFiles: readonly string[];
 	readonly least: number;
@@ -183,7 +183,7 @@ const OPTIONS = {
 	pdf: { type: "string" },
 	interval: { type: "string" },
 	browser: { type: "string" },
-	colours: { type: "string" },
+	colors: { type: "string" },
 	out: { type: "string" },
 	definecolor: { type: "string", multiple: true },
 	least: { type: "string" },
@@ -200,7 +200,7 @@ const OPTIONS = {
 const FILE_OPERANDS: ReadonlySet<CommandLineMode> = new Set([
 	CommandLineMode.FROM_TEX,
 	CommandLineMode.TO_TEX,
-	CommandLineMode.COLOUR_CONFIG,
+	CommandLineMode.COLOR_CONFIG,
 	CommandLineMode.PLACE_LOGOS,
 ]);
 
@@ -269,7 +269,7 @@ export function parseCommandLine(args: readonly string[]): CommandLine {
 				? undefined
 				: nonNegativeNumber("interval", values.interval) * 1000,
 		browser: values.browser,
-		colours: values.colours,
+		colors: values.colors,
 		out: values.out,
 		definitionFiles: values.definecolor ?? [],
 		least:
@@ -447,7 +447,7 @@ function vscodeMode({ line, options, output }: ModeRun): ExitStatus {
 		setUpEditor(
 			options.project,
 			options.extensionRoot,
-			line.colours === undefined ? undefined : path.resolve(line.colours)
+			line.colors === undefined ? undefined : path.resolve(line.colors)
 		)
 	);
 	return ExitStatus.DONE;
@@ -471,7 +471,7 @@ function fromTexMode({ line, options, output }: ModeRun): ExitStatus {
 	if (line.operands.length === 0) {
 		throw new UsageError("from-tex takes at least one TeX file");
 	}
-	const result = importColoursFromTex(options.project, line.operands);
+	const result = importColorsFromTex(options.project, line.operands);
 	report(output, { lines: [result.line], warnings: result.warnings });
 	return ExitStatus.DONE;
 }
@@ -480,18 +480,18 @@ function toTexMode({ line, options, output }: ModeRun): ExitStatus {
 	if (line.operands.length !== 1) {
 		throw new UsageError("to-tex takes one TeX file");
 	}
-	const result = exportColoursToTex(options.project, line.operands[0]);
+	const result = exportColorsToTex(options.project, line.operands[0]);
 	report(output, { lines: [result.line], warnings: result.warnings });
 	return ExitStatus.DONE;
 }
 
-function colourConfigMode({ line, output }: ModeRun): ExitStatus {
+function colorConfigMode({ line, output }: ModeRun): ExitStatus {
 	if (line.operands.length !== 1 || line.out === undefined) {
 		throw new UsageError("color-config takes one drawing and the option --out");
 	}
 	report(
 		output,
-		writeColourConfiguration(
+		writeColorConfiguration(
 			line.operands[0],
 			line.out,
 			line.definitionFiles,
@@ -550,7 +550,7 @@ const MODE_ACTIONS: Readonly<Record<CommandLineMode, ModeAction>> = {
 	[CommandLineMode.EMBED_PICTURES]: buildStepMode(embedDeckPictures),
 	[CommandLineMode.FROM_TEX]: fromTexMode,
 	[CommandLineMode.TO_TEX]: toTexMode,
-	[CommandLineMode.COLOUR_CONFIG]: colourConfigMode,
+	[CommandLineMode.COLOR_CONFIG]: colorConfigMode,
 	[CommandLineMode.MIGRATE]: ({ line, options, output, confirm }) =>
 		migrate(line, options, output, confirm),
 	[CommandLineMode.PLACE_LOGOS]: placeLogosMode,

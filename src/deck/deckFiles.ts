@@ -66,7 +66,7 @@ export type ConfigKey = typeof CONFIG_KEYS[number];
 /** A key that a deck no longer holds, with the place of what it held. */
 const RETIRED_KEYS: Readonly<Record<string, string>> = {
 	palette:
-		"the setting drawioSlides.colors of .vscode/settings.json, which the command Import Colours from TeX writes from a TeX file",
+		"the setting drawioSlides.colors of .vscode/settings.json, which the command Import Colors from TeX writes from a TeX file",
 };
 const DEFAULTS: Readonly<Partial<Record<ConfigKey, string>>> = {
 	"slides-dir": SLIDES_DIR,

@@ -44,7 +44,7 @@ The skill uses the following files of the extension.
    A deck whose scripts run `build-slides.py` of the draw.io presentation framework moves to the launcher first, with `node <extension folder>/dist/cli.js migrate`, as `docs/presentations.md` says.
 2. Fix what the warnings of the build name, as the table of warnings of `docs/presentations.md` says.
 3. To write the HTML file to another place, run `node drawio-slides.cjs html --html <file>` in the folder of the deck.
-   The mode reads the title from the key `config` of the `package.json` of the deck, and the colours from `drawioSlides.colors` of its `.vscode/settings.json`, as the scripts of the deck do.
+   The mode reads the title from the key `config` of the `package.json` of the deck, and the colors from `drawioSlides.colors` of its `.vscode/settings.json`, as the scripts of the deck do.
    The videos then go into `media/` beside that file.
 
 ## How-to: add a link, a video or an embedded page to a slide as text
@@ -69,9 +69,9 @@ The shipped plugin `view-position.plugin.js` keeps the editor from writing the p
 A page that the editor does not show keeps the XML of its file.
 A deck that gets `drawioSlides.slides` by hand therefore has `dx` and `dy` removed once from every `<mxGraphModel>` of its section files, with no other change to the files.
 
-1. When the deck has no `.vscode/settings.json`, run `node <extension folder>/dist/cli.js vscode --colours <colour configuration>` in the folder of the deck.
+1. When the deck has no `.vscode/settings.json`, run `node <extension folder>/dist/cli.js vscode --colors <color configuration>` in the folder of the deck.
    A deck that the set-up started has the file already.
-   The mode writes the colours of the starting palette of the extension into `drawioSlides.colors`, and copies the template of the extension into `templates/` of the deck when the deck lacks it.
+   The mode writes the colors of the starting palette of the extension into `drawioSlides.colors`, and copies the template of the extension into `templates/` of the deck when the deck lacks it.
 2. When `code --list-extensions` does not list `yujunhuang.drawio-slides`, tell the user to install the `.vsix` of the extension.
 
 The section on VS Code of `docs/presentations.md` says which videos the editor plays.

@@ -9,3 +9,5 @@ Section D.6 of the terms of service of GitHub licenses a contribution under the 
 The contributor keeps the copyright of the contribution.
 
 By opening a pull request, you confirm that you have the right to give the contribution under these terms.
+
+The project spells "color" (American spelling) in its names, comments, messages and documents.

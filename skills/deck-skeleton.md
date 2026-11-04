@@ -31,9 +31,9 @@ The skill uses two modes of the command line `dist/cli.js` of the extension, whi
 
 - Each logo is the latest version that its organization publishes.
   The file comes from the brand site of the organization, or from a page of the organization that links the official file.
-- A logo keeps its proportions, its colours and its drawing.
+- A logo keeps its proportions, its colors and its drawing.
   The only changes are the crop of a transparent margin and the resampling.
-- The variant of each logo suits the background of the slide, such as the colour or the black version on a white slide.
+- The variant of each logo suits the background of the slide, such as the color or the black version on a white slide.
 - The logos sit on one horizontal line with one height and equal gaps, unless a guideline asks for another arrangement.
 - The logo of a university beside the logos of its units follows the rules of the university on that pairing.
   An example is the endorsed branding of MIT on https://brand.mit.edu/logos-marks.
@@ -55,7 +55,7 @@ The skill uses two modes of the command line `dist/cli.js` of the extension, whi
 ## Standard: text still to write says what goes on the slide, in the style of real text
 
 - Text that the speaker still has to write names what the slide will show, such as a definition, a result, a figure or a table.
-- Such text takes the markup of the real text of its cell, as the pages of the template show, and no colour or style of its own, so the speaker overwrites it in place.
+- Such text takes the markup of the real text of its cell, as the pages of the template show, and no color or style of its own, so the speaker overwrites it in place.
 
 ## Required action: start the deck with the set-up of the extension
 
@@ -70,7 +70,7 @@ The skill uses two modes of the command line `dist/cli.js` of the extension, whi
    `ls ../*/assets/logos/sources.md` from the folder of the deck lists the decks beside it with logos, and the user may name a deck elsewhere.
    Copy the cells of its logos and its original files when the pages offer no newer version.
 3. Otherwise find the files and the guidelines, as the how-to on finding the logo files says.
-4. Read the guidelines on the logo: the versions, the colours, the clear space, the size, and the placement beside other logos.
+4. Read the guidelines on the logo: the versions, the colors, the clear space, the size, and the placement beside other logos.
 
 ## Required action: look at every built slide before delivering the deck
 
@@ -106,8 +106,8 @@ For the units of MIT, https://brand.mit.edu/logos-marks names the files and the 
 
    ```sh
    node drawio-slides.cjs place-logos sections/1-my-talk.drawio.xml title-slide-1 \
-       title-logo-lab=assets/logos/lab-logo-colour.png \
-       title-logo-department=assets/logos/department-logo-colour.png \
+       title-logo-lab=assets/logos/lab-logo-color.png \
+       title-logo-department=assets/logos/department-logo-color.png \
        title-logo-university=assets/logos/university-logo-black.png
    ```
 
@@ -135,8 +135,8 @@ For the units of MIT, https://brand.mit.edu/logos-marks names the files and the 
    The value of a cell holds this HTML escaped, as `docs/presentations.md` says.
    The marker of the first level is `disclosure-closed`, which the browser draws as a shape and not as a glyph of the font.
    The marker therefore has one size in the editor, the PDF and the HTML deck, whichever copy of STIX Two Text each one loads.
-   The setting `drawioSlides.listStyles` of the extension gives the markers their colour and size in the editor and in every build, so the markup leaves out the colour and the size of the marker.
-   The colour of a level may name a colour of the setting `drawioSlides.colors` of the deck, such as `accent`.
+   The setting `drawioSlides.listStyles` of the extension gives the markers their color and size in the editor and in every build, so the markup leaves out the color and the size of the marker.
+   The color of a level may name a color of the setting `drawioSlides.colors` of the deck, such as `accent`.
 4. Give the backup slides a copy of `section-divider-1` named `section-backup-1`, with the title Backup slides and no outline.
 5. Break an item of a body list with `<br>` at about 60 characters, because the template writes its lists on one line each and a longer line runs past the right edge of the body.
 
@@ -147,7 +147,7 @@ For the units of MIT, https://brand.mit.edu/logos-marks names the files and the 
 
 ## Never-do
 
-- Do not recolour, redraw, stretch or rebuild a logo.
+- Do not recolor, redraw, stretch or rebuild a logo.
 - Do not crop a logo past its transparent margin.
 - Do not take a logo from a site that collects the logos of other organizations.
 - Do not sign in to a site with an account of the user to download a logo.

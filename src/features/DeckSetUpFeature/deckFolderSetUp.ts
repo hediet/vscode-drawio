@@ -112,7 +112,7 @@ export function filesWrittenByInit(folder: string): readonly WrittenFile[] {
 		{ path: DECK_TEMPLATE, content: "the template of the slides" },
 		{
 			path: SETTINGS,
-			content: "the settings of the editor and the colours of the starting palette",
+			content: "the settings of the editor and the colors of the starting palette",
 		},
 		...(fs.existsSync(path.join(folder, ".git"))
 			? []
@@ -125,7 +125,7 @@ export function filesWrittenByVscode(folder: string): readonly WrittenFile[] {
 	return [
 		{
 			path: SETTINGS,
-			content: "the settings of the editor and the colours of the starting palette",
+			content: "the settings of the editor and the colors of the starting palette",
 		},
 		...(fs.existsSync(path.join(folder, DECK_TEMPLATE))
 			? []

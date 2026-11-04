@@ -36,7 +36,7 @@ const { runCommand, resetState, messagesOf, lastMessageOf, loggedText } =
  * accented letter in the name, with a wrong `fit` and wrong times of the bar, embedded pages,
  * present, missing and outside the deck, with files beside them, a picture of `assets/` and a
  * missing one, a link in a hidden layer, a page with a formula and typesetting off, an unknown
- * colour, a repeated slide name, the steps 1, 2 and 4, a duplicated page id, a page ending in
+ * color, a repeated slide name, the steps 1, 2 and 4, a duplicated page id, a page ending in
  * `-hide`, and two backup slides with `%slide%/%slides%`. `expected-deck.json` is the deck of its
  * HTML file without the SVGs, and `expected-warnings.txt` the warnings of its build. Both come
  * from the build of the extension, and equal those of the Python build of the draw.io
@@ -326,8 +326,8 @@ test("every command on a presentation refuses an untrusted workspace", async () 
 		"drawioSlides.watchDeck",
 		"drawioSlides.checkDeck",
 		"drawioSlides.outlineDeck",
-		"drawioSlides.importColoursFromTex",
-		"drawioSlides.exportColoursToTex",
+		"drawioSlides.importColorsFromTex",
+		"drawioSlides.exportColorsToTex",
 	]) {
 		resetState({ trusted: false, workspaceFolders: [folder] });
 		await runCommand(command);
@@ -353,40 +353,40 @@ test("the outline of a presentation goes to the output channel, which shows", as
 	assert.equal(standIn.state().shown, 1);
 });
 
-test("the import of colours from TeX refuses unsaved settings, asks before it replaces the colours, and the export writes them back", async () => {
+test("the import of colors from TeX refuses unsaved settings, asks before it replaces the colors, and the export writes them back", async () => {
 	const deck = folderWith({
 		"package.json": "{}",
 		".vscode/settings.json":
 			'{\n  // The editor.\n  "drawioSlides.slides": true,\n  "drawioSlides.colors": {"old": "#000000"}\n}\n',
-		"colours.tex":
+		"colors.tex":
 			"% The accent.\n\\definecolor{accent}{HTML}{004D80}\n\\definecolor{warm}{rgb}{1,0.5,0}\n",
 	});
 	const settings = path.join(deck, ".vscode/settings.json");
-	const tex = path.join(deck, "colours.tex");
+	const tex = path.join(deck, "colors.tex");
 	resetState({
 		workspaceFolders: [deck],
 		textDocuments: [{ uri: Uri.file(settings), isDirty: true }],
 		answers: { openDialog: [[tex]] },
 	});
-	await runCommand("drawioSlides.importColoursFromTex");
+	await runCommand("drawioSlides.importColorsFromTex");
 	assert.match(
 		lastMessageOf("error").text,
-		/has unsaved changes, so Import Colours from TeX leaves it as it is/
+		/has unsaved changes, so Import Colors from TeX leaves it as it is/
 	);
 	resetState({
 		workspaceFolders: [deck],
 		answers: { openDialog: [[tex]], information: [undefined] },
 	});
-	await runCommand("drawioSlides.importColoursFromTex");
+	await runCommand("drawioSlides.importColorsFromTex");
 	assert.match(fs.readFileSync(settings, "utf8"), /"old": "#000000"/);
 	resetState({
 		workspaceFolders: [deck],
 		answers: { openDialog: [[tex]], information: ["Import"] },
 	});
-	await runCommand("drawioSlides.importColoursFromTex");
+	await runCommand("drawioSlides.importColorsFromTex");
 	assert.match(
 		messagesOf("information").find((shown) => shown.modal).text,
-		/^Replace the colours of drawioSlides\.colors in .* with the 2 colours of colours\.tex\?$/
+		/^Replace the colors of drawioSlides\.colors in .* with the 2 colors of colors\.tex\?$/
 	);
 	const text = fs.readFileSync(settings, "utf8");
 	assert.match(text, /\/\/ The editor\.\n  "drawioSlides\.slides": true,/);
@@ -397,10 +397,10 @@ test("the import of colours from TeX refuses unsaved settings, asks before it re
 		workspaceFolders: [deck],
 		answers: { saveDialog: [back], information: ["Open File"] },
 	});
-	await runCommand("drawioSlides.exportColoursToTex");
+	await runCommand("drawioSlides.exportColorsToTex");
 	assert.match(
 		fs.readFileSync(back, "utf8"),
-		/^% Written by the command Export Colours to TeX of Draw\.io Slides from drawioSlides\.colors of \.vscode\/settings\.json\.\n% The accent\.\n\\definecolor\{accent\}\{HTML\}\{004D80\}\n/
+		/^% Written by the command Export Colors to TeX of Draw\.io Slides from drawioSlides\.colors of \.vscode\/settings\.json\.\n% The accent\.\n\\definecolor\{accent\}\{HTML\}\{004D80\}\n/
 	);
 	await settle();
 	assert.deepEqual(standIn.state().executed.at(-1), ["showTextDocument", back]);

@@ -1,7 +1,7 @@
 warning: the page assets/plots/missing.html of the cell pg-res-h2 is missing, so the builds draw the cell as it is
 warning: the name "intro" starts slides 1, 3, so they are counted as different slides. Rename one of them or move its pages next to the others.
 warning: slide 2, "steps", has the steps 1, 2, 4 in page order, where 1 to 3 was expected
-warning: slide 1, "intro-1", colours formulas with foocolor, which neither the page nor the setting drawioSlides.colors defines
+warning: slide 1, "intro-1", colors formulas with foocolor, which neither the page nor the setting drawioSlides.colors defines
 warning: slide 4, "results-1", the cell pg-res-h1 of the page assets/plots/p.html is a rectangle shape, so the builds draw it as a rectangular picture of its page; give it the shape image
 warning: slide 4, "results-1", the cell pg-res-h4 of the page ../outside/o.html is a rectangle shape, so the builds draw it as a rectangular picture of its page; give it the shape image
 warning: slide 4, "results-1", names the picture assets/missing.png, which does not exist
