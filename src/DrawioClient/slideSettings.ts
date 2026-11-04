@@ -47,6 +47,10 @@ export async function readSlideSettings(
 		let match: RegExpExecArray | null;
 		while ((match = pattern.exec(text)) !== null) {
 			const [line, name, model, values] = match;
+			// The first definition of a name wins, as in the build of the framework.
+			if (colours.some((colour) => colour.name === name)) {
+				continue;
+			}
 			const hex = colourHex(model.trim(), values);
 			if (hex === undefined) {
 				log.appendLine(
