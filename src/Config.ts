@@ -582,6 +582,16 @@ export class DiagramConfig {
 		}
 	);
 
+	private readonly _slides = new VsCodeSetting(`${settingPrefix}.slides`, {
+		scope: this.uri,
+		serializer: serializerWithDefault<boolean>(false),
+	});
+
+	/** Whether the drawing is a deck of the draw.io presentation framework. */
+	public get slides(): boolean {
+		return this._slides.get();
+	}
+
 	public get plugins(): { file: Uri }[] {
 		return this._plugins.get().map((entry) => {
 			const fullFilePath = this.evaluateTemplate(entry.file, "plugins");

@@ -19,6 +19,25 @@ import { sha256 } from "js-sha256";
 import { getDrawioExtensions } from "../DrawioExtensionApi";
 import { BufferImpl } from "../utils/buffer";
 
+/**
+ * The plugins of the draw.io presentation framework in `drawio-custom-plugins/slides/`, in the
+ * order of loading: `media-bar.js` before `media.plugin.js`, which uses it.
+ */
+const SLIDE_PLUGINS = [
+	"single-page.plugin.js",
+	"click-through.plugin.js",
+	"edit-at-click.plugin.js",
+	"list-styles.plugin.js",
+	"language-check.plugin.js",
+	"view-position.plugin.js",
+	"deck-pictures.plugin.js",
+	"media-bar.js",
+	"media.plugin.js",
+];
+
+/** The file whose folder is the folder of a deck. */
+const DECK_MARKER = "package.json";
+
 export class DrawioClientFactory {
 	constructor(
 		private readonly config: Config,
@@ -176,6 +195,10 @@ export class DrawioClientFactory {
 		const pluginsToLoad = new Array<{ jsCode: string }>();
 		const promises = new Array<Promise<void>>();
 
+		if (config.slides) {
+			pluginsToLoad.push(...(await this.getSlidePlugins(config.uri)));
+		}
+
 		for (const ext of getDrawioExtensions()) {
 			promises.push(
 				(async () => {
@@ -247,6 +270,33 @@ export class DrawioClientFactory {
 
 		await Promise.all(promises);
 		return pluginsToLoad;
+	}
+
+	/**
+	 * The slide plugins, after one line that gives `media.plugin.js`, `language-check.plugin.js`
+	 * and `deck-pictures.plugin.js` the folder of the deck. The extension ships the plugins, so
+	 * they load without the question that a plugin of the settings asks.
+	 */
+	private async getSlidePlugins(uri: Uri): Promise<{ jsCode: string }[]> {
+		const deckFolder = await findDeckFolder(uri);
+		const folderLine = `window.mediaPluginDeckFolders = ${JSON.stringify([
+			deckFolder.fsPath,
+		])};`;
+		const plugins = await Promise.all(
+			SLIDE_PLUGINS.map(async (name) => ({
+				jsCode: BufferImpl.from(
+					await workspace.fs.readFile(
+						Uri.joinPath(
+							this.extensionUri,
+							"drawio-custom-plugins",
+							"slides",
+							name
+						)
+					)
+				).toString("utf-8"),
+			}))
+		);
+		return [{ jsCode: folderLine }, ...plugins];
 	}
 
 	private getHtml(
@@ -387,6 +437,34 @@ export class DrawioClientFactory {
 
 export interface DrawioClientOptions {
 	isReadOnly: boolean;
+}
+
+/**
+ * The folder of the deck that holds a drawing: the nearest folder above the drawing that holds
+ * `package.json`, up to the workspace folder of the drawing, and otherwise the folder of the
+ * drawing.
+ */
+async function findDeckFolder(uri: Uri): Promise<Uri> {
+	const drawingFolder = Uri.joinPath(uri, "..");
+	const workspaceFolder = workspace.getWorkspaceFolder(uri);
+	let folder = drawingFolder;
+	while (true) {
+		try {
+			await workspace.fs.stat(Uri.joinPath(folder, DECK_MARKER));
+			return folder;
+		} catch {
+			// No deck marker in this folder.
+		}
+		const parent = Uri.joinPath(folder, "..");
+		const isTop =
+			parent.path === folder.path ||
+			(workspaceFolder !== undefined &&
+				folder.path === workspaceFolder.uri.path);
+		if (isTop) {
+			return drawingFolder;
+		}
+		folder = parent;
+	}
 }
 
 function getNonce(): string {

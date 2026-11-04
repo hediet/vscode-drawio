@@ -305,6 +305,14 @@
 					light-dark(#fbfbfb, var(--dark-panel-color));
 			}
 
+			/* The labels of the drawing and the label being edited keep their own font colour,
+			   which the rule above would replace with the colour of the interface. */
+			.geEditor .geDiagramContainer foreignObject *,
+			.geEditor .mxCellEditor,
+			.geEditor .mxCellEditor * {
+				color: inherit;
+			}
+
 			.geEditor *:not(.geScrollable)::-webkit-scrollbar {
 				width: 10px;
 				height: 10px;
