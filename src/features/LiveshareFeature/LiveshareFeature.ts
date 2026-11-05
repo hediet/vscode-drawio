@@ -13,6 +13,9 @@ export class LiveshareFeature {
 		private readonly editorManager: DrawioEditorService,
 		private readonly config: Config
 	) {
+		if (!this.config.liveshareEnabled) {
+			return;
+		}
 		this.init().catch(console.error);
 	}
 
