@@ -92,6 +92,17 @@ export class Config {
 		return this._experimentalFeatures.get();
 	}
 
+	private readonly _liveshareEnabled = new VsCodeSetting(
+		`${extensionId}.enableLiveshare`,
+		{
+			serializer: serializerWithDefault<boolean>(true),
+		}
+	);
+
+	public get liveshareEnabled(): boolean {
+		return this._liveshareEnabled.get();
+	}
+
 	public get canAskForFeedback(): boolean {
 		if (
 			this.getInternalConfig().versionLastAskedForFeedback ===

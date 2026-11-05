@@ -277,6 +277,13 @@
 						"description": "When activated, selecting a node will navigate to an associated code section.",
 						"order": 20
 					},
+					"hediet.vscode-drawio.enableLiveshare": {
+						"type": "boolean",
+						"default": true,
+						"title": "Enable Live Share",
+						"description": "When enabled, diagrams can be edited collaboratively via VS Code Live Share. Disable this if Live Share is not available (for example in OpenVSCode Server), so that the extension does not try to load the Live Share API.",
+						"order": 25
+					},
 					"hediet.vscode-drawio.local-storage": {
 						"anyOf": [
 							{
