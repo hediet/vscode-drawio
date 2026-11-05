@@ -1,22 +1,22 @@
 // Gives the color picker and the swatches of the Style tab of the Format panel of the draw.io
 // editor the colors of a deck again after a change of the settings, without a reload.
 //
-// When the editor loads, the VS Code extension yujunhuang.drawio-slides gives draw.io the presets
+// When the editor loads, the VS Code extension yujunhuang.drawslidescode gives draw.io the presets
 // and the names of the color picker and the swatches in its configuration: the settings
-// "drawioSlides.presetColors" and "drawioSlides.colorNames" with every color of the setting
-// "drawioSlides.colors" added, and the swatches of the setting "drawioSlides.customColorSchemes"
+// "drawSlidesCode.presetColors" and "drawSlidesCode.colorNames" with every color of the setting
+// "drawSlidesCode.colors" added, and the swatches of the setting "drawSlidesCode.customColorSchemes"
 // with each name of a color replaced by its value.  draw.io puts the swatches of the
 // configuration before its own.  The extension gives the same values in
-// window.drawioSlidesSettings as presetColors, colorNames and colorSchemes, and sends them again
+// window.drawSlidesCodeSettings as presetColors, colorNames and colorSchemes, and sends them again
 // through slide-settings.js after a change.  The plugin then sets the presets, the names and the
 // swatches of draw.io, keeps the swatches of draw.io after those of the settings, and draws the
 // Format panel again.  A color dialog that is open keeps the presets it opened with.
 //
-// The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
-// drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
+// The VS Code extension yujunhuang.drawslidescode loads the plugin from its own folder
+// drawio-custom-plugins/slides/ for every drawing whose setting "drawSlidesCode.slides" is true,
 // without asking.
 Draw.loadPlugin(function (ui) {
-  var settings = window.drawioSlidesSettings || {};
+  var settings = window.drawSlidesCodeSettings || {};
 
   if (typeof onSlideSettingsChange != 'function' || settings.colorSchemes == null) {
     return;

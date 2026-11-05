@@ -26,7 +26,7 @@ import { colorDefinition, mathCommandLines } from "../deck/texDefinitions";
 
 /**
  * The settings of a deck that the slide plugins follow without a reload, which the extension
- * gives them in `window.drawioSlidesSettings` and in the action `drawioSlidesSettings`.
+ * gives them in `window.drawSlidesCodeSettings` and in the action `drawSlidesCodeSettings`.
  */
 export type LiveSlideSettings = SlideSettingsAction["settings"];
 
@@ -52,9 +52,9 @@ interface DeckColor {
 }
 
 /**
- * The live settings of a drawing: the valid colors of `drawioSlides.colors`, the same colors as
+ * The live settings of a drawing: the valid colors of `drawSlidesCode.colors`, the same colors as
  * definitions of MathJax before the commands that MathJax lacks, the presets and the names of the color picker with the
- * colors added, and the swatches of `drawioSlides.customColorSchemes`, the list styles and the
+ * colors added, and the swatches of `drawSlidesCode.customColorSchemes`, the list styles and the
  * list markers, in which each name of a color stands for its value.
  */
 export function readLiveSlideSettings(
@@ -67,16 +67,16 @@ export function readLiveSlideSettings(
 		: [];
 	if (!isPlainObject(config.colors)) {
 		structureProblems.push(
-			`drawioSlides.colors holds ${JSON.stringify(config.colors)}, where an object of names and colors was expected, so no color is defined.`
+			`drawSlidesCode.colors holds ${JSON.stringify(config.colors)}, where an object of names and colors was expected, so no color is defined.`
 		);
 	}
 	let givenListStyles = config.listStyles;
 	if (!isPlainObject(givenListStyles)) {
 		structureProblems.push(
-			`drawioSlides.listStyles holds ${JSON.stringify(givenListStyles)}, where an object was expected, so the editor takes the default.`
+			`drawSlidesCode.listStyles holds ${JSON.stringify(givenListStyles)}, where an object was expected, so the editor takes the default.`
 		);
 		givenListStyles = defaultSetting<SlideListStyles>(
-			"drawioSlides.listStyles"
+			"drawSlidesCode.listStyles"
 		);
 	}
 	const givenSchemes = Array.isArray(config.customColorSchemes)
@@ -84,14 +84,14 @@ export function readLiveSlideSettings(
 		: [];
 	if (!Array.isArray(config.customColorSchemes)) {
 		structureProblems.push(
-			`drawioSlides.customColorSchemes holds ${JSON.stringify(config.customColorSchemes)}, where an array of pages of swatches was expected, so the editor shows no swatch of the setting.`
+			`drawSlidesCode.customColorSchemes holds ${JSON.stringify(config.customColorSchemes)}, where an array of pages of swatches was expected, so the editor shows no swatch of the setting.`
 		);
 	}
 	givenSchemes
 		.filter((page) => !isSchemePage(page))
 		.forEach((page) =>
 			structureProblems.push(
-				`drawioSlides.customColorSchemes holds the page ${JSON.stringify(page)}, where an array of swatches was expected, so the page is left out.`
+				`drawSlidesCode.customColorSchemes holds the page ${JSON.stringify(page)}, where an array of swatches was expected, so the page is left out.`
 			)
 		);
 	const colors = entries
@@ -119,14 +119,14 @@ export function readLiveSlideSettings(
 			.filter((entry) => !isValidColor(entry))
 			.map(([name, value]) => invalidColorProblem(name, value)),
 		...[...new Set(unknownListColors)].map((name) =>
-			unknownNameProblem("drawioSlides.listStyles", name)
+			unknownNameProblem("drawSlidesCode.listStyles", name)
 		),
 		...[...new Set(unknownSchemeColors)].map((name) =>
-			unknownNameProblem("drawioSlides.customColorSchemes", name)
+			unknownNameProblem("drawSlidesCode.customColorSchemes", name)
 		),
 		...(config.hasColorDefinitions
 			? [
-					"The extension does not read drawioSlides.colorDefinitions. The command Draw.io Slides: Import Colors from TeX writes the colors of a TeX file into drawioSlides.colors.",
+					"The extension does not read drawSlidesCode.colorDefinitions. The command DrawSlidesCode: Import Colors from TeX writes the colors of a TeX file into drawSlidesCode.colors.",
 			  ]
 			: []),
 	];
@@ -151,9 +151,9 @@ export function readLiveSlideSettings(
 }
 
 /**
- * Writes an edit of the colors of a drawing into `drawioSlides.colors` of the `.vscode/settings.json`
+ * Writes an edit of the colors of a drawing into `drawSlidesCode.colors` of the `.vscode/settings.json`
  * of its workspace folder, as a text edit of that member and, for a rename, of the colors of
- * `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` that name the color, so every
+ * `drawSlidesCode.listStyles` and `drawSlidesCode.customColorSchemes` that name the color, so every
  * comment of the file stays. When the file is missing, or lacks the member while another scope
  * defines the setting, VS Code writes the whole setting at the scope of the workspace folder.
  * Raises `RefusedColorEdit` for an edit that the extension does not write, and `Error` when VS
@@ -212,7 +212,7 @@ async function plannedSettingsWrite(
 			await workspace
 				.getConfiguration(undefined, config.uri)
 				.update(
-					"drawioSlides.colors",
+					"drawSlidesCode.colors",
 					colors,
 					ConfigurationTarget.WorkspaceFolder
 				);
@@ -220,7 +220,7 @@ async function plannedSettingsWrite(
 	}
 	if (document.isDirty) {
 		throw new RefusedColorEdit(
-			`${settingsFile.fsPath} has changes that are not saved, so drawioSlides.colors stays as it is.`
+			`${settingsFile.fsPath} has changes that are not saved, so drawSlidesCode.colors stays as it is.`
 		);
 	}
 	const text = document.getText();
@@ -244,7 +244,7 @@ async function plannedSettingsWrite(
 			!(await document.save())
 		) {
 			throw new Error(
-				`VS Code did not write ${settingsFile.fsPath}, so drawioSlides.colors stays as it is.`
+				`VS Code did not write ${settingsFile.fsPath}, so drawSlidesCode.colors stays as it is.`
 			);
 		}
 	};
@@ -262,11 +262,11 @@ async function openExistingDocument(
 	return workspace.openTextDocument(file);
 }
 
-/** The colors that the settings of the workspace folder alone give `drawioSlides.colors`. */
+/** The colors that the settings of the workspace folder alone give `drawSlidesCode.colors`. */
 function folderColors(uri: Uri): Record<string, unknown> {
 	const value = workspace
 		.getConfiguration(undefined, uri)
-		.inspect("drawioSlides.colors")?.workspaceFolderValue;
+		.inspect("drawSlidesCode.colors")?.workspaceFolderValue;
 	return isPlainObject(value) ? value : {};
 }
 
@@ -278,7 +278,7 @@ function folderColors(uri: Uri): Record<string, unknown> {
 function scopeDefiningColor(uri: Uri, name: string): string | undefined {
 	const inspected = workspace
 		.getConfiguration(undefined, uri)
-		.inspect("drawioSlides.colors");
+		.inspect("drawSlidesCode.colors");
 	const defines = (value: unknown) =>
 		isPlainObject(value) && Object.prototype.hasOwnProperty.call(value, name);
 	if (defines(inspected?.globalValue)) {
@@ -293,11 +293,11 @@ function scopeDefiningColor(uri: Uri, name: string): string | undefined {
 	return undefined;
 }
 
-/** Whether a settings file of the user, of the workspace or of the folder defines `drawioSlides.colors`. */
+/** Whether a settings file of the user, of the workspace or of the folder defines `drawSlidesCode.colors`. */
 function isColorsSettingDefined(uri: Uri): boolean {
 	const inspected = workspace
 		.getConfiguration(undefined, uri)
-		.inspect("drawioSlides.colors");
+		.inspect("drawSlidesCode.colors");
 	return (
 		inspected !== undefined &&
 		[
@@ -359,7 +359,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** Whether a page of `drawioSlides.customColorSchemes` is an array of swatches. */
+/** Whether a page of `drawSlidesCode.customColorSchemes` is an array of swatches. */
 function isSchemePage(page: unknown): page is ColorScheme[] {
 	return Array.isArray(page) && page.every(isPlainObject);
 }
@@ -382,12 +382,12 @@ function invalidColorProblem(name: string, value: unknown): string {
 	const shownName = JSON.stringify(name);
 	const shownValue = JSON.stringify(value);
 	return COLOR_NAME.test(name)
-		? `drawioSlides.colors gives ${name} the value ${shownValue}, which is not # and six hexadecimal digits, so the color is left out.`
-		: `drawioSlides.colors names a color ${shownName}, which is not letters and digits that start with a letter, so the color is left out.`;
+		? `drawSlidesCode.colors gives ${name} the value ${shownValue}, which is not # and six hexadecimal digits, so the color is left out.`
+		: `drawSlidesCode.colors names a color ${shownName}, which is not letters and digits that start with a letter, so the color is left out.`;
 }
 
 function unknownNameProblem(setting: string, name: string): string {
-	return `${setting} names the color ${name}, which drawioSlides.colors does not define, so the value stays as written.`;
+	return `${setting} names the color ${name}, which drawSlidesCode.colors does not define, so the value stays as written.`;
 }
 
 /** Whether a color of a setting is a name, which the values `none` and `#RRGGBB` are not. */

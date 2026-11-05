@@ -25,8 +25,8 @@ import {
 } from "./vscode-utils/VsCodeSetting";
 import * as packageJson from "../package.json";
 
-const settingPrefix = "drawioSlides";
-const experimentalFeaturesEnabled = "drawioSlides.experimentalFeaturesEnabled";
+const settingPrefix = "drawSlidesCode";
+const experimentalFeaturesEnabled = "drawSlidesCode.experimentalFeaturesEnabled";
 
 export async function setContext(
 	key: string,
@@ -641,7 +641,7 @@ export class DiagramConfig {
 	);
 
 	/**
-	 * Whether the settings hold `drawioSlides.colorDefinitions`, a list of TeX files of colors,
+	 * Whether the settings hold `drawSlidesCode.colorDefinitions`, a list of TeX files of colors,
 	 * which the extension does not read.
 	 */
 	public get hasColorDefinitions(): boolean {
@@ -902,7 +902,7 @@ export class DiagramConfig {
 	}
 }
 
-/** The setting `drawioSlides.slideSize`, in pixels. */
+/** The setting `drawSlidesCode.slideSize`, in pixels. */
 export interface SlideSize {
 	width: number;
 	height: number;

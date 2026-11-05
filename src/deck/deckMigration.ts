@@ -2,13 +2,13 @@
  * The move of a presentation of the draw.io presentation framework to the launcher of the
  * extension. Such a presentation runs the Python build of the framework in the scripts of its
  * `package.json`, as in `python3 '../tools/draw-io/build-slides.py' build`. The move copies the
- * launcher `drawio-slides.cjs` into the presentation and rewrites each such script to
- * `node drawio-slides.cjs <mode>`, with the options that the script gave after the mode. The key
+ * launcher `drawslidescode.cjs` into the presentation and rewrites each such script to
+ * `node drawslidescode.cjs <mode>`, with the options that the script gave after the mode. The key
  * `config` and every other key of `package.json` stay, and so do the layout and the order of the
  * file, because only the values of the rewritten scripts change.
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
- * Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+ * Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
  */
 import * as fs from "fs";
 import * as jsoncParser from "jsonc-parser";

@@ -1,8 +1,8 @@
-# Output exception to the GNU General Public License for Draw.io Slides
+# Output exception to the GNU General Public License for DrawSlidesCode
 
 Copyright (C) 2026 Yujun Huang.
 
-Draw.io Slides is free software under the GNU General Public License, version 3, in `LICENSE.md`, as the original extension hediet.vscode-drawio of Henning Dieterichs is.
+DrawSlidesCode is free software under the GNU General Public License, version 3, in `LICENSE.md`, as the original extension hediet.vscode-drawio of Henning Dieterichs is.
 Section 7 of that license lets the holder of the copyright of material added to a covered work grant additional permissions for that material.
 As such an additional permission, Yujun Huang grants the permission below for the covered files that the next section names.
 
@@ -17,9 +17,9 @@ The covered files are the files of this repository whose copyright Yujun Huang h
 | `drawio-custom-plugins/slides/list-marker-rules.js` | the CSS rules of the list markers that it writes, in the SVG of each page with a list, and through the SVGs in the HTML file and the PDF |
 | `drawio-custom-plugins/slides/mathjax-commands.tex` | the definitions of the commands that a page uses, in `build/assembled.drawio.xml` and through it in the drawing of the formulas |
 | `deck-templates/slide-format.drawio.xml` | the pages that the set-up copies into the first section file and into `templates/slides.drawio.xml`, and the slides that the editor inserts from them |
-| `deck-templates/color-definitions.tex` | the colors and their comments, in the setting `drawioSlides.colors` of `.vscode/settings.json` |
-| `deck-templates/named-colors-example.json` | the swatches, in the setting `drawioSlides.customColorSchemes` when the set-up is given the file |
-| `deck-templates/drawio-slides.cjs` | the whole launcher, in the folder of the presentation |
+| `deck-templates/color-definitions.tex` | the colors and their comments, in the setting `drawSlidesCode.colors` of `.vscode/settings.json` |
+| `deck-templates/named-colors-example.json` | the swatches, in the setting `drawSlidesCode.customColorSchemes` when the set-up is given the file |
+| `deck-templates/drawslidescode.cjs` | the whole launcher, in the folder of the presentation |
 | `src/deck/deckSetUp.ts`, `src/deck/deckMigration.ts` | the text that the set-up and the move to the launcher write into `package.json`, `.gitignore` and `.vscode/settings.json` |
 | `src/deck/colorSettings.ts`, `src/deck/colorConfig.ts` | the colors that the import of colors writes into `.vscode/settings.json`, the TeX file of the export of colors, and the color configuration of the mode `color-config` |
 | `src/deck/deckAssembly.ts`, `src/deck/texDefinitions.ts`, `src/deck/pageSnapshots.ts`, `src/deck/deckPictures.ts` | `build/assembled.drawio.xml` and `build/outline.json`, with the label of the TeX definitions of a page, the cells drawn as pictures of their embedded pages and the pictures of `assets/` written as data, which the mode `embed-pictures` also writes into the section files |
@@ -39,7 +39,7 @@ The output is every file that the extension or its command line writes or copies
 Examples are the HTML file, the PDF, the SVGs, the files of `build/media/` and `build/page-snapshots/`, the assembled file and the outline in `build/`, the section files that the set-up starts from the pages of the template, the copy of the template, the settings of the editor, `package.json`, `.gitignore` and the launcher.
 The output includes the parts of the covered files that these files contain, as the table above names them.
 
-The author of a presentation may use, change, share and sell the output under terms of the author's choice, which may keep the output closed, and without naming Draw.io Slides.
+The author of a presentation may use, change, share and sell the output under terms of the author's choice, which may keep the output closed, and without naming DrawSlidesCode.
 The content that the author adds to the output belongs to the author.
 
 ## The parts of the output that are not of Yujun Huang keep their own licenses
@@ -61,10 +61,10 @@ The SIL Open Font License, version 1.1, allows a document to embed the font, and
 The output holds no code or text of the original extension of Henning Dieterichs and its other contributors.
 The GNU General Public License of that code therefore places no condition on the output.
 
-## Draw.io Slides itself stays under the license
+## DrawSlidesCode itself stays under the license
 
-The permission does not cover Draw.io Slides itself, as it is distributed or as it is changed.
-Draw.io Slides is the extension, its command line, its plugins, its templates and the other files of this repository, and a changed version of them stays under the GNU General Public License, version 3.
+The permission does not cover DrawSlidesCode itself, as it is distributed or as it is changed.
+DrawSlidesCode is the extension, its command line, its plugins, its templates and the other files of this repository, and a changed version of them stays under the GNU General Public License, version 3.
 
-When you convey a changed version of Draw.io Slides, you may remove this permission from your version, as section 7 of the license allows.
+When you convey a changed version of DrawSlidesCode, you may remove this permission from your version, as section 7 of the license allows.
 The permission then still holds for the output of every version that keeps it.

@@ -116,7 +116,7 @@ export interface WatchOptions extends DeckBuildOptions {
 
 /** What the language check takes beyond the options of every mode. */
 export interface CheckOptions extends DeckBuildOptions {
-	/** The address of the LanguageTool server, the setting `drawioSlides.languageTool` of the deck by default. */
+	/** The address of the LanguageTool server, the setting `drawSlidesCode.languageTool` of the deck by default. */
 	readonly languageTool?: string;
 }
 

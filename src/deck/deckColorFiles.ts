@@ -1,5 +1,5 @@
 /**
- * The uses of a color of `drawioSlides.colors` in the drawing files of a deck, read and edited one
+ * The uses of a color of `drawSlidesCode.colors` in the drawing files of a deck, read and edited one
  * page at a time by `deckColorLinks.ts`.
  *
  * The drawing files of a deck are its section files, or its multi-page file, its templates, and

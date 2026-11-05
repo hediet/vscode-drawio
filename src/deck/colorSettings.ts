@@ -1,13 +1,13 @@
 /**
  * The conversion of the colors of a deck between TeX files of `\definecolor` lines and the setting
- * `drawioSlides.colors` of its `.vscode/settings.json`.
+ * `drawSlidesCode.colors` of its `.vscode/settings.json`.
  *
  * The setting is the one place of the colors of a deck: the editor and the build read it, and VS
  * Code shows a swatch and its color picker beside each value. A TeX file is for a paper, or for a
  * deck that kept its colors in one.
  *
  * The import writes the colors of every `\definecolor` of the files, in their order and in any
- * model that `texDefinitions.ts` converts, into `drawioSlides.colors` as `#RRGGBB`. The comment
+ * model that `texDefinitions.ts` converts, into `drawSlidesCode.colors` as `#RRGGBB`. The comment
  * lines before a definition become `//` lines before its color, and a comment after a definition
  * on its line becomes a comment after its color. The import replaces the value of that one key in
  * the text of the settings file, or adds the key, and keeps every other key and comment. It stops
@@ -18,7 +18,7 @@
  * settings file. The import leaves that first line out, so the two convert back and forth.
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
- * Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+ * Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
  */
 import * as fs from "fs";
 import * as path from "path";
@@ -87,7 +87,7 @@ export function colorsFromTex(files: readonly string[]): {
 	return { colors: { members, closingComments: closing }, warnings };
 }
 
-/** Writes the colors of the TeX files into `drawioSlides.colors` of the deck. */
+/** Writes the colors of the TeX files into `drawSlidesCode.colors` of the deck. */
 export function importColorsFromTex(
 	project: string,
 	files: readonly string[]
@@ -122,7 +122,7 @@ export function importColorsFromTex(
 }
 
 /**
- * The colors of `drawioSlides.colors` of the text of a settings file, with their comments.
+ * The colors of `drawSlidesCode.colors` of the text of a settings file, with their comments.
  * Raises `DeckError` on an entry that is no color.
  */
 export function settingColors(target: string, text: string): CommentedObject {
@@ -171,7 +171,7 @@ export function colorFileText(
 	)}`;
 }
 
-/** Writes the colors of `drawioSlides.colors` of the deck into a TeX file. */
+/** Writes the colors of `drawSlidesCode.colors` of the deck into a TeX file. */
 export function exportColorsToTex(
 	project: string,
 	file: string

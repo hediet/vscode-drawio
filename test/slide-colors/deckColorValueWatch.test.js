@@ -39,7 +39,7 @@ function watchedDeck() {
 	);
 	const changeColors = (entries) => {
 		colors.current = new Map(entries);
-		standIn.changeConfiguration("drawioSlides.colors", Object.fromEntries(entries));
+		standIn.changeConfiguration("drawSlidesCode.colors", Object.fromEntries(entries));
 	};
 	return { files, watch, changeColors, texts: () => files.map((file) => fs.readFileSync(file, "utf8")) };
 }
@@ -54,7 +54,7 @@ test("a new value by hand asks once, and Write writes the new values into the li
 	await settled();
 	assert.deepEqual(standIn.messagesOf("information").map(({ text, buttons }) => ({ text, buttons })), [
 		{
-			text: "drawioSlides.colors gives red and blue new values. Write the new values into the shapes, the lines and the texts linked to these colors in 2 drawing files of the deck?",
+			text: "drawSlidesCode.colors gives red and blue new values. Write the new values into the shapes, the lines and the texts linked to these colors in 2 drawing files of the deck?",
 			buttons: ["Write"],
 		},
 	]);
@@ -74,7 +74,7 @@ test("a new value by hand that the question leaves unanswered changes no file", 
 		["blue", "#0000FF"],
 	]);
 	await settled();
-	assert.match(standIn.lastMessageOf("information").text, /^drawioSlides\.colors gives red a new value\. .* in 1 drawing file of the deck\?$/);
+	assert.match(standIn.lastMessageOf("information").text, /^drawSlidesCode\.colors gives red a new value\. .* in 1 drawing file of the deck\?$/);
 	assert.deepEqual(texts(), before);
 	watch.dispose();
 });

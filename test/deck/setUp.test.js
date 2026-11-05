@@ -32,7 +32,7 @@ test("the settings of a deck associate the editor, load the slides and hold the 
 		customColorSchemes: [[{ fill: "accent" }]],
 		colorNames: { "000000": "Black" },
 	});
-	const span = json.objectLayout(text).values.get("drawioSlides.colors");
+	const span = json.objectLayout(text).values.get("drawSlidesCode.colors");
 	assert.deepEqual(
 		plain(json.readCommentedObject(text, span[0], span[1])),
 		plain(palette)
@@ -41,12 +41,12 @@ test("the settings of a deck associate the editor, load the slides and hold the 
 	assert.deepEqual(Object.keys(parsed), [
 		"workbench.editorAssociations",
 		"files.associations",
-		"drawioSlides.slides",
-		"drawioSlides.templates",
-		"drawioSlides.customColorSchemes",
-		"drawioSlides.colors",
+		"drawSlidesCode.slides",
+		"drawSlidesCode.templates",
+		"drawSlidesCode.customColorSchemes",
+		"drawSlidesCode.colors",
 	]);
-	assert.deepEqual(parsed["drawioSlides.templates"], [
+	assert.deepEqual(parsed["drawSlidesCode.templates"], [
 		"${deckFolder}/templates/*.drawio.xml",
 	]);
 });
@@ -65,7 +65,7 @@ test("a new deck is a repository with its first section, its commands, its setti
 	});
 	assert.deepEqual(plain(result.lines), [
 		"sections/1-my-talk.drawio.xml written with the pages title-slide-1, section-divider-1, title-and-body-1",
-		`package.json, drawio-slides.cjs and .vscode/settings.json written, and ${project} is a git repository of its own`,
+		`package.json, drawslidescode.cjs and .vscode/settings.json written, and ${project} is a git repository of its own`,
 	]);
 	const section = fs.readFileSync(
 		path.join(project, "sections/1-my-talk.drawio.xml"),
@@ -83,16 +83,16 @@ test("a new deck is a repository with its first section, its commands, its setti
 			"My Talk [1]",
 			"sections",
 			"slides.drawio.xml",
-			"node drawio-slides.cjs"
+			"node drawslidescode.cjs"
 		)
 	);
 	const manifest = JSON.parse(
 		fs.readFileSync(path.join(project, "package.json"), "utf8")
 	);
 	assert.deepEqual(manifest.config, { title: "My Talk [1]" });
-	assert.equal(manifest.scripts.build, "node drawio-slides.cjs build");
+	assert.equal(manifest.scripts.build, "node drawslidescode.cjs build");
 	assert.equal(
-		fs.readFileSync(path.join(project, "drawio-slides.cjs"), "utf8"),
+		fs.readFileSync(path.join(project, "drawslidescode.cjs"), "utf8"),
 		fs.readFileSync(setUp.launcherFile(extensionRoot), "utf8")
 	);
 	assert.equal(
@@ -108,7 +108,7 @@ test("a new deck is a repository with its first section, its commands, its setti
 		fs.readFileSync(setUp.templateFile(extensionRoot), "utf8")
 	);
 	assert.equal(
-		settings.readDeckSettings(project)["drawioSlides.slides"],
+		settings.readDeckSettings(project)["drawSlidesCode.slides"],
 		true
 	);
 });

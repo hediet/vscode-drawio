@@ -1,16 +1,16 @@
 // Defines the colors and the commands of a deck for every page of every drawing the draw.io
 // editor opens, and starts every new page with mathematical typesetting on.
 //
-// The VS Code extension yujunhuang.drawio-slides gives the definitions in
-// window.drawioSlidesSettings.mathDefinitions: a \definecolor in the model RGB for every color of
-// the setting "drawioSlides.colors", then the commands of mathjax-commands.tex beside this
+// The VS Code extension yujunhuang.drawslidescode gives the definitions in
+// window.drawSlidesCodeSettings.mathDefinitions: a \definecolor in the model RGB for every color of
+// the setting "drawSlidesCode.colors", then the commands of mathjax-commands.tex beside this
 // plugin, which MathJax lacks.  After a change of the colors, the extension sends the definitions
 // again through slide-settings.js, and the plugin typesets them again, so that a formula shows the
 // new value of a color.  A color taken out of the setting stays defined until the editor
 // reloads.
 //
-// The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
-// drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
+// The VS Code extension yujunhuang.drawslidescode loads the plugin from its own folder
+// drawio-custom-plugins/slides/ for every drawing whose setting "drawSlidesCode.slides" is true,
 // without asking.
 Draw.loadPlugin(function (ui) {
   var graph = ui.editor.graph;
@@ -74,7 +74,7 @@ Draw.loadPlugin(function (ui) {
   }
   // The definitions last typeset, so that a change of the list markers or of the swatches alone
   // typesets no formula again.
-  var current = (window.drawioSlidesSettings || {}).mathDefinitions || '';
+  var current = (window.drawSlidesCodeSettings || {}).mathDefinitions || '';
   define(current);
 
   if (typeof onSlideSettingsChange == 'function') {

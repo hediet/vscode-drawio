@@ -8,25 +8,25 @@ read-when:
 
 # Start a deck with the current logos, placed as their guidelines say, and with an outline that every section repeats
 
-A deck is a folder that the extension Draw.io Slides, the repository of this skill, set up.
+A deck is a folder that the extension DrawSlidesCode, the repository of this skill, set up.
 A path in this skill that starts at `sections/`, `assets/`, `templates/` or `build/` is relative to the folder of the deck.
 Every other path is relative to `<extension folder>`, the folder of the installed extension or of a clone of this repository.
 `docs/presentations.md` gives the steps that start a deck, the pages of the template and the way an agent edits a slide as text.
 A key of a style beside a link to a color of the deck, such as `fillColor` beside `deckFillColor`, takes its value from the link.
 A new value of such a key therefore needs the link taken out as well, as the section on editing a slide as text of `docs/presentations.md` says.
-The template of a deck is the first file of its setting `drawioSlides.templates` in `.vscode/settings.json`, `templates/slides.drawio.xml` by default, which the set-up copies from `deck-templates/slide-format.drawio.xml`.
+The template of a deck is the first file of its setting `drawSlidesCode.templates` in `.vscode/settings.json`, `templates/slides.drawio.xml` by default, which the set-up copies from `deck-templates/slide-format.drawio.xml`.
 A new deck is a git repository of its own, and the user makes its first commit and adds its remote, as the same guide says.
 The git commands on the files of a deck run in the repository of the deck.
 
 ## Resources of this skill
 
 This skill has no resource folder.
-The skill uses two modes of the command line `dist/cli.js` of the extension, which the launcher `drawio-slides.cjs` of each deck runs.
+The skill uses two modes of the command line `dist/cli.js` of the extension, which the launcher `drawslidescode.cjs` of each deck runs.
 
 - `place-logos` writes a row of logos into one page of a section file.
   Each logo is a PNG file, cropped to its pixels that are not transparent, resampled, and embedded as a PNG data URI.
   The logos get one height, sit on one horizontal line and spread with equal gaps.
-  `node drawio-slides.cjs --help` gives its options and their defaults.
+  `node drawslidescode.cjs --help` gives its options and their defaults.
 - `screenshots` writes a PNG of each built slide of a deck and contact sheets of twelve slides, through the headless browser of the build.
 
 ## Standard: the title slide carries the current official logo of each organization of the speaker, placed as its guidelines say
@@ -62,8 +62,8 @@ The skill uses two modes of the command line `dist/cli.js` of the extension, whi
 ## Required action: start the deck with the set-up of the extension
 
 1. When the user names no folder for the deck, ask the user where the deck goes, and wait for the answer.
-2. Run `node <extension folder>/dist/cli.js init <deck folder> --title "<title>"`, or ask the user to run the command *Draw.io Slides: Set Up a Presentation in This Folder* on the folder in VS Code.
-   `code --list-extensions --show-versions` names the installed version of `yujunhuang.drawio-slides`, whose folder is `~/.vscode/extensions/yujunhuang.drawio-slides-<version>`.
+2. Run `node <extension folder>/dist/cli.js init <deck folder> --title "<title>"`, or ask the user to run the command *DrawSlidesCode: Set Up a Presentation in This Folder* on the folder in VS Code.
+   `code --list-extensions --show-versions` names the installed version of `yujunhuang.drawslidescode`, whose folder is `~/.vscode/extensions/yujunhuang.drawslidescode-<version>`.
 
 ## Required action: find the current logo and the guidelines of each organization before placing its logo
 
@@ -77,7 +77,7 @@ The skill uses two modes of the command line `dist/cli.js` of the extension, whi
 ## Required action: look at every built slide before delivering the deck
 
 1. Run `npm run build` in the folder of the deck, and fix what its warnings name, as the table of warnings of `docs/presentations.md` says.
-2. Run `node drawio-slides.cjs screenshots --out <output folder>` in the folder of the deck, with an output folder outside the repository of the deck.
+2. Run `node drawslidescode.cjs screenshots --out <output folder>` in the folder of the deck, with an output folder outside the repository of the deck.
 3. Look at the title slide at its full size and at every contact sheet.
    Check that no text runs past the page or into another cell, that the lists of all slides start at the same place, and that each logo has its clear space.
 
@@ -107,7 +107,7 @@ For the units of MIT, https://brand.mit.edu/logos-marks names the files and the 
 3. Run `place-logos` in the folder of the deck, with the logos from left to right:
 
    ```sh
-   node drawio-slides.cjs place-logos sections/1-my-talk.drawio.xml title-slide-1 \
+   node drawslidescode.cjs place-logos sections/1-my-talk.drawio.xml title-slide-1 \
        title-logo-lab=assets/logos/lab-logo-color.png \
        title-logo-department=assets/logos/department-logo-color.png \
        title-logo-university=assets/logos/university-logo-black.png
@@ -137,8 +137,8 @@ For the units of MIT, https://brand.mit.edu/logos-marks names the files and the 
    The value of a cell holds this HTML escaped, as `docs/presentations.md` says.
    The marker of the first level is `disclosure-closed`, which the browser draws as a shape and not as a glyph of the font.
    The marker therefore has one size in the editor, the PDF and the HTML deck, whichever copy of STIX Two Text each one loads.
-   The setting `drawioSlides.listStyles` of the extension gives the markers their color and size in the editor and in every build, so the markup leaves out the color and the size of the marker.
-   The color of a level may name a color of the setting `drawioSlides.colors` of the deck, such as `accent`.
+   The setting `drawSlidesCode.listStyles` of the extension gives the markers their color and size in the editor and in every build, so the markup leaves out the color and the size of the marker.
+   The color of a level may name a color of the setting `drawSlidesCode.colors` of the deck, such as `accent`.
 4. Give the backup slides a copy of `section-divider-1` named `section-backup-1`, with the title Backup slides and no outline.
 5. Break an item of a body list with `<br>` at about 60 characters, because the template writes its lists on one line each and a longer line runs past the right edge of the body.
 

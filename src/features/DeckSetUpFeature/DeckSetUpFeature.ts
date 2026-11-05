@@ -20,9 +20,9 @@ import { registerFailableCommand } from "../../utils/registerFailableCommand";
 import * as deckFolderSetUp from "./deckFolderSetUp";
 import { DeckFolderState } from "./deckFolderSetUp";
 
-const setUpDeckCommand = "drawioSlides.setUpDeck";
+const setUpDeckCommand = "drawSlidesCode.setUpDeck";
 const commandTitle = "Set Up a Presentation in This Folder";
-const buildCommandTitle = "Draw.io Slides: Build the Presentation";
+const buildCommandTitle = "DrawSlidesCode: Build the Presentation";
 const setUpButton = "Set Up";
 const moveButton = "Move to the Launcher";
 const showOutputButton = "Show Output";
@@ -70,7 +70,7 @@ async function setUpDeck(
 			if (await offerMigration(log, extensionRoot, folder)) {
 				if (!survey.loadsSlidePlugins) {
 					window.showWarningMessage(
-						`${folder}/.vscode/settings.json does not set drawioSlides.slides to true, so the editor loads no plugin of the slides. Add "drawioSlides.slides": true to the file by hand, because the set-up writes only a missing file.`
+						`${folder}/.vscode/settings.json does not set drawSlidesCode.slides to true, so the editor loads no plugin of the slides. Add "drawSlidesCode.slides": true to the file by hand, because the set-up writes only a missing file.`
 					);
 				}
 				return;
@@ -78,7 +78,7 @@ async function setUpDeck(
 			window.showInformationMessage(
 				survey.loadsSlidePlugins
 					? `${folder} is set up already: it holds a presentation and its .vscode/settings.json.`
-					: `${folder} holds a presentation and its .vscode/settings.json, which does not set drawioSlides.slides to true, so the editor loads no plugin of the slides. Add "drawioSlides.slides": true to the file by hand, because the set-up writes only a missing file.`
+					: `${folder} holds a presentation and its .vscode/settings.json, which does not set drawSlidesCode.slides to true, so the editor loads no plugin of the slides. Add "drawSlidesCode.slides": true to the file by hand, because the set-up writes only a missing file.`
 			);
 			return;
 		case DeckFolderState.FilesInTheWay:
@@ -142,7 +142,7 @@ async function startDeck(
 		await commands.executeCommand(
 			"vscode.openWith",
 			Uri.file(first),
-			"drawioSlides.textEditor"
+			"drawSlidesCode.textEditor"
 		);
 	}
 	showSetUpDone(
@@ -233,7 +233,7 @@ async function offerMigration(
 	);
 	if (succeeded) {
 		window.showInformationMessage(
-			`The scripts of package.json in ${folder} run the launcher drawio-slides.cjs now, which the command line of the extension runs.`
+			`The scripts of package.json in ${folder} run the launcher drawslidescode.cjs now, which the command line of the extension runs.`
 		);
 	}
 	return true;
@@ -370,13 +370,13 @@ function isWorkspaceFolder(folder: string): boolean {
 const settingsReadTimeoutMs = 5000;
 
 /**
- * Resolves once the settings of the file set `drawioSlides.slides` to true, which VS Code reads
+ * Resolves once the settings of the file set `drawSlidesCode.slides` to true, which VS Code reads
  * from a settings file written moments before only after its watcher has seen the file, or after
  * a timeout, after which the drawing opens as it is.
  */
 function settingsLoadSlides(file: Uri): Promise<void> {
 	const loadsSlides = () =>
-		workspace.getConfiguration("drawioSlides", file).get<boolean>("slides") === true;
+		workspace.getConfiguration("drawSlidesCode", file).get<boolean>("slides") === true;
 	if (loadsSlides()) {
 		return Promise.resolve();
 	}
@@ -388,7 +388,7 @@ function settingsLoadSlides(file: Uri): Promise<void> {
 		};
 		const timer = setTimeout(finish, settingsReadTimeoutMs);
 		const listener = workspace.onDidChangeConfiguration((event) => {
-			if (event.affectsConfiguration("drawioSlides.slides", file) && loadsSlides()) {
+			if (event.affectsConfiguration("drawSlidesCode.slides", file) && loadsSlides()) {
 				finish();
 			}
 		});

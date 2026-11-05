@@ -119,7 +119,7 @@ test("the environment variables of the build become the options of the modes", (
 	const options = commandLine.buildOptions(
 		line,
 		{
-			DRAWIO_SLIDES_EXTENSION: "/clone",
+			DRAWSLIDESCODE_EXTENSION: "/clone",
 			DRAWIO_VIEWER:
 				"https://viewer.diagrams.net/js/viewer-static.min.js",
 			EXPORT_FRESH: "1",
@@ -189,8 +189,8 @@ test("init starts a presentation whose commands run the launcher, and vscode set
 		fs.readFileSync(path.join(project, "package.json"), "utf8")
 	);
 	assert.deepEqual(manifest.config, { title: "My talk" });
-	assert.equal(manifest.scripts.check, "node drawio-slides.cjs check");
-	assert.ok(fs.existsSync(path.join(project, "drawio-slides.cjs")));
+	assert.equal(manifest.scripts.check, "node drawslidescode.cjs check");
+	assert.ok(fs.existsSync(path.join(project, "drawslidescode.cjs")));
 	const outline = await run(["outline", project]);
 	assert.equal(outline.status, ExitStatus.DONE);
 	assert.match(outline.out[0], /^3 pages assembled from sections: 3 slides/);
@@ -229,7 +229,7 @@ test("from-tex, to-tex and color-config convert the colors of a deck", async () 
 	assert.equal(fromTex.status, ExitStatus.DONE);
 	assert.match(
 		fromTex.out[0],
-		/^2 colors of .* written into drawioSlides.colors of /
+		/^2 colors of .* written into drawSlidesCode.colors of /
 	);
 	const back = path.join(folder, "back.tex");
 	const toTex = await run(["to-tex", back, "--project", folder]);
@@ -256,7 +256,7 @@ test("from-tex, to-tex and color-config convert the colors of a deck", async () 
 	});
 });
 
-test("the launcher of a deck runs the command line of the newest installed version, or of the folder that DRAWIO_SLIDES_EXTENSION names", () => {
+test("the launcher of a deck runs the command line of the newest installed version, or of the folder that DRAWSLIDESCODE_EXTENSION names", () => {
 	const home = fs.realpathSync(
 		fs.mkdtempSync(path.join(os.tmpdir(), "home-"))
 	);
@@ -266,27 +266,27 @@ test("the launcher of a deck runs the command line of the newest installed versi
 	for (const version of ["0.2.0", "0.10.0", "0.9.1", "0.11.0"]) {
 		const folder = path.join(
 			extensions,
-			`yujunhuang.drawio-slides-${version}`,
+			`yujunhuang.drawslidescode-${version}`,
 			"dist"
 		);
 		fs.mkdirSync(folder, { recursive: true });
 		fs.writeFileSync(path.join(folder, "cli.js"), stub);
 	}
-	fs.mkdirSync(path.join(extensions, "yujunhuang.drawio-slides-extra"));
+	fs.mkdirSync(path.join(extensions, "yujunhuang.drawslidescode-extra"));
 	fs.writeFileSync(
 		path.join(extensions, ".obsolete"),
-		JSON.stringify({ "yujunhuang.drawio-slides-0.11.0": true })
+		JSON.stringify({ "yujunhuang.drawslidescode-0.11.0": true })
 	);
 	const project = folderWith({});
 	fs.copyFileSync(
 		setUp.launcherFile(extensionRoot),
-		path.join(project, "drawio-slides.cjs")
+		path.join(project, "drawslidescode.cjs")
 	);
 	const environment = { PATH: process.env.PATH, HOME: home };
 	const launch = (extra) =>
 		childProcess.spawnSync(
 			process.execPath,
-			["drawio-slides.cjs", "build", "--outline"],
+			["drawslidescode.cjs", "build", "--outline"],
 			{
 				cwd: project,
 				env: { ...environment, ...extra },
@@ -296,35 +296,35 @@ test("the launcher of a deck runs the command line of the newest installed versi
 	const newest = launch({});
 	assert.equal(newest.status, 0, newest.stderr);
 	assert.deepEqual(JSON.parse(newest.stdout), {
-		folder: "yujunhuang.drawio-slides-0.10.0",
+		folder: "yujunhuang.drawslidescode-0.10.0",
 		args: ["build", "--outline"],
 	});
 	const named = launch({
-		DRAWIO_SLIDES_EXTENSION: path.join(
+		DRAWSLIDESCODE_EXTENSION: path.join(
 			extensions,
-			"yujunhuang.drawio-slides-0.2.0"
+			"yujunhuang.drawslidescode-0.2.0"
 		),
 	});
 	assert.equal(
 		JSON.parse(named.stdout).folder,
-		"yujunhuang.drawio-slides-0.2.0"
+		"yujunhuang.drawslidescode-0.2.0"
 	);
 	const missing = launch({ HOME: folderWith({}) });
 	assert.equal(missing.status, 1);
-	assert.match(missing.stderr, /yujunhuang.drawio-slides is not installed/);
+	assert.match(missing.stderr, /yujunhuang.drawslidescode is not installed/);
 	// VSCodium keeps its extensions in ~/.vscode-oss/extensions, which the launcher compares with
 	// those of VS Code.
 	const vscodium = path.join(
 		home,
 		".vscode-oss",
 		"extensions",
-		"yujunhuang.drawio-slides-0.12.0",
+		"yujunhuang.drawslidescode-0.12.0",
 		"dist"
 	);
 	fs.mkdirSync(vscodium, { recursive: true });
 	fs.writeFileSync(path.join(vscodium, "cli.js"), stub);
 	assert.equal(
 		JSON.parse(launch({}).stdout).folder,
-		"yujunhuang.drawio-slides-0.12.0"
+		"yujunhuang.drawslidescode-0.12.0"
 	);
 });

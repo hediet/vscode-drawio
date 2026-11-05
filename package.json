@@ -1,8 +1,8 @@
 {
-	"name": "drawio-slides",
+	"name": "drawslidescode",
 	"private": true,
-	"displayName": "Draw.io Slides",
-	"description": "A fork of the Draw.io Integration of Henning Dieterichs, for slide decks drawn in draw.io.",
+	"displayName": "DrawSlidesCode",
+	"description": "Edits and builds slide decks drawn in draw.io, as a fork of the Draw.io Integration of Henning Dieterichs. Not made or endorsed by draw.io Ltd.",
 	"version": "0.1.0",
 	"preRelease": false,
 	"license": "GPL-3.0",
@@ -45,12 +45,12 @@
 		"onLanguage:markdown",
 		"onUri"
 	],
-	"homepage": "https://github.com/HuangYujun-JunkyTalent/vscode-drawio-slides#readme",
+	"homepage": "https://github.com/HuangYujun-JunkyTalent/draw-slides-code#readme",
 	"bugs": {
-		"url": "https://github.com/HuangYujun-JunkyTalent/vscode-drawio-slides/issues"
+		"url": "https://github.com/HuangYujun-JunkyTalent/draw-slides-code/issues"
 	},
 	"repository": {
-		"url": "https://github.com/HuangYujun-JunkyTalent/vscode-drawio-slides.git"
+		"url": "https://github.com/HuangYujun-JunkyTalent/draw-slides-code.git"
 	},
 	"browser": "./dist/extension/index",
 	"main": "./dist/extension/index",
@@ -59,12 +59,12 @@
 			"supported": "limited",
 			"description": "In Restricted Mode, workspace settings cannot load custom libraries or plugins, or change which Draw.io app the editor loads, and the commands that set up, build, watch, check or outline a presentation or convert its colors do not run.",
 			"restrictedConfigurations": [
-				"drawioSlides.customLibraries",
-				"drawioSlides.plugins",
-				"drawioSlides.slides",
-				"drawioSlides.browserPath",
-				"drawioSlides.offline",
-				"drawioSlides.online-url"
+				"drawSlidesCode.customLibraries",
+				"drawSlidesCode.plugins",
+				"drawSlidesCode.slides",
+				"drawSlidesCode.browserPath",
+				"drawSlidesCode.offline",
+				"drawSlidesCode.online-url"
 			]
 		}
 	},
@@ -88,8 +88,8 @@
 		],
 		"customEditors": [
 			{
-				"viewType": "drawioSlides.binaryEditor",
-				"displayName": "Draw.io Slides (Binary)",
+				"viewType": "drawSlidesCode.binaryEditor",
+				"displayName": "DrawSlidesCode (Binary)",
 				"selector": [
 					{
 						"filenamePattern": "*.drawio.png"
@@ -101,8 +101,8 @@
 				"priority": "default"
 			},
 			{
-				"viewType": "drawioSlides.textEditor",
-				"displayName": "Draw.io Slides",
+				"viewType": "drawSlidesCode.textEditor",
+				"displayName": "DrawSlidesCode",
 				"selector": [
 					{
 						"filenamePattern": "*.drawio"
@@ -123,8 +123,8 @@
 				"priority": "default"
 			},
 			{
-				"viewType": "drawioSlides.inlineEditor.drawioEditor",
-				"displayName": "Draw.io Slides Inline Editor",
+				"viewType": "drawSlidesCode.inlineEditor.drawioEditor",
+				"displayName": "DrawSlidesCode Inline Editor",
 				"selector": [
 					{ "filenamePattern": "*.drawio" },
 					{ "filenamePattern": "*.dio" }
@@ -132,7 +132,7 @@
 				"priority": "option"
 			},
 			{
-				"viewType": "drawioSlides.inlineEditor.markdownEditor",
+				"viewType": "drawSlidesCode.inlineEditor.markdownEditor",
 				"displayName": "Markdown with Diagrams (Experimental)",
 				"selector": [
 					{ "filenamePattern": "*.md" }
@@ -142,145 +142,145 @@
 		],
 		"commands": [
 			{
-				"command": "drawioSlides.convert",
+				"command": "drawSlidesCode.convert",
 				"title": "Convert To...",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.export",
+				"command": "drawSlidesCode.export",
 				"title": "Export To...",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.toggleCodeLinkActivation",
+				"command": "drawSlidesCode.toggleCodeLinkActivation",
 				"title": "Toggle Code Link Activation",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.changeTheme",
+				"command": "drawSlidesCode.changeTheme",
 				"title": "Change Theme",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.editDiagramAsText",
+				"command": "drawSlidesCode.editDiagramAsText",
 				"title": "Edit Diagram As Text (Experimental)",
-				"enablement": "drawioSlides.experimentalFeaturesEnabled",
-				"category": "Draw.io Slides"
+				"enablement": "drawSlidesCode.experimentalFeaturesEnabled",
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.linkCodeWithSelectedNode",
+				"command": "drawSlidesCode.linkCodeWithSelectedNode",
 				"title": "Link Code with Selected Node",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.newDiagram",
+				"command": "drawSlidesCode.newDiagram",
 				"title": "New Draw.io Diagram",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.setUpDeck",
+				"command": "drawSlidesCode.setUpDeck",
 				"title": "Set Up a Presentation in This Folder",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.buildDeck",
+				"command": "drawSlidesCode.buildDeck",
 				"title": "Build the Presentation",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.buildDeckHtml",
+				"command": "drawSlidesCode.buildDeckHtml",
 				"title": "Build the HTML File of the Presentation",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.buildDeckPdf",
+				"command": "drawSlidesCode.buildDeckPdf",
 				"title": "Build the PDF of the Presentation",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.watchDeck",
+				"command": "drawSlidesCode.watchDeck",
 				"title": "Watch the Presentation",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.stopWatchingDeck",
+				"command": "drawSlidesCode.stopWatchingDeck",
 				"title": "Stop Watching the Presentation",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.checkDeck",
+				"command": "drawSlidesCode.checkDeck",
 				"title": "Check the Spelling and Grammar of the Presentation",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.outlineDeck",
+				"command": "drawSlidesCode.outlineDeck",
 				"title": "Show the Outline of the Presentation",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.importColorsFromTex",
+				"command": "drawSlidesCode.importColorsFromTex",
 				"title": "Import Colors from TeX",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.exportColorsToTex",
+				"command": "drawSlidesCode.exportColorsToTex",
 				"title": "Export Colors to TeX",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.installBrowser",
+				"command": "drawSlidesCode.installBrowser",
 				"title": "Install Chromium for the Build",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.linkFileWithSelectedNode",
+				"command": "drawSlidesCode.linkFileWithSelectedNode",
 				"title": "Link File With Selected Node",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.linkSymbolWithSelectedNode",
+				"command": "drawSlidesCode.linkSymbolWithSelectedNode",
 				"title": "Link Symbol With Selected Node",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.linkWsSymbolWithSelectedNode",
+				"command": "drawSlidesCode.linkWsSymbolWithSelectedNode",
 				"title": "Link Workspace Symbol With Selected Node",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.inlineEditor.editDiagram",
+				"command": "drawSlidesCode.inlineEditor.editDiagram",
 				"title": "Edit Diagram",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.inlineEditor.insertDiagram",
+				"command": "drawSlidesCode.inlineEditor.insertDiagram",
 				"title": "Insert New Diagram",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.inlineEditor.toggleLock",
+				"command": "drawSlidesCode.inlineEditor.toggleLock",
 				"title": "Toggle Diagram Lock",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.inlineEditor.previewDiagram",
+				"command": "drawSlidesCode.inlineEditor.previewDiagram",
 				"title": "Preview Diagram",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.inlineEditor.inlinePreview",
+				"command": "drawSlidesCode.inlineEditor.inlinePreview",
 				"title": "Open Inline Preview",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.inlineEditor.convertMermaid",
+				"command": "drawSlidesCode.inlineEditor.convertMermaid",
 				"title": "Convert Mermaid to Draw.io",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			},
 			{
-				"command": "drawioSlides.inlineEditor.convertPlantUml",
+				"command": "drawSlidesCode.inlineEditor.convertPlantUml",
 				"title": "Convert PlantUML to Draw.io",
-				"category": "Draw.io Slides"
+				"category": "DrawSlidesCode"
 			}
 		],
 		"markdown.markdownItPlugins": true,
@@ -316,7 +316,7 @@
 		],
 		"keybindings": [
 			{
-				"command": "drawioSlides.linkCodeWithSelectedNode",
+				"command": "drawSlidesCode.linkCodeWithSelectedNode",
 				"key": "shift+F3",
 				"when": "!findWidgetVisible"
 			}
@@ -326,28 +326,28 @@
 				"title": "General",
 				"order": 10,
 				"properties": {
-					"drawioSlides.offline": {
+					"drawSlidesCode.offline": {
 						"type": "boolean",
 						"default": true,
 						"title": "Use Offline Mode",
 						"description": "When enabled, the bundled instance of Draw.io is used.",
 						"order": 10
 					},
-					"drawioSlides.online-url": {
+					"drawSlidesCode.online-url": {
 						"type": "string",
 						"default": "https://embed.diagrams.net/",
 						"title": "Online URL",
 						"description": "The app to use when offline mode is disabled.",
 						"order": 11
 					},
-					"drawioSlides.codeLinkActivated": {
+					"drawSlidesCode.codeLinkActivated": {
 						"type": "boolean",
 						"default": false,
 						"title": "Code Link Enabled",
 						"description": "When activated, selecting a node will navigate to an associated code section.",
 						"order": 20
 					},
-					"drawioSlides.local-storage": {
+					"drawSlidesCode.local-storage": {
 						"anyOf": [
 							{
 								"type": "object"
@@ -362,14 +362,14 @@
 						"description": "Only change this property if you know what you are doing. Manual changes to this property are not supported!",
 						"order": 30
 					},
-					"drawioSlides.simpleLabels": {
+					"drawSlidesCode.simpleLabels": {
 						"type": "boolean",
 						"default": false,
 						"title": "Use SimpleLabels",
 						"description": "When enabled, no ForeignObjects are used in the svg.",
 						"order": 40
 					},
-					"drawioSlides.svgAppearance": {
+					"drawSlidesCode.svgAppearance": {
 						"type": "string",
 						"default": "light",
 						"enum": [
@@ -386,20 +386,20 @@
 						"description": "The appearance of `.drawio.svg` files and SVG exports. It does not depend on the theme of the editor.",
 						"order": 45
 					},
-					"drawioSlides.zoomFactor": {
+					"drawSlidesCode.zoomFactor": {
 						"type": "number",
 						"default": 1.2,
 						"title": "Draw.io zoom factor",
 						"description": "Defines the zoom factor for mouse wheel and trackpad zoom.",
 						"order": 50
 					},
-					"drawioSlides.globalVars": {
+					"drawSlidesCode.globalVars": {
 						"type": "object",
 						"title": "Draw.io global variables.",
 						"description": "Defines global variables for system-wide placeholders using a JSON structure with key, value pairs. Keep the number of global variables small.",
 						"order": 60
 					},
-					"drawioSlides.resizeImages": {
+					"drawSlidesCode.resizeImages": {
 						"type": [
 							"boolean",
 							"null"
@@ -409,21 +409,21 @@
 						"default": null,
 						"order": 70
 					},
-					"drawioSlides.showTooltipIcons": {
+					"drawSlidesCode.showTooltipIcons": {
 						"type": "boolean",
 						"default": false,
 						"title": "Show Tooltip Icons",
 						"description": "Specifies whether tooltip icons are shown.",
 						"order": 80
 					},
-					"drawioSlides.showLinkIcons": {
+					"drawSlidesCode.showLinkIcons": {
 						"type": "boolean",
 						"default": false,
 						"title": "Show Link Icons",
 						"description": "Specifies whether link icons are shown.",
 						"order": 90
 					},
-					"drawioSlides.showConnectHandle": {
+					"drawSlidesCode.showConnectHandle": {
 						"type": "boolean",
 						"default": false,
 						"title": "Show Connect Handle",
@@ -436,23 +436,23 @@
 				"title": "Inline Editor",
 				"order": 15,
 				"properties": {
-					"drawioSlides.inlineEditor.theme": {
+					"drawSlidesCode.inlineEditor.theme": {
 						"type": "string",
 						"default": "auto",
 						"enum": ["auto", "kennedy", "min", "atlas", "dark", "sketch"],
 						"description": "Editor UI theme"
 					},
-					"drawioSlides.inlineEditor.autoLock": {
+					"drawSlidesCode.inlineEditor.autoLock": {
 						"type": "boolean",
 						"default": false,
 						"description": "Automatically lock diagrams after editing"
 					},
-					"drawioSlides.inlineEditor.minimalUI": {
+					"drawSlidesCode.inlineEditor.minimalUI": {
 						"type": "boolean",
 						"default": true,
 						"description": "Use minimal draw.io UI (hides sidebar, format panel, scrollbars)"
 					},
-					"drawioSlides.inlineEditor.diagramPadding": {
+					"drawSlidesCode.inlineEditor.diagramPadding": {
 						"type": "number",
 						"default": 28,
 						"minimum": 0,
@@ -465,19 +465,19 @@
 				"title": "Plugins",
 				"order": 20,
 				"properties": {
-					"drawioSlides.slides": {
+					"drawSlidesCode.slides": {
 						"type": "boolean",
 						"default": false,
 						"scope": "resource",
 						"description": "Treat the drawings as slides of a deck: load the plugins of the slides, which play the videos and pages of the cells, style the lists and check the language, and draw the pictures of the deck folder."
 					},
-					"drawioSlides.browserPath": {
+					"drawSlidesCode.browserPath": {
 						"type": "string",
 						"scope": "machine",
 						"default": "",
 						"description": "The path of the program of a Chrome, an Edge or a Chromium, with which the commands that build a presentation export its pages and print its PDF. When this setting is empty, the build launches the first that starts of the Chromium that the command Install Chromium for the Build installs, Google Chrome and Microsoft Edge. Only the user settings set it, because the build runs the program."
 					},
-					"drawioSlides.listStyles": {
+					"drawSlidesCode.listStyles": {
 						"type": "object",
 						"scope": "resource",
 						"default": {
@@ -538,7 +538,7 @@
 										},
 										"color": {
 											"type": "string",
-											"description": "The color of the marker, as CSS, such as `#004D80`, or the name of a color of `drawioSlides.colors`, such as `accent`."
+											"description": "The color of the marker, as CSS, such as `#004D80`, or the name of a color of `drawSlidesCode.colors`, such as `accent`."
 										},
 										"size": {
 											"type": "string",
@@ -566,7 +566,7 @@
 										},
 										"color": {
 											"type": "string",
-											"description": "The color of the marker, as CSS, such as `#004D80`, or the name of a color of `drawioSlides.colors`, such as `accent`."
+											"description": "The color of the marker, as CSS, such as `#004D80`, or the name of a color of `drawSlidesCode.colors`, such as `accent`."
 										},
 										"size": {
 											"type": "string",
@@ -577,7 +577,7 @@
 							}
 						}
 					},
-					"drawioSlides.listMarkers": {
+					"drawSlidesCode.listMarkers": {
 						"type": "array",
 						"scope": "resource",
 						"default": [
@@ -648,7 +648,7 @@
 							"maxItems": 2
 						}
 					},
-					"drawioSlides.templates": {
+					"drawSlidesCode.templates": {
 						"type": "array",
 						"scope": "resource",
 						"default": [
@@ -659,7 +659,7 @@
 							"type": "string"
 						}
 					},
-					"drawioSlides.slideSize": {
+					"drawSlidesCode.slideSize": {
 						"type": "object",
 						"scope": "resource",
 						"default": {
@@ -676,17 +676,17 @@
 							}
 						}
 					},
-					"drawioSlides.languageTool": {
+					"drawSlidesCode.languageTool": {
 						"type": "string",
 						"scope": "resource",
 						"default": "http://localhost:8081",
 						"description": "The address of the LanguageTool server that checks the spelling and the grammar of the label being edited. The command Check the Spelling and Grammar of the Presentation and `npm run check` of a presentation check every slide with the same server."
 					},
-					"drawioSlides.colors": {
+					"drawSlidesCode.colors": {
 						"type": "object",
 						"scope": "resource",
 						"default": {},
-						"description": "The colors of a deck, each a name of letters and digits that starts with a letter and a value `#RRGGBB`. In a drawing whose `drawioSlides.slides` is true, the editor defines each color for the formulas of every page, which name it as in `\\textcolor{accent}{x}`, names it in the color picker, adds it to the presets of the picker in the order of this setting and follows a change of this setting without a reload. A color of `drawioSlides.listStyles` and of `drawioSlides.customColorSchemes` may be the name of a color of this setting. The build of a presentation reads the same setting, and the commands Import Colors from TeX and Export Colors to TeX convert the `\\definecolor` lines of a TeX file into this setting and back.",
+						"description": "The colors of a deck, each a name of letters and digits that starts with a letter and a value `#RRGGBB`. In a drawing whose `drawSlidesCode.slides` is true, the editor defines each color for the formulas of every page, which name it as in `\\textcolor{accent}{x}`, names it in the color picker, adds it to the presets of the picker in the order of this setting and follows a change of this setting without a reload. A color of `drawSlidesCode.listStyles` and of `drawSlidesCode.customColorSchemes` may be the name of a color of this setting. The build of a presentation reads the same setting, and the commands Import Colors from TeX and Export Colors to TeX convert the `\\definecolor` lines of a TeX file into this setting and back.",
 						"propertyNames": {
 							"pattern": "^[A-Za-z][A-Za-z0-9]*$",
 							"patternErrorMessage": "A name of a color is letters and digits and starts with a letter."
@@ -698,7 +698,7 @@
 							"patternErrorMessage": "A color is `#` and six hexadecimal digits, such as `#004D80`."
 						}
 					},
-					"drawioSlides.plugins": {
+					"drawSlidesCode.plugins": {
 						"type": "array",
 						"items": {
 							"anyOf": [
@@ -715,10 +715,10 @@
 						},
 						"default": [],
 						"title": "Plugins",
-						"markdownDescription": "Loads Draw.io plugins from the local filesystem.  See description of the `file` property. See [plugins documentation](https://github.com/HuangYujun-JunkyTalent/vscode-drawio-slides/blob/main/docs/plugins.md).",
+						"markdownDescription": "Loads Draw.io plugins from the local filesystem.  See description of the `file` property. See [plugins documentation](https://github.com/HuangYujun-JunkyTalent/draw-slides-code/blob/main/docs/plugins.md).",
 						"order": 10
 					},
-					"drawioSlides.knownPlugins": {
+					"drawSlidesCode.knownPlugins": {
 						"type": "array",
 						"items": {
 							"type": "object",
@@ -736,11 +736,11 @@
 						},
 						"default": [],
 						"title": "Known Plugins",
-						"markdownDescription": "List of allowed or denied plugins. The extension will read and write to this list based on what the used decides when loading specific plugins. See [plugins documentation](https://github.com/HuangYujun-JunkyTalent/vscode-drawio-slides/blob/main/docs/plugins.md).",
+						"markdownDescription": "List of allowed or denied plugins. The extension will read and write to this list based on what the used decides when loading specific plugins. See [plugins documentation](https://github.com/HuangYujun-JunkyTalent/draw-slides-code/blob/main/docs/plugins.md).",
 						"scope": "application",
 						"order": 15
 					},
-					"drawioSlides.customLibraries": {
+					"drawSlidesCode.customLibraries": {
 						"type": "array",
 						"items": {
 							"type": "object",
@@ -799,7 +799,7 @@
 				"title": "Theme and styles",
 				"order": 30,
 				"properties": {
-					"drawioSlides.styles": {
+					"drawSlidesCode.styles": {
 						"title": "Styles",
 						"description": "Defines an array of objects that contain the colours (fontColor, fillColor, strokeColor and gradientColor) for the Style tab of the format panel if the selection is empty. These objects can have a commonStyle (which is applied to both vertices and edges), vertexStyle (applied to vertices) and edgeStyle (applied to edges), and a graph with background and gridColor. An empty object means apply the default colors",
 						"type": "array",
@@ -834,22 +834,22 @@
 							}
 						}
 					},
-					"drawioSlides.defaultVertexStyle": {
+					"drawSlidesCode.defaultVertexStyle": {
 						"title": "Default Vertex Style",
 						"description": "Default styling of vertices (shapes).",
 						"type": "object"
 					},
-					"drawioSlides.defaultEdgeStyle": {
+					"drawSlidesCode.defaultEdgeStyle": {
 						"title": "Default Edge Style",
 						"description": "Default styling of edges.",
 						"type": "object"
 					},
-					"drawioSlides.colorNames": {
+					"drawSlidesCode.colorNames": {
 						"title": "Color Names",
 						"description": "Names for colors, eg. {‘FFFFFF’: ‘White’, ‘000000’: ‘Black’} that are used as tooltips (uppercase, no leading # for the colour codes)",
 						"type": "object"
 					},
-					"drawioSlides.presetColors": {
+					"drawSlidesCode.presetColors": {
 						"title": "Preset Colors",
 						"description": "Color codes for the upper palette in the color dialog.",
 						"type": "array",
@@ -858,7 +858,7 @@
 							"description": "Use hex codes without # at the beginning only (FFFFFF for absolute white, for example)."
 						}
 					},
-					"drawioSlides.customColorSchemes": {
+					"drawSlidesCode.customColorSchemes": {
 						"title": "Custom Color Schemes",
 						"markdownDescription": "Available color schemes in the style section at the top of the format panel. See example [here](https://www.diagrams.net/doc/faq/custom-colours-confluence-cloud#default-colour-schemes---format-panel)",
 						"type": "array",
@@ -874,25 +874,25 @@
 									},
 									"fill": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a color of `drawioSlides.colors`, such as `accent`."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawSlidesCode.slides` is true, the value may also be the name of a color of `drawSlidesCode.colors`, such as `accent`."
 									},
 									"stroke": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a color of `drawioSlides.colors`, such as `accent`."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawSlidesCode.slides` is true, the value may also be the name of a color of `drawSlidesCode.colors`, such as `accent`."
 									},
 									"gradient": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a color of `drawioSlides.colors`, such as `accent`."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawSlidesCode.slides` is true, the value may also be the name of a color of `drawSlidesCode.colors`, such as `accent`."
 									},
 									"font": {
 										"type": "string",
-										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawioSlides.slides` is true, the value may also be the name of a color of `drawioSlides.colors`, such as `accent`."
+										"description": "Use hex codes with # at the beginning (#FFFFFF for absolute white, for example). In a drawing whose `drawSlidesCode.slides` is true, the value may also be the name of a color of `drawSlidesCode.colors`, such as `accent`."
 									}
 								}
 							}
 						}
 					},
-					"drawioSlides.customFonts": {
+					"drawSlidesCode.customFonts": {
 						"type": "array",
 						"items": {
 							"type": "string"
@@ -901,7 +901,7 @@
 						"title": "Custom Fonts",
 						"description": "Configures the Draw.io editor to use custom fonts."
 					},
-					"drawioSlides.theme": {
+					"drawSlidesCode.theme": {
 						"title": "Draw.io Theme",
 						"type": "string",
 						"default": "kennedy",
@@ -914,7 +914,7 @@
 						],
 						"description": "The theme to use for the Draw.io editor. Use \"automatic\" to automatically choose a Draw.io theme that matches your current VS Code theme."
 					},
-					"drawioSlides.appearance": {
+					"drawSlidesCode.appearance": {
 						"title": "Draw.io Appearance",
 						"type": "string",
 						"default": "light",
@@ -933,20 +933,20 @@
 		"menus": {
 			"explorer/context": [
 				{
-					"when": "drawioSlides.active",
-					"command": "drawioSlides.linkFileWithSelectedNode",
+					"when": "drawSlidesCode.active",
+					"command": "drawSlidesCode.linkFileWithSelectedNode",
 					"group": "Draw.io"
 				},
 				{
 					"when": "explorerResourceIsFolder",
-					"command": "drawioSlides.setUpDeck",
+					"command": "drawSlidesCode.setUpDeck",
 					"group": "Draw.io"
 				}
 			],
 			"commandPalette": [
 				{
 					"when": "false",
-					"command": "drawioSlides.linkFileWithSelectedNode"
+					"command": "drawSlidesCode.linkFileWithSelectedNode"
 				}
 			]
 		}

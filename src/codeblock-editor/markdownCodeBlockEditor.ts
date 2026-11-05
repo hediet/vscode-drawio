@@ -35,7 +35,7 @@ const PROVIDER_ID = "drawio";
 const DEFAULT_HEIGHT = 400;
 
 /**
- * Fallback for `drawioSlides.inlineEditor.diagramPadding`; keep in sync with
+ * Fallback for `drawSlidesCode.inlineEditor.diagramPadding`; keep in sync with
  * package.json and src/inline-editor/extension.ts.
  */
 const DEFAULT_DIAGRAM_PADDING = 28;
@@ -311,7 +311,7 @@ async function buildGuestConfig(
 	};
 
 	const diagramPadding = vscode.workspace
-		.getConfiguration("drawioSlides.inlineEditor")
+		.getConfiguration("drawSlidesCode.inlineEditor")
 		.get<number>("diagramPadding", DEFAULT_DIAGRAM_PADDING);
 
 	return {

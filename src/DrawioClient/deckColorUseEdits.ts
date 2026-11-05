@@ -120,7 +120,7 @@ export async function writeColorUseEdits(
 		throw new Error(
 			`VS Code did not write the uses of the color into ${pathsOf(
 				changed.map(({ document }) => document)
-			)}, while drawioSlides.colors holds the edit.`
+			)}, while drawSlidesCode.colors holds the edit.`
 		);
 	}
 	const unsaved = new Array<TextDocument>();
@@ -139,7 +139,7 @@ export async function writeColorUseEdits(
 		throw new Error(
 			`VS Code did not save the uses of the color in ${pathsOf(
 				unsaved
-			)}, while drawioSlides.colors holds the edit.`
+			)}, while drawSlidesCode.colors holds the edit.`
 		);
 	}
 }

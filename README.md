@@ -1,11 +1,13 @@
-# Draw.io Slides: a fork of the Draw.io VS Code Integration that edits and builds slide decks drawn in draw.io
+# DrawSlidesCode: a fork of the Draw.io VS Code Integration that edits and builds slide decks drawn in draw.io
 
 This fork of [hediet/vscode-drawio](https://github.com/hediet/vscode-drawio), by Henning Dieterichs, edits slide decks drawn in draw.io and builds them into one HTML file and a PDF.
 A deck is a folder of draw.io files, one per section, whose slides are draw.io XML that version control tracks and an agent can edit.
 The HTML file presents the slides in a browser with their links, videos and interactive pages, and the PDF holds the same slides.
-The fork installs beside the original, because every command, editor, setting and context key carries the prefix `drawioSlides.` and the extension is `yujunhuang.drawio-slides`.
-The README of the original follows the sections of the fork, and its commands and settings read `drawioSlides.<name>` here in place of `hediet.vscode-drawio.<name>`.
-The editor `hediet.vscode-drawio-text` of the original is `drawioSlides.textEditor` here, and the commands of the original show under the category `Draw.io Slides` in place of `Draw.io`.
+The fork installs beside the original, because every command, editor, setting and context key carries the prefix `drawSlidesCode.` and the extension is `yujunhuang.drawslidescode`.
+The README of the original follows the sections of the fork, and its commands and settings read `drawSlidesCode.<name>` here in place of `hediet.vscode-drawio.<name>`.
+The editor `hediet.vscode-drawio-text` of the original is `drawSlidesCode.textEditor` here, and the commands of the original show under the category `DrawSlidesCode` in place of `Draw.io`.
+
+DrawSlidesCode is made by Yujun Huang and is not made or endorsed by draw.io Ltd. draw.io is a registered trademark of draw.io Ltd.
 
 The guide for authors of slides, [docs/presentations.md](./docs/presentations.md), says how to start a deck and how the build numbers the slides.
 The guide also says how a formula, a color, a link, a video and an embedded page work, and what each warning of the build means.
@@ -21,7 +23,7 @@ The guide also says how a formula, a color, a link, a video and an embedded page
 
 ## The fork loads the plugins of the slides without asking
 
-The setting `drawioSlides.slides`, `false` by default and `true` in the `.vscode/settings.json` of a deck, loads the plugins in `drawio-custom-plugins/slides/` into the editor of every drawing it covers, without asking.
+The setting `drawSlidesCode.slides`, `false` by default and `true` in the `.vscode/settings.json` of a deck, loads the plugins in `drawio-custom-plugins/slides/` into the editor of every drawing it covers, without asking.
 The plugins play the videos and show the pages of the cells, style the lists of the template and check the language with LanguageTool on this machine.
 They also draw the pictures named relative to the deck, and keep the page view and the saved files as the build expects.
 Their headers say what each one does.
@@ -33,20 +35,20 @@ Six settings of scope `resource` describe a deck, so that the `.vscode/settings.
 
 | setting | what it gives |
 |---|---|
-| `drawioSlides.colors` | the colors of the deck, each a name of letters and digits, such as `accent`, with a value `#RRGGBB`, which the formulas of every page may name, as in `\textcolor{accent}{x}`, and which the color picker names and offers as presets |
-| `drawioSlides.listStyles` | the indent, the marker and the color and the size of the marker of each level of a bulleted and of a numbered list, and the gap between the items |
-| `drawioSlides.listMarkers` | the markers of the menu List style |
-| `drawioSlides.templates` | the multi-page template files of the deck, `${deckFolder}/templates/*.drawio.xml` by default, whose pages the submenu Insert slide of the menus Insert and Pages inserts |
-| `drawioSlides.slideSize` | the size of a slide, 1920 by 1080 by default, which the page view keeps at one page |
-| `drawioSlides.languageTool` | the address of the LanguageTool server that checks the label being edited, `http://localhost:8081` by default |
+| `drawSlidesCode.colors` | the colors of the deck, each a name of letters and digits, such as `accent`, with a value `#RRGGBB`, which the formulas of every page may name, as in `\textcolor{accent}{x}`, and which the color picker names and offers as presets |
+| `drawSlidesCode.listStyles` | the indent, the marker and the color and the size of the marker of each level of a bulleted and of a numbered list, and the gap between the items |
+| `drawSlidesCode.listMarkers` | the markers of the menu List style |
+| `drawSlidesCode.templates` | the multi-page template files of the deck, `${deckFolder}/templates/*.drawio.xml` by default, whose pages the submenu Insert slide of the menus Insert and Pages inserts |
+| `drawSlidesCode.slideSize` | the size of a slide, 1920 by 1080 by default, which the page view keeps at one page |
+| `drawSlidesCode.languageTool` | the address of the LanguageTool server that checks the label being edited, `http://localhost:8081` by default |
 
 `${deckFolder}` in a path stands for the folder of the deck, and a relative path is read from that folder.
-A color of a level of `drawioSlides.listStyles` and a `fill`, `stroke`, `font` or `gradient` of `drawioSlides.customColorSchemes`, the swatches of the Style tab of the Format panel, may be the name of a color of `drawioSlides.colors`.
-The output channel Drawio Integration Log names each color that the extension leaves out and each name of a color that `drawioSlides.colors` does not define.
-VS Code shows a swatch before each value of `drawioSlides.colors` in `settings.json`, and its color picker edits the value.
+A color of a level of `drawSlidesCode.listStyles` and a `fill`, `stroke`, `font` or `gradient` of `drawSlidesCode.customColorSchemes`, the swatches of the Style tab of the Format panel, may be the name of a color of `drawSlidesCode.colors`.
+The output channel Drawio Integration Log names each color that the extension leaves out and each name of a color that `drawSlidesCode.colors` does not define.
+VS Code shows a swatch before each value of `drawSlidesCode.colors` in `settings.json`, and its color picker edits the value.
 After a new value there, while a drawing of the deck is open, a message asks whether to write it into the shapes, the lines and the texts linked to the color in the drawing files of the deck.
 
-The section Deck colors of the Format panel lists the colors of `drawioSlides.colors` in the editor of a drawing, each with its swatch and its name.
+The section Deck colors of the Format panel lists the colors of `drawSlidesCode.colors` in the editor of a drawing, each with its swatch and its name.
 It sits in the Style tab, after the swatches and before Fill, in the Style tab of the diagram while nothing is selected, where it edits the list alone, and in the tab Text while a label is edited.
 A click on a swatch gives each selected shape the color by its kind: a text shape takes it as font color, an edge and a shape whose fill draw.io does not draw as line color, and any other shape as fill color.
 A selected group gives the color to the shapes in it.
@@ -61,10 +63,10 @@ The editor and the build draw a linked shape in the current value of the color, 
 The button ✎ opens the color dialog of draw.io, which gives the color a new value, and a new name in the text field renames the color.
 The button × removes a color after a dialog of VS Code that counts the uses that keep its last value.
 Add color adds a color, named `color1` or the next free number, with the value that the color dialog gives.
-The extension writes each change into `drawioSlides.colors` of the `.vscode/settings.json` of the workspace folder of the drawing, as an edit of that setting alone, so the comments of the file stay.
-When the file is missing, or holds no `drawioSlides.colors` while another settings file defines it, VS Code writes the colors of the folder with the change into the `.vscode/settings.json` of the workspace folder.
+The extension writes each change into `drawSlidesCode.colors` of the `.vscode/settings.json` of the workspace folder of the drawing, as an edit of that setting alone, so the comments of the file stay.
+When the file is missing, or holds no `drawSlidesCode.colors` while another settings file defines it, VS Code writes the colors of the folder with the change into the `.vscode/settings.json` of the workspace folder.
 A color that the user settings or the file of a workspace of several folders define can be recolored there, and the extension refuses to rename or remove it.
-A rename also renames the color where `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` of the file name it.
+A rename also renames the color where `drawSlidesCode.listStyles` and `drawSlidesCode.customColorSchemes` of the file name it.
 A new value from the section also goes into the shapes, the lines and the texts linked to the color in the section files, the templates and the open drawings of the deck.
 A new name or a removal also goes into the links and the formulas that name the color.
 A drawing file with unsaved changes takes the change in its editor and stays unsaved.
@@ -72,27 +74,27 @@ The extension refuses a name that another color has, a name of other characters 
 The extension also refuses a change while the settings file has unsaved changes.
 A message in VS Code then gives the reason, and the section shows the colors as they were.
 
-The editor follows a change of `drawioSlides.colors`, `drawioSlides.listStyles`, `drawioSlides.listMarkers`, `drawioSlides.customColorSchemes`, `drawioSlides.presetColors` and `drawioSlides.colorNames` without a reload, so the zoom and the undo history stay.
+The editor follows a change of `drawSlidesCode.colors`, `drawSlidesCode.listStyles`, `drawSlidesCode.listMarkers`, `drawSlidesCode.customColorSchemes`, `drawSlidesCode.presetColors` and `drawSlidesCode.colorNames` without a reload, so the zoom and the undo history stay.
 After a new name or a removal of a color, the editor starts a new undo history.
 The formulas, the presets and the names of the color picker, the swatches, the colors of the list markers and the menu List style take the new settings, and a list made after the change takes the new list style.
-A color taken out of `drawioSlides.colors` stays defined for the formulas until the editor reloads.
+A color taken out of `drawSlidesCode.colors` stays defined for the formulas until the editor reloads.
 The editor also follows a save of a template file, whose pages the submenu Insert slide then offers.
 
 ## The commands and the command line build a deck into an HTML file and a PDF
 
 The build of `src/deck/` exports each page of a deck to SVG with the draw.io viewer that the extension bundles, so the slides it draws match the editor.
 It then writes the HTML file, which shows the SVGs with the links, the videos and the embedded pages of the cells, and prints the SVGs into the PDF.
-The commands of the category Draw.io Slides, the command line `dist/cli.js` and the launcher `drawio-slides.cjs` of each deck are in the section The scripts of package.json and the commands of VS Code build the presentation of [docs/presentations.md](./docs/presentations.md).
+The commands of the category DrawSlidesCode, the command line `dist/cli.js` and the launcher `drawslidescode.cjs` of each deck are in the section The scripts of package.json and the commands of VS Code build the presentation of [docs/presentations.md](./docs/presentations.md).
 The section of the same guide on what the build needs names the command Install Chromium for the Build, and the section on the colors of a formula names the commands Import Colors from TeX and Export Colors to TeX.
 
 The build drives a headless browser through `playwright-core`, the first that starts of the Chromium of Playwright, Google Chrome and Microsoft Edge.
-The user setting `drawioSlides.browserPath` names another browser by the path of its program, and a build that finds no browser offers to install Chromium or to set the path.
+The user setting `drawSlidesCode.browserPath` names another browser by the path of its program, and a build that finds no browser offers to install Chromium or to set the path.
 The extension needs VS Code 1.90 or later, whose Node.js 20 `playwright-core` needs.
 `dist/cli.js` runs the same build without VS Code, with Node.js 20 or later, so that an agent, a script or a CI job builds a deck.
 
 ## The command Set Up a Presentation in This Folder starts a deck or sets up the editor for one
 
-The command *Draw.io Slides: Set Up a Presentation in This Folder*, in the command palette and in the context menu of a folder in the Explorer, sets up the folder clicked in the Explorer, or else the workspace folder, and asks which one when the workspace has several.
+The command *DrawSlidesCode: Set Up a Presentation in This Folder*, in the command palette and in the context menu of a folder in the Explorer, sets up the folder clicked in the Explorer, or else the workspace folder, and asks which one when the workspace has several.
 The command runs only in a trusted workspace, and needs `git` on the path of VS Code to start a presentation.
 
 The command chooses what to do by what the folder holds:
@@ -101,7 +103,7 @@ The command chooses what to do by what the folder holds:
 |---|---|
 | no presentation and none of the files of a new one | asks for the title, the name of the folder by default, and starts a presentation as a git repository of its own, as the mode `init` of the command line does |
 | a presentation, as its section files ending in `.drawio.xml` or its multi-page file, without `.vscode/settings.json` | writes the settings and copies the template that the presentation lacks, as the mode `vscode` does |
-| a presentation with `.vscode/settings.json` | says that the folder is set up, and says how to load the plugins when the file does not set `drawioSlides.slides` to `true` |
+| a presentation with `.vscode/settings.json` | says that the folder is set up, and says how to load the plugins when the file does not set `drawSlidesCode.slides` to `true` |
 | no presentation, and a `package.json`, a `.vscode/settings.json` or another file that `init` refuses to replace | names those files, suggests a new folder for the presentation, and writes nothing |
 
 Before the command writes, a dialog lists the files that it writes.
@@ -111,7 +113,7 @@ VS Code reads the `.vscode/settings.json` of a workspace folder alone, so the ed
 
 A presentation that the Python build of the draw.io presentation framework started runs `build-slides.py` of the framework in the scripts of its `package.json`.
 On such a presentation, the command also offers to move it to the launcher, in a dialog that lists the changes.
-The move copies `drawio-slides.cjs` into the folder and rewrites each such script to `node drawio-slides.cjs <mode>`, and keeps `config` and every other key of `package.json`.
+The move copies `drawslidescode.cjs` into the folder and rewrites each such script to `node drawslidescode.cjs <mode>`, and keeps `config` and every other key of `package.json`.
 The mode `migrate` of the command line makes the same move.
 
 ## Build the extension and install it
@@ -128,7 +130,7 @@ code --install-extension dist/extension.vsix --force
 ```
 
 Reload the window of VS Code after an installation, with *Developer: Reload Window*.
-A clone serves the command line after its build, through `DRAWIO_SLIDES_EXTENSION=<clone>` or `node <clone>/dist/cli.js`.
+A clone serves the command line after its build, through `DRAWSLIDESCODE_EXTENSION=<clone>` or `node <clone>/dist/cli.js`.
 
 ## Publish the extension on the Visual Studio Marketplace and on Open VSX
 
@@ -238,7 +240,7 @@ Add this to your VS Code `settings.json` file if you want to associate it with `
 
 ```json
 "workbench.editorAssociations": {
-    "*.svg": "drawioSlides.textEditor",
+    "*.svg": "drawSlidesCode.textEditor",
 }
 ```
 
@@ -247,7 +249,7 @@ You won't be able to edit arbitrary SVG files though - only those that have been
 ### Light and Dark `.drawio.svg` Files
 
 By default, `.drawio.svg` files are saved with light colors, whatever theme the editor uses.
-Set `drawioSlides.svgAppearance` to `auto` to make them adapt to the color scheme of the page that shows them, for example a README on GitHub in dark mode, or to `dark` to always save them with dark colors.
+Set `drawSlidesCode.svgAppearance` to `auto` to make them adapt to the color scheme of the page that shows them, for example a README on GitHub in dark mode, or to `dark` to always save them with dark colors.
 The setting applies the next time a diagram is saved. Add it to the workspace settings so that everyone on a team saves the same file.
 
 ### Inline Diagrams in VS Code's Markdown Editor (Experimental, Insiders only)
@@ -290,7 +292,7 @@ When an agent edits the XML, the change shows up in the open diagram right away,
 Other extensions, keybindings and automations can export a diagram file to SVG, PNG or `.drawio` without opening it and without prompts:
 
 ```ts
-const uri = await vscode.commands.executeCommand("drawioSlides.export", {
+const uri = await vscode.commands.executeCommand("drawSlidesCode.export", {
 	source: "diagrams/architecture.drawio",
 	destination: "public/diagrams/architecture.svg", // optional
 	format: "svg", // optional: "svg", "png" or "drawio"
@@ -303,7 +305,7 @@ const uri = await vscode.commands.executeCommand("drawioSlides.export", {
 -   The saved file is exported, with the first page for multi-page diagrams. It is briefly rendered in a temporary editor tab that closes again.
 -   The command resolves to the `Uri` of the written file and rejects with the reason if the export fails, e.g. because the destination exists and `overwrite` is not set.
 
-Without arguments, the command is `Draw.io Slides: Export To...`, which asks for the format and file of the diagram in the active editor.
+Without arguments, the command is `DrawSlidesCode: Export To...`, which asks for the format and file of the diagram in the active editor.
 
 ### Contributors
 

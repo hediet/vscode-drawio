@@ -1,5 +1,5 @@
 /**
- * The links of a drawing to the colors of `drawioSlides.colors`, read and edited in the XML of a
+ * The links of a drawing to the colors of `drawSlidesCode.colors`, read and edited in the XML of a
  * page as the editor saves it.
  *
  * A key of a style that holds a color links to a color of the deck through a key beside it, as

@@ -8,22 +8,22 @@ import {
 
 export { COLOR_NAME, COLOR_VALUE, LIST_KINDS, SCHEME_COLOR_KEYS };
 
-const COLORS = "drawioSlides.colors";
-const LIST_STYLES = "drawioSlides.listStyles";
-const COLOR_SCHEMES = "drawioSlides.customColorSchemes";
+const COLORS = "drawSlidesCode.colors";
+const LIST_STYLES = "drawSlidesCode.listStyles";
+const COLOR_SCHEMES = "drawSlidesCode.customColorSchemes";
 const OPERATIONS: Record<DeckColorEdit["operation"], true> = {
 	set: true,
 	rename: true,
 	remove: true,
 };
 
-/** An edit of `drawioSlides.colors` that the extension refuses, with the reason. */
+/** An edit of `drawSlidesCode.colors` that the extension refuses, with the reason. */
 export class RefusedColorEdit extends Error {
 	public readonly name = "RefusedColorEdit";
 }
 
 /**
- * The colors of `drawioSlides.colors` after the edit, in the order of the setting, with a renamed
+ * The colors of `drawSlidesCode.colors` after the edit, in the order of the setting, with a renamed
  * color in its place and a new color last.
  */
 export function withColorEdit(
@@ -52,9 +52,9 @@ export function withColorEdit(
 }
 
 /**
- * The text of a settings file of VS Code after the edit of its member `drawioSlides.colors`, with
+ * The text of a settings file of VS Code after the edit of its member `drawSlidesCode.colors`, with
  * every other member and every comment as they were. A rename also renames the color where
- * `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` of the file name it.
+ * `drawSlidesCode.listStyles` and `drawSlidesCode.customColorSchemes` of the file name it.
  */
 export function withColorEditInSettings(
 	text: string,
@@ -67,7 +67,7 @@ export function withColorEditInSettings(
 		: {};
 	if (!isPlainObject(colors)) {
 		throw new RefusedColorEdit(
-			`The settings file gives drawioSlides.colors the value ${JSON.stringify(
+			`The settings file gives drawSlidesCode.colors the value ${JSON.stringify(
 				colors
 			)}, where an object of names and colors was expected, so the file stays as it is.`
 		);
@@ -103,7 +103,7 @@ export function withColorEditInSettings(
 	);
 }
 
-/** Whether a settings file of VS Code holds the member `drawioSlides.colors`. */
+/** Whether a settings file of VS Code holds the member `drawSlidesCode.colors`. */
 export function hasColorsMember(text: string): boolean {
 	const root = parseSettings(text);
 	return (
@@ -118,7 +118,7 @@ function checkColorEdit(
 ): void {
 	if (!Object.prototype.hasOwnProperty.call(OPERATIONS, edit.operation)) {
 		throw new RefusedColorEdit(
-			`The edit of drawioSlides.colors names the operation ${JSON.stringify(
+			`The edit of drawSlidesCode.colors names the operation ${JSON.stringify(
 				edit.operation
 			)}, where set, rename or remove was expected, so the setting stays as it is.`
 		);
@@ -128,21 +128,21 @@ function checkColorEdit(
 			throw new RefusedColorEdit(
 				`The name ${JSON.stringify(
 					edit.name
-				)} is not letters and digits that start with a letter, so drawioSlides.colors stays as it is.`
+				)} is not letters and digits that start with a letter, so drawSlidesCode.colors stays as it is.`
 			);
 		}
 		if (typeof edit.value !== "string" || !COLOR_VALUE.test(edit.value)) {
 			throw new RefusedColorEdit(
 				`The value ${JSON.stringify(edit.value)} of ${
 					edit.name
-				} is not # and six hexadecimal digits, so drawioSlides.colors stays as it is.`
+				} is not # and six hexadecimal digits, so drawSlidesCode.colors stays as it is.`
 			);
 		}
 		return;
 	}
 	if (!hasColor(colors, edit.name)) {
 		throw new RefusedColorEdit(
-			`drawioSlides.colors defines no color ${JSON.stringify(
+			`drawSlidesCode.colors defines no color ${JSON.stringify(
 				edit.name
 			)}, so the setting stays as it is.`
 		);
@@ -162,7 +162,7 @@ function checkColorEdit(
 		}
 		if (edit.newName !== edit.name && hasColor(colors, edit.newName)) {
 			throw new RefusedColorEdit(
-				`drawioSlides.colors already defines a color ${edit.newName}, so ${edit.name} keeps its name.`
+				`drawSlidesCode.colors already defines a color ${edit.newName}, so ${edit.name} keeps its name.`
 			);
 		}
 	}
@@ -245,7 +245,7 @@ function parseSettings(text: string): jsoncParser.Node | undefined {
 }
 
 /**
- * The places of `drawioSlides.listStyles` and `drawioSlides.customColorSchemes` that name the
+ * The places of `drawSlidesCode.listStyles` and `drawSlidesCode.customColorSchemes` that name the
  * color: the color of a level of a list, and a color of a swatch.
  */
 function pathsNamingColor(

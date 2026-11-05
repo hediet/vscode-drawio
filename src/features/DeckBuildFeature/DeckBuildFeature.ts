@@ -55,7 +55,7 @@ import {
 	progressText,
 } from "./deckCommandTargets";
 
-const settingSection = "drawioSlides";
+const settingSection = "drawSlidesCode";
 const browserPathSetting = "browserPath";
 const showOutputButton = "Show Output";
 const installButton = "Install Chromium";
@@ -77,19 +77,19 @@ interface BuildCommand {
 
 const buildCommands: readonly BuildCommand[] = [
 	{
-		command: "drawioSlides.buildDeck",
+		command: "drawSlidesCode.buildDeck",
 		title: "Build the Presentation",
 		action: "Building the HTML file and the PDF of",
 		run: buildDeck,
 	},
 	{
-		command: "drawioSlides.buildDeckHtml",
+		command: "drawSlidesCode.buildDeckHtml",
 		title: "Build the HTML File of the Presentation",
 		action: "Building the HTML file of",
 		run: buildDeckHtml,
 	},
 	{
-		command: "drawioSlides.buildDeckPdf",
+		command: "drawSlidesCode.buildDeckPdf",
 		title: "Build the PDF of the Presentation",
 		action: "Building the PDF of",
 		run: buildDeckPdf,
@@ -122,26 +122,26 @@ export class DeckBuildFeature {
 		private readonly extensionRoot: string
 	) {
 		this.problems = this.dispose.track(
-			languages.createDiagnosticCollection("Draw.io Slides")
+			languages.createDiagnosticCollection("DrawSlidesCode")
 		);
 		for (const build of buildCommands) {
 			this.register(build.command, (target) => this.build(build, target));
 		}
-		this.register("drawioSlides.watchDeck", (target) => this.watch(target));
-		this.register("drawioSlides.stopWatchingDeck", (deck) =>
+		this.register("drawSlidesCode.watchDeck", (target) => this.watch(target));
+		this.register("drawSlidesCode.stopWatchingDeck", (deck) =>
 			this.stopWatching(typeof deck === "string" ? deck : undefined)
 		);
-		this.register("drawioSlides.checkDeck", (target) => this.check(target));
-		this.register("drawioSlides.outlineDeck", (target) =>
+		this.register("drawSlidesCode.checkDeck", (target) => this.check(target));
+		this.register("drawSlidesCode.outlineDeck", (target) =>
 			this.showOutline(target)
 		);
-		this.register("drawioSlides.importColorsFromTex", (target) =>
+		this.register("drawSlidesCode.importColorsFromTex", (target) =>
 			this.importColors(target)
 		);
-		this.register("drawioSlides.exportColorsToTex", (target) =>
+		this.register("drawSlidesCode.exportColorsToTex", (target) =>
 			this.exportColors(target)
 		);
-		this.register("drawioSlides.installBrowser", () =>
+		this.register("drawSlidesCode.installBrowser", () =>
 			this.installBrowser()
 		);
 		this.dispose.track({
@@ -412,7 +412,7 @@ export class DeckBuildFeature {
 		statusBarItem.tooltip = `Watching ${deck}: the HTML file is written again after every save. Click to stop the watch.`;
 		statusBarItem.command = {
 			title: "Stop Watching the Presentation",
-			command: "drawioSlides.stopWatchingDeck",
+			command: "drawSlidesCode.stopWatchingDeck",
 			arguments: [deck],
 		};
 		statusBarItem.show();
@@ -568,7 +568,7 @@ export class DeckBuildFeature {
 	}
 
 	/**
-	 * Writes the colors of TeX files that the user chooses into `drawioSlides.colors` of the
+	 * Writes the colors of TeX files that the user chooses into `drawSlidesCode.colors` of the
 	 * deck, after a confirmation, since the colors replace those of the setting.
 	 */
 	private async importColors(target: unknown): Promise<void> {
@@ -641,7 +641,7 @@ export class DeckBuildFeature {
 		}
 	}
 
-	/** Writes the colors of `drawioSlides.colors` of the deck into a TeX file that the user names. */
+	/** Writes the colors of `drawSlidesCode.colors` of the deck into a TeX file that the user names. */
 	private async exportColors(target: unknown): Promise<void> {
 		const title = "Export Colors to TeX";
 		const deck = await this.chooseDeck(target, title);

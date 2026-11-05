@@ -1,7 +1,7 @@
 /**
  * The command line of the build of a deck, `dist/cli.js`, which runs one mode on a deck folder,
  * so that an agent, a script or a CI job builds a deck without VS Code. The scripts of the
- * `package.json` of a deck run it through the launcher `drawio-slides.cjs`, as `deckSetUp.ts` says.
+ * `package.json` of a deck run it through the launcher `drawslidescode.cjs`, as `deckSetUp.ts` says.
  *
  *     node dist/cli.js init ../my-talk --title "My talk"   a new presentation, as a repository
  *     node dist/cli.js build                               build/<folder>.html and .pdf
@@ -69,7 +69,7 @@ export enum ExitStatus {
 /** The environment variables that the command line reads, each with the option it sets. */
 export const ENVIRONMENT = {
 	/** The folder of the extension, such as a clone of it, in place of the folder of `dist/cli.js`. */
-	extension: "DRAWIO_SLIDES_EXTENSION",
+	extension: "DRAWSLIDESCODE_EXTENSION",
 	/** The draw.io viewer of the export, as a path or an address. */
 	viewer: "DRAWIO_VIEWER",
 	/** `1` exports every page again, without the cache. */
@@ -89,7 +89,7 @@ export const ENVIRONMENT = {
 export const USAGE = `usage: node cli.js <mode> [folder] [options]
 
 Builds a draw.io presentation into one HTML file and one PDF, with the draw.io of the
-extension Draw.io Slides. The folder of the presentation is the working directory, unless the
+extension DrawSlidesCode. The folder of the presentation is the working directory, unless the
 folder or --project names another.
 
 modes:
@@ -102,10 +102,10 @@ modes:
   outline          print the sections, the slides and their pages
   check            check the spelling and the grammar with LanguageTool, exit status 1 on an issue
   embed-pictures   write the pictures of assets/ into the slide files as data, for the editor
-  from-tex <file.tex>...   write the \\definecolor lines of the files into drawioSlides.colors
-  to-tex <file.tex>        write drawioSlides.colors into a TeX file
+  from-tex <file.tex>...   write the \\definecolor lines of the files into drawSlidesCode.colors
+  to-tex <file.tex>        write drawSlidesCode.colors into a TeX file
   color-config <drawing> --out <file>   write a color configuration of the colors of a drawing
-  migrate          copy the launcher drawio-slides.cjs into a presentation whose package.json
+  migrate          copy the launcher drawslidescode.cjs into a presentation whose package.json
                    runs build-slides.py of the framework, and rewrite those scripts to run it,
                    after a confirmation, or at once with --yes
   place-logos <section file> <page name> <cell id>=<logo.png>...

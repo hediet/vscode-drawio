@@ -27,7 +27,7 @@ function folderWith(files) {
 
 const survey = (folder) => plain(setUp.surveyDeckFolder(folder));
 const section = '<mxfile><diagram name="title-slide-1"></diagram></mxfile>\n';
-const slideSettings = '{\n  // The slides.\n  "drawioSlides.slides": true,\n}\n';
+const slideSettings = '{\n  // The slides.\n  "drawSlidesCode.slides": true,\n}\n';
 
 test("an empty folder holds no presentation", () => {
 	assert.deepEqual(survey(folderWith({})), { state: DeckFolderState.WithoutPresentation });
@@ -73,7 +73,7 @@ test("a presentation with settings that load the plugins is set up", () => {
 });
 
 test("a presentation with settings that do not load the plugins is set up, and the survey says so", () => {
-	for (const settings of ['{ "drawioSlides.slides": false }', '{ "editor.tabSize": 2 }', "[]", "{ not json"]) {
+	for (const settings of ['{ "drawSlidesCode.slides": false }', '{ "editor.tabSize": 2 }', "[]", "{ not json"]) {
 		const folder = folderWith({ "sections/1-a.drawio.xml": section, ".vscode/settings.json": settings });
 		assert.deepEqual(survey(folder), { state: DeckFolderState.SetUp, loadsSlidePlugins: false }, settings);
 	}
@@ -84,11 +84,11 @@ test("a folder without slides lists each file that the set-up refuses to replace
 		"package.json": "{}\n",
 		".vscode/settings.json": "{}\n",
 		"templates/slides.drawio.xml": section,
-		"drawio-slides.cjs": "",
+		"drawslidescode.cjs": "",
 	});
 	assert.deepEqual(survey(folder), {
 		state: DeckFolderState.FilesInTheWay,
-		filesInTheWay: ["package.json", ".vscode/settings.json", "templates/slides.drawio.xml", "drawio-slides.cjs"],
+		filesInTheWay: ["package.json", ".vscode/settings.json", "templates/slides.drawio.xml", "drawslidescode.cjs"],
 	});
 });
 
@@ -102,7 +102,7 @@ test("the set-up of a new presentation writes its files, and git init only into 
 	assert.deepEqual(paths(setUp.filesWrittenByInit(folderWith({}))), [
 		"sections/1-<title>.drawio.xml",
 		"package.json",
-		"drawio-slides.cjs",
+		"drawslidescode.cjs",
 		".gitignore",
 		"templates/slides.drawio.xml",
 		".vscode/settings.json",
@@ -113,7 +113,7 @@ test("the set-up of a new presentation writes its files, and git init only into 
 	assert.deepEqual(paths(written), [
 		"sections/1-<title>.drawio.xml",
 		"package.json",
-		"drawio-slides.cjs",
+		"drawslidescode.cjs",
 		".gitignore",
 		"templates/slides.drawio.xml",
 		".vscode/settings.json",

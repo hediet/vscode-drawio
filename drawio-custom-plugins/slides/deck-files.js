@@ -1,5 +1,5 @@
 // The address of a file of a deck in the page of the draw.io editor, for the slide plugins of the
-// VS Code extension yujunhuang.drawio-slides.
+// VS Code extension yujunhuang.drawslidescode.
 //
 // The extension serves every file of an open folder at its absolute path under the origin of the
 // page's own files, and a page opened from the disk reads the file at its file: address.  The

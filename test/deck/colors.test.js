@@ -46,7 +46,7 @@ test("each model of \\definecolor converts as xcolor converts it", () => {
 test("the colors of a TeX text keep their comments, and the definitions the setting cannot hold are problems", () => {
 	const read = tex.readCommentedColors(
 		[
-			"% Written by the command Export Colors to TeX of Draw.io Slides from drawioSlides.colors of x.",
+			"% Written by the command Export Colors to TeX of DrawSlidesCode from drawSlidesCode.colors of x.",
 			"% The reds.",
 			"\\definecolor{dpred}{rgb}{0.7, 0.0, 0.0} % the loss",
 			"",
@@ -77,7 +77,7 @@ test("the colors of a TeX text keep their comments, and the definitions the sett
 	assert.throws(
 		() =>
 			tex.readColorFileText("x.tex", "\\definecolor{a-b}{HTML}{000000}"),
-		/x.tex holds colors that drawioSlides.colors cannot hold/
+		/x.tex holds colors that drawSlidesCode.colors cannot hold/
 	);
 });
 
@@ -127,7 +127,7 @@ test("a setting of the deck merges over the default of package.json key by key",
 	assert.equal(settings.mergedSetting({ gap: 8 }, null), null);
 	const deck = folderWith({
 		".vscode/settings.json":
-			'{\n  // x\n  "drawioSlides.listStyles": {"itemGap": "4px"},\n}\n',
+			'{\n  // x\n  "drawSlidesCode.listStyles": {"itemGap": "4px"},\n}\n',
 	});
 	const styles = settings.slideSetting(
 		settings.readDeckSettings(deck),
@@ -138,20 +138,20 @@ test("a setting of the deck merges over the default of package.json key by key",
 	assert.ok(Array.isArray(styles.bulleted));
 	assert.throws(
 		() => settings.defaultSetting(extensionRoot, "noSuchSetting"),
-		/declares no setting drawioSlides.noSuchSetting/
+		/declares no setting drawSlidesCode.noSuchSetting/
 	);
 });
 
 test("the colors of a deck leave out an entry that is no color, and the list styles take their values", () => {
 	const deck = folderWith({
 		".vscode/settings.json": JSON.stringify({
-			"drawioSlides.colors": {
+			"drawSlidesCode.colors": {
 				accent: "#004d80",
 				"bad-name": "#000000",
 				grey: "grey",
 				text: "#000000",
 			},
-			"drawioSlides.listStyles": {
+			"drawSlidesCode.listStyles": {
 				bulleted: [
 					{ color: "accent" },
 					{ color: "missing" },
@@ -184,14 +184,14 @@ test("the colors of a deck leave out an entry that is no color, and the list sty
 		"odd",
 	]);
 	assert.deepEqual(plain(styles.warnings), [
-		"drawioSlides.listStyles names the color missing, which drawioSlides.colors does not define, so the value stays as written",
+		"drawSlidesCode.listStyles names the color missing, which drawSlidesCode.colors does not define, so the value stays as written",
 	]);
 });
 
-test("a deck that still holds drawioSlides.colorDefinitions stops with the command that converts it", () => {
+test("a deck that still holds drawSlidesCode.colorDefinitions stops with the command that converts it", () => {
 	const deck = folderWith({
 		".vscode/settings.json":
-			'{"drawioSlides.colorDefinitions": "${deckFolder}/colors.tex"}',
+			'{"drawSlidesCode.colorDefinitions": "${deckFolder}/colors.tex"}',
 	});
 	assert.throws(
 		() =>
@@ -218,7 +218,7 @@ test("colors convert from TeX files into the setting and back with their comment
 		"two.tex": "\\definecolor{other}{HTML}{123456}\n",
 		"again.tex": "\\definecolor{other}{HTML}{000000}\n",
 		".vscode/settings.json":
-			'{\n  // The editor.\n  "drawioSlides.slides": true\n}\n',
+			'{\n  // The editor.\n  "drawSlidesCode.slides": true\n}\n',
 	});
 	const files = ["one.tex", "two.tex"].map((name) => path.join(folder, name));
 	conversion.importColorsFromTex(folder, files);
@@ -228,13 +228,13 @@ test("colors convert from TeX files into the setting and back with their comment
 	);
 	assert.equal(
 		written,
-		'{\n  // The editor.\n  "drawioSlides.slides": true,\n  "drawioSlides.colors": {\n    // The reds.\n    "dpred": "#B20000", // the loss\n    // after one\n\n    "other": "#123456"\n  }\n}\n'
+		'{\n  // The editor.\n  "drawSlidesCode.slides": true,\n  "drawSlidesCode.colors": {\n    // The reds.\n    "dpred": "#B20000", // the loss\n    // after one\n\n    "other": "#123456"\n  }\n}\n'
 	);
 	const exported = path.join(folder, "out.tex");
 	conversion.exportColorsToTex(folder, exported);
 	assert.equal(
 		fs.readFileSync(exported, "utf8"),
-		"% Written by the command Export Colors to TeX of Draw.io Slides from drawioSlides.colors of .vscode/settings.json.\n% The reds.\n\\definecolor{dpred}{HTML}{B20000} % the loss\n% after one\n\n\\definecolor{other}{HTML}{123456}\n"
+		"% Written by the command Export Colors to TeX of DrawSlidesCode from drawSlidesCode.colors of .vscode/settings.json.\n% The reds.\n\\definecolor{dpred}{HTML}{B20000} % the loss\n% after one\n\n\\definecolor{other}{HTML}{123456}\n"
 	);
 	conversion.importColorsFromTex(folder, [exported]);
 	assert.equal(
@@ -253,7 +253,7 @@ test("colors convert from TeX files into the setting and back with their comment
 
 test("the export refuses a setting entry that is no color", () => {
 	const folder = folderWith({
-		".vscode/settings.json": '{"drawioSlides.colors": {"a": "red"}}',
+		".vscode/settings.json": '{"drawSlidesCode.colors": {"a": "red"}}',
 	});
 	assert.throws(
 		() => conversion.exportColorsToTex(folder, path.join(folder, "x.tex")),

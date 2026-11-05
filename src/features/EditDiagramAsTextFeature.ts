@@ -41,7 +41,7 @@ export class EditDiagramAsTextFeature {
 
 		this.dispose.track(
 			registerFailableCommand(
-				"drawioSlides.editDiagramAsText",
+				"drawSlidesCode.editDiagramAsText",
 				async () => {
 					const activeDrawioEditor =
 						this.editorManager.activeDrawioEditor;

@@ -59,7 +59,7 @@ test("the slide number and the total fill in, and a backup slide shows the total
 	);
 	assert.ok(
 		assembled.text.startsWith(
-			'<mxfile host="Draw.io Slides" pages="3">\n  <diagram id="a-1"'
+			'<mxfile host="DrawSlidesCode" pages="3">\n  <diagram id="a-1"'
 		)
 	);
 	assert.ok(assembled.text.endsWith("</diagram>\n</mxfile>\n"));
@@ -108,7 +108,7 @@ test("a page with formulas gets the definitions it lacks in a layer of its own b
 		height: 720,
 	});
 	assert.deepEqual(plain(assembled.warnings), [
-		'slide 1, "x-1", colors formulas with nosuch, which neither the page nor the setting drawioSlides.colors defines',
+		'slide 1, "x-1", colors formulas with nosuch, which neither the page nor the setting drawSlidesCode.colors defines',
 	]);
 });
 

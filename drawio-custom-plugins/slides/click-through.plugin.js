@@ -8,8 +8,8 @@
 // its own style sets pointerEvents, so the files stay as they are and every page behaves alike.
 // The build reads no pointer events, so the slides do not change.
 //
-// The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
-// drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
+// The VS Code extension yujunhuang.drawslidescode loads the plugin from its own folder
+// drawio-custom-plugins/slides/ for every drawing whose setting "drawSlidesCode.slides" is true,
 // without asking.
 Draw.loadPlugin(function (ui) {
   var graph = ui.editor.graph;

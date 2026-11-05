@@ -1,12 +1,12 @@
 // A draw.io color configuration to copy: replace the values, and load the three settings as the
 // section "The color configuration gives each hex value a name in the color dialog" of
-// docs/presentations.md of the extension Draw.io Slides says, which also says what each setting
+// docs/presentations.md of the extension DrawSlidesCode says, which also says what each setting
 // does and the form of its values.  `named-colors-example.json` is this template filled in for an example deck,
 // with the same names for the four colors below.
 //
 // This file is JSON with comments, so that it can name the part of draw.io that reads each
 // setting.  Strip the comments for the option `--colors` of the mode `vscode` of the command line
-// of the extension Draw.io Slides, or paste each part into a VS Code `settings.json` under the name
+// of the extension DrawSlidesCode, or paste each part into a VS Code `settings.json` under the name
 // of the extension setting that the same section gives, because VS Code accepts comments there.
 {
   // draw.io reads the names into `ColorDialog.prototype.colorNames`.

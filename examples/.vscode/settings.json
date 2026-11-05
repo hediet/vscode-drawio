@@ -1,14 +1,14 @@
 {
-	"drawioSlides.enableExperimentalFeatures": true,
-	"drawioSlides.showTooltipIcons": true,
-	"drawioSlides.defaultVertexStyle": {
+	"drawSlidesCode.enableExperimentalFeatures": true,
+	"drawSlidesCode.showTooltipIcons": true,
+	"drawSlidesCode.defaultVertexStyle": {
 		"fontColor": "#ff0000",
 		"fontFamily": "Courier New",
 		"fontSize": 18,
 		"strokeWidth": 2,
 		"strokeColor": "#ff0000"
 	},
-	"drawioSlides.defaultEdgeStyle": {
+	"drawSlidesCode.defaultEdgeStyle": {
 		"fontColor": "#0000ff",
 		"fontFamily": "Courier New",
 		"fontSize": 18,
@@ -20,7 +20,7 @@
 		"orthogonal": 1,
 		"elbow": "vertical"
 	},
-	"drawioSlides.customColorSchemes": [
+	"drawSlidesCode.customColorSchemes": [
 		[
 			{
 				"title": "Kind of pink",
@@ -89,13 +89,13 @@
 			}
 		]
 	],
-	"drawioSlides.presetColors": ["ff0000", "00ff00"],
-	"drawioSlides.colorNames": {
+	"drawSlidesCode.presetColors": ["ff0000", "00ff00"],
+	"drawSlidesCode.colorNames": {
 		"FF0000": "Red",
 		"00FF00": "Green"
 	},
-	"drawioSlides.simpleLabels": false,
-	"drawioSlides.styles": [
+	"drawSlidesCode.simpleLabels": false,
+	"drawSlidesCode.styles": [
 		{},
 		{
 			"commonStyle": {

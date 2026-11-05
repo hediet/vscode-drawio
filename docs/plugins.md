@@ -16,7 +16,7 @@ workspace folder where your diagrams are located as well.  To facilitate this,
 the path can be specified using the `${workspaceFolder}` variable, effectively
 allowing you to specify a relative path within your workspace.
 
-Plugins are added using the `drawioSlides.plugins` configuration
+Plugins are added using the `drawSlidesCode.plugins` configuration
 property.  Adding this to the workspace settings makes sure that the plugin is
 automatically loaded for anyone that edits Draw.io files inside this workspace.
 
@@ -28,7 +28,7 @@ Example:
 1. Add the following to the workspace settings:
 
     ```json
-    "drawioSlides.plugins": [
+    "drawSlidesCode.plugins": [
         {
             "file": "${workspaceFolder}/svgdata.js"
         }
@@ -44,7 +44,7 @@ Example:
     box, asking you to allow or disallow loading of the given plugin.
 
     What ever action you choose, is written to the
-    `drawioSlides.knownPlugins` property, in the user settings (scope)
+    `drawSlidesCode.knownPlugins` property, in the user settings (scope)
     by the Draw.io Integration extension.
 
     Your decision is explicitly only read and written to the user scope, to
@@ -55,7 +55,7 @@ Example:
     Example:
 
     ```json
-    "drawioSlides.knownPlugins": [
+    "drawSlidesCode.knownPlugins": [
         {
             "pluginId": "file:///full/path/to/workspace/svgdata.js",
             "fingerprint": "<sha256>",

@@ -8,7 +8,7 @@ read-when:
 
 # Build the HTML file of a deck, give its slides links and videos, and check it in a browser
 
-A deck is a folder that the extension Draw.io Slides, the repository of this skill, set up, as `docs/presentations.md` of this repository says.
+A deck is a folder that the extension DrawSlidesCode, the repository of this skill, set up, as `docs/presentations.md` of this repository says.
 A path in this skill that starts at `build/`, `sections/` or `assets/` is relative to the folder of the deck.
 Every other path is relative to `<extension folder>`, the folder of the installed extension or of a clone of this repository.
 `docs/presentations.md` gives the properties of a link and of a video, the keys of the HTML file, the set-up of the editor plugins and the warnings of the build, and this skill does not restate them.
@@ -20,7 +20,7 @@ A new value of such a key therefore needs the link taken out as well, as the sec
 This skill has no resource folder.
 The skill uses the following files of the extension.
 
-- `dist/cli.js` in its modes `html`, `build` and `watch` exports the slides, then writes the HTML file, and the launcher `drawio-slides.cjs` of each deck runs it.
+- `dist/cli.js` in its modes `html`, `build` and `watch` exports the slides, then writes the HTML file, and the launcher `drawslidescode.cjs` of each deck runs it.
   The export marks the shape of each cell with a video or a page in the SVG of its page, which the page of the HTML file needs to put the video or the page inside the shape.
   The mode reads the links, the videos and the embedded pages from the pages of the deck, and fills in `deck-templates/html-deck.html`.
   It copies the videos and the pages, with the files that a page names beside it, into `media/` beside the HTML file.
@@ -42,11 +42,11 @@ The skill uses the following files of the extension.
 ## How-to: build the HTML file
 
 1. In the folder of the deck, run `npm run html`.
-   A deck whose `package.json` has no script `html` gets the script that the set-up writes, `"html": "node drawio-slides.cjs html"`.
+   A deck whose `package.json` has no script `html` gets the script that the set-up writes, `"html": "node drawslidescode.cjs html"`.
    A deck whose scripts run `build-slides.py` of the draw.io presentation framework moves to the launcher first, with `node <extension folder>/dist/cli.js migrate`, as `docs/presentations.md` says.
 2. Fix what the warnings of the build name, as the table of warnings of `docs/presentations.md` says.
-3. To write the HTML file to another place, run `node drawio-slides.cjs html --html <file>` in the folder of the deck.
-   The mode reads the title from the key `config` of the `package.json` of the deck, and the colors from `drawioSlides.colors` of its `.vscode/settings.json`, as the scripts of the deck do.
+3. To write the HTML file to another place, run `node drawslidescode.cjs html --html <file>` in the folder of the deck.
+   The mode reads the title from the key `config` of the `package.json` of the deck, and the colors from `drawSlidesCode.colors` of its `.vscode/settings.json`, as the scripts of the deck do.
    The videos then go into `media/` beside that file.
 
 ## How-to: add a link, a video or an embedded page to a slide as text
@@ -64,17 +64,17 @@ An edge whose style holds `flowAnimation=1` moves in the HTML file.
 
 ## How-to: set up the editor of a deck to play its videos
 
-VS Code plays the videos of a deck when the extension `yujunhuang.drawio-slides` is installed and the `.vscode/settings.json` of the deck sets `drawioSlides.slides` to `true`.
+VS Code plays the videos of a deck when the extension `yujunhuang.drawslidescode` is installed and the `.vscode/settings.json` of the deck sets `drawSlidesCode.slides` to `true`.
 The extension then loads the plugins that it ships, `media-bar.js` and `media.plugin.js` among them, without asking, and gives `media.plugin.js` the folder of the deck, the nearest folder above the drawing that holds a `package.json`.
 A settings file that lacks a setting that the set-up writes gets it by hand, because the set-up replaces no settings file.
 The shipped plugin `view-position.plugin.js` keeps the editor from writing the position of the view, the attributes `dx` and `dy` of `<mxGraphModel>`, into a page that it saves, and no option of draw.io or of the extension does the same.
 A page that the editor does not show keeps the XML of its file.
-A deck that gets `drawioSlides.slides` by hand therefore has `dx` and `dy` removed once from every `<mxGraphModel>` of its section files, with no other change to the files.
+A deck that gets `drawSlidesCode.slides` by hand therefore has `dx` and `dy` removed once from every `<mxGraphModel>` of its section files, with no other change to the files.
 
 1. When the deck has no `.vscode/settings.json`, run `node <extension folder>/dist/cli.js vscode --colors <color configuration>` in the folder of the deck.
    A deck that the set-up started has the file already.
-   The mode writes the colors of the starting palette of the extension into `drawioSlides.colors`, and copies the template of the extension into `templates/` of the deck when the deck lacks it.
-2. When `code --list-extensions` does not list `yujunhuang.drawio-slides`, tell the user to install the `.vsix` of the extension.
+   The mode writes the colors of the starting palette of the extension into `drawSlidesCode.colors`, and copies the template of the extension into `templates/` of the deck when the deck lacks it.
+2. When `code --list-extensions` does not list `yujunhuang.drawslidescode`, tell the user to install the `.vsix` of the extension.
 
 The section on VS Code of `docs/presentations.md` says which videos the editor plays.
 

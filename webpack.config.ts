@@ -120,7 +120,7 @@ class ThirdPartyNoticesPlugin {
 			[
 				"# The packages whose code the files of dist/ bundle",
 				"",
-				"The build of Draw.io Slides writes this file with webpack.config.ts, from the packages of node_modules/ that the bundles hold, with the license files of each.",
+				"The build of DrawSlidesCode writes this file with webpack.config.ts, from the packages of node_modules/ that the bundles hold, with the license files of each.",
 				"",
 				...sections.map((section) => section + "\n"),
 			].join("\n")

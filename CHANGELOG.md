@@ -5,16 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## yujunhuang.drawio-slides [0.1.0]
+## yujunhuang.drawslidescode [0.1.0]
 
-The first version of the fork yujunhuang.drawio-slides, which edits slide decks drawn in draw.io and builds them into one HTML file and a PDF, in place of the Python build of the draw.io presentation framework.
+The first version of the fork yujunhuang.drawslidescode, which edits slide decks drawn in draw.io and builds them into one HTML file and a PDF, in place of the Python build of the draw.io presentation framework.
 The versions below are those of the original hediet.vscode-drawio, from which the fork starts at version 1.18.0.
 
 ### Added
 
-- The settings of the extension read `drawioSlides.<name>`, the editor is `drawioSlides.textEditor`, and `*.drawio.xml` opens in it.
-- The extension loads the plugins of the slides from its own folder for a drawing whose setting `drawioSlides.slides` is true: single page, click-through, edit at click, list styles and markers, language check, view position, deck pictures, Insert slide from the templates of the deck, and media.
-- The colors of a deck are the setting `drawioSlides.colors`, which defines them for the formulas, the color picker, the swatches and the list styles, and which the editor follows without a reload.
+- The settings of the extension read `drawSlidesCode.<name>`, the editor is `drawSlidesCode.textEditor`, and `*.drawio.xml` opens in it.
+- The extension loads the plugins of the slides from its own folder for a drawing whose setting `drawSlidesCode.slides` is true: single page, click-through, edit at click, list styles and markers, language check, view position, deck pictures, Insert slide from the templates of the deck, and media.
+- The colors of a deck are the setting `drawSlidesCode.colors`, which defines them for the formulas, the color picker, the swatches and the list styles, and which the editor follows without a reload.
 - The section Deck colors of the Format panel applies a color of the deck by a click on its swatch, and renames, recolors, adds and removes the colors, written back into `.vscode/settings.json` with its comments kept.
 - A shape, a line or a text that takes a color from the section Deck colors keeps a link to the name of the color beside its value, such as `fillColor=#B20000;deckFillColor=red`, and the editor and the build draw it in the current value of the color.
   A new value, a new name or a removal of a color from the section goes into the section files, the templates and the open drawings of the deck in one edit of VS Code.
@@ -28,9 +28,9 @@ The versions below are those of the original hediet.vscode-drawio, from which th
 - The commands Build the Presentation, Build the HTML File of the Presentation, Build the PDF of the Presentation, Watch the Presentation, Stop Watching the Presentation, Check the Spelling and Grammar of the Presentation, Show the Outline of the Presentation, Import Colors from TeX, Export Colors to TeX and Install Chromium for the Build.
   The build, the check and the installation of Chromium show their progress in a notification that cancels, and a watch shows an item in the status bar.
   Every command writes its lines into the output channel, and the check puts its issues into the Problems view.
-- The setting `drawioSlides.browserPath`, the browser of the build.
+- The setting `drawSlidesCode.browserPath`, the browser of the build.
 - The command line `dist/cli.js`, with the modes `init`, `vscode`, `build`, `html`, `pdf`, `watch`, `outline`, `check`, `from-tex`, `to-tex`, `color-config`, `embed-pictures`, `migrate`, `place-logos` and `screenshots`.
-- The launcher `drawio-slides.cjs`, which the set-up copies into each deck, and which runs the command line of the newest version of the extension that VS Code, VS Code Insiders or VSCodium has installed, for the scripts of the `package.json` of the deck.
+- The launcher `drawslidescode.cjs`, which the set-up copies into each deck, and which runs the command line of the newest version of the extension that VS Code, VS Code Insiders or VSCodium has installed, for the scripts of the `package.json` of the deck.
 - The command Set Up a Presentation in This Folder starts a deck or sets up the editor for one from the template and the starting palette in `deck-templates/`, and offers to move a deck whose scripts run `build-slides.py` of the framework to the launcher.
 - The guide for authors of slides, `docs/presentations.md`, the skills `deck-skeleton`, `deck-html` and `deck-pdf` in `skills/`, and `GOALS.md`, from the draw.io presentation framework.
 

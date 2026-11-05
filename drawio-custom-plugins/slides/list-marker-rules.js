@@ -1,5 +1,5 @@
 // The CSS rules that give the markers of a list the color and the size of its level, from the
-// setting "drawioSlides.listStyles" of the VS Code extension yujunhuang.drawio-slides.
+// setting "drawSlidesCode.listStyles" of the VS Code extension yujunhuang.drawslidescode.
 //
 // list-styles.plugin.js gives the rules to the page of the editor, and the build of a deck,
 // src/deck/slideExport.ts of the extension, runs the same function on the settings of the deck and
@@ -12,7 +12,7 @@
 // global function listMarkerCss.
 //
 // Yujun Huang grants an additional permission for this file under section 7 of the GNU General
-// Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+// Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
 function listMarkerCss(listStyles) {
   var rules = [];
 

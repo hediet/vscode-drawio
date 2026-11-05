@@ -1,7 +1,7 @@
 // Gives the lists of a label the style of the slide template, and adds a menu List style to the
 // Text tab of the Format panel, in the draw.io editor.
 //
-// The setting "drawioSlides.listStyles" of the VS Code extension gives the style of each level of
+// The setting "drawSlidesCode.listStyles" of the VS Code extension gives the style of each level of
 // a bulleted and of a numbered list, its indent, its marker and the color and the size of the
 // marker, and the gap above each item apart from the first item of a first level.  Its default is
 // the style of the lists of the slide template deck-templates/slide-format.drawio.xml of the
@@ -14,7 +14,7 @@
 // the last level of the setting.
 //
 // The menu List style shows while a label is edited, beside the list buttons, and says the marker
-// of the list at the caret, from the markers of the setting "drawioSlides.listMarkers".  Choosing a
+// of the list at the caret, from the markers of the setting "drawSlidesCode.listMarkers".  Choosing a
 // marker sets it on that list, and Template gives the list the style of its level again.  Both
 // write inline HTML into the label, so the editor, the HTML deck and the PDF show the same marker.
 // A choice in the menu is not in the history of the browser, so Undo inside the label does not take
@@ -24,7 +24,7 @@
 // The markers take the color and the size of their level by the rules of listMarkerCss in
 // list-marker-rules.js, which this plugin gives the page of the editor and export-pages.mjs copies
 // into the SVG of each page.  The color of a level may name a color of the setting
-// "drawioSlides.colors", which the extension replaces by its value.  After a change of the list
+// "drawSlidesCode.colors", which the extension replaces by its value.  After a change of the list
 // styles, of the markers or of the colors, the extension sends them again through
 // slide-settings.js, and the plugin takes them for the next list and the next menu and gives the
 // markers on the page their new colors and sizes.  A list that has its style already keeps its
@@ -32,16 +32,16 @@
 // text, which covers about the area of the narrower triangle of the Keynote deck of the template,
 // and sits on the baseline, and the dash is #004D80.
 //
-// The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
-// drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
+// The VS Code extension yujunhuang.drawslidescode loads the plugin from its own folder
+// drawio-custom-plugins/slides/ for every drawing whose setting "drawSlidesCode.slides" is true,
 // without asking.
 //
 // Yujun Huang grants an additional permission for this file under section 7 of the GNU General
-// Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+// Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
 Draw.loadPlugin(function (ui) {
   var graph = ui.editor.graph;
   var cellEditor = graph.cellEditor;
-  var settings = window.drawioSlidesSettings || {};
+  var settings = window.drawSlidesCodeSettings || {};
   var listStyles = settings.listStyles;
   // The markers of the menu, as written into list-style-type, with their names.
   var markers = settings.listMarkers || [];

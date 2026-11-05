@@ -6,8 +6,8 @@
 //     brew install languagetool
 //     brew services start languagetool
 //
-// The server answers at the address of the setting "drawioSlides.languageTool" of the extension,
-// which the extension gives in window.drawioSlidesSettings.languageTool.  No text leaves the
+// The server answers at the address of the setting "drawSlidesCode.languageTool" of the extension,
+// which the extension gives in window.drawSlidesCodeSettings.languageTool.  No text leaves the
 // machine while the setting names a server on it.  While a label is edited, the plugin sends its
 // text to the server half a second after the last change, and underlines what the server finds: a
 // wavy red line under a word that may be misspelt, a wavy blue line under a fault of grammar or of
@@ -28,8 +28,8 @@
 // window.mediaPluginDeckFolders, which the extension sets, at the addresses that deckFileAddress of
 // deck-files.js gives.  The plugin warns once in the console when the server does not answer.
 //
-// The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
-// drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
+// The VS Code extension yujunhuang.drawslidescode loads the plugin from its own folder
+// drawio-custom-plugins/slides/ for every drawing whose setting "drawSlidesCode.slides" is true,
 // without asking.  The page of the extension has no content security policy, so it reaches the
 // server.
 Draw.loadPlugin(function (ui) {
@@ -57,7 +57,7 @@ Draw.loadPlugin(function (ui) {
   var menu = null;
 
   function server() {
-    return ((window.drawioSlidesSettings || {}).languageTool || '').replace(/\/+$/, '');
+    return ((window.drawSlidesCodeSettings || {}).languageTool || '').replace(/\/+$/, '');
   }
 
   var style = document.createElement('style');

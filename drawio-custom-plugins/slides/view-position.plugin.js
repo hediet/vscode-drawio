@@ -8,8 +8,8 @@
 // returns, which is the one place that writes them.  A page that the session never shows keeps
 // the XML of its file, so a file is cleaned of the two attributes once, by hand.
 //
-// The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
-// drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
+// The VS Code extension yujunhuang.drawslidescode loads the plugin from its own folder
+// drawio-custom-plugins/slides/ for every drawing whose setting "drawSlidesCode.slides" is true,
 // without asking.
 Draw.loadPlugin(function (ui) {
   var editor = ui.editor;

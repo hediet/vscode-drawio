@@ -3,7 +3,7 @@
  * export draws one SVG per page, and the outline of the deck in `build/outline.json`, from which
  * the PDF takes its bookmarks.
  *
- * The assembly gives each use of a color that links to a color of `drawioSlides.colors` the value
+ * The assembly gives each use of a color that links to a color of `drawSlidesCode.colors` the value
  * of that color, as `deckColorLinks.ts` says, fills in each cell that holds `%slide%` or
  * `%slides%` with the slide's number and the total without the backup slides, writes into each
  * page the TeX definitions its formulas use and it does not define, draws each cell of an
@@ -11,7 +11,7 @@
  * data. A page whose name ends in `-hide` is left out, as `deckFiles.ts` says.
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
- * Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+ * Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
  */
 import * as fs from "fs";
 import * as path from "path";
@@ -49,7 +49,7 @@ export const SLIDE_PLACEHOLDER = "%slide%";
 /** What a cell writes to have the build fill in the deck's total. */
 export const TOTAL_PLACEHOLDER = "%slides%";
 /** The `host` of the assembled file, which names the program that wrote it. */
-const ASSEMBLED_HOST = "Draw.io Slides";
+const ASSEMBLED_HOST = "DrawSlidesCode";
 
 const DEFINITIONS_LAYER = "Equation colors, added by the build";
 /**
@@ -65,7 +65,7 @@ const MODEL = /<mxGraphModel ([^>]*)>/;
 /**
  * Names MathJax draws without a definition. Its color extension knows the dvips names, which are
  * capitalised, such as `Apricot`, and passes any other name on to the browser, which knows the
- * color keywords of CSS. A lower-case name outside the setting drawioSlides.colors and outside
+ * color keywords of CSS. A lower-case name outside the setting drawSlidesCode.colors and outside
  * this list is most likely a typo, which MathJax would draw black.
  */
 const CSS_COLORS = new Set(
@@ -123,7 +123,7 @@ export interface AssembledDeck {
 export interface AssemblyInputs {
 	/** The folder of the deck, whose `assets/` the pictures are read from. */
 	readonly project: string;
-	/** The colors of `drawioSlides.colors`, name to `#RRGGBB`. */
+	/** The colors of `drawSlidesCode.colors`, name to `#RRGGBB`. */
 	readonly colors: ReadonlyMap<string, string>;
 	/** The commands that MathJax lacks, name to body. */
 	readonly missingCommands: ReadonlyMap<string, string>;
@@ -378,7 +378,7 @@ export function assembleDeck(
 			warnings.push(
 				`${where}, links colors to ${linked.unknown.join(
 					", "
-				)}, which the setting drawioSlides.colors does not define, so they keep the values beside the links`
+				)}, which the setting drawSlidesCode.colors does not define, so they keep the values beside the links`
 			);
 		}
 		warnings.push(
@@ -419,7 +419,7 @@ export function assembleDeck(
 				warnings.push(
 					`${where}, colors formulas with ${unknown.join(
 						", "
-					)}, which neither the page nor the setting drawioSlides.colors defines`
+					)}, which neither the page nor the setting drawSlidesCode.colors defines`
 				);
 			}
 		} else if (formulasOfPage(diagram).length > 0) {

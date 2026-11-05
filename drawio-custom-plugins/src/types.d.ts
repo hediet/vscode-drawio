@@ -86,19 +86,19 @@ declare interface Rectangle {
 
 /** The pages of the templates of a deck, for insert-slide.plugin.js. */
 declare interface SlideTemplatesAction {
-    action: "drawioSlidesTemplates";
+    action: "drawSlidesCodeTemplates";
     templates: { name: string; pages: { name: string; xml: string }[] }[];
 }
 
 /**
  * The settings of a deck that the slide plugins follow without a reload, as the extension gives
- * them in `window.drawioSlidesSettings` and again after a change: the valid colors of
- * `drawioSlides.colors` in the order of the setting, the same colors as definitions of MathJax,
+ * them in `window.drawSlidesCodeSettings` and again after a change: the valid colors of
+ * `drawSlidesCode.colors` in the order of the setting, the same colors as definitions of MathJax,
  * presets and names of the color picker, and the swatches, the list styles and the markers of the
  * menu List style, with each name of a color replaced by its value.
  */
 declare interface SlideSettingsAction {
-    action: "drawioSlidesSettings";
+    action: "drawSlidesCodeSettings";
     settings: {
         colors: { name: string; value: string }[];
         listStyles: SlideListStyles;
@@ -118,7 +118,7 @@ declare interface SlideSettingsAction {
 
 /**
  * An edit of the colors of a deck, which `deck-colors-section.plugin.js` sends and the extension
- * writes into `drawioSlides.colors`: `set` gives a color, new or not, its value `#RRGGBB`,
+ * writes into `drawSlidesCode.colors`: `set` gives a color, new or not, its value `#RRGGBB`,
  * `rename` gives a color a new name, and `remove` takes a color out.
  */
 declare type DeckColorEdit =
@@ -126,16 +126,16 @@ declare type DeckColorEdit =
     | { operation: "rename"; name: string; newName: string }
     | { operation: "remove"; name: string };
 
-declare type DeckColorEditEvent = { event: "drawioSlidesEditColor" } & DeckColorEdit;
+declare type DeckColorEditEvent = { event: "drawSlidesCodeEditColor" } & DeckColorEdit;
 
-/** The setting `drawioSlides.listStyles`. */
+/** The setting `drawSlidesCode.listStyles`. */
 declare interface SlideListStyles {
     itemGap: string;
     bulleted: SlideListLevelStyle[];
     numbered: SlideListLevelStyle[];
 }
 
-/** The style of one level of a list, as the setting `drawioSlides.listStyles` gives it. */
+/** The style of one level of a list, as the setting `drawSlidesCode.listStyles` gives it. */
 declare interface SlideListLevelStyle {
     indent: string;
     marker: string;

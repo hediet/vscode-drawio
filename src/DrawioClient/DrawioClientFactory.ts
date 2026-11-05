@@ -805,7 +805,7 @@ function slideSettingsScript(
 	};
 	return (
 		`window.mediaPluginDeckFolders = ${deckFolders};\n` +
-		`window.drawioSlidesSettings = ${JSON.stringify({
+		`window.drawSlidesCodeSettings = ${JSON.stringify({
 			...settings,
 			colorLinks,
 		})};`

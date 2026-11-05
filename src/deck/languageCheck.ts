@@ -4,7 +4,7 @@
  *
  * LanguageTool runs as a server, which Homebrew installs with `brew install languagetool` and
  * starts at `http://localhost:8081` with `brew services start languagetool`. The check asks the
- * server at the address that its caller gives, or else of the setting `drawioSlides.languageTool`
+ * server at the address that its caller gives, or else of the setting `drawSlidesCode.languageTool`
  * of the deck, which the editor plugin reads as well. No text leaves the machine while that
  * address names a server on it.
  *

@@ -4,19 +4,19 @@
  *
  * `initDeck` starts a presentation as a git repository of its own: a section file with the
  * starting pages of the template, a `package.json` of the commands of the deck and of the key
- * `config`, the launcher `drawio-slides.cjs` that the commands run, the lines that the
+ * `config`, the launcher `drawslidescode.cjs` that the commands run, the lines that the
  * `.gitignore` of the folder lacks, `templates/slides.drawio.xml` and `.vscode/settings.json` with
  * the colors of the starting palette. `writeVscodeSettings` and
  * `copyMissingTemplates` set up the editor for a presentation that lacks its settings.
  *
- * The settings associate `.drawio.xml` with the editor of the extension, set `drawioSlides.slides`,
+ * The settings associate `.drawio.xml` with the editor of the extension, set `drawSlidesCode.slides`,
  * with which the extension loads the plugins of the slides, name the files in `templates/` of the
- * presentation in `drawioSlides.templates`, and give `drawioSlides.colors` the colors and the
+ * presentation in `drawSlidesCode.templates`, and give `drawSlidesCode.colors` the colors and the
  * comments of the starting palette, without the header of the palette, the comment lines before its
  * first blank line.
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
- * Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+ * Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
  */
 import { execFileSync } from "child_process";
 import * as fs from "fs";
@@ -46,7 +46,7 @@ import { jsonText } from "./textFormats";
 export { DECK_COMMAND_LINE, DECK_LAUNCHER, launcherFile, TEMPLATE_FOLDER };
 
 const TEMPLATE = "slide-format.drawio.xml";
-/** The colors that a new deck starts with in its setting `drawioSlides.colors`. */
+/** The colors that a new deck starts with in its setting `drawSlidesCode.colors`. */
 const STARTING_PALETTE = "color-definitions.tex";
 /** The folder of a presentation that holds its copies of the template files. */
 export const DECK_TEMPLATES = "templates";
@@ -88,7 +88,7 @@ export const DECK_IGNORED = [
 ] as const;
 /**
  * The color settings of a color configuration that `writeVscodeSettings` writes. The extension
- * names the colors of `drawioSlides.colors` in the picker by itself, so `colorNames` and
+ * names the colors of `drawSlidesCode.colors` in the picker by itself, so `colorNames` and
  * `presetColors` stay out.
  */
 const COLOR_SETTINGS = ["customColorSchemes"] as const;
@@ -160,7 +160,7 @@ export function readColorConfiguration(file: string): Record<string, unknown> {
 }
 
 /**
- * The text of `.vscode/settings.json` of a presentation. The setting `drawioSlides.colors` takes
+ * The text of `.vscode/settings.json` of a presentation. The setting `drawSlidesCode.colors` takes
  * the colors of the palette with their comments, which JSON alone cannot hold, so
  * `withMemberObject` adds it to the text.
  */
@@ -170,7 +170,7 @@ export function vscodeSettingsText(
 ): string {
 	const settings: Record<string, unknown> = {
 		"workbench.editorAssociations": {
-			"*.drawio.xml": "drawioSlides.textEditor",
+			"*.drawio.xml": "drawSlidesCode.textEditor",
 		},
 		"files.associations": { "*.drawio.xml": "drawio" },
 		[SETTING_PREFIX + "slides"]: true,
@@ -346,7 +346,7 @@ function firstSectionText(extensionRoot: string): string {
 		);
 	}
 	return (
-		`<mxfile host="Draw.io Slides" pages="${STARTER_PAGES.length}">\n` +
+		`<mxfile host="DrawSlidesCode" pages="${STARTER_PAGES.length}">\n` +
 		STARTER_PAGES.map((name) => "  " + pages.get(name)!.trim() + "\n").join(
 			""
 		) +

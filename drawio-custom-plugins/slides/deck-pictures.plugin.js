@@ -2,15 +2,15 @@
 // draw.io editor of VS Code.
 //
 // draw.io resolves such a name against the folder of its own web application, where the file is
-// not.  The extension yujunhuang.drawio-slides sets window.mediaPluginDeckFolders to the folder of
+// not.  The extension yujunhuang.drawslidescode sets window.mediaPluginDeckFolders to the folder of
 // the deck before it loads this plugin, and serves every file of an open folder at its absolute
 // path under the origin of the page.  The plugin wraps postProcessCellStyle of the graph, which
 // draw.io calls on the style of a cell before it draws the cell, and gives the drawn style the
 // address of the file in the first folder of the list, from deckFileAddress of deck-files.js.  The
 // model keeps the name, so the saved file and the build see `assets/plot.png` as before.
 //
-// The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
-// drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
+// The VS Code extension yujunhuang.drawslidescode loads the plugin from its own folder
+// drawio-custom-plugins/slides/ for every drawing whose setting "drawSlidesCode.slides" is true,
 // without asking.
 Draw.loadPlugin(function (ui) {
   var graph = ui.editor.graph;

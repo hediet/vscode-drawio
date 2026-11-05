@@ -2,8 +2,8 @@
  * JSON with comments, as VS Code reads a settings file, read and written so that the value of one
  * key of the top object is replaced in the text and every other key and comment stays:
  *
- *     const settings = '{\n  // the editor\n  "drawioSlides.slides": true,\n}\n';
- *     withMemberObject(settings, "drawioSlides.colors", {
+ *     const settings = '{\n  // the editor\n  "drawSlidesCode.slides": true,\n}\n';
+ *     withMemberObject(settings, "drawSlidesCode.colors", {
  *         members: [{ key: "accent", value: "#004D80", comments: ["the markers"] }],
  *         closingComments: [],
  *     });
@@ -12,8 +12,8 @@
  *
  *     {
  *       // the editor
- *       "drawioSlides.slides": true,
- *       "drawioSlides.colors": {
+ *       "drawSlidesCode.slides": true,
+ *       "drawSlidesCode.colors": {
  *         // the markers
  *         "accent": "#004D80"
  *       }

@@ -1,23 +1,23 @@
-// Runs the command line of the VS Code extension Draw.io Slides on this presentation, with the
-// mode and the options given, as the scripts of package.json do: `node drawio-slides.cjs build`.
-// `node drawio-slides.cjs --help` lists the modes and the options.
+// Runs the command line of the VS Code extension DrawSlidesCode on this presentation, with the
+// mode and the options given, as the scripts of package.json do: `node drawslidescode.cjs build`.
+// `node drawslidescode.cjs --help` lists the modes and the options.
 //
 // The command line is `dist/cli.js` of the folder that the environment variable
-// DRAWIO_SLIDES_EXTENSION names, such as a clone of the extension, or else of the newest version
-// of yujunhuang.drawio-slides that VS Code, VS Code Insiders or VSCodium has installed. This file
+// DRAWSLIDESCODE_EXTENSION names, such as a clone of the extension, or else of the newest version
+// of yujunhuang.drawslidescode that VS Code, VS Code Insiders or VSCodium has installed. This file
 // names no version, so it runs the extension of each machine, also after an update of the
 // extension. The command Set Up a Presentation in This Folder of the extension wrote it.
 //
 // Yujun Huang grants an additional permission for this file under section 7 of the GNU General
-// Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+// Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
 "use strict";
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
-const EXTENSION_ID = "yujunhuang.drawio-slides";
-const FOLDER_VARIABLE = "DRAWIO_SLIDES_EXTENSION";
-const INSTALLED_NAME = /^yujunhuang\.drawio-slides-(\d+(?:\.\d+)*)$/;
+const EXTENSION_ID = "yujunhuang.drawslidescode";
+const FOLDER_VARIABLE = "DRAWSLIDESCODE_EXTENSION";
+const INSTALLED_NAME = /^yujunhuang\.drawslidescode-(\d+(?:\.\d+)*)$/;
 /** The file in which VS Code lists the folders of the versions that it has uninstalled. */
 const OBSOLETE = ".obsolete";
 

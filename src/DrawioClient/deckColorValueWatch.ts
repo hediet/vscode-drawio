@@ -11,7 +11,7 @@ import {
 export const WRITE_COLOR_VALUES = "Write";
 
 /**
- * Follows `drawioSlides.colors` of a deck folder. After a new value of a color that the section
+ * Follows `drawSlidesCode.colors` of a deck folder. After a new value of a color that the section
  * Deck colors did not send, such as a value typed in `.vscode/settings.json` or picked with the
  * color picker of VS Code there, a message asks whether to write the new values into the linked
  * uses of the drawing files of the deck, and its button writes them as a new value from the
@@ -33,7 +33,7 @@ export class DeckColorValueWatch {
 	) {
 		this.knownColors = readColors();
 		this.listener = workspace.onDidChangeConfiguration((event) => {
-			if (event.affectsConfiguration("drawioSlides.colors", deckFolder)) {
+			if (event.affectsConfiguration("drawSlidesCode.colors", deckFolder)) {
 				this.offerNewValues().catch((error) =>
 					this.reportError(error)
 				);
@@ -117,6 +117,6 @@ function newValuesQuestion(edits: readonly ColorUseEdit[], files: number): strin
 	const names = joinedWithAnd(edits.map(({ name }) => name));
 	const fileCount = files === 1 ? "1 drawing file" : `${files} drawing files`;
 	return edits.length === 1
-		? `drawioSlides.colors gives ${names} a new value. Write the new value into the shapes, the lines and the texts linked to ${names} in ${fileCount} of the deck?`
-		: `drawioSlides.colors gives ${names} new values. Write the new values into the shapes, the lines and the texts linked to these colors in ${fileCount} of the deck?`;
+		? `drawSlidesCode.colors gives ${names} a new value. Write the new value into the shapes, the lines and the texts linked to ${names} in ${fileCount} of the deck?`
+		: `drawSlidesCode.colors gives ${names} new values. Write the new values into the shapes, the lines and the texts linked to these colors in ${fileCount} of the deck?`;
 }

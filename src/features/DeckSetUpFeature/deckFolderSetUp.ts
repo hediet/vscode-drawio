@@ -46,7 +46,7 @@ export type DeckFolderSurvey =
 	| { readonly state: DeckFolderState.PresentationWithoutSettings }
 	| {
 			readonly state: DeckFolderState.SetUp;
-			/** Whether the settings file sets `drawioSlides.slides` to `true`. */
+			/** Whether the settings file sets `drawSlidesCode.slides` to `true`. */
 			readonly loadsSlidePlugins: boolean;
 	  };
 
@@ -161,7 +161,7 @@ function settingsLoadSlidePlugins(file: string): boolean {
 				allowTrailingComma: true,
 		  })
 		: undefined;
-	return isPlainObject(settings) && settings["drawioSlides.slides"] === true;
+	return isPlainObject(settings) && settings["drawSlidesCode.slides"] === true;
 }
 
 export function isFolder(folder: string): boolean {

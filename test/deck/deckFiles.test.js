@@ -207,7 +207,7 @@ test("a key of config that the deck cannot hold is refused with its reason", () 
 		);
 	assert.throws(
 		refusal({ palette: "x.tex" }),
-		/config.palette of .* has moved to the setting drawioSlides.colors/
+		/config.palette of .* has moved to the setting drawSlidesCode.colors/
 	);
 	assert.throws(
 		refusal({ color: "red" }),

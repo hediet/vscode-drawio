@@ -1,13 +1,13 @@
 // The settings of a deck that the slide plugins follow without a reload of the draw.io editor, for
-// the slide plugins of the VS Code extension yujunhuang.drawio-slides.
+// the slide plugins of the VS Code extension yujunhuang.drawslidescode.
 //
-// The extension gives the plugins the settings in window.drawioSlidesSettings when the editor
-// loads.  After a change of the settings "drawioSlides.colors", "drawioSlides.listStyles",
-// "drawioSlides.listMarkers", "drawioSlides.customColorSchemes", "drawioSlides.presetColors" or
-// "drawioSlides.colorNames" of the drawing, the extension sends the action drawioSlidesSettings,
+// The extension gives the plugins the settings in window.drawSlidesCodeSettings when the editor
+// loads.  After a change of the settings "drawSlidesCode.colors", "drawSlidesCode.listStyles",
+// "drawSlidesCode.listMarkers", "drawSlidesCode.customColorSchemes", "drawSlidesCode.presetColors" or
+// "drawSlidesCode.colorNames" of the drawing, the extension sends the action drawSlidesCodeSettings,
 // whose settings are colors, listStyles, listMarkers, mathDefinitions, presetColors, colorNames and
 // colorSchemes, with each name of a color in listStyles and colorSchemes replaced by its value.
-// The script copies them into window.drawioSlidesSettings and calls every listener with them, in
+// The script copies them into window.drawSlidesCodeSettings and calls every listener with them, in
 // the order of registration.
 //
 // The extension loads this file before math-definitions.plugin.js, deck-colors.plugin.js,
@@ -29,11 +29,11 @@ var onSlideSettingsChange = (function () {
       return;
     }
 
-    if (data == null || data.action != 'drawioSlidesSettings' || data.settings == null) {
+    if (data == null || data.action != 'drawSlidesCodeSettings' || data.settings == null) {
       return;
     }
 
-    window.drawioSlidesSettings = Object.assign({}, window.drawioSlidesSettings, data.settings);
+    window.drawSlidesCodeSettings = Object.assign({}, window.drawSlidesCodeSettings, data.settings);
     listeners.forEach(function (listener) {
       try {
         listener(data.settings);

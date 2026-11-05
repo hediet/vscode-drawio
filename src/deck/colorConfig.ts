@@ -8,7 +8,7 @@
  * them, and writes the three settings as one JSON object ready to paste into a configuration.
  *
  * An output file that ends in `.tex` gets the colors as `\definecolor` lines instead, in the
- * model HTML, which the import of colors from TeX writes into the setting `drawioSlides.colors`
+ * model HTML, which the import of colors from TeX writes into the setting `drawSlidesCode.colors`
  * of a deck. A name of a hue there keeps its letters and digits alone, in lower case, such as
  * `grey8b959e` for `Grey 8B959E`, and the name of a `\definecolor` stays as written.
  *
@@ -18,7 +18,7 @@
  * alone.
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
- * Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+ * Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
  */
 import * as fs from "fs";
 import * as path from "path";
@@ -268,7 +268,7 @@ export function makeColorConfiguration(
 	const names = nameColors(kept, defined);
 	const ordered = byUses(kept);
 	const text = output.endsWith(".tex")
-		? `% Written by Draw.io Slides, the color configuration of the colors of a drawing, from ${path.basename(
+		? `% Written by DrawSlidesCode, the color configuration of the colors of a drawing, from ${path.basename(
 				drawing
 		  )}.\n` + colorDefinitionLines(ordered, names, defined)
 		: jsonText(

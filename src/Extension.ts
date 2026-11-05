@@ -47,7 +47,7 @@ export class Extension {
 	constructor(private readonly context: vscode.ExtensionContext) {
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
-				"drawioSlides.textEditor",
+				"drawSlidesCode.textEditor",
 				new DrawioEditorProviderText(this.editorService),
 				{ webviewOptions: { retainContextWhenHidden: true } }
 			)
@@ -55,7 +55,7 @@ export class Extension {
 
 		this.dispose.track(
 			vscode.window.registerCustomEditorProvider(
-				"drawioSlides.binaryEditor",
+				"drawSlidesCode.binaryEditor",
 				new DrawioEditorProviderBinary(this.editorService),
 				{
 					supportsMultipleEditorsPerDocument: false,
@@ -65,7 +65,7 @@ export class Extension {
 		);
 
 		this.dispose.track(
-			registerFailableCommand("drawioSlides.newDiagram", async () => {
+			registerFailableCommand("drawSlidesCode.newDiagram", async () => {
 				const targetUri = await vscode.window.showSaveDialog({
 					saveLabel: "Create",
 					filters: {
@@ -83,7 +83,7 @@ export class Extension {
 					await vscode.commands.executeCommand(
 						"vscode.openWith",
 						targetUri,
-						"drawioSlides.textEditor"
+						"drawSlidesCode.textEditor"
 					);
 				} catch (e) {
 					console.error("Cannot create or open file", e);

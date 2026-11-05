@@ -25,7 +25,7 @@
  * file put there by hand stays.
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
- * Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+ * Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
  */
 import * as crypto from "crypto";
 import * as fs from "fs";

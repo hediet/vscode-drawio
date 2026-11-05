@@ -70,8 +70,8 @@ test("a number prints in fixed notation from 1e-4 to below 1e16, and as an expon
 
 const settings = `{
   // The editor.
-  "drawioSlides.slides": true,
-  "drawioSlides.colors": {
+  "drawSlidesCode.slides": true,
+  "drawSlidesCode.colors": {
     // The text.
 
     "black": "#000000", // the darkest
@@ -84,7 +84,7 @@ const settings = `{
 `;
 
 test("a commented object keeps its comments, its blank lines and its trailing comments", () => {
-	const span = json.objectLayout(settings).values.get("drawioSlides.colors");
+	const span = json.objectLayout(settings).values.get("drawSlidesCode.colors");
 	const colors = json.readCommentedObject(settings, span[0], span[1]);
 	assert.deepEqual(JSON.parse(JSON.stringify(colors)), {
 		members: [
@@ -105,7 +105,7 @@ test("a commented object keeps its comments, its blank lines and its trailing co
 });
 
 test("a member object replaces the value of its key and keeps every other comment", () => {
-	const written = json.withMemberObject(settings, "drawioSlides.colors", {
+	const written = json.withMemberObject(settings, "drawSlidesCode.colors", {
 		members: [
 			{
 				key: "accent",
@@ -119,8 +119,8 @@ test("a member object replaces the value of its key and keeps every other commen
 		written,
 		`{
   // The editor.
-  "drawioSlides.slides": true,
-  "drawioSlides.colors": {
+  "drawSlidesCode.slides": true,
+  "drawSlidesCode.colors": {
     // the markers
 
     //
@@ -153,7 +153,7 @@ test("a member object goes last after a comma, or into an empty object", () => {
 test("comments and trailing commas become spaces, so the plain JSON keeps the places", () => {
 	const plain = json.withoutComments(settings);
 	assert.equal(plain.length, settings.length);
-	assert.equal(JSON.parse(plain)["drawioSlides.slides"], true);
+	assert.equal(JSON.parse(plain)["drawSlidesCode.slides"], true);
 });
 
 test("a text that is no object of JSON with comments is refused with the place of the fault", () => {

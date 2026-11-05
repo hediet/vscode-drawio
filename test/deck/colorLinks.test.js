@@ -121,7 +121,7 @@ test("the assembly gives the linked uses the colors of the setting and warns of 
 	assert.match(assembled.text, /fillColor=#008000;deckFillColor=dpgreen;/);
 	assert.match(assembled.text, /fillColor=#123456;deckFillColor=gone;/);
 	assert.deepEqual(assembled.warnings, [
-		'slide 1, "a-1", links colors to gone, which the setting drawioSlides.colors does not define, so they keep the values beside the links',
+		'slide 1, "a-1", links colors to gone, which the setting drawSlidesCode.colors does not define, so they keep the values beside the links',
 		'slide 1, "a-1", holds #B20000 beside a link to dpgreen, #008000, and draws #008000',
 	]);
 });

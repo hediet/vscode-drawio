@@ -3,11 +3,11 @@
 //
 // A template is an ordinary multi-page draw.io file, such as templates/slides.drawio.xml of a deck,
 // whose pages are the layouts of the slides, each named by its layout, such as title-and-body-1.
-// The setting "drawioSlides.templates" of the VS Code extension yujunhuang.drawio-slides lists the
+// The setting "drawSlidesCode.templates" of the VS Code extension yujunhuang.drawslidescode lists the
 // files.  The extension reads them and gives this plugin their pages in
-// window.drawioSlidesSettings.templates, as a list of files, each with its name and its pages, and
+// window.drawSlidesCodeSettings.templates, as a list of files, each with its name and its pages, and
 // each page with its name and the XML of its <diagram>.  The extension watches the files and sends
-// the pages again in the action drawioSlidesTemplates after a template changes, so the submenu
+// the pages again in the action drawSlidesCodeTemplates after a template changes, so the submenu
 // shows the template as it was last saved, without a reload of the editor.
 //
 // The copy takes the name of its layout without the number of the step, then new and the step 1,
@@ -15,14 +15,14 @@
 // first free number from 2, such as title-and-body-new2-1.  No other page has the name of the copy,
 // so the build of the framework counts the copy as a slide of its own until the page is renamed.
 //
-// The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
-// drawio-custom-plugins/slides/ for every drawing whose setting "drawioSlides.slides" is true,
+// The VS Code extension yujunhuang.drawslidescode loads the plugin from its own folder
+// drawio-custom-plugins/slides/ for every drawing whose setting "drawSlidesCode.slides" is true,
 // without asking.
 //
 // Yujun Huang grants an additional permission for this file under section 7 of the GNU General
-// Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+// Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
 Draw.loadPlugin(function (ui) {
-  var templates = (window.drawioSlidesSettings || {}).templates || [];
+  var templates = (window.drawSlidesCodeSettings || {}).templates || [];
 
   window.addEventListener('message', function (evt) {
     if (evt.source !== window.opener || typeof evt.data != 'string') {
@@ -37,7 +37,7 @@ Draw.loadPlugin(function (ui) {
       return;
     }
 
-    if (data != null && data.action == 'drawioSlidesTemplates') {
+    if (data != null && data.action == 'drawSlidesCodeTemplates') {
       templates = data.templates || [];
     }
   });

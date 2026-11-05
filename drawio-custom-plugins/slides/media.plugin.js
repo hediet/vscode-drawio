@@ -3,7 +3,7 @@
 // shape of a video or a page a bar of controls.
 //
 // The page of the editor does not know the folder of the drawing, so the VS Code extension
-// yujunhuang.drawio-slides sets window.mediaPluginDeckFolders to the folder of the deck before it
+// yujunhuang.drawslidescode sets window.mediaPluginDeckFolders to the folder of the deck before it
 // loads this plugin, and this plugin reads the folders when a video or a page loads.  The path of a
 // file, relative to its deck, is tried in each folder of the list in turn, and the first file that
 // loads plays.  deckFileAddress of deck-files.js gives the address of the file in a folder.
@@ -92,7 +92,7 @@ Draw.loadPlugin(function (ui) {
 
     if (folders.length == 0) {
       console.warn('media.plugin.js: no deck folder is known for ' + source + '.  Load the ' +
-        'plugin through the setting drawioSlides.slides of the extension, which gives the deck ' +
+        'plugin through the setting drawSlidesCode.slides of the extension, which gives the deck ' +
         'folder.');
     }
 

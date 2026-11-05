@@ -7,7 +7,7 @@ read-when:
 
 # Build the PDF of a deck from its built slides, and check its pages, its numbers and its formulas
 
-A deck is a folder that the extension Draw.io Slides, the repository of this skill, set up, as `docs/presentations.md` of this repository says.
+A deck is a folder that the extension DrawSlidesCode, the repository of this skill, set up, as `docs/presentations.md` of this repository says.
 A path in this skill that starts at `build/` is relative to the folder of the deck.
 Every other path is relative to `<extension folder>`, the folder of the installed extension or of a clone of this repository.
 `docs/presentations.md` gives the steps that start a presentation from the template and build it.
@@ -17,7 +17,7 @@ Every other path is relative to `<extension folder>`, the folder of the installe
 This skill has no resource folder.
 The skill uses one file of the extension.
 
-- `dist/cli.js` in its modes `pdf` and `build` exports the slides, then prints the PDF, and the launcher `drawio-slides.cjs` of each deck runs it.
+- `dist/cli.js` in its modes `pdf` and `build` exports the slides, then prints the PDF, and the launcher `drawslidescode.cjs` of each deck runs it.
   The PDF holds one page per SVG of `build/slides/`, at the size of the slide, printed through the headless browser of the build.
 
 ## Standard: the PDF shows the deck as the build makes it
@@ -34,13 +34,13 @@ The skill uses one file of the extension.
 ## How-to: build the PDF
 
 1. In the folder of the deck, run `npm run pdf`, or `npm run build`, which writes the HTML file as well.
-   A deck whose `package.json` has no script `pdf` gets the script that the set-up writes, `"pdf": "node drawio-slides.cjs pdf"`.
+   A deck whose `package.json` has no script `pdf` gets the script that the set-up writes, `"pdf": "node drawslidescode.cjs pdf"`.
    A deck whose scripts run `build-slides.py` of the draw.io presentation framework moves to the launcher first, with `node <extension folder>/dist/cli.js migrate`, as `docs/presentations.md` says.
 2. Fix what the warnings of the build name, as the table of warnings of `docs/presentations.md` says.
-3. To write the PDF to another place, run `node drawio-slides.cjs pdf --pdf <file>` in the folder of the deck.
-   The mode reads the title from the key `config` of the `package.json` of the deck, and the colors from `drawioSlides.colors` of its `.vscode/settings.json`, as the scripts of the deck do.
+3. To write the PDF to another place, run `node drawslidescode.cjs pdf --pdf <file>` in the folder of the deck.
+   The mode reads the title from the key `config` of the `package.json` of the deck, and the colors from `drawSlidesCode.colors` of its `.vscode/settings.json`, as the scripts of the deck do.
 
-The mode `pdf` needs a browser, the Chromium that the command *Draw.io Slides: Install Chromium for the Build* installs once for every deck, or Chrome or Edge.
+The mode `pdf` needs a browser, the Chromium that the command *DrawSlidesCode: Install Chromium for the Build* installs once for every deck, or Chrome or Edge.
 When the build stops because no browser starts, tell the user to run that command, or pass the program of a browser with `--browser <path>`.
 
 ## Required action: check the PDF before handing it over

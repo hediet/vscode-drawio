@@ -97,7 +97,7 @@ export class CustomizedDrawioClient extends DrawioClient<
 	public updateSlideTemplates(
 		templates: SlideTemplatesAction["templates"]
 	): void {
-		this.sendCustomAction({ action: "drawioSlidesTemplates", templates });
+		this.sendCustomAction({ action: "drawSlidesCodeTemplates", templates });
 	}
 
 	/**
@@ -107,7 +107,7 @@ export class CustomizedDrawioClient extends DrawioClient<
 	public updateSlideSettings(
 		settings: SlideSettingsAction["settings"]
 	): void {
-		this.sendCustomAction({ action: "drawioSlidesSettings", settings });
+		this.sendCustomAction({ action: "drawSlidesCodeSettings", settings });
 	}
 
 	public updateLiveshareViewState(update: {
@@ -143,7 +143,7 @@ export class CustomizedDrawioClient extends DrawioClient<
 			this.onSelectedRectangleChangedEmitter.emit({
 				rectangle: evt.rect,
 			});
-		} else if (evt.event === "drawioSlidesEditColor") {
+		} else if (evt.event === "drawSlidesCodeEditColor") {
 			this.onDeckColorEditEmitter.emit({ edit: evt });
 		} else {
 			await super.handleEvent(evt);

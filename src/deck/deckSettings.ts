@@ -11,10 +11,10 @@
  * `.vscode/settings.json` of the folder that its window opens alone, so the editor and the build
  * read the same settings only in a window opened at the deck folder.
  *
- * The colors of a deck are the setting `drawioSlides.colors`, an object of names and values
+ * The colors of a deck are the setting `drawSlidesCode.colors`, an object of names and values
  * `#RRGGBB`. An entry whose name is not letters and digits that start with a letter, or whose
  * value is not `#RRGGBB`, is left out with a warning. A color of a level of
- * `drawioSlides.listStyles` may name a color of the setting, and `readListStyles` gives the value
+ * `drawSlidesCode.listStyles` may name a color of the setting, and `readListStyles` gives the value
  * in its place.
  */
 import * as fs from "fs";
@@ -25,7 +25,7 @@ import { isFile, isPlainObject } from "./deckFiles";
 import { JsonWithCommentsError, withoutComments } from "./jsonWithComments";
 import { jsonText } from "./textFormats";
 
-export const SETTING_PREFIX = "drawioSlides.";
+export const SETTING_PREFIX = "drawSlidesCode.";
 /** The settings file of a deck, by its path with `/` below the deck folder, which `path.join` reads on every system. */
 export const DECK_SETTINGS = ".vscode/settings.json";
 export const COLORS = SETTING_PREFIX + "colors";
@@ -68,7 +68,7 @@ export function readDeckSettings(deck: string): Record<string, unknown> {
 	return settings;
 }
 
-/** The default of a setting `drawioSlides.<name>`, from the `package.json` of the extension. */
+/** The default of a setting `drawSlidesCode.<name>`, from the `package.json` of the extension. */
 export function defaultSetting(extensionRoot: string, name: string): unknown {
 	const file = path.join(extensionRoot, "package.json");
 	const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
@@ -102,7 +102,7 @@ export function mergedSetting(defaultValue: unknown, value: unknown): unknown {
 	return value;
 }
 
-/** A setting `drawioSlides.<name>` of the settings of a deck merged over its default, or else its default. */
+/** A setting `drawSlidesCode.<name>` of the settings of a deck merged over its default, or else its default. */
 export function slideSetting(
 	settings: Record<string, unknown>,
 	extensionRoot: string,
@@ -128,9 +128,9 @@ export function settingPath(deck: string, template: string): string {
 }
 
 /**
- * The colors of the setting `drawioSlides.colors` of a deck, name to `#RRGGBB` in capitals, in
+ * The colors of the setting `drawSlidesCode.colors` of a deck, name to `#RRGGBB` in capitals, in
  * the order of the setting, with a warning for each entry that the extension leaves out. Raises
- * `DeckError` for settings that still hold `drawioSlides.colorDefinitions`, the TeX files of
+ * `DeckError` for settings that still hold `drawSlidesCode.colorDefinitions`, the TeX files of
  * colors that the setting replaced, and for a setting that is no object.
  */
 export function readDeckColors(
@@ -192,8 +192,8 @@ function isColorName(color: unknown): color is string {
 }
 
 /**
- * The setting `drawioSlides.listStyles` of a deck, with the value of each color of
- * `drawioSlides.colors` that a level names, and a warning for each name that the colors do not
+ * The setting `drawSlidesCode.listStyles` of a deck, with the value of each color of
+ * `drawSlidesCode.colors` that a level names, and a warning for each name that the colors do not
  * define, which stays as written.
  */
 export function readListStyles(

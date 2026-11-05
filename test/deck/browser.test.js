@@ -24,7 +24,7 @@ function smallDeck() {
 	return folderWith({
 		"package.json": JSON.stringify({ config: { title: "Small talk" } }),
 		".vscode/settings.json":
-			'{ "drawioSlides.colors": { "accent": "#004D80" } }',
+			'{ "drawSlidesCode.colors": { "accent": "#004D80" } }',
 		"sections/1-start.drawio.xml": drawing(
 			page(
 				"title-1",

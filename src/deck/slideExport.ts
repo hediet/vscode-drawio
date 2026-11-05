@@ -35,7 +35,7 @@
  * looks the same on a system in dark mode. The cache keeps the SVGs as the viewer drew them.
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
- * Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+ * Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
  */
 import * as crypto from "crypto";
 import * as fs from "fs";
@@ -380,7 +380,7 @@ async function exportPage(
 	index: number
 ): Promise<void> {
 	const { inputs, cache, counts } = context;
-	const xml = `<mxfile host="Draw.io Slides" pages="1">\n${context.diagrams[index]}\n</mxfile>\n`;
+	const xml = `<mxfile host="DrawSlidesCode" pages="1">\n${context.diagrams[index]}\n</mxfile>\n`;
 	const target = path.join(inputs.outdir, slideFileName(index + 1));
 	const cached =
 		cache === undefined

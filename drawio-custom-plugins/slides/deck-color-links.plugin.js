@@ -1,4 +1,4 @@
-// Draws each use of a color that links to a color of the setting "drawioSlides.colors" of the deck
+// Draws each use of a color that links to a color of the setting "drawSlidesCode.colors" of the deck
 // in the current value of that color, in the draw.io editor of VS Code, and takes the link out of
 // a use whose color another option of draw.io sets.
 //
@@ -33,16 +33,16 @@
 // name or a removal of a color would give the cells of that edit the old name back, so the plugin
 // clears the undo history of the editor when the colors lose a name.
 //
-// The VS Code extension yujunhuang.drawio-slides gives the plugin the colors in
-// window.drawioSlidesSettings.colors, a list of names and values #RRGGBB, and the keys of the
-// links in window.drawioSlidesSettings.colorLinks, keys of the color keys of a style to their
+// The VS Code extension yujunhuang.drawslidescode gives the plugin the colors in
+// window.drawSlidesCodeSettings.colors, a list of names and values #RRGGBB, and the keys of the
+// links in window.drawSlidesCodeSettings.colorLinks, keys of the color keys of a style to their
 // link keys, and textAttribute, the attribute of a linked text.  It sends the colors again after
 // a change through slide-settings.js.  It loads the plugin from its own folder
 // drawio-custom-plugins/slides/ after slide-settings.js, for every drawing whose setting
-// "drawioSlides.slides" is true, without asking.
+// "drawSlidesCode.slides" is true, without asking.
 Draw.loadPlugin(function (ui) {
   var graph = ui.editor.graph;
-  var settings = window.drawioSlidesSettings;
+  var settings = window.drawSlidesCodeSettings;
 
   if (typeof onSlideSettingsChange != 'function' || settings == null || settings.colorLinks == null) {
     return;
@@ -59,7 +59,7 @@ Draw.loadPlugin(function (ui) {
 
   // The value #RRGGBB of a color of the deck, or null for a name that the colors do not define.
   function colorValue(name) {
-    var colors = window.drawioSlidesSettings.colors || [];
+    var colors = window.drawSlidesCodeSettings.colors || [];
 
     for (var index = 0; index < colors.length; index++) {
       if (colors[index].name == name) {

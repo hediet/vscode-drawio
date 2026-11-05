@@ -44,13 +44,13 @@ test("a script of the Python build becomes a script of the launcher with its opt
 		migration.launcherCommand(
 			"python3 '../tools/draw-io/build-slides.py' build"
 		),
-		"node drawio-slides.cjs build"
+		"node drawslidescode.cjs build"
 	);
 	assert.equal(
 		migration.launcherCommand(
 			'EXPORT_FRESH=1 python3 -B "/a b/tools/draw-io/build-slides.py" pdf --outline'
 		),
-		"EXPORT_FRESH=1 node drawio-slides.cjs pdf --outline"
+		"EXPORT_FRESH=1 node drawslidescode.cjs pdf --outline"
 	);
 	assert.equal(migration.launcherCommand("prettier --check ."), undefined);
 	assert.equal(
@@ -69,15 +69,15 @@ test("the plan lists the launcher and each script, and names a script that it le
 	assert.deepEqual(
 		plain(plan.scripts.map((change) => [change.name, change.to])),
 		[
-			["build", "node drawio-slides.cjs build"],
-			["watch", "node drawio-slides.cjs watch"],
-			["pdf", "node drawio-slides.cjs pdf --outline"],
-			["html", "EXPORT_FRESH=1 node drawio-slides.cjs html"],
+			["build", "node drawslidescode.cjs build"],
+			["watch", "node drawslidescode.cjs watch"],
+			["pdf", "node drawslidescode.cjs pdf --outline"],
+			["html", "EXPORT_FRESH=1 node drawslidescode.cjs html"],
 		]
 	);
 	assert.deepEqual(plain(plan.leftByHand), ["both"]);
 	const lines = migration.migrationLines(plan);
-	assert.equal(lines[0], "drawio-slides.cjs: copied from the extension");
+	assert.equal(lines[0], "drawslidescode.cjs: copied from the extension");
 	assert.equal(lines.length, 5);
 	assert.equal(
 		fs.readFileSync(path.join(folder, "package.json"), "utf8"),
@@ -94,23 +94,23 @@ test("the move copies the launcher and changes the scripts alone, in the layout 
 		frameworkPackage
 			.replace(
 				"python3 '../tools/draw-io/build-slides.py' build",
-				"node drawio-slides.cjs build"
+				"node drawslidescode.cjs build"
 			)
 			.replace(
 				"python3 '../tools/draw-io/build-slides.py' watch",
-				"node drawio-slides.cjs watch"
+				"node drawslidescode.cjs watch"
 			)
 			.replace(
 				"python3 '/home/someone/framework/tools/draw-io/build-slides.py' pdf --outline",
-				"node drawio-slides.cjs pdf --outline"
+				"node drawslidescode.cjs pdf --outline"
 			)
 			.replace(
 				"EXPORT_FRESH=1 python3 ../tools/draw-io/build-slides.py html",
-				"EXPORT_FRESH=1 node drawio-slides.cjs html"
+				"EXPORT_FRESH=1 node drawslidescode.cjs html"
 			)
 	);
 	assert.deepEqual(
-		fs.readFileSync(path.join(folder, "drawio-slides.cjs")),
+		fs.readFileSync(path.join(folder, "drawslidescode.cjs")),
 		fs.readFileSync(setUp.launcherFile(extensionRoot))
 	);
 	assert.equal(result.lines.length, 5);
@@ -130,7 +130,7 @@ test("the move copies the launcher and changes the scripts alone, in the layout 
 test("a launcher that differs from that of the extension is replaced, and the plan says so", () => {
 	const folder = frameworkDeck();
 	fs.writeFileSync(
-		path.join(folder, "drawio-slides.cjs"),
+		path.join(folder, "drawslidescode.cjs"),
 		"// an old launcher\n"
 	);
 	const plan = migration.planMigration(folder, extensionRoot);
@@ -141,7 +141,7 @@ test("a launcher that differs from that of the extension is replaced, and the pl
 	);
 	migration.migrateDeck(folder, extensionRoot);
 	assert.deepEqual(
-		fs.readFileSync(path.join(folder, "drawio-slides.cjs")),
+		fs.readFileSync(path.join(folder, "drawslidescode.cjs")),
 		fs.readFileSync(setUp.launcherFile(extensionRoot))
 	);
 });
@@ -159,7 +159,7 @@ test("the set-up of the editor of a deck of the framework offers the move", () =
 	);
 	const plainDeck = folderWith({
 		"package.json": JSON.stringify({
-			scripts: { build: "node drawio-slides.cjs build" },
+			scripts: { build: "node drawslidescode.cjs build" },
 		}),
 		"sections/1-opening.drawio.xml": drawing(page("title-slide-1")),
 	});
@@ -188,7 +188,7 @@ test("the mode migrate lists the changes and makes them only after a yes or with
 	assert.equal(refused.status, ExitStatus.STOPPED);
 	assert.match(refused.out[0], /The move of .* to the launcher changes:/);
 	assert.match(refused.err[0], /run migrate again with --yes/);
-	assert.equal(fs.existsSync(path.join(unasked, "drawio-slides.cjs")), false);
+	assert.equal(fs.existsSync(path.join(unasked, "drawslidescode.cjs")), false);
 
 	const declined = await run(["migrate", unasked], async () => false);
 	assert.equal(declined.status, ExitStatus.DONE);
@@ -205,7 +205,7 @@ test("the mode migrate lists the changes and makes them only after a yes or with
 	});
 	assert.equal(accepted.status, ExitStatus.DONE);
 	assert.deepEqual(questions, ["Make the changes? [y/N] "]);
-	assert.equal(fs.existsSync(path.join(unasked, "drawio-slides.cjs")), true);
+	assert.equal(fs.existsSync(path.join(unasked, "drawslidescode.cjs")), true);
 
 	const confirmed = frameworkDeck();
 	const forced = await run(["migrate", "--yes", "--project", confirmed]);
@@ -214,7 +214,7 @@ test("the mode migrate lists the changes and makes them only after a yes or with
 		JSON.parse(
 			fs.readFileSync(path.join(confirmed, "package.json"), "utf8")
 		).scripts.build,
-		/^node drawio-slides\.cjs build$/
+		/^node drawslidescode\.cjs build$/
 	);
 	const nothing = await run(["migrate", confirmed]);
 	assert.equal(nothing.status, ExitStatus.DONE);

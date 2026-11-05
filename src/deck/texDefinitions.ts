@@ -4,7 +4,7 @@
  *
  * draw.io's MathJax knows no color by the name a deck gives it and lacks a few commands of LaTeX
  * packages, so a page carries the definitions in a label of its own. The colors of a deck are
- * the setting `drawioSlides.colors`, and this module writes the definitions a text uses in the
+ * the setting `drawSlidesCode.colors`, and this module writes the definitions a text uses in the
  * model RGB, which the MathJax of draw.io reads, as the editor gives them to MathJax. The commands
  * that MathJax lacks are the lines of `drawio-custom-plugins/slides/mathjax-commands.tex`.
  *
@@ -20,7 +20,7 @@
  *     \definecolor{green}{HTML}{008000}
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
- * Public License, version 3, in LICENSE-EXCEPTION.md of Draw.io Slides.
+ * Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
  */
 import { DeckError } from "./deckError";
 import { COLOR_NAME } from "./deckColors";
@@ -42,7 +42,7 @@ const DECIMAL = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/;
  * which the import leaves out, so that the file converts back without it.
  */
 export const GENERATED_MARK =
-	"Written by the command Export Colors to TeX of Draw.io Slides";
+	"Written by the command Export Colors to TeX of DrawSlidesCode";
 /** The marks of the files of colors that earlier exports wrote, which the import leaves out as well. */
 const EARLIER_GENERATED_MARKS = [
 	"Written by tools/draw-io/color-settings.py to-tex",
@@ -59,7 +59,7 @@ export interface ColorDefinition {
 }
 
 /**
- * The colors of a TeX text, as members of `drawioSlides.colors` with the comment lines before
+ * The colors of a TeX text, as members of `drawSlidesCode.colors` with the comment lines before
  * each, the definitions that the setting cannot hold, and the numbers of the lines of other TeX.
  */
 export interface CommentedColors {
@@ -288,7 +288,7 @@ export function readColorFileText(file: string, text: string): ColorFile {
 	const read = readCommentedColors(text);
 	if (read.problems.length > 0) {
 		throw new DeckError(
-			`${file} holds colors that drawioSlides.colors cannot hold:\n  ${read.problems.join(
+			`${file} holds colors that drawSlidesCode.colors cannot hold:\n  ${read.problems.join(
 				"\n  "
 			)}`
 		);

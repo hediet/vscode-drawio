@@ -25,15 +25,15 @@ import { path } from "../utils/path";
 import { registerFailableCommand } from "../utils/registerFailableCommand";
 
 const toggleCodeLinkActivationCommandName =
-	"drawioSlides.toggleCodeLinkActivation";
+	"drawSlidesCode.toggleCodeLinkActivation";
 const linkCodeWithSelectedNodeCommandName =
-	"drawioSlides.linkCodeWithSelectedNode";
+	"drawSlidesCode.linkCodeWithSelectedNode";
 const linkSymbolWithSelectedNodeCommandName =
-	"drawioSlides.linkSymbolWithSelectedNode";
+	"drawSlidesCode.linkSymbolWithSelectedNode";
 const linkWsSymbolWithSelectedNodeCommandName =
-	"drawioSlides.linkWsSymbolWithSelectedNode";
+	"drawSlidesCode.linkWsSymbolWithSelectedNode";
 const linkFileWithSelectedNodeCommandName =
-	"drawioSlides.linkFileWithSelectedNode";
+	"drawSlidesCode.linkFileWithSelectedNode";
 
 const symbolNameMap: Record<SymbolKind, string> = {
 	[SymbolKind.File]: "symbol-file",

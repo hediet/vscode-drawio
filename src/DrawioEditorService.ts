@@ -22,10 +22,10 @@ import { DrawioBinaryDocument } from "./DrawioEditorProviderBinary";
 import { BufferImpl } from "./utils/buffer";
 import { registerFailableCommand } from "./utils/registerFailableCommand";
 
-const drawioChangeThemeCommand = "drawioSlides.changeTheme";
+const drawioChangeThemeCommand = "drawSlidesCode.changeTheme";
 
 /**
- * The argument of `drawioSlides.export` for exporting a diagram file
+ * The argument of `drawSlidesCode.export` for exporting a diagram file
  * without an editor and without prompts, e.g. from another extension.
  * Paths are absolute or relative to the first workspace folder.
  */
@@ -77,7 +77,7 @@ export class DrawioEditorService {
 			}
 			commands.executeCommand(
 				"setContext",
-				"drawioSlides.active",
+				"drawSlidesCode.active",
 				!!a
 			);
 		});
@@ -93,7 +93,7 @@ export class DrawioEditorService {
 		);
 
 		this.dispose.track(
-			registerFailableCommand("drawioSlides.convert", () => {
+			registerFailableCommand("drawSlidesCode.convert", () => {
 				const activeDrawioEditor = this.activeDrawioEditor;
 				if (!activeDrawioEditor) {
 					return;
@@ -104,7 +104,7 @@ export class DrawioEditorService {
 
 		this.dispose.track(
 			registerFailableCommand(
-				"drawioSlides.reload-webview",
+				"drawSlidesCode.reload-webview",
 				() => {
 					for (const e of this.openedEditors) {
 						e.drawioClient.reloadWebview();
@@ -115,7 +115,7 @@ export class DrawioEditorService {
 
 		this.dispose.track(
 			commands.registerCommand(
-				"drawioSlides.export",
+				"drawSlidesCode.export",
 				async (options?: ExportOptions) => {
 					if (options?.source !== undefined) {
 						// Errors reject the command so that the caller sees them.
@@ -230,7 +230,7 @@ export class DrawioEditorService {
 		const content = await workspace.fs.readFile(source);
 
 		const panel = window.createWebviewPanel(
-			"drawioSlides.export",
+			"drawSlidesCode.export",
 			`Exporting ${basename(source.path)}`,
 			{ viewColumn: ViewColumn.Active, preserveFocus: true },
 			{ retainContextWhenHidden: true }

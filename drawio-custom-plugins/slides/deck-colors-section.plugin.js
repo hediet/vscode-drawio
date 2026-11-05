@@ -1,5 +1,5 @@
 // Adds the section Deck colors to the Format panel of the draw.io editor, which lists the colors
-// of the setting "drawioSlides.colors" of the deck, gives the selection a color of the list, and
+// of the setting "drawSlidesCode.colors" of the deck, gives the selection a color of the list, and
 // edits the list.
 //
 // The section sits in the Style tab, after the swatches and before the sections Fill and Line.
@@ -29,7 +29,7 @@
 // options Fill, Line and Font Color of draw.io set: fillColor, or swimlaneFillColor for a lane of
 // a table and imageBackground for an image, strokeColor, or imageBorder for an image, and
 // fontColor.  Each key takes the value #RRGGBB of the color and, beside it, the link to the name
-// of the color under the key that window.drawioSlidesSettings.colorLinks gives it, such as
+// of the color under the key that window.drawSlidesCodeSettings.colorLinks gives it, such as
 // deckFillColor=red, which deck-color-links.plugin.js draws.  The keys of every selected cell
 // change in one edit, which one Undo takes back.  While a label of formatted text is edited, the
 // swatch and Font give the selected text the color as the option Font Color of draw.io does,
@@ -38,10 +38,10 @@
 // whole label, draw.io gives the cell the font color instead, and the cell takes the link.  While
 // a label of plain text is edited, they give the cell the color as its font color.
 //
-// The VS Code extension yujunhuang.drawio-slides gives the plugin the colors in
-// window.drawioSlidesSettings.colors, a list of names and values #RRGGBB in the order of the
+// The VS Code extension yujunhuang.drawslidescode gives the plugin the colors in
+// window.drawSlidesCodeSettings.colors, a list of names and values #RRGGBB in the order of the
 // setting.  The plugin sends an edit of the list to the extension as the event
-// drawioSlidesEditColor with the operation set, rename or remove, and the extension writes it into
+// drawSlidesCodeEditColor with the operation set, rename or remove, and the extension writes it into
 // the .vscode/settings.json of the workspace folder of the drawing, and into the uses of the color
 // in the drawing files of the deck.  Before a removal, the extension asks in a dialog of VS Code.
 // The extension then sends the colors again through slide-settings.js, and the section shows the
@@ -49,24 +49,24 @@
 // color has or that is not letters and digits starting with a letter, and the section then shows
 // the list as it was, as it does when the removal is cancelled.
 //
-// The VS Code extension yujunhuang.drawio-slides loads the plugin from its own folder
+// The VS Code extension yujunhuang.drawslidescode loads the plugin from its own folder
 // drawio-custom-plugins/slides/ after slide-settings.js, for every drawing whose setting
-// "drawioSlides.slides" is true, without asking.
+// "drawSlidesCode.slides" is true, without asking.
 Draw.loadPlugin(function (ui) {
   var graph = ui.editor.graph;
   var sectionTitle = 'Deck colors';
 
-  if (typeof onSlideSettingsChange != 'function' || window.drawioSlidesSettings == null) {
+  if (typeof onSlideSettingsChange != 'function' || window.drawSlidesCodeSettings == null) {
     return;
   }
 
   function colors() {
-    return window.drawioSlidesSettings.colors || [];
+    return window.drawSlidesCodeSettings.colors || [];
   }
 
   // The keys of the links of the color keys of a style, and the attribute of a linked text, or
   // none when the extension gives no links.
-  var colorLinks = window.drawioSlidesSettings.colorLinks || {keys: {}, textAttribute: null};
+  var colorLinks = window.drawSlidesCodeSettings.colorLinks || {keys: {}, textAttribute: null};
 
   // The color #RRGGBB that the color dialog gives, or null for none or another value.
   function hexValue(color) {
@@ -90,7 +90,7 @@ Draw.loadPlugin(function (ui) {
   // Sends the edit to the extension, and draws the list as it is until the extension sends the
   // colors again.
   function sendEdit(edit) {
-    window.opener.postMessage(JSON.stringify(Object.assign({event: 'drawioSlidesEditColor'},
+    window.opener.postMessage(JSON.stringify(Object.assign({event: 'drawSlidesCodeEditColor'},
       edit)), '*');
 
     if (ui.format != null) {

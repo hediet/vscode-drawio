@@ -5,8 +5,8 @@ const { loadTsModule } = require("../loadTsModule");
 const edits = loadTsModule("DrawioClient/deckColorEdits.ts");
 
 const settings = `{
-  "drawioSlides.slides": true,
-  "drawioSlides.colors": {
+  "drawSlidesCode.slides": true,
+  "drawSlidesCode.colors": {
     // The colors of the deck.
 
     // Text.
@@ -15,14 +15,14 @@ const settings = `{
     "accent": "#004D80",
     "panel": "#EEF0F2"
   },
-  "drawioSlides.listStyles": {
+  "drawSlidesCode.listStyles": {
     "bulleted": [
       { "indent": "26px", "marker": "disc", "color": "accent" },
       { "indent": "44px", "marker": "'-  '", "color": "black" }
     ]
   },
   // The swatches.
-  "drawioSlides.customColorSchemes": [
+  "drawSlidesCode.customColorSchemes": [
     [{ "fill": "accent", "stroke": "accent", "font": "panel" }],
     [{ "fill": "none", "stroke": "black", "font": "accent" }]
   ]
@@ -44,14 +44,14 @@ test("set adds a new color after the last one", () => {
 
 test("set adds the setting to a file without it", () => {
 	const text = edits.withColorEditInSettings('{\n\t// Other settings.\n\t"a": 1\n}\n', { operation: "set", name: "accent", value: "#004D80" });
-	assert.equal(text, '{\n\t// Other settings.\n\t"a": 1,\n\t"drawioSlides.colors": {\n\t\t"accent": "#004D80"\n\t}\n}\n');
+	assert.equal(text, '{\n\t// Other settings.\n\t"a": 1,\n\t"drawSlidesCode.colors": {\n\t\t"accent": "#004D80"\n\t}\n}\n');
 });
 
 test("remove takes the color out and keeps every comment", () => {
 	const text = edits.withColorEditInSettings(settings, { operation: "remove", name: "black" });
 	assert.doesNotMatch(text, /"black": "#000000"/);
 	assert.deepEqual(commentLines(text), commentLines(settings));
-	assert.deepEqual(Object.keys(JSON.parse(stripComments(text))["drawioSlides.colors"]), ["accent", "panel"]);
+	assert.deepEqual(Object.keys(JSON.parse(stripComments(text))["drawSlidesCode.colors"]), ["accent", "panel"]);
 });
 
 test("remove of the last color takes the comma before it", () => {
@@ -61,18 +61,18 @@ test("remove of the last color takes the comma before it", () => {
 });
 
 test("remove of the one color leaves an empty object", () => {
-	const text = edits.withColorEditInSettings('{\n  "drawioSlides.colors": {\n    // Only.\n    "x": "#000000"\n  }\n}\n', { operation: "remove", name: "x" });
-	assert.equal(text, '{\n  "drawioSlides.colors": {\n    // Only.\n  }\n}\n');
+	const text = edits.withColorEditInSettings('{\n  "drawSlidesCode.colors": {\n    // Only.\n    "x": "#000000"\n  }\n}\n', { operation: "remove", name: "x" });
+	assert.equal(text, '{\n  "drawSlidesCode.colors": {\n    // Only.\n  }\n}\n');
 });
 
 test("rename renames the color in its place and where the list styles and the swatches name it", () => {
 	const text = edits.withColorEditInSettings(settings, { operation: "rename", name: "accent", newName: "brand" });
 	const value = JSON.parse(stripComments(text));
-	assert.deepEqual(Object.keys(value["drawioSlides.colors"]), ["black", "brand", "panel"]);
-	assert.equal(value["drawioSlides.colors"].brand, "#004D80");
-	assert.equal(value["drawioSlides.listStyles"].bulleted[0].color, "brand");
-	assert.equal(value["drawioSlides.listStyles"].bulleted[1].color, "black");
-	assert.deepEqual(value["drawioSlides.customColorSchemes"], [
+	assert.deepEqual(Object.keys(value["drawSlidesCode.colors"]), ["black", "brand", "panel"]);
+	assert.equal(value["drawSlidesCode.colors"].brand, "#004D80");
+	assert.equal(value["drawSlidesCode.listStyles"].bulleted[0].color, "brand");
+	assert.equal(value["drawSlidesCode.listStyles"].bulleted[1].color, "black");
+	assert.deepEqual(value["drawSlidesCode.customColorSchemes"], [
 		[{ fill: "brand", stroke: "brand", font: "panel" }],
 		[{ fill: "none", stroke: "black", font: "brand" }],
 	]);
@@ -122,7 +122,7 @@ test("a name of the prototype of an object is a name like any other", () => {
 
 test("hasColorsMember tells a file with the setting from one without it", () => {
 	assert.equal(edits.hasColorsMember(settings), true);
-	assert.equal(edits.hasColorsMember('{ "drawioSlides.slides": true }'), false);
+	assert.equal(edits.hasColorsMember('{ "drawSlidesCode.slides": true }'), false);
 	assert.equal(edits.hasColorsMember(""), false);
 });
 
