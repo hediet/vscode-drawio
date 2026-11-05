@@ -1,13 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <!-- The icon of Draw.io Slides: a slide of the deck with a small diagram on it. media/icon.png is
-       this drawing at 256 pixels, which package.json names. -->
-  <rect x="8" y="8" width="240" height="240" rx="44" fill="#004D80"/>
-  <rect x="34" y="62" width="188" height="132" rx="10" fill="#FFFFFF"/>
-  <rect x="50" y="78" width="96" height="10" rx="5" fill="#004D80"/>
-  <rect x="58" y="112" width="48" height="34" rx="6" fill="#F08705"/>
-  <rect x="150" y="112" width="48" height="34" rx="6" fill="#4286F4"/>
-  <path d="M106 129 H140" stroke="#004D80" stroke-width="6" stroke-linecap="round"/>
-  <path d="M134 120 L146 129 L134 138 Z" fill="#004D80"/>
-  <rect x="58" y="164" width="140" height="8" rx="4" fill="#C8CDD2"/>
-  <rect x="108" y="200" width="40" height="14" rx="3" fill="#FFFFFF"/>
+  <!-- The icon of the extension: a stack of slides whose front slide holds a small diagram, three
+       nodes and two edges. media/icon.png is this drawing at 256 pixels, which package.json names.
+       It keeps clear of the orange and the shape of the draw.io logo, which the trademark
+       guidelines of draw.io forbid as or in the icon of another product. -->
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#312E81"/>
+      <stop offset="1" stop-color="#0E7490"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#ground)"/>
+  <rect x="62" y="42" width="160" height="112" rx="12" fill="#FFFFFF" opacity="0.35"/>
+  <rect x="48" y="56" width="160" height="112" rx="12" fill="#FFFFFF" opacity="0.6"/>
+  <rect x="34" y="70" width="160" height="112" rx="12" fill="#FFFFFF"/>
+  <path d="M80 104 L148 104 M80 104 L148 150" stroke="#312E81" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <rect x="58" y="90" width="44" height="28" rx="7" fill="#312E81"/>
+  <circle cx="152" cy="104" r="15" fill="#0E7490"/>
+  <rect x="134" y="138" width="36" height="24" rx="12" fill="#14B8A6"/>
+  <path d="M112 196 L144 196 L128 214 Z" fill="#FFFFFF" transform="rotate(-90 128 205)"/>
 </svg>

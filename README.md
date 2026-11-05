@@ -130,11 +130,31 @@ code --install-extension dist/extension.vsix --force
 Reload the window of VS Code after an installation, with *Developer: Reload Window*.
 A clone serves the command line after its build, through `DRAWIO_SLIDES_EXTENSION=<clone>` or `node <clone>/dist/cli.js`.
 
+## Publish the extension on the Visual Studio Marketplace and on Open VSX
+
+The Visual Studio Marketplace serves VS Code, and Open VSX serves VSCodium and the other builds of the open source code of VS Code.
+Both take the `dist/extension.vsix` of the build above.
+Build it from a commit that GitHub holds, because the page of the extension shows the pictures of this README from the default branch on GitHub.
+`yarn build` packages a release, as `"preRelease": false` in `package.json` says, and `yarn package-extension-preRelease` packages a pre-release.
+Each registry takes a version number once, so a release raises `version` in `package.json` and adds its section to `CHANGELOG.md`.
+
+The publisher `yujunhuang` of the Marketplace is created once, with a Microsoft account, on the [publisher management page](https://marketplace.visualstudio.com/manage).
+The same page uploads the first version with New extension and then Visual Studio Code, and each later version with Update in the menu of the extension.
+The upload needs no personal access token of Azure DevOps, whose global tokens retire on December 1, 2026, as the [guide to publishing extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension) of VS Code says.
+
+Open VSX publishes after an Eclipse account with the GitHub user name of the login to open-vsx.org, the Publisher Agreement signed on the profile page of open-vsx.org, and an access token, as its [guide to publishing extensions](https://github.com/eclipse/openvsx/wiki/Publishing-Extensions) says.
+The commands run the latest version of `ovsx` through `npx`, since `package.json` holds no `ovsx`:
+
+```sh
+npx ovsx@latest create-namespace yujunhuang -p <token>    # once
+npx ovsx@latest publish dist/extension.vsix -p <token>
+```
+
+The namespace lets everyone publish in it until its owner claims it, as the page [Namespace Access](https://github.com/eclipse/openvsx/wiki/Namespace-Access) of the same wiki says.
+
 ## The README of the original
 
 ### Draw.io VS Code Integration
-
-[![](https://img.shields.io/twitter/follow/hediet_dev.svg?style=social)](https://twitter.com/intent/follow?screen_name=hediet_dev)
 
 This unofficial extension integrates [Draw.io](https://app.diagrams.net/) (also known as [diagrams.net](https://www.diagrams.net/)) into VS Code.  
 Mentioned in the official diagrams.net [blog](https://www.diagrams.net/blog/embed-diagrams-vscode).
@@ -163,7 +183,7 @@ You can directly edit and save `.drawio.svg` and `.drawio.png` files.
 These files are perfectly valid svg/png-images that contain an embedded Draw.io diagram.
 Whenever you edit such a file, the svg/png part of that file is kept up to date.
 
-The logo of this extension is such a `.drawio.png` file that has been created with the extension itself!
+The logo of the original extension, `docs/logo.drawio.png`, is such a `.drawio.png` file that has been created with the extension itself!
 
 ![](./docs/drawio-png.gif)
 
