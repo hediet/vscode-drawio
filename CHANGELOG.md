@@ -30,7 +30,7 @@ The versions below are those of the original hediet.vscode-drawio, from which th
   Every command writes its lines into the output channel, and the check puts its issues into the Problems view.
 - The setting `drawioSlides.browserPath`, the browser of the build.
 - The command line `dist/cli.js`, with the modes `init`, `vscode`, `build`, `html`, `pdf`, `watch`, `outline`, `check`, `from-tex`, `to-tex`, `color-config`, `embed-pictures`, `migrate`, `place-logos` and `screenshots`.
-- The launcher `drawio-slides.cjs`, which the set-up copies into each deck, and which runs the command line of the newest installed version of the extension for the scripts of the `package.json` of the deck.
+- The launcher `drawio-slides.cjs`, which the set-up copies into each deck, and which runs the command line of the newest version of the extension that VS Code, VS Code Insiders or VSCodium has installed, for the scripts of the `package.json` of the deck.
 - The command Set Up a Presentation in This Folder starts a deck or sets up the editor for one from the template and the starting palette in `deck-templates/`, and offers to move a deck whose scripts run `build-slides.py` of the framework to the launcher.
 - The guide for authors of slides, `docs/presentations.md`, the skills `deck-skeleton`, `deck-html` and `deck-pdf` in `skills/`, and `GOALS.md`, from the draw.io presentation framework.
 

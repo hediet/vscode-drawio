@@ -9,13 +9,13 @@
 	"publisher": "yujunhuang",
 	"keywords": [
 		"drawio",
-		"diagram",
 		"diagrams.net",
-		"visio",
-		"architecture",
-		"uml",
-		"code link",
-		"diagram as code",
+		"slides",
+		"presentation",
+		"slide deck",
+		"pdf",
+		"html",
+		"diagram",
 		"git",
 		"ai"
 	],
@@ -30,7 +30,7 @@
 		}
 	],
 	"readme": "./README.md",
-	"icon": "docs/logo.drawio.png",
+	"icon": "media/icon.png",
 	"extensionKind": [
 		"ui",
 		"workspace"
@@ -45,6 +45,10 @@
 		"onLanguage:markdown",
 		"onUri"
 	],
+	"homepage": "https://github.com/HuangYujun-JunkyTalent/vscode-drawio-slides#readme",
+	"bugs": {
+		"url": "https://github.com/HuangYujun-JunkyTalent/vscode-drawio-slides/issues"
+	},
 	"repository": {
 		"url": "https://github.com/HuangYujun-JunkyTalent/vscode-drawio-slides.git"
 	},
@@ -953,7 +957,7 @@
 		"build": "yarn build-extension && yarn build-plugins && yarn package-extension",
 		"build-extension": "webpack --mode production",
 		"build-plugins": "webpack --mode production --config ./drawio-custom-plugins/webpack.config.ts",
-		"package-extension": "yarn package-extension-preRelease",
+		"package-extension": "yarn package-extension-stable",
 		"package-extension-stable": "vsce package --yarn --out ./dist/extension.vsix",
 		"package-extension-preRelease": "vsce package --yarn --out ./dist/extension.vsix --pre-release",
 		"dev": "webpack --mode development --watch",
@@ -990,8 +994,6 @@
 		"dist/THIRD-PARTY-NOTICES.md"
 	],
 	"devDependencies": {
-		"@actions/exec": "^1.0.4",
-		"@actions/github": "^2.2.0",
 		"@hediet/semver": "^0.2.1",
 		"@types/copy-webpack-plugin": "^8.0.1",
 		"@types/mithril": "^2.0.4",
@@ -1004,7 +1006,6 @@
 		"clean-webpack-plugin": "^4.0.0-alpha.0",
 		"copy-webpack-plugin": "^9.0.1",
 		"css-loader": "^3.4.2",
-		"ovsx": "^0.1.0-next.e000fdb",
 		"prettier": "^2.3.2",
 		"raw-loader": "^4.0.1",
 		"style-loader": "^1.1.3",

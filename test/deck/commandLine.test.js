@@ -312,4 +312,19 @@ test("the launcher of a deck runs the command line of the newest installed versi
 	const missing = launch({ HOME: folderWith({}) });
 	assert.equal(missing.status, 1);
 	assert.match(missing.stderr, /yujunhuang.drawio-slides is not installed/);
+	// VSCodium keeps its extensions in ~/.vscode-oss/extensions, which the launcher compares with
+	// those of VS Code.
+	const vscodium = path.join(
+		home,
+		".vscode-oss",
+		"extensions",
+		"yujunhuang.drawio-slides-0.12.0",
+		"dist"
+	);
+	fs.mkdirSync(vscodium, { recursive: true });
+	fs.writeFileSync(path.join(vscodium, "cli.js"), stub);
+	assert.equal(
+		JSON.parse(launch({}).stdout).folder,
+		"yujunhuang.drawio-slides-0.12.0"
+	);
 });

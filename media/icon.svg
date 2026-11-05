@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- The icon of Draw.io Slides: a slide of the deck with a small diagram on it. media/icon.png is
+       this drawing at 256 pixels, which package.json names. -->
+  <rect x="8" y="8" width="240" height="240" rx="44" fill="#004D80"/>
+  <rect x="34" y="62" width="188" height="132" rx="10" fill="#FFFFFF"/>
+  <rect x="50" y="78" width="96" height="10" rx="5" fill="#004D80"/>
+  <rect x="58" y="112" width="48" height="34" rx="6" fill="#F08705"/>
+  <rect x="150" y="112" width="48" height="34" rx="6" fill="#4286F4"/>
+  <path d="M106 129 H140" stroke="#004D80" stroke-width="6" stroke-linecap="round"/>
+  <path d="M134 120 L146 129 L134 138 Z" fill="#004D80"/>
+  <rect x="58" y="164" width="140" height="8" rx="4" fill="#C8CDD2"/>
+  <rect x="108" y="200" width="40" height="14" rx="3" fill="#FFFFFF"/>
+</svg>

@@ -114,7 +114,7 @@ The build, the check and the installation of Chromium show their progress in a n
 
 The `package.json` of a presentation holds these scripts and no dependencies.
 Each script runs the launcher `drawio-slides.cjs` with its mode alone, such as `node drawio-slides.cjs build`.
-The launcher runs `dist/cli.js` of the folder that `DRAWIO_SLIDES_EXTENSION` names, or else of the newest version of the extension that VS Code or VS Code Insiders has installed.
+The launcher runs `dist/cli.js` of the folder that `DRAWIO_SLIDES_EXTENSION` names, or else of the newest version of the extension that VS Code, VS Code Insiders or VSCodium has installed.
 The scripts therefore work on every machine with the extension, and after each update of it.
 `node drawio-slides.cjs --help` lists the modes and the options of the command line.
 The facts of the presentation that the scripts share stand once, under the key `config`:
