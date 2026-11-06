@@ -8,7 +8,13 @@ import {
 	WebviewPanel,
 	workspace,
 } from "vscode";
-import { CustomizedDrawioClient, simpleDrawioLibrary } from ".";
+import { CustomizedDrawioClient, DrawioConfig, simpleDrawioLibrary } from ".";
+import {
+	applyDialogConfig,
+	getSetSettings,
+	getUserConfig,
+	mergeDrawioConfig,
+} from "../drawioConfiguration";
 import { Config, DiagramConfig } from "../Config";
 import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
 import { appendEmbedParams } from "../utils/appendEmbedParams";
@@ -40,6 +46,9 @@ export class DrawioClientFactory {
 			enableScripts: true,
 		};
 		const reloadId = observable({ id: 0 });
+		// Set while the Configuration dialog writes the settings, which then
+		// reload the editor once
+		let applyingDialogConfig = false;
 		let i = 0;
 		const disposeAutorun = autorun(
 			() => {
@@ -60,6 +69,7 @@ export class DrawioClientFactory {
 				config.showLinkIcons;
 				config.showConnectHandle;
 				config.resizeImages;
+				config.drawioConfig;
 				// Reload on theme/appearance SETTING changes, but NOT on system
 				// dark-mode changes: getHtml reads config.resolvedTheme untracked, so
 				// an OS appearance change is handled live by draw.io's dark=auto
@@ -73,7 +83,7 @@ export class DrawioClientFactory {
 
 				if (config.isResizeImageUpdating) {
 					config.isResizeImageUpdating = false;
-				} else {
+				} else if (!applyingDialogConfig) {
 					webview.html = html;
 				}
 			},
@@ -97,7 +107,7 @@ export class DrawioClientFactory {
 			},
 			async () => {
 				const libs = await config.customLibraries;
-				return {
+				const hostConfig: Record<string, unknown> = {
 					compressXml: false,
 					customFonts: config.customFonts,
 					presetColors: config.presetColors,
@@ -130,6 +140,10 @@ export class DrawioClientFactory {
 						"saveAndExit", "plugins", "exit"],
 					hideMenus: ["language", "help"],
 				};
+
+				// Adds the config setting and the Configuration dialog
+				return mergeDrawioConfig(hostConfig, getUserConfig(config.uri),
+					getSetSettings(config.uri)) as DrawioConfig;
 			},
 			() => {
 				runInAction("Force reload", () => {
@@ -159,6 +173,23 @@ export class DrawioClientFactory {
 				// Link click forwarded from draw.io (suppressNewWindows mode):
 				// open it in the host's default browser instead of a new tab.
 				env.openExternal(Uri.parse((message as any).href));
+			} else if ((message as any).event === "configuration") {
+				// Apply in the Configuration dialog: stores the options in the
+				// settings, and reloads the editor once with them
+				applyingDialogConfig = true;
+
+				applyDialogConfig(config.uri, (message as any).config).then((changes) => {
+					applyingDialogConfig = false;
+
+					if (changes > 0) {
+						runInAction("Reload after configuration", () => {
+							reloadId.id++;
+						});
+					}
+				}, (e) => {
+					applyingDialogConfig = false;
+					window.showErrorMessage(`Could not store the Draw.io configuration: ${e}`);
+				});
 			}
 		});
 

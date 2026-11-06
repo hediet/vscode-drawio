@@ -47,8 +47,9 @@
 	"capabilities": {
 		"untrustedWorkspaces": {
 			"supported": "limited",
-			"description": "In Restricted Mode, workspace settings cannot load custom libraries or plugins, or change which Draw.io app the editor loads.",
+			"description": "In Restricted Mode, workspace settings cannot load custom libraries or plugins, change the Draw.io configuration, or change which Draw.io app the editor loads.",
 			"restrictedConfigurations": [
+				"hediet.vscode-drawio.config",
 				"hediet.vscode-drawio.customLibraries",
 				"hediet.vscode-drawio.plugins",
 				"hediet.vscode-drawio.offline",
@@ -276,6 +277,13 @@
 						"title": "Code Link Enabled",
 						"description": "When activated, selecting a node will navigate to an associated code section.",
 						"order": 20
+					},
+					"hediet.vscode-drawio.config": {
+						"type": "object",
+						"default": {},
+						"title": "Draw.io Configuration",
+						"markdownDescription": "Options of the [Draw.io configuration](https://www.drawio.com/doc/faq/configure-diagram-editor), for example `{\"zoomWheel\": false}` to scroll with the mouse wheel. You can also change them in the editor in *Extras > Configuration*. Options that have a setting of their own, such as `customFonts`, are stored in that setting.",
+						"order": 25
 					},
 					"hediet.vscode-drawio.local-storage": {
 						"anyOf": [

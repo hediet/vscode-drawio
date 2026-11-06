@@ -757,6 +757,24 @@ export class DiagramConfig {
 
 	// #endregion
 
+	// #region Draw.io Configuration
+
+	private readonly _drawioConfig = new VsCodeSetting(`${extensionId}.config`, {
+		scope: this.uri,
+		serializer: serializerWithDefault<Record<string, unknown>>({}),
+	});
+
+	/**
+	 * The options of the draw.io configuration in the config setting (see
+	 * drawioConfiguration.ts). Read to reload the editor when it changes.
+	 */
+	@computed
+	public get drawioConfig(): Record<string, unknown> {
+		return this._drawioConfig.get();
+	}
+
+	// #endregion
+
 	// #region Show Connect Handle
 
 	private readonly _showConnectHandle = new VsCodeSetting(
