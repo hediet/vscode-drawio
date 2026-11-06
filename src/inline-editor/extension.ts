@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as crypto from "crypto";
 import { Config } from "../Config";
 import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
+import { withConfigSetting } from "../drawioConfiguration";
 import { appendEmbedParams } from "../utils/appendEmbedParams";
 import {
 	DiagramBlock,
@@ -181,7 +182,8 @@ function getDrawioUserConfig(
 ): Record<string, unknown> {
 	if (!_sharedDrawioConfig) { _sharedDrawioConfig = new Config(globalState); }
 	const dc = _sharedDrawioConfig.getDiagramConfig(uri);
-	return {
+	// With the options of the hediet.vscode-drawio.config setting
+	return withConfigSetting(uri, {
 		styles: dc.styles,
 		customColorSchemes: dc.customColorSchemes,
 		defaultVertexStyle: dc.defaultVertexStyle,
@@ -201,7 +203,16 @@ function getDrawioUserConfig(
 		suppressNewWindows: true,
 		// Print needs a popup/modal the webview sandbox blocks, so hide it.
 		hideMenuItems: ["print"],
-	};
+	});
+}
+
+/**
+ * JSON for a value in an inline script: `<` is escaped so that no value can
+ * end the script element.
+ */
+function toScriptJson(value: unknown): string {
+	return JSON.stringify(value).replace(/</g, "\\u003c")
+		.replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 }
 
 /**
@@ -757,13 +768,11 @@ async function openDiagramEditor(
 
 	const config = vscode.workspace.getConfiguration("drawio-inline-editor");
 	const editorUrl = await getEditorUrl(context);
-	const themeConfig = config.get<string>("ui", "kennedy")!;
 	const autoLock = config.get<boolean>("autoLock", false)!;
 	const devMode = DEV_MODE;
 
 	const isDark = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
 		|| vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast;
-	const theme = themeConfig === "auto" ? (isDark ? "dark" : "kennedy") : themeConfig;
 
 	activePanel = vscode.window.createWebviewPanel(
 		"drawio-inline-editor.editor",
@@ -795,7 +804,8 @@ async function openDiagramEditor(
 	if (devMode) { iframeSrc += "&dev=1&test=1"; }
 	if (isDark) { iframeSrc += "&dark=1"; }
 	html = html.replace("{{iframeSrc}}", iframeSrc);
-	html = html.replace("{{passThroughKeys}}", JSON.stringify(VSCODE_PASSTHROUGH_KEYS));
+	// The user\'s draw.io configuration (a function, as the JSON can have $ patterns)
+	html = html.replace("{{drawioConfig}}", () => toScriptJson(getDrawioUserConfig(context.globalState, document.uri)));
 
 	activePanel.webview.html = html;
 
@@ -810,7 +820,6 @@ async function openDiagramEditor(
 						locked: block.locked,
 						isBlank: isBlankDiagram(block.xml),
 						editorUrl,
-						theme,
 						isDark,
 						devMode,
 					});
@@ -891,14 +900,11 @@ async function openSourceEditor(
 	// Store the source block as the editing context so saveSourceDiagram can find it
 	editingContext = { documentUri: document.uri, sourceBlock };
 
-	const config = vscode.workspace.getConfiguration("drawio-inline-editor");
 	const editorUrl = await getEditorUrl(context);
-	const themeConfig = config.get<string>("ui", "kennedy")!;
 	const devMode = DEV_MODE;
 
 	const isDark = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
 		|| vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast;
-	const theme = themeConfig === "auto" ? (isDark ? "dark" : "kennedy") : themeConfig;
 
 	activePanel = vscode.window.createWebviewPanel(
 		"drawio-inline-editor.editor",
@@ -929,7 +935,8 @@ async function openSourceEditor(
 	if (devMode) { iframeSrc += "&dev=1&test=1"; }
 	if (isDark) { iframeSrc += "&dark=1"; }
 	html = html.replace("{{iframeSrc}}", iframeSrc);
-	html = html.replace("{{passThroughKeys}}", JSON.stringify(VSCODE_PASSTHROUGH_KEYS));
+	// The user\'s draw.io configuration (a function, as the JSON can have $ patterns)
+	html = html.replace("{{drawioConfig}}", () => toScriptJson(getDrawioUserConfig(context.globalState, document.uri)));
 
 	activePanel.webview.html = html;
 
@@ -942,7 +949,6 @@ async function openSourceEditor(
 						type: "loadSource",
 						descriptor: createConversionDescriptor(sourceBlock),
 						editorUrl,
-						theme,
 						isDark,
 						devMode,
 					});
@@ -1873,13 +1879,10 @@ class DrawioCustomEditorProvider implements vscode.CustomTextEditorProvider {
 		webviewPanel: vscode.WebviewPanel
 	): Promise<void> {
 		const context = this.context;
-		const config = vscode.workspace.getConfiguration("drawio-inline-editor");
 		const editorUrl = await getEditorUrl(context);
-		const themeConfig = config.get<string>("ui", "kennedy")!;
 		const devMode = DEV_MODE;
 		const isDark = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
 			|| vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast;
-		const theme = themeConfig === "auto" ? (isDark ? "dark" : "kennedy") : themeConfig;
 
 		let suppressUpdate = false;
 
@@ -1908,7 +1911,8 @@ class DrawioCustomEditorProvider implements vscode.CustomTextEditorProvider {
 		if (devMode) { iframeSrc += "&dev=1&test=1"; }
 		if (isDark) { iframeSrc += "&dark=1"; }
 		html = html.replace("{{iframeSrc}}", iframeSrc);
-	html = html.replace("{{passThroughKeys}}", JSON.stringify(VSCODE_PASSTHROUGH_KEYS));
+	// The user\'s draw.io configuration (a function, as the JSON can have $ patterns)
+	html = html.replace("{{drawioConfig}}", () => toScriptJson(getDrawioUserConfig(context.globalState, document.uri)));
 
 		webviewPanel.webview.html = html;
 
@@ -1922,7 +1926,6 @@ class DrawioCustomEditorProvider implements vscode.CustomTextEditorProvider {
 							xml: document.getText(),
 							locked: false,
 							editorUrl,
-							theme,
 							isDark,
 							devMode,
 							mode: "customEditor",
@@ -1960,7 +1963,6 @@ class DrawioCustomEditorProvider implements vscode.CustomTextEditorProvider {
 					xml: document.getText(),
 					locked: false,
 					editorUrl,
-					theme,
 					isDark,
 					devMode,
 					mode: "customEditor",

@@ -17,11 +17,18 @@ function loadModule(relativePath, requireModule = require, globals = {}) {
 
 function loadProvider(settings = {}, language = "en", followHostTheme = true) {
 	const vscode = {
-		workspace: { getConfiguration: () => ({ get: (key, fallback) => settings[key] ?? fallback }) },
+		workspace: { getConfiguration: () => ({
+			get: (key, fallback) => settings[key] ?? fallback,
+			inspect: (key) => (key in settings) ? { globalValue: settings[key] } : {},
+		}) },
 		Uri: { joinPath: (base, ...parts) => new URL(parts.join("/"), base) },
+		ConfigurationTarget: { Global: 1, Workspace: 2, WorkspaceFolder: 3 },
 	};
 	const module = loadModule("codeblock-editor/markdownCodeBlockEditor.ts", name => {
 		if (name === "vscode") { return vscode; }
+		if (name === "../drawioConfiguration") {
+			return loadModule("drawioConfiguration.ts", n => (n === "vscode") ? vscode : require(n));
+		}
 		if (name === "../DrawioClient") { return { simpleDrawioLibrary: value => value }; }
 		if (name === "../vscodeShortcuts") { return { VSCODE_PASSTHROUGH_KEYS: [] }; }
 		if (name === "../inline-editor/diagramParser") { return loadModule("inline-editor/diagramParser.ts"); }
@@ -65,6 +72,22 @@ test("preserves fence options, explicit appearance and safe configuration encodi
 	assert.equal(config.diagramPadding, 12);
 	assert.equal(descriptor.initialHeight, 360);
 	assert.doesNotMatch(descriptor.content.html, /en<\/script>/);
+});
+
+test("applies the config setting below the options of the code block editor", async () => {
+	const descriptor = await loadProvider({ config: {
+		zoomWheel: false, defaultGridSize: 20, noAutoFocus: false, compressXml: true,
+		css: "body { color: red; }", hideMenuItems: ["pageSetup", "print"],
+	} }).resolve(request, { isCancellationRequested: false });
+	const config = JSON.parse(descriptor.content.html.match(/id="drawio-codeblock-config">([^<]+)<\/script>/)[1]);
+	assert.equal(config.drawioConfig.zoomWheel, false, "option of the setting");
+	assert.equal(config.drawioConfig.defaultGridSize, 20, "option of the setting");
+	assert.equal(config.drawioConfig.noAutoFocus, true, "options of the editor win");
+	assert.equal(config.drawioConfig.compressXml, false, "reserved options win");
+	assert.match(config.drawioConfig.css, /\.geToolbarContainer/, "options of the editor win");
+	assert.deepEqual(config.drawioConfig.hideMenuItems,
+		["exportAs", "importFrom", "print", "saveAndExit", "plugins", "exit", "pageSetup"], "lists are merged");
+	assert.equal(config.drawioConfig.configurationEditor, undefined, "no Configuration dialog");
 });
 
 test("does not resolve a cancelled request", async () => {

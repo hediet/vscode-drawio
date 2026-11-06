@@ -21,6 +21,7 @@ import { sha256 } from "js-sha256";
 import { Config, DiagramConfig } from "../Config";
 import { DrawioLibrarySection, simpleDrawioLibrary } from "../DrawioClient";
 import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
+import { withConfigSetting } from "../drawioConfiguration";
 import { parseBlockAttrs } from "../inline-editor/diagramParser";
 import {
 	GuestConfig,
@@ -262,7 +263,9 @@ async function buildGuestConfig(
 		urlParams.toolbar = "0";
 	}
 
-	const drawioConfig: Record<string, unknown> = {
+	// The settings, then the hediet.vscode-drawio.config setting, then the
+	// options of this editor, which the config setting cannot change
+	const drawioConfig = withConfigSetting(dc.uri, {
 		compressXml: false,
 		customFonts: dc.customFonts,
 		presetColors: dc.presetColors,
@@ -284,6 +287,7 @@ async function buildGuestConfig(
 		showTooltipIcons: dc.showTooltipIcons || undefined,
 		showLinkIcons: dc.showLinkIcons || undefined,
 		showConnectHandle: dc.showConnectHandle || undefined,
+	}, {
 		compact: true,
 		css: INLINE_CSS,
 		darkColor: "#1e1e1e",
@@ -308,7 +312,7 @@ async function buildGuestConfig(
 			"exit",
 		],
 		hideMenus: ["language", "help"],
-	};
+	});
 
 	const diagramPadding = vscode.workspace
 		.getConfiguration("drawio-inline-editor")

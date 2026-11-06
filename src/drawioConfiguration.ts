@@ -131,17 +131,25 @@ export function getSetSettings(uri: Uri | undefined): ConfigObject {
 	return result;
 }
 
+// The entries of both lists, the first list first
+function mergeLists(first: unknown, second: unknown[]): unknown[] {
+	const list = Array.isArray(first) ? first : [];
+
+	return list.concat(second.filter((v) => !list.includes(v)));
+}
+
 /**
- * Returns the configuration for draw.io: the host's configuration (with the
- * values of all settings) with the options of the `config` setting, except
- * the reserved options and the options whose own setting is set. Lists in
- * MERGED_CONFIG_KEYS get the entries of both. Adds the configuration for
- * the Configuration dialog.
+ * Returns the host's configuration (with the values of all settings) with the
+ * options of the `config` setting, except the reserved options and the
+ * options whose own setting is set, and then the forced options of the host,
+ * which win over the setting (eg. the options an inline editor needs). Lists
+ * in MERGED_CONFIG_KEYS get the entries of all of them.
  */
-export function mergeDrawioConfig(
+export function mergeUserConfig(
 	hostConfig: ConfigObject,
 	userConfig: ConfigObject,
-	setSettings: ConfigObject
+	setSettings: ConfigObject,
+	forcedConfig: ConfigObject = {}
 ): ConfigObject {
 	const result: ConfigObject = { ...hostConfig };
 
@@ -152,12 +160,50 @@ export function mergeDrawioConfig(
 			key in setSettings) {
 			continue;
 		} else if (MERGED_CONFIG_KEYS.includes(key) && Array.isArray(value)) {
-			const host = Array.isArray(hostConfig[key]) ? (hostConfig[key] as unknown[]) : [];
-			result[key] = host.concat(value.filter((v) => !host.includes(v)));
+			result[key] = mergeLists(result[key], value);
 		} else {
 			result[key] = value;
 		}
 	}
+
+	for (const key of Object.keys(forcedConfig)) {
+		const value = forcedConfig[key];
+
+		if (MERGED_CONFIG_KEYS.includes(key) && Array.isArray(value)) {
+			result[key] = mergeLists(value, (Array.isArray(result[key]) ?
+				result[key] : []) as unknown[]);
+		} else {
+			result[key] = value;
+		}
+	}
+
+	return result;
+}
+
+/**
+ * The host's configuration with the `config` setting of the given document
+ * and the forced options (see mergeUserConfig), without the Configuration
+ * dialog. For the editors that build their configuration themselves.
+ */
+export function withConfigSetting(
+	uri: Uri | undefined,
+	hostConfig: ConfigObject,
+	forcedConfig: ConfigObject = {}
+): ConfigObject {
+	return mergeUserConfig(hostConfig, getUserConfig(uri), getSetSettings(uri),
+		forcedConfig);
+}
+
+/**
+ * Returns the configuration for draw.io (see mergeUserConfig) and adds the
+ * configuration for the Configuration dialog.
+ */
+export function mergeDrawioConfig(
+	hostConfig: ConfigObject,
+	userConfig: ConfigObject,
+	setSettings: ConfigObject
+): ConfigObject {
+	const result = mergeUserConfig(hostConfig, userConfig, setSettings);
 
 	result.configurationEditor = {
 		config: getDialogConfig(userConfig, setSettings),

@@ -374,12 +374,6 @@
 				"title": "Inline Editor",
 				"order": 15,
 				"properties": {
-					"drawio-inline-editor.theme": {
-						"type": "string",
-						"default": "auto",
-						"enum": ["auto", "kennedy", "min", "atlas", "dark", "sketch"],
-						"description": "Editor UI theme"
-					},
 					"drawio-inline-editor.autoLock": {
 						"type": "boolean",
 						"default": false,

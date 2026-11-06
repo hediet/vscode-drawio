@@ -100,6 +100,7 @@ The setting applies the next time a diagram is saved. Add it to the workspace se
 
 Select _Extras > Configuration_ in the editor to change the options of the [Draw.io configuration](https://www.drawio.com/doc/faq/configure-diagram-editor), for example _Zoom with Mouse Wheel_.
 The options are stored in the `hediet.vscode-drawio.config` setting, except options that have a setting of their own, such as `hediet.vscode-drawio.customFonts`, which are stored in that setting.
+The inline Markdown editors use the setting too, except the options that they set themselves, such as their styles and scrolling.
 You can also edit the setting directly, for example to scroll with the mouse wheel instead of zooming:
 
 ```json

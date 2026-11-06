@@ -126,26 +126,21 @@
         switch (msg.event)
         {
           case 'configure':
+            // The user's draw.io configuration (settings, styles, fonts and
+            // the hediet.vscode-drawio.config setting), with passThroughKeys,
+            // suppressNewWindows and hideMenuItems, injected by the extension
+            // (getDrawioUserConfig), and then the options of this editor
             frame.contentWindow.postMessage(JSON.stringify({
               action: 'configure',
-              config: {
+              config: Object.assign({}, {{drawioConfig}}, {
                 compact: true,
-                // Chords to hand back to VS Code instead of letting draw.io
-                // handle them (online/cross-origin path). Source of truth:
-                // src/vscodeShortcuts.ts (injected by the extension).
-                passThroughKeys: {{passThroughKeys}},
-                // The VS Code webview blocks new windows/tabs: draw.io forwards
-                // link clicks via {event:'openLink'} instead of window.open.
-                suppressNewWindows: true,
-                // Print needs a popup/modal the webview sandbox blocks, so hide it.
-                hideMenuItems: ['print'],
                 darkColor: '#1e1e1e',
                 showTooltipIcons: true,
                 showConnectHandle: true,
                 preserveViewState: true,
                 settingsName: 'vscode-editor',
                 useInternalClipboard: true // TODO: Add native clipboard support
-              }
+              })
             }), '*');
             break;
 

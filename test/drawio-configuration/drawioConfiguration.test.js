@@ -65,6 +65,18 @@ test("merges the config setting into the host's configuration", () => {
 	assert.ok(result.configurationEditor.excludedKeys.includes("configurationEditor"));
 });
 
+test("forced options of the host win over the config setting", () => {
+	const { module } = load();
+	const result = plain(module.mergeUserConfig(
+		{ zoomFactor: 1.2, hideMenuItems: ["print"] },
+		{ zoomWheel: false, css: "x", passiveScroll: false, hideMenuItems: ["pageSetup"] },
+		{},
+		{ css: "editor", passiveScroll: true, hideMenuItems: ["exit"] }));
+
+	assert.deepEqual(result, { zoomFactor: 1.2, zoomWheel: false, css: "editor", passiveScroll: true,
+		hideMenuItems: ["exit", "print", "pageSetup"] });
+});
+
 test("leaves the host's configuration as it is without options", () => {
 	const { module } = load();
 	const host = { compressXml: false, zoomFactor: 1.2, customFonts: [] };
