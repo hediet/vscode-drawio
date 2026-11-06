@@ -96,6 +96,24 @@ By default, `.drawio.svg` files are saved with light colors, whatever theme the 
 Set `hediet.vscode-drawio.svgAppearance` to `auto` to make them adapt to the color scheme of the page that shows them, for example a README on GitHub in dark mode, or to `dark` to always save them with dark colors.
 The setting applies the next time a diagram is saved. Add it to the workspace settings so that everyone on a team saves the same file.
 
+## Draw.io Configuration
+
+The `hediet.vscode-drawio.config` setting holds options of the [Draw.io configuration](https://www.drawio.com/doc/faq/configure-diagram-editor), for example to scroll with the mouse wheel instead of zooming:
+
+```json
+"hediet.vscode-drawio.config": {
+    "zoomWheel": false
+}
+```
+
+Options that have a setting of their own, such as `hediet.vscode-drawio.customFonts`, win over the same option in this setting if they are set in the same or a more specific scope (the workspace settings win over the user settings).
+The inline Markdown editors use the setting too, except the options that they set themselves, such as their styles and scrolling: the mouse wheel over an inline diagram always scrolls the document.
+
+In newer Draw.io versions, you can also select _Extras > Configuration_ in the editor to change the options, for example _Zoom with Mouse Wheel_.
+The dialog stores them in your user settings, in this setting or in the setting of their own.
+API keys of the AI options (`gptApiKey`, `geminiApiKey` and `claudeApiKey`) are stored in the secret storage of VS Code instead, and keys in the settings move there when you apply the dialog.
+Options that the workspace settings set are not shown in the dialog, as they win over your user settings; change them in the workspace settings.
+
 ## Inline Diagrams in VS Code's Markdown Editor (Experimental, Insiders only)
 
 VS Code Insiders ships an experimental WYSIWYG Markdown editor (`View: Reopen Editor With... > Markdown Editor`).
