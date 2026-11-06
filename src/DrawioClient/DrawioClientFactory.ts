@@ -5,6 +5,7 @@ import {
 	OutputChannel,
 	Uri,
 	window,
+	SecretStorage,
 	WebviewPanel,
 	workspace,
 } from "vscode";
@@ -12,8 +13,10 @@ import { CustomizedDrawioClient, DrawioConfig, simpleDrawioLibrary } from ".";
 import {
 	applyDialogConfig,
 	mergeDrawioConfig,
+	readConfigSecrets,
 	readConfigState,
 } from "../drawioConfiguration";
+import { DeferredReloads } from "./DeferredReloads";
 import { Config, DiagramConfig } from "../Config";
 import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
 import { appendEmbedParams } from "../utils/appendEmbedParams";
@@ -25,10 +28,15 @@ import { getDrawioExtensions } from "../DrawioExtensionApi";
 import { BufferImpl } from "../utils/buffer";
 
 export class DrawioClientFactory {
+	// Reloads of all editors while the Configuration dialog writes the settings
+	private readonly dialogReloads = new DeferredReloads();
+
 	constructor(
 		private readonly config: Config,
 		private readonly log: OutputChannel,
-		private readonly extensionUri: Uri
+		private readonly extensionUri: Uri,
+		// Stores the API keys of the Configuration dialog
+		private readonly secrets: SecretStorage
 	) { }
 
 	public async createDrawioClientInWebview(
@@ -45,11 +53,11 @@ export class DrawioClientFactory {
 			enableScripts: true,
 		};
 		const reloadId = observable({ id: 0 });
-		// Set while the Configuration dialog writes the settings: the reloads
-		// for their changes are skipped, and the editor reloads once at the
-		// end if any was skipped
-		let applyingDialogConfig = false;
-		let skippedReload = false;
+		const reload = () => {
+			runInAction("Reload after configuration", () => {
+				reloadId.id++;
+			});
+		};
 		let i = 0;
 		const disposeAutorun = autorun(
 			() => {
@@ -84,9 +92,8 @@ export class DrawioClientFactory {
 
 				if (config.isResizeImageUpdating) {
 					config.isResizeImageUpdating = false;
-				} else if (applyingDialogConfig) {
-					skippedReload = true;
-				} else {
+				} else if (!this.dialogReloads.defer(reload)) {
+					// Else reloads once the Configuration dialog wrote the settings
 					webview.html = html;
 				}
 			},
@@ -145,7 +152,8 @@ export class DrawioClientFactory {
 				};
 
 				// Adds the config setting and the Configuration dialog
-				return mergeDrawioConfig(hostConfig, readConfigState(config.uri)) as DrawioConfig;
+				return mergeDrawioConfig(hostConfig, readConfigState(config.uri),
+					await readConfigSecrets(this.secrets)) as DrawioConfig;
 			},
 			() => {
 				runInAction("Force reload", () => {
@@ -177,29 +185,28 @@ export class DrawioClientFactory {
 				env.openExternal(Uri.parse((message as any).href));
 			} else if ((message as any).event === "configuration") {
 				// Apply in the Configuration dialog: stores the options in the
-				// user settings, and reloads the editor once with them (also
-				// after an error, for the settings that were written). If the
-				// change events of the settings come after the writes, the
-				// editor reloads for them as usual.
-				applyingDialogConfig = true;
-				skippedReload = false;
+				// user settings and the API keys in the secret storage. The open
+				// editors reload once for the settings (also after an error, for
+				// the settings that were written), and this one also for the API
+				// keys, which no setting tracks. If the change events of the
+				// settings come after the writes, the editors reload for them as
+				// usual.
+				this.dialogReloads.run(async () => {
+					const changes = await applyDialogConfig(config.uri,
+						(message as any).config, this.secrets);
 
-				applyDialogConfig(config.uri, (message as any).config).catch((e) => {
-					window.showErrorMessage(`Could not store the Draw.io configuration: ${e}`);
-				}).then(() => {
-					applyingDialogConfig = false;
-
-					if (skippedReload) {
-						runInAction("Reload after configuration", () => {
-							reloadId.id++;
-						});
+					if (changes.secrets > 0) {
+						this.dialogReloads.defer(reload);
 					}
+				}).catch((e) => {
+					window.showErrorMessage(`Could not store the Draw.io configuration: ${e}`);
 				});
 			}
 		});
 
 		webviewPanel.onDidDispose(() => {
 			disposeAutorun();
+			this.dialogReloads.forget(reload);
 			drawioClient.dispose();
 		});
 

@@ -1,4 +1,4 @@
-import { ConfigurationTarget, Uri, workspace } from "vscode";
+import { ConfigurationTarget, SecretStorage, Uri, workspace } from "vscode";
 
 /**
  * The draw.io configuration of the editor: the `config` setting holds any
@@ -8,8 +8,11 @@ import { ConfigurationTarget, Uri, workspace } from "vscode";
  * - The extension sets the options in RESERVED_CONFIG_KEYS itself. The
  *   setting cannot change them and the dialog hides them.
  * - The options in SETTING_CONFIG_KEYS have a setting of their own. If that
- *   setting is set, it wins over the option in the `config` setting, and
- *   the dialog stores the option in that setting.
+ *   setting is set, it wins over the option in the `config` setting of the
+ *   same or a lower scope (the workspace settings win over the user
+ *   settings), and the dialog stores the option in that setting.
+ * - The dialog stores the API keys in SECRET_CONFIG_KEYS in the secret
+ *   storage of VS Code instead of the settings.
  * - The options in MERGED_CONFIG_KEYS are lists that the extension adds its
  *   own entries to.
  * - The dialog changes the user settings only. It hides the options that the
@@ -50,6 +53,11 @@ export const SETTING_CONFIG_KEYS: readonly string[] = [
 ];
 
 export const MERGED_CONFIG_KEYS: readonly string[] = ["hideMenuItems", "hideMenus"];
+
+export const SECRET_CONFIG_KEYS: readonly string[] = ["claudeApiKey", "geminiApiKey", "gptApiKey"];
+
+// Prefix of the keys of the API keys in the secret storage
+const SECRET_PREFIX = `${extensionId}.config.`;
 
 export type ConfigObject = Record<string, unknown>;
 
@@ -132,9 +140,9 @@ export function readConfigState(uri: Uri | undefined): ConfigState {
 	}
 
 	// Restricted Mode ignores the config setting of the workspace
-	if (workspace.isTrusted !== false && isConfigObject(workspaceConfig)) {
-		state.workspaceKeys.push(...configKeys(workspaceConfig));
-	}
+	const workspaceConfigKeys = (workspace.isTrusted !== false &&
+		isConfigObject(workspaceConfig)) ? configKeys(workspaceConfig) : [];
+	state.workspaceKeys.push(...workspaceConfigKeys);
 
 	for (const key of SETTING_CONFIG_KEYS) {
 		const result = settings.inspect(key);
@@ -147,7 +155,10 @@ export function readConfigState(uri: Uri | undefined): ConfigState {
 			state.workspaceKeys.push(key);
 		}
 
-		if (result?.globalValue !== undefined || result?.workspaceValue !== undefined) {
+		// The option in the config setting of the workspace wins over a
+		// setting in the user settings
+		if (result?.workspaceValue !== undefined || (result?.globalValue !== undefined &&
+			!workspaceConfigKeys.includes(key))) {
 			state.setSettings[key] = settings.get(key);
 		}
 	}
@@ -221,18 +232,50 @@ export function withConfigSetting(
 }
 
 /**
- * Returns the configuration for draw.io (see mergeUserConfig) and adds the
+ * The API keys of the Configuration dialog in the secret storage. Errors of
+ * the secret storage (eg. no keyring) leave the keys out.
+ */
+export async function readConfigSecrets(storage: SecretStorage): Promise<ConfigObject> {
+	const result: ConfigObject = {};
+
+	for (const key of SECRET_CONFIG_KEYS) {
+		try {
+			const value = await storage.get(SECRET_PREFIX + key);
+
+			if (value !== undefined) {
+				result[key] = JSON.parse(value);
+			}
+		} catch (e) {
+			console.error(`Could not read the Draw.io configuration option ${key}`, e);
+		}
+	}
+
+	return result;
+}
+
+/**
+ * Returns the configuration for draw.io (see mergeUserConfig) with the API
+ * keys of the secret storage, which win over the user settings, and adds the
  * configuration for the Configuration dialog, which hides the reserved
  * options and those of the workspace settings.
  */
 export function mergeDrawioConfig(
 	hostConfig: ConfigObject,
-	state: ConfigState
+	state: ConfigState,
+	secrets: ConfigObject = {}
 ): ConfigObject {
-	const result = mergeUserConfig(hostConfig, state.userConfig, state.setSettings);
+	const userConfig: ConfigObject = { ...state.userConfig };
+
+	for (const key of Object.keys(secrets)) {
+		if (SECRET_CONFIG_KEYS.includes(key) && !state.workspaceKeys.includes(key)) {
+			userConfig[key] = secrets[key];
+		}
+	}
+
+	const result = mergeUserConfig(hostConfig, userConfig, state.setSettings);
 
 	result.configurationEditor = {
-		config: getDialogConfig(state),
+		config: getDialogConfig(state, secrets),
 		excludedKeys: RESERVED_CONFIG_KEYS.concat(state.workspaceKeys),
 	};
 
@@ -247,13 +290,16 @@ function isDialogKey(key: string, state: ConfigState): boolean {
 
 /**
  * The configuration that the Configuration dialog shows: the `config` setting
- * and the settings of SETTING_CONFIG_KEYS in the user settings, without the
- * options of the workspace settings.
+ * and the settings of SETTING_CONFIG_KEYS in the user settings and the API
+ * keys, without the options of the workspace settings.
  */
-export function getDialogConfig(state: ConfigState): ConfigObject {
+export function getDialogConfig(
+	state: ConfigState,
+	secrets: ConfigObject = {}
+): ConfigObject {
 	const result: ConfigObject = {};
 
-	for (const source of [state.globalConfig, state.globalSettings]) {
+	for (const source of [state.globalConfig, secrets, state.globalSettings]) {
 		for (const key of Object.keys(source)) {
 			if (isDialogKey(key, state)) {
 				result[key] = source[key];
@@ -276,7 +322,8 @@ export interface SettingUpdate {
  * whose option was removed is reset), and the other options go to the
  * `config` setting, which keeps the options that the dialog does not show.
  * Reserved options, unsafe keys and the options of the workspace settings are
- * left as they are.
+ * left as they are, and API keys move to the secret storage (see
+ * getSecretUpdates).
  */
 export function getSettingUpdates(
 	config: ConfigObject,
@@ -310,7 +357,8 @@ export function getSettingUpdates(
 	}
 
 	for (const key of Object.keys(config)) {
-		if (isDialogKey(key, state) && !SETTING_CONFIG_KEYS.includes(key)) {
+		if (isDialogKey(key, state) && !SETTING_CONFIG_KEYS.includes(key) &&
+			!SECRET_CONFIG_KEYS.includes(key)) {
 			newConfig[key] = config[key];
 		}
 	}
@@ -326,23 +374,64 @@ export function getSettingUpdates(
 }
 
 /**
- * Stores the configuration of the Configuration dialog in the user settings.
- * Returns the number of settings that changed.
+ * The changes of the secret storage for the API keys of the configuration of
+ * the Configuration dialog (undefined deletes a key), except those of the
+ * workspace settings.
+ */
+export function getSecretUpdates(
+	config: ConfigObject,
+	state: ConfigState,
+	secrets: ConfigObject
+): SettingUpdate[] {
+	const updates: SettingUpdate[] = [];
+
+	for (const key of SECRET_CONFIG_KEYS) {
+		if (!isDialogKey(key, state)) {
+			continue;
+		} else if (key in config) {
+			if (secrets[key] === undefined || !isSameValue(config[key], secrets[key])) {
+				updates.push({ key, value: config[key] });
+			}
+		} else if (secrets[key] !== undefined) {
+			updates.push({ key, value: undefined });
+		}
+	}
+
+	return updates;
+}
+
+/**
+ * Stores the configuration of the Configuration dialog in the user settings,
+ * and the API keys in the secret storage first, so that no key is removed
+ * from the settings if the secret storage fails. Returns the numbers of the
+ * settings and API keys that changed.
  */
 export async function applyDialogConfig(
 	uri: Uri | undefined,
-	config: unknown
-): Promise<number> {
+	config: unknown,
+	storage: SecretStorage
+): Promise<{ settings: number; secrets: number }> {
 	if (!isConfigObject(config)) {
-		return 0;
+		return { settings: 0, secrets: 0 };
 	}
 
-	const updates = getSettingUpdates(config, readConfigState(uri));
+	const state = readConfigState(uri);
+	const secretUpdates = getSecretUpdates(config, state, await readConfigSecrets(storage));
+
+	for (const update of secretUpdates) {
+		if (update.value === undefined) {
+			await storage.delete(SECRET_PREFIX + update.key);
+		} else {
+			await storage.store(SECRET_PREFIX + update.key, JSON.stringify(update.value));
+		}
+	}
+
+	const updates = getSettingUpdates(config, state);
 	const settings = workspace.getConfiguration(extensionId, uri);
 
 	for (const update of updates) {
 		await settings.update(update.key, update.value, ConfigurationTarget.Global);
 	}
 
-	return updates.length;
+	return { settings: updates.length, secrets: secretUpdates.length };
 }

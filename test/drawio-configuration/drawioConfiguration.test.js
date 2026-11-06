@@ -57,6 +57,21 @@ function plain(value) {
 	return JSON.parse(JSON.stringify(value));
 }
 
+// A secret storage stub with the given entries; fail makes every call throw
+function storage(entries = {}, { fail = false } = {}) {
+	const calls = [];
+	const check = () => { if (fail) { throw new Error("No keyring"); } };
+
+	return {
+		entries, calls,
+		get: async (key) => { check(); return entries[key]; },
+		store: async (key, value) => { check(); calls.push(["store", key, value]); entries[key] = value; },
+		delete: async (key) => { check(); calls.push(["delete", key]); delete entries[key]; },
+	};
+}
+
+const SECRET = (key) => "hediet.vscode-drawio.config." + key;
+
 function state(values = {}) {
 	return { userConfig: {}, setSettings: {}, globalConfig: {}, globalSettings: {}, workspaceKeys: [],
 		...values };
@@ -144,6 +159,38 @@ test("the dialog shows the user settings without the options of the workspace", 
 	assert.ok(result.configurationEditor.excludedKeys.includes("zoomFactor"));
 });
 
+test("the config setting of the workspace wins over a user setting", () => {
+	const { module } = load({
+		config: { workspaceValue: { zoomFactor: 2, simpleLabels: true } },
+		zoomFactor: { globalValue: 1.3 },
+		simpleLabels: { workspaceValue: false },
+	});
+	const configState = module.readConfigState(undefined);
+	const result = plain(module.mergeDrawioConfig({ zoomFactor: 1.3, simpleLabels: false }, configState));
+
+	assert.deepEqual(plain(configState.setSettings), { simpleLabels: false });
+	assert.equal(result.zoomFactor, 2, "workspace option wins over the user setting");
+	assert.equal(result.simpleLabels, false, "workspace setting wins over the workspace option");
+	assert.ok(result.configurationEditor.excludedKeys.includes("zoomFactor"));
+});
+
+test("reads the API keys from the secret storage", async () => {
+	const { module } = load({
+		config: { globalValue: { gptApiKey: "settings", x: 1 }, workspaceValue: { geminiApiKey: "team" } },
+	});
+	const secrets = plain(await module.readConfigSecrets(storage({
+		[SECRET("gptApiKey")]: '"secret"', [SECRET("geminiApiKey")]: '"mine"', [SECRET("other")]: '"x"',
+	})));
+	const result = plain(module.mergeDrawioConfig({}, module.readConfigState(undefined), secrets));
+
+	assert.deepEqual(secrets, { gptApiKey: "secret", geminiApiKey: "mine" });
+	assert.equal(result.gptApiKey, "secret", "secret storage wins over the user settings");
+	assert.equal(result.geminiApiKey, "team", "workspace wins over the secret storage");
+	assert.deepEqual(result.configurationEditor.config, { gptApiKey: "secret", x: 1 });
+	assert.deepEqual(plain(await module.readConfigSecrets(storage({}, { fail: true }))), {},
+		"errors of the secret storage leave the keys out");
+});
+
 test("splits the dialog's configuration into the user settings", () => {
 	const { module } = load();
 	const updates = (config, values) => plain(module.getSettingUpdates(config, state(values)));
@@ -182,10 +229,31 @@ test("stores the dialog's configuration in the user settings", async () => {
 		zoomFactor: { workspaceValue: 1.4 },
 	});
 
-	assert.equal(await module.applyDialogConfig(undefined, [1, 2]), 0, "no config object");
-	assert.equal(await module.applyDialogConfig(undefined, { x: 2 }), 2);
+	assert.deepEqual(plain(await module.applyDialogConfig(undefined, [1, 2], storage())),
+		{ settings: 0, secrets: 0 }, "no config object");
+	assert.deepEqual(plain(await module.applyDialogConfig(undefined, { x: 2 }, storage())),
+		{ settings: 2, secrets: 0 });
 	assert.deepEqual(plain(updates), [
 		{ key: "showTooltipIcons", target: ConfigurationTarget.Global },
 		{ key: "config", value: { x: 2 }, target: ConfigurationTarget.Global },
 	]);
+});
+
+test("stores the API keys in the secret storage", async () => {
+	const { module, updates } = load({
+		config: { globalValue: { gptApiKey: "old", x: 1 } },
+	});
+	const secrets = storage({ [SECRET("claudeApiKey")]: '"claude"' });
+
+	// The key of the settings moves to the secret storage, the removed key is deleted
+	assert.deepEqual(plain(await module.applyDialogConfig(undefined, { gptApiKey: "new", x: 1 }, secrets)),
+		{ settings: 1, secrets: 2 });
+	assert.deepEqual(plain(secrets.calls), [["delete", SECRET("claudeApiKey")], ["store", SECRET("gptApiKey"), '"new"']]);
+	assert.deepEqual(plain(updates), [{ key: "config", value: { x: 1 }, target: ConfigurationTarget.Global }]);
+
+	// The settings are not changed if the secret storage fails
+	updates.length = 0;
+	await assert.rejects(module.applyDialogConfig(undefined, { gptApiKey: "new", x: 2 },
+		storage({}, { fail: true })), /No keyring/);
+	assert.deepEqual(updates, []);
 });

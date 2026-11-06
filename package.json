@@ -648,7 +648,7 @@
 	"scripts": {
 		"run-script": "node ./scripts/run-script",
 		"lint": "echo 'add linting'",
-		"test-unit": "node --test test/drawio-configuration/drawioConfiguration.test.js test/codeblock-editor/markdownCodeBlockEditor.test.js",
+		"test-unit": "node --test test/drawio-configuration/drawioConfiguration.test.js test/drawio-client/deferredReloads.test.js test/codeblock-editor/markdownCodeBlockEditor.test.js",
 		"_lint": "yarn run-script check-version && prettier --check ./src",
 		"build": "yarn build-extension && yarn build-plugins && yarn package-extension",
 		"build-extension": "webpack --mode production",
