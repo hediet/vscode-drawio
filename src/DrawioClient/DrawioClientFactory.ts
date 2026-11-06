@@ -153,7 +153,8 @@ export class DrawioClientFactory {
 
 				// Adds the config setting and the Configuration dialog
 				return mergeDrawioConfig(hostConfig, readConfigState(config.uri),
-					await readConfigSecrets(this.secrets)) as DrawioConfig;
+					await readConfigSecrets(this.secrets, (message) =>
+						this.log.appendLine(message))) as DrawioConfig;
 			},
 			() => {
 				runInAction("Force reload", () => {

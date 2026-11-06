@@ -187,8 +187,11 @@ test("reads the API keys from the secret storage", async () => {
 	assert.equal(result.gptApiKey, "secret", "secret storage wins over the user settings");
 	assert.equal(result.geminiApiKey, "team", "workspace wins over the secret storage");
 	assert.deepEqual(result.configurationEditor.config, { gptApiKey: "secret", x: 1 });
-	assert.deepEqual(plain(await module.readConfigSecrets(storage({}, { fail: true }))), {},
+	const errors = [];
+	assert.deepEqual(plain(await module.readConfigSecrets(storage({}, { fail: true }), (m) => errors.push(m))), {},
 		"errors of the secret storage leave the keys out");
+	assert.equal(errors.length, 3);
+	assert.match(errors[0], /claudeApiKey.*No keyring/);
 });
 
 test("splits the dialog's configuration into the user settings", () => {

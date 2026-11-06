@@ -233,9 +233,13 @@ export function withConfigSetting(
 
 /**
  * The API keys of the Configuration dialog in the secret storage. Errors of
- * the secret storage (eg. no keyring) leave the keys out.
+ * the secret storage (eg. no keyring) leave the keys out and are reported
+ * with onError.
  */
-export async function readConfigSecrets(storage: SecretStorage): Promise<ConfigObject> {
+export async function readConfigSecrets(
+	storage: SecretStorage,
+	onError: (message: string) => void = (message) => console.error(message)
+): Promise<ConfigObject> {
 	const result: ConfigObject = {};
 
 	for (const key of SECRET_CONFIG_KEYS) {
@@ -246,7 +250,7 @@ export async function readConfigSecrets(storage: SecretStorage): Promise<ConfigO
 				result[key] = JSON.parse(value);
 			}
 		} catch (e) {
-			console.error(`Could not read the Draw.io configuration option ${key}`, e);
+			onError(`Could not read the Draw.io configuration option ${key} from the secret storage: ${e}`);
 		}
 	}
 
