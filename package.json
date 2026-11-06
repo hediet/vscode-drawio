@@ -282,7 +282,7 @@
 						"type": "object",
 						"default": {},
 						"title": "Draw.io Configuration",
-						"markdownDescription": "Options of the [Draw.io configuration](https://www.drawio.com/doc/faq/configure-diagram-editor), for example `{\"zoomWheel\": false}` to scroll with the mouse wheel. You can also change them in the editor in *Extras > Configuration*. Options that have a setting of their own, such as `customFonts`, are stored in that setting.",
+						"markdownDescription": "Options of the [Draw.io configuration](https://www.drawio.com/doc/faq/configure-diagram-editor), for example `{\"zoomWheel\": false}` to scroll with the mouse wheel. You can also change them in the editor in *Extras > Configuration*, which stores them in the user settings and hides the options of the workspace settings. Options that have a setting of their own, such as `customFonts`, are stored in that setting.",
 						"order": 25
 					},
 					"hediet.vscode-drawio.local-storage": {
@@ -648,6 +648,7 @@
 	"scripts": {
 		"run-script": "node ./scripts/run-script",
 		"lint": "echo 'add linting'",
+		"test-unit": "node --test test/drawio-configuration/drawioConfiguration.test.js test/codeblock-editor/markdownCodeBlockEditor.test.js",
 		"_lint": "yarn run-script check-version && prettier --check ./src",
 		"build": "yarn build-extension && yarn build-plugins && yarn package-extension",
 		"build-extension": "webpack --mode production",

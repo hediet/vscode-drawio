@@ -6,6 +6,7 @@ import { Config } from "../Config";
 import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
 import { withConfigSetting } from "../drawioConfiguration";
 import { appendEmbedParams } from "../utils/appendEmbedParams";
+import { toScriptJson } from "../utils/toScriptJson";
 import {
 	DiagramBlock,
 	SourceBlock,
@@ -204,15 +205,6 @@ function getDrawioUserConfig(
 		// Print needs a popup/modal the webview sandbox blocks, so hide it.
 		hideMenuItems: ["print"],
 	});
-}
-
-/**
- * JSON for a value in an inline script: `<` is escaped so that no value can
- * end the script element.
- */
-function toScriptJson(value: unknown): string {
-	return JSON.stringify(value).replace(/</g, "\\u003c")
-		.replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 }
 
 /**

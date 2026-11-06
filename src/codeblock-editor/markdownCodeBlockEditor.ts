@@ -22,6 +22,7 @@ import { Config, DiagramConfig } from "../Config";
 import { DrawioLibrarySection, simpleDrawioLibrary } from "../DrawioClient";
 import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
 import { withConfigSetting } from "../drawioConfiguration";
+import { toScriptJson } from "../utils/toScriptJson";
 import { parseBlockAttrs } from "../inline-editor/diagramParser";
 import {
 	GuestConfig,
@@ -298,6 +299,9 @@ async function buildGuestConfig(
 		settingsName: "vscode-codeblock-editor",
 		noAutoFocus: true,
 		passiveScroll: true,
+		// The wheel scrolls the Markdown document, also if the config setting
+		// zooms with the wheel in the editor (zoomWheel wins over passiveScroll)
+		zoomWheel: false,
 		preserveViewState: true,
 		noResizers: true,
 		useInternalClipboard: true,
@@ -337,8 +341,8 @@ async function buildGuestConfig(
  * to `<head>`, so relative URLs resolve inside the bundled webapp.
  */
 export function buildGuestHtml(guestConfig: GuestConfig): string {
-	// `<` is escaped so no fence content can break out of the JSON element.
-	const configJson = JSON.stringify(guestConfig).replace(/</g, "\\u003c");
+	// Escaped so no fence content can break out of the JSON element.
+	const configJson = toScriptJson(guestConfig);
 	const drawioStyles =
 		guestConfig.mode.kind === "offline"
 			? `<link rel="stylesheet" type="text/css" href="styles/grapheditor.css">

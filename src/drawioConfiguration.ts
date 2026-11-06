@@ -12,6 +12,9 @@ import { ConfigurationTarget, Uri, workspace } from "vscode";
  *   the dialog stores the option in that setting.
  * - The options in MERGED_CONFIG_KEYS are lists that the extension adds its
  *   own entries to.
+ * - The dialog changes the user settings only. It hides the options that the
+ *   workspace settings set, as they win over the user settings (and so that
+ *   no personal option, such as an API key, ends up in the workspace).
  */
 const extensionId = "hediet.vscode-drawio";
 
@@ -74,61 +77,82 @@ function isSameValue(a: unknown, b: unknown): boolean {
 	return stableStringify(a) === stableStringify(b);
 }
 
-/**
- * Where the setting with the given ID (in the extension's section) is set,
- * from the most specific scope, or undefined if it has its default value.
- */
-export function getSettingTarget(
-	key: string,
-	uri: Uri | undefined
-): ConfigurationTarget | undefined {
-	const result = workspace.getConfiguration(extensionId, uri).inspect(key);
-
-	if (result == null) {
-		return undefined;
-	} else if (result.workspaceFolderValue !== undefined) {
-		return ConfigurationTarget.WorkspaceFolder;
-	} else if (result.workspaceValue !== undefined) {
-		return ConfigurationTarget.Workspace;
-	} else if (result.globalValue !== undefined) {
-		return ConfigurationTarget.Global;
-	}
-
-	return undefined;
+// The keys of a config object without the reserved and unsafe keys
+function configKeys(value: ConfigObject): string[] {
+	return Object.keys(value).filter((key) =>
+		!isUnsafeKey(key) && !RESERVED_CONFIG_KEYS.includes(key));
 }
 
 /**
- * The `config` setting, without the reserved options and unsafe keys.
+ * The settings of the draw.io configuration of a document.
  */
-export function getUserConfig(uri: Uri | undefined): ConfigObject {
-	const value = workspace.getConfiguration(extensionId, uri).get(CONFIG_SETTING);
-	const result: ConfigObject = {};
+export interface ConfigState {
+	/** The `config` setting (all scopes) without reserved and unsafe keys. */
+	userConfig: ConfigObject;
+	/** The values of the settings of SETTING_CONFIG_KEYS that are set. */
+	setSettings: ConfigObject;
+	/** The `config` setting in the user settings, as it is. */
+	globalConfig: ConfigObject;
+	/** The settings of SETTING_CONFIG_KEYS in the user settings. */
+	globalSettings: ConfigObject;
+	/** The options that the workspace settings set (in `config` or their setting). */
+	workspaceKeys: string[];
+}
+
+/**
+ * Reads the settings of the draw.io configuration of the given document.
+ * Folder settings of a multi-root workspace are left out, as the settings
+ * are not resource settings (in a single folder they are the workspace
+ * settings).
+ */
+export function readConfigState(uri: Uri | undefined): ConfigState {
+	const settings = workspace.getConfiguration(extensionId, uri);
+	const state: ConfigState = {
+		userConfig: {},
+		setSettings: {},
+		globalConfig: {},
+		globalSettings: {},
+		workspaceKeys: [],
+	};
+
+	const value = settings.get(CONFIG_SETTING);
 
 	if (isConfigObject(value)) {
-		for (const key of Object.keys(value)) {
-			if (!isUnsafeKey(key) && !RESERVED_CONFIG_KEYS.includes(key)) {
-				result[key] = value[key];
-			}
+		for (const key of configKeys(value)) {
+			state.userConfig[key] = value[key];
 		}
 	}
 
-	return result;
-}
+	const config = settings.inspect<unknown>(CONFIG_SETTING);
+	const globalConfig = config?.globalValue;
+	const workspaceConfig = config?.workspaceValue;
 
-/**
- * The values of the settings of SETTING_CONFIG_KEYS that are set.
- */
-export function getSetSettings(uri: Uri | undefined): ConfigObject {
-	const config = workspace.getConfiguration(extensionId, uri);
-	const result: ConfigObject = {};
+	if (isConfigObject(globalConfig)) {
+		state.globalConfig = globalConfig;
+	}
+
+	// Restricted Mode ignores the config setting of the workspace
+	if (workspace.isTrusted !== false && isConfigObject(workspaceConfig)) {
+		state.workspaceKeys.push(...configKeys(workspaceConfig));
+	}
 
 	for (const key of SETTING_CONFIG_KEYS) {
-		if (getSettingTarget(key, uri) !== undefined) {
-			result[key] = config.get(key);
+		const result = settings.inspect(key);
+
+		if (result?.globalValue !== undefined) {
+			state.globalSettings[key] = result.globalValue;
+		}
+
+		if (result?.workspaceValue !== undefined && !state.workspaceKeys.includes(key)) {
+			state.workspaceKeys.push(key);
+		}
+
+		if (result?.globalValue !== undefined || result?.workspaceValue !== undefined) {
+			state.setSettings[key] = settings.get(key);
 		}
 	}
 
-	return result;
+	return state;
 }
 
 // The entries of both lists, the first list first
@@ -190,89 +214,111 @@ export function withConfigSetting(
 	hostConfig: ConfigObject,
 	forcedConfig: ConfigObject = {}
 ): ConfigObject {
-	return mergeUserConfig(hostConfig, getUserConfig(uri), getSetSettings(uri),
+	const state = readConfigState(uri);
+
+	return mergeUserConfig(hostConfig, state.userConfig, state.setSettings,
 		forcedConfig);
 }
 
 /**
  * Returns the configuration for draw.io (see mergeUserConfig) and adds the
- * configuration for the Configuration dialog.
+ * configuration for the Configuration dialog, which hides the reserved
+ * options and those of the workspace settings.
  */
 export function mergeDrawioConfig(
 	hostConfig: ConfigObject,
-	userConfig: ConfigObject,
-	setSettings: ConfigObject
+	state: ConfigState
 ): ConfigObject {
-	const result = mergeUserConfig(hostConfig, userConfig, setSettings);
+	const result = mergeUserConfig(hostConfig, state.userConfig, state.setSettings);
 
 	result.configurationEditor = {
-		config: getDialogConfig(userConfig, setSettings),
-		excludedKeys: RESERVED_CONFIG_KEYS,
+		config: getDialogConfig(state),
+		excludedKeys: RESERVED_CONFIG_KEYS.concat(state.workspaceKeys),
 	};
 
 	return result;
 }
 
+// Whether the dialog shows and changes the given option
+function isDialogKey(key: string, state: ConfigState): boolean {
+	return !isUnsafeKey(key) && !RESERVED_CONFIG_KEYS.includes(key) &&
+		!state.workspaceKeys.includes(key);
+}
+
 /**
- * The configuration that the Configuration dialog shows: the `config`
- * setting and the settings of SETTING_CONFIG_KEYS that are set.
+ * The configuration that the Configuration dialog shows: the `config` setting
+ * and the settings of SETTING_CONFIG_KEYS in the user settings, without the
+ * options of the workspace settings.
  */
-export function getDialogConfig(
-	userConfig: ConfigObject,
-	setSettings: ConfigObject
-): ConfigObject {
-	return { ...userConfig, ...setSettings };
+export function getDialogConfig(state: ConfigState): ConfigObject {
+	const result: ConfigObject = {};
+
+	for (const source of [state.globalConfig, state.globalSettings]) {
+		for (const key of Object.keys(source)) {
+			if (isDialogKey(key, state)) {
+				result[key] = source[key];
+			}
+		}
+	}
+
+	return result;
 }
 
 export interface SettingUpdate {
 	key: string;
+	/** undefined resets the setting */
 	value: unknown;
-	target: ConfigurationTarget;
 }
 
 /**
- * The setting changes for the configuration of the Configuration dialog:
- * options of SETTING_CONFIG_KEYS go to their setting (and a set setting
+ * The changes of the user settings for the configuration of the Configuration
+ * dialog: options of SETTING_CONFIG_KEYS go to their setting (and a setting
  * whose option was removed is reset), and the other options go to the
- * `config` setting. Reserved options and unsafe keys are dropped. Settings
- * are written where they are set, or to the user settings.
+ * `config` setting, which keeps the options that the dialog does not show.
+ * Reserved options, unsafe keys and the options of the workspace settings are
+ * left as they are.
  */
 export function getSettingUpdates(
 	config: ConfigObject,
-	userConfig: ConfigObject,
-	setSettings: ConfigObject,
-	getTarget: (key: string) => ConfigurationTarget | undefined
+	state: ConfigState
 ): SettingUpdate[] {
 	const updates: SettingUpdate[] = [];
-	const newUserConfig: ConfigObject = {};
-
-	for (const key of Object.keys(config)) {
-		if (!isUnsafeKey(key) && !RESERVED_CONFIG_KEYS.includes(key) &&
-			!SETTING_CONFIG_KEYS.includes(key)) {
-			newUserConfig[key] = config[key];
-		}
-	}
 
 	for (const key of SETTING_CONFIG_KEYS) {
-		const isSet = key in setSettings;
+		if (!isDialogKey(key, state)) {
+			continue;
+		}
+
+		const current = state.globalSettings[key];
 
 		if (key in config) {
-			if (!isSet || !isSameValue(config[key], setSettings[key])) {
-				updates.push({ key, value: config[key],
-					target: getTarget(key) ?? ConfigurationTarget.Global });
+			if (current === undefined || !isSameValue(config[key], current)) {
+				updates.push({ key, value: config[key] });
 			}
-		} else if (isSet) {
-			updates.push({ key, value: undefined,
-				target: getTarget(key) ?? ConfigurationTarget.Global });
+		} else if (current !== undefined) {
+			updates.push({ key, value: undefined });
 		}
 	}
 
 	// Also moves the options of SETTING_CONFIG_KEYS out of the config setting
-	if (!isSameValue(newUserConfig, userConfig)) {
+	const newConfig: ConfigObject = {};
+
+	for (const key of Object.keys(state.globalConfig)) {
+		if (!isUnsafeKey(key) && !isDialogKey(key, state)) {
+			newConfig[key] = state.globalConfig[key];
+		}
+	}
+
+	for (const key of Object.keys(config)) {
+		if (isDialogKey(key, state) && !SETTING_CONFIG_KEYS.includes(key)) {
+			newConfig[key] = config[key];
+		}
+	}
+
+	if (!isSameValue(newConfig, state.globalConfig)) {
 		updates.push({
 			key: CONFIG_SETTING,
-			value: (Object.keys(newUserConfig).length > 0) ? newUserConfig : undefined,
-			target: getTarget(CONFIG_SETTING) ?? ConfigurationTarget.Global,
+			value: (Object.keys(newConfig).length > 0) ? newConfig : undefined,
 		});
 	}
 
@@ -280,7 +326,7 @@ export function getSettingUpdates(
 }
 
 /**
- * Stores the configuration of the Configuration dialog in the settings.
+ * Stores the configuration of the Configuration dialog in the user settings.
  * Returns the number of settings that changed.
  */
 export async function applyDialogConfig(
@@ -291,12 +337,11 @@ export async function applyDialogConfig(
 		return 0;
 	}
 
-	const updates = getSettingUpdates(config, getUserConfig(uri),
-		getSetSettings(uri), (key) => getSettingTarget(key, uri));
+	const updates = getSettingUpdates(config, readConfigState(uri));
 	const settings = workspace.getConfiguration(extensionId, uri);
 
 	for (const update of updates) {
-		await settings.update(update.key, update.value, update.target);
+		await settings.update(update.key, update.value, ConfigurationTarget.Global);
 	}
 
 	return updates.length;

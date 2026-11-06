@@ -11,9 +11,8 @@ import {
 import { CustomizedDrawioClient, DrawioConfig, simpleDrawioLibrary } from ".";
 import {
 	applyDialogConfig,
-	getSetSettings,
-	getUserConfig,
 	mergeDrawioConfig,
+	readConfigState,
 } from "../drawioConfiguration";
 import { Config, DiagramConfig } from "../Config";
 import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
@@ -46,9 +45,11 @@ export class DrawioClientFactory {
 			enableScripts: true,
 		};
 		const reloadId = observable({ id: 0 });
-		// Set while the Configuration dialog writes the settings, which then
-		// reload the editor once
+		// Set while the Configuration dialog writes the settings: the reloads
+		// for their changes are skipped, and the editor reloads once at the
+		// end if any was skipped
 		let applyingDialogConfig = false;
+		let skippedReload = false;
 		let i = 0;
 		const disposeAutorun = autorun(
 			() => {
@@ -83,7 +84,9 @@ export class DrawioClientFactory {
 
 				if (config.isResizeImageUpdating) {
 					config.isResizeImageUpdating = false;
-				} else if (!applyingDialogConfig) {
+				} else if (applyingDialogConfig) {
+					skippedReload = true;
+				} else {
 					webview.html = html;
 				}
 			},
@@ -142,8 +145,7 @@ export class DrawioClientFactory {
 				};
 
 				// Adds the config setting and the Configuration dialog
-				return mergeDrawioConfig(hostConfig, getUserConfig(config.uri),
-					getSetSettings(config.uri)) as DrawioConfig;
+				return mergeDrawioConfig(hostConfig, readConfigState(config.uri)) as DrawioConfig;
 			},
 			() => {
 				runInAction("Force reload", () => {
@@ -175,20 +177,23 @@ export class DrawioClientFactory {
 				env.openExternal(Uri.parse((message as any).href));
 			} else if ((message as any).event === "configuration") {
 				// Apply in the Configuration dialog: stores the options in the
-				// settings, and reloads the editor once with them
+				// user settings, and reloads the editor once with them (also
+				// after an error, for the settings that were written). If the
+				// change events of the settings come after the writes, the
+				// editor reloads for them as usual.
 				applyingDialogConfig = true;
+				skippedReload = false;
 
-				applyDialogConfig(config.uri, (message as any).config).then((changes) => {
+				applyDialogConfig(config.uri, (message as any).config).catch((e) => {
+					window.showErrorMessage(`Could not store the Draw.io configuration: ${e}`);
+				}).then(() => {
 					applyingDialogConfig = false;
 
-					if (changes > 0) {
+					if (skippedReload) {
 						runInAction("Reload after configuration", () => {
 							reloadId.id++;
 						});
 					}
-				}, (e) => {
-					applyingDialogConfig = false;
-					window.showErrorMessage(`Could not store the Draw.io configuration: ${e}`);
 				});
 			}
 		});

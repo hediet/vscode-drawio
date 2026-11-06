@@ -29,6 +29,7 @@ function loadProvider(settings = {}, language = "en", followHostTheme = true) {
 		if (name === "../drawioConfiguration") {
 			return loadModule("drawioConfiguration.ts", n => (n === "vscode") ? vscode : require(n));
 		}
+		if (name === "../utils/toScriptJson") { return loadModule("utils/toScriptJson.ts"); }
 		if (name === "../DrawioClient") { return { simpleDrawioLibrary: value => value }; }
 		if (name === "../vscodeShortcuts") { return { VSCODE_PASSTHROUGH_KEYS: [] }; }
 		if (name === "../inline-editor/diagramParser") { return loadModule("inline-editor/diagramParser.ts"); }
@@ -76,11 +77,11 @@ test("preserves fence options, explicit appearance and safe configuration encodi
 
 test("applies the config setting below the options of the code block editor", async () => {
 	const descriptor = await loadProvider({ config: {
-		zoomWheel: false, defaultGridSize: 20, noAutoFocus: false, compressXml: true,
+		zoomWheel: true, defaultGridSize: 20, noAutoFocus: false, compressXml: true,
 		css: "body { color: red; }", hideMenuItems: ["pageSetup", "print"],
 	} }).resolve(request, { isCancellationRequested: false });
 	const config = JSON.parse(descriptor.content.html.match(/id="drawio-codeblock-config">([^<]+)<\/script>/)[1]);
-	assert.equal(config.drawioConfig.zoomWheel, false, "option of the setting");
+	assert.equal(config.drawioConfig.zoomWheel, false, "the wheel scrolls the document");
 	assert.equal(config.drawioConfig.defaultGridSize, 20, "option of the setting");
 	assert.equal(config.drawioConfig.noAutoFocus, true, "options of the editor win");
 	assert.equal(config.drawioConfig.compressXml, false, "reserved options win");

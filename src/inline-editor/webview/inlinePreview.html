@@ -1927,6 +1927,9 @@
                 settingsName: 'vscode-inline-editor',
                 noAutoFocus: true,
                 passiveScroll: true,
+                // The wheel scrolls the document, also if the user's
+                // configuration zooms with it (zoomWheel wins over passiveScroll)
+                zoomWheel: false,
                 preserveViewState: true,
                 noResizers: true,
                 useInternalClipboard: true,
@@ -2092,6 +2095,9 @@
                 settingsName: 'vscode-inline-editor',
                 noAutoFocus: true,
                 passiveScroll: true,
+                // The wheel scrolls the document, also if the user's
+                // configuration zooms with it (zoomWheel wins over passiveScroll)
+                zoomWheel: false,
                 preserveViewState: true,
                 noResizers: true,
                 useInternalClipboard: true, // TODO: Add native clipboard support
