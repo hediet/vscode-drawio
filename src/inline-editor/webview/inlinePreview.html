@@ -12,6 +12,11 @@
              connect-src https:;
              font-src https: data:;">
   <style>
+    /* Blocks scrolled into view (focus, find) stay clear of the toolbar */
+    html {
+      scroll-padding-top: 48px;
+    }
+
     body {
       font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif);
       font-size: 14px;
@@ -186,17 +191,71 @@
       flex: 1;
     }
 
-    /* ── Editable text section ── */
+    ul ul,
+    ol ul {
+      margin: 0.25em 0;
+    }
+
+    li.task-list-item::before {
+      content: none;
+    }
+
+    li.task-list-item>input {
+      margin: 0 0.4em 0 -1.4em;
+      vertical-align: middle;
+    }
+
+    pre.front-matter {
+      color: var(--vscode-descriptionForeground);
+    }
+
+    /* ── Editable text section (one Markdown block) ──
+       Rendered until it is clicked; then its Markdown source is edited in
+       place and rendered again when the focus leaves it. */
     .text-section {
       outline: none;
       padding: 2px 4px 2px 12px;
       margin: -2px -4px;
       border-left: 3px solid transparent;
       transition: border-color 0.15s ease;
+      cursor: text;
     }
 
-    .text-section:hover {
+    .text-section:hover,
+    .text-section:focus-visible {
       border-left-color: var(--vscode-editorGroup-border);
+    }
+
+    .text-section.editing {
+      border-left-color: var(--vscode-focusBorder);
+      background: var(--vscode-textCodeBlock-background);
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+
+    .text-section textarea {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      margin: 0;
+      /* As a rendered paragraph, so the text stays where it was */
+      padding: 0.5em 0;
+      border: none;
+      outline: none;
+      resize: none;
+      overflow: hidden;
+      background: transparent;
+      color: var(--vscode-editor-foreground);
+      /* The text keeps its font while its syntax shows */
+      font: inherit;
+      white-space: pre-wrap;
+      tab-size: 4;
+    }
+
+    /* Code blocks and tables are aligned in the editor font */
+    .text-section textarea.code {
+      font-family: var(--vscode-editor-font-family, monospace);
+      font-size: var(--vscode-editor-font-size, 13px);
     }
 
     /* ── Outer container (toolbar + editor frame) ── */
@@ -829,12 +888,20 @@
         var cells = xml.match(/<mxCell\b/g);
         return !cells || cells.length <= 2;
       }
+      // The page id of a diagram's XML (see extractDiagramId in diagramParser.ts)
+      function extractDiagramId(xml) {
+        var m = xml && xml.match(/<diagram[^>]+id="([^"]+)"/);
+        return m ? m[1] : null;
+      }
+
       var editorStates = new Map(); // blockIndex -> EditorState
-      var textSections = [];
+      var textSections = []; // text section infos in document order (see renderTextSection)
       var activeEditorIndex = -1;
-      var _lastInteractedEndLine = null; // endLine of the last clicked/focused/typed section
+      // The last clicked/focused/typed section, for the "+ Diagram" position:
+      // { text: sectionInfo } or { blockIndex: n }
+      var _lastInteracted = null;
+      var _contentRendered = false;
       var diagramSaveTimers = {};
-      var textSaveTimer = null;
       var focusPollTimer = null;
 
       // ── Singleton inline editor iframe (overlays diagrams on hover via position:fixed) ──
@@ -1072,6 +1139,9 @@
           blockIndex: state.blockIndex,
           xml: xml,
           sourceIndex: state.sourceIndex,
+          // Lets the extension check the index (converting a block moves the
+          // indices of the source blocks after it)
+          source: state.section ? state.section.source : null,
         });
       }
 
@@ -1114,6 +1184,22 @@
           state.iframe.remove();
         }
         editorStates.delete(stateKey);
+
+        // The new diagram block takes this index: the diagrams after it move
+        // up by one, so their saves keep going to their own blocks
+        for (var bi = diagramBlocks.length - 1; bi >= msg.blockIndex; bi--) {
+          var movedBlock = diagramBlocks[bi];
+          if (movedBlock) movedBlock.blockIndex = bi + 1;
+          diagramBlocks[bi + 1] = movedBlock;
+          var movedState = editorStates.get(bi);
+          if (movedState) {
+            editorStates.delete(bi);
+            movedState.blockIndex = bi + 1;
+            editorStates.set(bi + 1, movedState);
+          }
+          if (overlayState.blockIndex === bi) overlayState.blockIndex = bi + 1;
+          if (activeEditorIndex === bi) activeEditorIndex = bi + 1;
+        }
 
         // Register the new diagram block data
         var section = {
@@ -1457,9 +1543,11 @@
         _insertAfterLine = null;
         var active = document.activeElement;
 
-        // Check if a text section is focused
+        // Check if a text section is focused. Its pending edit is sent first,
+        // so the diagram goes after the block as it is now.
         for (var i = 0; i < textSections.length; i++) {
           if (textSections[i].element === active || textSections[i].element.contains(active)) {
+            flushTextSave(textSections[i]);
             _insertAfterLine = textSections[i].endLine;
             return;
           }
@@ -1480,8 +1568,12 @@
         }
 
         // Use last interacted section (click/focus/keydown on any text or diagram block)
-        if (_insertAfterLine == null && _lastInteractedEndLine != null) {
-          _insertAfterLine = _lastInteractedEndLine;
+        if (_insertAfterLine == null && _lastInteracted) {
+          // (A text section that was rendered anew since is gone)
+          var last = _lastInteracted.text
+            ? (textSections.indexOf(_lastInteracted.text) >= 0 ? _lastInteracted.text : null)
+            : diagramBlocks[_lastInteracted.blockIndex];
+          if (last) _insertAfterLine = last.endLine;
         }
 
         // Fallback: find the section closest to the viewport center.
@@ -1520,9 +1612,11 @@
       });
 
       btnRefresh.addEventListener('click', function () {
+        textSections.forEach(function (ts) { flushTextSave(ts, true); });
         cleanupAllEditors();
         contentEl.innerHTML = '';
         editorStates.clear();
+        _contentRendered = false;
         vscode.postMessage({ type: 'requestRefresh' });
       });
 
@@ -2070,7 +2164,33 @@
           case 'sourceConverted':
             handleSourceConverted(msg);
             break;
+          case 'linesChanged':
+            // The extension changed a diagram block: lines after it moved
+            shiftLines(msg.startLine, msg.oldEndLine, msg.newEndLine);
+            break;
         }
+      }
+
+      /**
+       * The block on lines [startLine, oldEndLine] now ends at newEndLine: moves
+       * the line numbers of the sections after it, so later edits address the
+       * right lines.
+       */
+      function shiftLines(startLine, oldEndLine, newEndLine) {
+        var delta = newEndLine - oldEndLine;
+        if (!delta) return;
+        function adjust(s) {
+          if (!s) return;
+          if (s.startLine > oldEndLine) {
+            s.startLine += delta;
+            s.endLine += delta;
+          }
+          else if (s.startLine === startLine) {
+            s.endLine = newEndLine;
+          }
+        }
+        textSections.forEach(adjust);
+        diagramBlocks.forEach(adjust);
       }
 
       // ──────────────────────────────────────────────────────────────
@@ -2433,6 +2553,7 @@
             xml: overlayState.currentXml,
             diagramId: overlayState.diagramId,
           });
+          noteSavedDiagramId(overlayState.blockIndex, overlayState.currentXml);
         }
 
         overlayState.dirty = false;
@@ -2666,8 +2787,8 @@
       // Content rendering
       // ──────────────────────────────────────────────────────────────
       function renderContent(sections) {
-        if (!sections || !sections.length) return;
-        if (editorStates.size > 0) {
+        if (!sections) return;
+        if (_contentRendered) {
           if (tryIncrementalUpdate(sections)) {
             return;
           }
@@ -2677,12 +2798,20 @@
       }
 
       function fullRender(sections) {
+        // Text typed since the last save is sent first; this content doesn't
+        // have it yet, so the document is requested again afterwards.
+        var flushedText = false;
+        textSections.forEach(function (ts) {
+          if (flushTextSave(ts, true)) flushedText = true;
+        });
+
         cleanupAllEditors();
         contentEl.innerHTML = '';
         diagramBlocks = [];
         sourceCount = sections.filter(function (s) { return s.type === 'source'; }).length;
         textSections = [];
-        _lastInteractedEndLine = null;
+        _lastInteracted = null;
+        _contentRendered = true;
 
         for (var i = 0; i < sections.length; i++) {
           var section = sections[i];
@@ -2702,6 +2831,8 @@
             renderSourceBlock(section);
           }
         }
+
+        if (flushedText) vscode.postMessage({ type: 'requestRefresh' });
 
         startFocusPolling();
         setupLazyLoading();
@@ -2762,6 +2893,13 @@
       function tryIncrementalUpdate(sections) {
         var newSourceCount = sections.filter(function (s) { return s.type === 'source'; }).length;
         if (newSourceCount !== sourceCount) return false;
+
+        // The diagram and source elements must match the new blocks one to one
+        var nonTextCount = sections.filter(function (s) { return s.type !== 'text'; }).length;
+        var nonTextElCount = Array.prototype.filter.call(contentEl.children, function (el) {
+          return !el.classList.contains('text-section');
+        }).length;
+        if (nonTextCount !== nonTextElCount) return false;
 
         var newDiagrams = sections.filter(function (s) { return s.type === 'diagram'; });
         if (newDiagrams.length !== diagramBlocks.length) return false;
@@ -2833,42 +2971,416 @@
           diagramBlocks[nd.blockIndex] = nd;
         }
 
-        var newTexts = sections.filter(function (s) { return s.type === 'text'; });
-        if (newTexts.length !== textSections.length) return false;
-        for (var i = 0; i < newTexts.length; i++) {
-          var ts = textSections[i];
-          var el = ts.element;
-          if (el === document.activeElement || el.contains(document.activeElement)) {
-            ts.startLine = newTexts[i].startLine;
-            ts.endLine = newTexts[i].endLine;
-            continue;
-          }
-          el.innerHTML = newTexts[i].html;
-          ts.startLine = newTexts[i].startLine;
-          ts.endLine = newTexts[i].endLine;
-        }
-
+        rebuildTextSections(sections);
         return true;
       }
 
+      /**
+       * Renders the text sections anew around the diagram and source blocks,
+       * which stay as they are. A block whose source is being edited keeps its
+       * editor and stands for the sections on its lines.
+       */
+      function rebuildTextSections(sections) {
+        var nonTextEls = Array.prototype.filter.call(contentEl.children, function (el) {
+          return !el.classList.contains('text-section');
+        });
+
+        var keep = null;
+        // A focused rendered block (e.g. just left with Escape) keeps the focus
+        var focusedLine = null;
+        textSections.forEach(function (ts) {
+          if (!ts.editing && ts.element.contains(document.activeElement)) focusedLine = ts.startLine;
+          if (!ts.editing) return;
+          if (document.hasFocus() && ts.textarea === document.activeElement) keep = ts;
+          else exitTextEdit(ts); // left editing while VS Code had the focus
+        });
+        if (keep) {
+          // Follow the block if lines above it changed elsewhere
+          var best = null;
+          sections.forEach(function (s) {
+            if (s.type === 'text' && s.markdown === keep.markdown &&
+              (!best || Math.abs(s.startLine - keep.startLine) < Math.abs(best.startLine - keep.startLine))) best = s;
+          });
+          if (best) {
+            keep.startLine = best.startLine;
+            keep.endLine = best.endLine;
+          }
+        }
+
+        textSections.forEach(function (ts) {
+          if (ts !== keep && ts.element.parentNode) ts.element.parentNode.removeChild(ts.element);
+        });
+
+        var infos = [];
+        var desired = [];
+        var nonTextIndex = 0;
+        var keepPlaced = !keep;
+        function placeKeep() {
+          if (!keepPlaced) {
+            desired.push(keep.element);
+            infos.push(keep);
+            keepPlaced = true;
+          }
+        }
+        sections.forEach(function (s) {
+          if (keep && s.type === 'text' && s.startLine <= keep.endLine && s.endLine >= keep.startLine) {
+            placeKeep(); // the edited block covers this section
+            return;
+          }
+          if (keep && s.startLine > keep.endLine) placeKeep();
+          if (s.type === 'text') {
+            var info = createTextSection(s);
+            desired.push(info.element);
+            infos.push(info);
+          }
+          else if (nonTextIndex < nonTextEls.length) {
+            desired.push(nonTextEls[nonTextIndex++]);
+          }
+        });
+        if (keep) placeKeep();
+
+        // Insert the new elements; the existing ones are already in this order
+        var cursor = contentEl.firstElementChild;
+        desired.forEach(function (el) {
+          if (el === cursor) {
+            cursor = cursor.nextElementSibling;
+          }
+          else {
+            contentEl.insertBefore(el, cursor);
+          }
+        });
+        textSections = infos;
+
+        if (focusedLine !== null) {
+          var focused = infos.filter(function (ts) { return ts.startLine <= focusedLine; }).pop();
+          if (focused) focused.element.focus({ preventScroll: true });
+        }
+      }
+
       // ── Text section rendering ──
+      //
+      // Each text section is one Markdown block (paragraph, heading, list,
+      // table, ...) on known source lines. It shows the rendered block; a click
+      // shows its Markdown source in a textarea at the clicked spot, and leaving
+      // it renders it again. Edits replace exactly the block's lines, so text
+      // that wasn't touched keeps its exact Markdown.
       function renderTextSection(section) {
+        var info = createTextSection(section);
+        contentEl.appendChild(info.element);
+        textSections.push(info);
+      }
+
+      function createTextSection(section) {
         var div = document.createElement('div');
         div.className = 'text-section';
-        div.setAttribute('contenteditable', 'true');
-        div.setAttribute('data-start-line', section.startLine);
-        div.setAttribute('data-end-line', section.endLine);
+        div.tabIndex = 0;
         div.innerHTML = section.html;
-        contentEl.appendChild(div);
 
-        var sectionInfo = { element: div, startLine: section.startLine, endLine: section.endLine };
-        textSections.push(sectionInfo);
-        div.addEventListener('input', function () { debouncedTextSave(sectionInfo); });
-        // Track last interacted section for "+ Diagram" insertion position
-        function trackTextInteraction() { _lastInteractedEndLine = sectionInfo.endLine; }
-        div.addEventListener('click', trackTextInteraction);
-        div.addEventListener('focus', trackTextInteraction);
-        div.addEventListener('keydown', trackTextInteraction);
+        var info = {
+          element: div,
+          startLine: section.startLine,
+          endLine: section.endLine,
+          markdown: section.markdown, // the block's source as in the document
+          html: section.html,
+          editing: false,
+          textarea: null,
+          saveTimer: null,
+          changed: false, // edited since it was rendered
+        };
+
+        div.addEventListener('click', function (e) {
+          if (info.editing) return;
+          // Ctrl/Cmd+click follows a link, like in the text editor
+          if ((e.ctrlKey || e.metaKey) && e.target.closest && e.target.closest('a')) return;
+          // Don't let a plain click open a link or reach VS Code's link handler
+          e.preventDefault();
+          e.stopPropagation();
+          enterTextEdit(info, sourceOffsetAt(info, e));
+        });
+        div.addEventListener('keydown', function (e) {
+          if (!info.editing && e.target === div && (e.key === 'Enter' || e.key === 'F2')) {
+            e.preventDefault();
+            enterTextEdit(info, info.markdown.length);
+          }
+        });
+        div.addEventListener('focusin', function () { _lastInteracted = { text: info }; });
+        return info;
+      }
+
+      /**
+       * The offset in the block's Markdown source that corresponds to a click
+       * in the rendered block: the rendered text before the click is matched in
+       * order against the source, skipping the Markdown syntax in between.
+       */
+      function sourceOffsetAt(info, e) {
+        var source = info.markdown;
+        var range = document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null;
+        if (!range || !info.element.contains(range.startContainer)) return source.length;
+        var before = document.createRange();
+        before.selectNodeContents(info.element);
+        before.setEnd(range.startContainer, range.startOffset);
+        var rendered = before.toString();
+
+        var offset = 0;
+        for (var i = 0; i < rendered.length; i++) {
+          var c = rendered.charAt(i);
+          if (/\s/.test(c)) continue; // line breaks and spaces differ
+          var found = source.indexOf(c, offset);
+          if (found < 0) return source.length;
+          offset = found + 1;
+        }
+        return offset;
+      }
+
+      function enterTextEdit(info, caret) {
+        if (info.editing) return;
+        info.editing = true;
+        info.changed = false;
+        _lastInteracted = { text: info };
+
+        var ta = document.createElement('textarea');
+        ta.rows = 1; // grows with its text
+        ta.spellcheck = true;
+        ta.value = info.markdown;
+        if (/^(\s*(```|~~~|\|)| {4}|\t)/.test(info.markdown)) ta.classList.add('code');
+        info.textarea = ta;
+        info.element.classList.add('editing');
+        info.element.innerHTML = '';
+        info.element.appendChild(ta);
+        autosizeTextarea(ta);
+        ta.focus({ preventScroll: true });
+        ta.setSelectionRange(caret, caret);
+
+        ta.addEventListener('input', function () {
+          info.changed = true;
+          autosizeTextarea(ta);
+          scheduleTextSave(info);
+        });
+        ta.addEventListener('keydown', function (e) { handleSourceKey(info, e); });
+        ta.addEventListener('blur', function () {
+          flushTextSave(info);
+          // VS Code took the focus (another editor or app): keep editing here
+          if (!document.hasFocus()) return;
+          exitTextEdit(info);
+        });
+      }
+
+      function exitTextEdit(info) {
+        if (!info.editing) return;
+        // An emptied block is removed from the document when it is left
+        flushTextSave(info, true);
+        info.editing = false;
+        info.element.classList.remove('editing');
+        if (info.changed) {
+          // Rendered by the extension; until then the source stays visible
+          if (info.textarea) info.textarea.readOnly = true;
+          vscode.postMessage({ type: 'requestRefresh' });
+        }
+        else {
+          info.element.innerHTML = info.html;
+          info.textarea = null;
+        }
+      }
+
+      function autosizeTextarea(ta) {
+        ta.style.height = 'auto';
+        ta.style.height = ta.scrollHeight + 'px';
+      }
+
+      function scheduleTextSave(info) {
+        if (info.saveTimer) clearTimeout(info.saveTimer);
+        info.saveTimer = setTimeout(function () {
+          info.saveTimer = null;
+          flushTextSave(info);
+        }, TEXT_SAVE_DEBOUNCE_MS);
+      }
+
+      /**
+       * Sends the block's source to the extension if it changed, and moves the
+       * line numbers of the sections after it by the lines it gained or lost.
+       * An emptied block is only sent with allowEmpty (when it is left).
+       * Returns true if an edit was sent.
+       */
+      function flushTextSave(info, allowEmpty) {
+        if (info.saveTimer) {
+          clearTimeout(info.saveTimer);
+          info.saveTimer = null;
+        }
+        if (!info.textarea || info.textarea.readOnly) return false;
+        // Surrounding blank lines belong to no block
+        var markdown = info.textarea.value.replace(/\r/g, '').replace(/^(?:[ \t]*\n)+/, '').replace(/(?:\n[ \t]*)+$/, '');
+        if (/^\s*$/.test(markdown)) {
+          if (!allowEmpty) return false;
+          markdown = '';
+        }
+        if (markdown === info.markdown) return false;
+
+        vscode.postMessage({
+          type: 'textEdited',
+          startLine: info.startLine,
+          endLine: info.endLine,
+          oldMarkdown: info.markdown,
+          markdown: markdown,
+        });
+        var lineCount = markdown === '' ? 0 : markdown.split('\n').length;
+        shiftLines(info.startLine, info.endLine, info.startLine + lineCount - 1);
+        info.markdown = markdown;
+        return true;
+      }
+
+      // Inserts text in place of the selection, keeping the textarea's undo
+      // history where the browser supports it.
+      function insertSourceText(info, text) {
+        var ta = info.textarea;
+        if (!document.execCommand('insertText', false, text)) {
+          ta.setRangeText(text, ta.selectionStart, ta.selectionEnd, 'end');
+          ta.dispatchEvent(new Event('input'));
+        }
+      }
+
+      // Keys of the source editor, as in most Markdown editors: Enter continues
+      // a list or quote, Tab indents list items, Ctrl/Cmd+B and +I toggle bold and
+      // italic, Escape leaves the block, Ctrl/Cmd+S saves.
+      function handleSourceKey(info, e) {
+        var ta = info.textarea;
+        var mod = e.ctrlKey || e.metaKey;
+        var handled = false;
+
+        if (mod && !e.shiftKey && !e.altKey && (e.key === 's' || e.key === 'S')) {
+          // Save after the edit is in the document
+          flushTextSave(info);
+          vscode.postMessage({ type: 'saveDocument' });
+          handled = true;
+        }
+        else if (mod && !e.shiftKey && !e.altKey && (e.key === 'b' || e.key === 'B')) {
+          toggleInlineMarker(info, '**');
+          handled = true;
+        }
+        else if (mod && !e.shiftKey && !e.altKey && (e.key === 'i' || e.key === 'I')) {
+          toggleInlineMarker(info, '*');
+          handled = true;
+        }
+        else if (mod && !e.altKey && /^[zy]$/i.test(e.key)) {
+          // Undo and redo the typing in this block. VS Code would undo the
+          // document behind it, and the block would no longer match it.
+          e.stopPropagation();
+          return;
+        }
+        else if (e.key === 'Escape') {
+          ta.blur();
+          info.element.focus({ preventScroll: true });
+          handled = true;
+        }
+        else if (e.key === 'Enter' && !mod && !e.shiftKey && !e.altKey) {
+          handled = continueListOrQuote(info);
+        }
+        else if (e.key === 'Tab' && !mod && !e.altKey) {
+          handled = indentListItems(info, e.shiftKey);
+        }
+
+        if (handled) {
+          e.preventDefault();
+          // Keep VS Code from also running its shortcut (Ctrl+B toggles the sidebar)
+          e.stopPropagation();
+        }
+      }
+
+      // Asterisks next to pos in text, before it (dir < 0) or after it
+      function countStars(text, pos, dir) {
+        var n = 0;
+        while (text.charAt(dir < 0 ? pos - 1 - n : pos + n) === '*') n++;
+        return n;
+      }
+
+      // Toggles '**' (bold) or '*' (italic) around the selection. Of the
+      // asterisks on both sides, an odd count is italic and two or more bold.
+      function toggleInlineMarker(info, marker) {
+        var ta = info.textarea;
+        var start = ta.selectionStart, end = ta.selectionEnd, value = ta.value;
+        var n = marker.length;
+        var selected = value.slice(start, end);
+        function has(stars) { return stars >= n && (n === 2 || stars % 2 === 1); }
+        var inside = selected.length > 2 * n ?
+          Math.min(countStars(selected, 0, 1), countStars(selected, selected.length, -1)) : 0;
+
+        if (has(Math.min(countStars(value, start, -1), countStars(value, end, 1)))) {
+          ta.setSelectionRange(start - n, end + n);
+          insertSourceText(info, selected);
+          ta.setSelectionRange(start - n, end - n);
+        }
+        else if (has(inside)) {
+          insertSourceText(info, selected.slice(n, -n));
+          ta.setSelectionRange(start, end - 2 * n);
+        }
+        else {
+          insertSourceText(info, marker + selected + marker);
+          ta.setSelectionRange(start + n, end + n);
+        }
+      }
+
+      var LIST_ITEM_RE = /^(\s*)([-*+]|\d{1,9}[.)])(\s+)(\[[ xX]\]\s+)?/;
+      var QUOTE_RE = /^\s*(?:>\s?)+/;
+
+      // The line around the caret: { start, end, text }
+      function caretLine(ta) {
+        var value = ta.value, pos = ta.selectionStart;
+        var start = value.lastIndexOf('\n', pos - 1) + 1;
+        var end = value.indexOf('\n', pos);
+        if (end < 0) end = value.length;
+        return { start: start, end: end, text: value.slice(start, end) };
+      }
+
+      function continueListOrQuote(info) {
+        var ta = info.textarea;
+        if (ta.selectionStart !== ta.selectionEnd) return false;
+        var line = caretLine(ta);
+        var item = LIST_ITEM_RE.exec(line.text);
+        var quote = item ? null : QUOTE_RE.exec(line.text);
+        var marker = item ? item[0] : quote ? quote[0] : null;
+        if (!marker || ta.selectionStart < line.start + marker.length) return false;
+
+        if (line.text.slice(marker.length).trim() === '') {
+          // Enter on an empty item ends the list (or quote)
+          ta.setSelectionRange(line.start, line.end);
+          insertSourceText(info, '');
+          return true;
+        }
+
+        var next = marker;
+        if (item) {
+          var bullet = item[2];
+          if (/^\d/.test(bullet)) bullet = (parseInt(bullet, 10) + 1) + bullet.slice(-1);
+          next = item[1] + bullet + item[3] + (item[4] ? '[ ] ' : '');
+        }
+        insertSourceText(info, '\n' + next);
+        return true;
+      }
+
+      function indentListItems(info, outdent) {
+        var ta = info.textarea, value = ta.value;
+        var start = value.lastIndexOf('\n', ta.selectionStart - 1) + 1;
+        var end = value.indexOf('\n', ta.selectionEnd);
+        if (end < 0) end = value.length;
+        var lines = value.slice(start, end).split('\n');
+        if (!lines.every(function (l) { return l.trim() === '' || LIST_ITEM_RE.test(l); })) return false;
+
+        var changed = lines.map(function (l) {
+          var item = LIST_ITEM_RE.exec(l);
+          if (!item) return l;
+          // One level is the width of the marker, as CommonMark nests items
+          var width = item[2].length + item[3].length;
+          if (!outdent) return new Array(width + 1).join(' ') + l;
+          return l.slice(Math.min(width, item[1].length));
+        });
+        var text = changed.join('\n');
+        if (text === lines.join('\n')) return true;
+        // The selection moves with its text, as in the text editor
+        var selStart = Math.max(start, ta.selectionStart + changed[0].length - lines[0].length);
+        var selEnd = ta.selectionEnd + text.length - (end - start);
+        ta.setSelectionRange(start, end);
+        insertSourceText(info, text);
+        ta.setSelectionRange(selStart, Math.max(selStart, selEnd));
+        return true;
       }
 
       // ── Diagram block rendering ──
@@ -2927,8 +3439,8 @@
 
         // Track last interacted diagram for "+ Diagram" insertion position
         (function (blk) {
-          outer.addEventListener('click', function () { _lastInteractedEndLine = blk.endLine; });
-          outer.addEventListener('mousedown', function () { _lastInteractedEndLine = blk.endLine; });
+          outer.addEventListener('click', function () { _lastInteracted = { blockIndex: blk.blockIndex }; });
+          outer.addEventListener('mousedown', function () { _lastInteracted = { blockIndex: blk.blockIndex }; });
         })(block);
 
         // Toolbar visibility on hover (same as unlocked diagrams)
@@ -3225,8 +3737,8 @@
 
         // Track last interacted diagram for "+ Diagram" insertion position
         (function (blk) {
-          outer.addEventListener('click', function () { _lastInteractedEndLine = blk.endLine; });
-          outer.addEventListener('mousedown', function () { _lastInteractedEndLine = blk.endLine; });
+          outer.addEventListener('click', function () { _lastInteracted = { blockIndex: blk.blockIndex }; });
+          outer.addEventListener('mousedown', function () { _lastInteracted = { blockIndex: blk.blockIndex }; });
         })(block);
 
         // Render SVG preview first — this gives us mxGraph's actual rendered
@@ -3457,6 +3969,18 @@
           xml: state.currentXml,
           diagramId: state.diagramId,
         });
+        noteSavedDiagramId(state.blockIndex, state.currentXml);
+      }
+
+      // After a save the block in the document has the page id of the saved
+      // XML (a template can replace the page): later saves identify it by that.
+      function noteSavedDiagramId(blockIndex, xml) {
+        var id = extractDiagramId(xml);
+        if (!id) return;
+        var st = editorStates.get(blockIndex);
+        if (st) st.diagramId = id;
+        if (diagramBlocks[blockIndex]) diagramBlocks[blockIndex].diagramId = id;
+        if (overlayState.blockIndex === blockIndex) overlayState.diagramId = id;
       }
 
       function flushAllPendingSaves() {
@@ -3473,6 +3997,7 @@
               xml: overlayState.currentXml,
               diagramId: overlayState.diagramId,
             });
+            noteSavedDiagramId(overlayState.blockIndex, overlayState.currentXml);
           }
           overlayState.dirty = false;
         }
@@ -3481,27 +4006,7 @@
         editorStates.forEach(function (state) {
           if (state.dirty) flushDiagramSave(state);
         });
-        if (textSaveTimer) {
-          clearTimeout(textSaveTimer);
-          textSaveTimer = null;
-        }
-      }
-
-      // ──────────────────────────────────────────────────────────────
-      // Text section editing
-      // ──────────────────────────────────────────────────────────────
-      function debouncedTextSave(sectionInfo) {
-        if (textSaveTimer) clearTimeout(textSaveTimer);
-        textSaveTimer = setTimeout(function () {
-          textSaveTimer = null;
-          var markdown = htmlToMarkdown(sectionInfo.element);
-          vscode.postMessage({
-            type: 'textEdited',
-            startLine: sectionInfo.startLine,
-            endLine: sectionInfo.endLine,
-            markdown: markdown,
-          });
-        }, TEXT_SAVE_DEBOUNCE_MS);
+        textSections.forEach(function (ts) { flushTextSave(ts); });
       }
 
       // ──────────────────────────────────────────────────────────────
@@ -3704,73 +4209,6 @@
       }
 
       // ──────────────────────────────────────────────────────────────
-      // HTML → Markdown converter
-      // ──────────────────────────────────────────────────────────────
-      function htmlToMarkdown(container) {
-        var md = '';
-        for (var i = 0; i < container.childNodes.length; i++)
-          md += nodeToMarkdown(container.childNodes[i]);
-        return md.replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
-      }
-
-      function nodeToMarkdown(node) {
-        if (node.nodeType === Node.TEXT_NODE) return node.textContent;
-        if (node.nodeType !== Node.ELEMENT_NODE) return '';
-
-        var el = node, tag = el.tagName.toLowerCase();
-        var inner = childrenToMarkdown(el);
-
-        switch (tag) {
-          case 'h1': return '# ' + inner.trim() + '\n\n';
-          case 'h2': return '## ' + inner.trim() + '\n\n';
-          case 'h3': return '### ' + inner.trim() + '\n\n';
-          case 'h4': return '#### ' + inner.trim() + '\n\n';
-          case 'h5': return '##### ' + inner.trim() + '\n\n';
-          case 'h6': return '###### ' + inner.trim() + '\n\n';
-          case 'p': return inner + '\n\n';
-          case 'strong': case 'b': return '**' + inner + '**';
-          case 'em': case 'i': return '*' + inner + '*';
-          case 'a': return '[' + inner + '](' + (el.getAttribute('href') || '') + ')';
-          case 'img':
-            {
-              var imgSrc = el.getAttribute('src') || '';
-              if (imageBaseUri && imgSrc.indexOf(imageBaseUri + '/') === 0) {
-                imgSrc = imgSrc.substring(imageBaseUri.length + 1);
-              }
-              return '![' + (el.getAttribute('alt') || '') + '](' + imgSrc + ')';
-            }
-          case 'code':
-            if (el.parentElement && el.parentElement.tagName === 'PRE') return inner;
-            return '`' + inner + '`';
-          case 'pre':
-            var codeEl = el.querySelector('code'), lang = '';
-            if (codeEl) {
-              var m = (codeEl.className || '').match(/language-(\w+)/);
-              if (m) lang = m[1];
-              inner = codeEl.textContent;
-            }
-            return '```' + lang + '\n' + inner + '\n```\n\n';
-          case 'blockquote': return '> ' + inner.trim() + '\n\n';
-          case 'ul': return inner + '\n';
-          case 'ol': return inner + '\n';
-          case 'li': return '- ' + inner.trim() + '\n';
-          case 'hr': return '---\n\n';
-          case 'br': return '\n';
-          case 'div':
-            if (inner.trim()) return inner + '\n';
-            return '';
-          default: return inner;
-        }
-      }
-
-      function childrenToMarkdown(el) {
-        var result = '';
-        for (var i = 0; i < el.childNodes.length; i++)
-          result += nodeToMarkdown(el.childNodes[i]);
-        return result;
-      }
-
-      // ──────────────────────────────────────────────────────────────
       // Cleanup
       // ──────────────────────────────────────────────────────────────
       function cleanupAllEditors(destroySingleton) {
@@ -3781,10 +4219,12 @@
         if (destroySingleton) destroySingletonIframe();
         for (var key in diagramSaveTimers) clearTimeout(diagramSaveTimers[key]);
         diagramSaveTimers = {};
-        if (textSaveTimer) { clearTimeout(textSaveTimer); textSaveTimer = null; }
+        textSections.forEach(function (ts) {
+          if (ts.saveTimer) clearTimeout(ts.saveTimer);
+        });
         editorStates.clear();
         textSections = [];
-        _lastInteractedEndLine = null;
+        _lastInteracted = null;
         activeEditorIndex = -1;
       }
 

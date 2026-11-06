@@ -1,6 +1,9 @@
+import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
+
 // Lazy-require Node built-ins so this module can be imported in the
 // browser extension host without crashing (http/fs are only available
 // in the Node.js extension host where the local server actually runs).
+
 type Http = typeof import("http");
 type Fs = typeof import("fs");
 type Path = typeof import("path");
@@ -13,15 +16,8 @@ type Path = typeof import("path");
  */
 const KEYBOARD_OVERRIDE_SCRIPT = `<script>
 (function() {
-	var VSCODE_SHORTCUTS = [
-		{ key: "Tab", ctrl: true,  shift: false, alt: false, command: "workbench.action.quickOpenPreviousRecentlyUsedEditorInGroup" },
-		{ key: "P",   ctrl: true,  shift: true,  alt: false, command: "workbench.action.showCommands" },
-		{ key: "p",   ctrl: true,  shift: false, alt: false, command: "workbench.action.quickOpen" },
-		{ key: "S",   ctrl: false, shift: true,  alt: true,  command: null },
-		{ key: "s",   ctrl: true,  shift: false, alt: false, command: "workbench.action.files.save" },
-		{ key: "S",   ctrl: true,  shift: true,  alt: false, command: "workbench.action.files.saveAs" },
-		{ key: "F1",  ctrl: false, shift: false, alt: false, command: "workbench.action.showCommands" }
-	];
+	// Generated from VSCODE_PASSTHROUGH_KEYS, the allowlist of the extension
+	var VSCODE_SHORTCUTS = ${JSON.stringify(VSCODE_PASSTHROUGH_KEYS)};
 
 	function matchShortcut(e) {
 		var mod = e.ctrlKey || e.metaKey;
@@ -143,6 +139,7 @@ export function createLocalServer(webappRoot: string): LocalServer {
 
 	let server: ReturnType<Http["createServer"]> | null = null;
 	let currentPort: number | null = null;
+	let starting: Promise<number> | null = null;
 
 	const handler = (req: import("http").IncomingMessage, res: import("http").ServerResponse): void => {
 		// CORS headers for iframe embedding
@@ -215,25 +212,31 @@ export function createLocalServer(webappRoot: string): LocalServer {
 		get port() { return currentPort; },
 
 		start(): Promise<number> {
-			return new Promise((resolve, reject) => {
-				if (server) {
-					resolve(currentPort!);
-					return;
-				}
+			// Every caller waits for the same listen(), so none sees a missing
+			// port while the server is still starting.
+			if (!starting) {
+				starting = new Promise<number>((resolve, reject) => {
+					const s = http.createServer(handler);
+					server = s;
 
-				server = http.createServer(handler);
+					// Listen on random available port
+					s.listen(0, "127.0.0.1", () => {
+						currentPort = (s.address() as { port: number }).port;
+						resolve(currentPort);
+					});
 
-				// Listen on random available port
-				server.listen(0, "127.0.0.1", () => {
-					currentPort = (server!.address() as { port: number }).port;
-					resolve(currentPort);
+					s.on("error", (err) => {
+						console.error("drawio-inline-editor: local server error:", err);
+						if (currentPort == null) {
+							// Not started: let the next start() try again
+							server = null;
+							starting = null;
+							reject(err);
+						}
+					});
 				});
-
-				server.on("error", (err) => {
-					console.error("drawio-inline-editor: local server error:", err);
-					reject(err);
-				});
-			});
+			}
+			return starting;
 		},
 
 		stop(): void {
@@ -241,6 +244,7 @@ export function createLocalServer(webappRoot: string): LocalServer {
 				server.close();
 				server = null;
 				currentPort = null;
+				starting = null;
 			}
 		},
 	};

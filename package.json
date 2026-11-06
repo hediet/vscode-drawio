@@ -648,7 +648,7 @@
 	"scripts": {
 		"run-script": "node ./scripts/run-script",
 		"lint": "echo 'add linting'",
-		"test-unit": "node --test test/drawio-configuration/drawioConfiguration.test.js test/drawio-client/deferredReloads.test.js test/codeblock-editor/markdownCodeBlockEditor.test.js",
+		"test-unit": "node --test test/drawio-configuration/drawioConfiguration.test.js test/drawio-client/deferredReloads.test.js test/codeblock-editor/markdownCodeBlockEditor.test.js test/inline-editor/markdownEditor.test.js",
 		"_lint": "yarn run-script check-version && prettier --check ./src",
 		"build": "yarn build-extension && yarn build-plugins && yarn package-extension",
 		"build-extension": "webpack --mode production",
@@ -719,6 +719,7 @@
 		"@knuddels/mobx-logger": "^1.1.1",
 		"buffer": "^6.0.3",
 		"js-sha256": "^0.9.0",
+		"markdown-it": "^14.1.0",
 		"mithril": "^2.0.4",
 		"mobx": "5.15.4",
 		"mobx-utils": "5.5.7",

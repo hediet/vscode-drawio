@@ -20,7 +20,11 @@ import * as vscode from "vscode";
 import { sha256 } from "js-sha256";
 import { Config, DiagramConfig } from "../Config";
 import { DrawioLibrarySection, simpleDrawioLibrary } from "../DrawioClient";
-import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
+import {
+	VSCODE_PASSTHROUGH_COMMANDS,
+	VSCODE_PASSTHROUGH_KEYS,
+	isExternalLink,
+} from "../vscodeShortcuts";
 import { withConfigSetting } from "../drawioConfiguration";
 import { toScriptJson } from "../utils/toScriptJson";
 import { parseBlockAttrs } from "../inline-editor/diagramParser";
@@ -134,11 +138,6 @@ export function createMarkdownCodeBlockEditorsApi(
 	);
 	/** Document a runtime (= one resolved HTML variant) was created for. */
 	const runtimeDocuments = new Map<string, vscode.Uri>();
-	const allowedCommands = new Set(
-		VSCODE_PASSTHROUGH_KEYS.map((k) => k.command).filter(
-			(c): c is string => c !== null
-		)
-	);
 
 	const provider: MarkdownCodeBlockEditorProvider = {
 		async resolve(request, token) {
@@ -198,12 +197,14 @@ export function createMarkdownCodeBlockEditorsApi(
 					case "command":
 						// The guest runs untrusted diagram content: only run the
 						// chords we deliberately hand back to VS Code.
-						if (allowedCommands.has(message.command)) {
+						if (VSCODE_PASSTHROUGH_COMMANDS.has(message.command)) {
 							vscode.commands.executeCommand(message.command);
 						}
 						break;
 					case "openLink":
-						vscode.env.openExternal(vscode.Uri.parse(message.href));
+						if (isExternalLink(message.href)) {
+							vscode.env.openExternal(vscode.Uri.parse(message.href));
+						}
 						break;
 					case "updateLocalStorage":
 						diagramConfig?.setLocalStorage(message.newLocalStorage);

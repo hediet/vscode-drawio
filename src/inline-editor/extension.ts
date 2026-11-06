@@ -3,7 +3,11 @@ import * as path from "path";
 import * as fs from "fs";
 import * as crypto from "crypto";
 import { Config } from "../Config";
-import { VSCODE_PASSTHROUGH_KEYS } from "../vscodeShortcuts";
+import {
+	VSCODE_PASSTHROUGH_COMMANDS,
+	VSCODE_PASSTHROUGH_KEYS,
+	isExternalLink,
+} from "../vscodeShortcuts";
 import { withConfigSetting } from "../drawioConfiguration";
 import { appendEmbedParams } from "../utils/appendEmbedParams";
 import { toScriptJson } from "../utils/toScriptJson";
@@ -14,22 +18,29 @@ import {
 	SOURCE_LANGUAGE_NAMES,
 	ImageLink,
 	findDiagramBlocks,
-	replaceDiagramBlock,
 	createEmptyDiagram,
 	isBlankDiagram,
 	buildDiagramBlock,
 	findSourceBlocks,
-	replaceSourceBlock,
 	createConversionDescriptor,
 	findDiagramImageLinks,
 	isLocalLinkTarget,
 	isPngLinkTarget,
+	extractDiagramId,
 	extractDiagramXmlFromSvg,
 	extractDiagramXmlFromPng,
+	locateDiagramBlock,
 } from "./diagramParser";
 import { toggleLockAtLine } from "./diagramLock";
 import { createLocalServer, LocalServer } from "./localServer";
 import markdownItDrawio from "./markdownPlugin";
+import {
+	TextSection,
+	buildTextSections,
+	createRenderEnv,
+	locateLines,
+	splitLines,
+} from "./markdownSections";
 
 /**
  * Default diagram padding (pixels) used as fallback for the
@@ -45,6 +56,9 @@ const DEFAULT_DIAGRAM_PADDING = 28;
 /** Default dimensions for newly inserted blank diagrams (pixels). */
 const DEFAULT_NEW_DIAGRAM_WIDTH = 800;
 
+/** Pause before the Markdown editor shows changes made elsewhere (ms). */
+const CONTENT_UPDATE_DELAY_MS = 150;
+
 /**
  * Toggle to add dev=1 (and test=1 where applicable) to draw.io iframe URLs.
  * Enables unminified sources and debug features in the draw.io editor.
@@ -54,31 +68,23 @@ const DEV_MODE = false;
 let activePanel: vscode.WebviewPanel | null = null;
 let localServer: LocalServer | null = null;
 
+/** The block the Edit Diagram tab saves to, as last seen in the document. */
 interface DiagramEditingContext {
 	documentUri: vscode.Uri;
-	block: DiagramBlock;
+	blockIndex: number;
+	diagramId: string | null;
+	/** The block's XML in the document (what the tab loaded or last saved). */
+	xml: string;
 }
 
+/** The Mermaid / PlantUML block the conversion tab replaces on its first save. */
 interface SourceEditingContext {
 	documentUri: vscode.Uri;
+	sourceIndex: number;
 	sourceBlock: SourceBlock;
 }
 
 let editingContext: DiagramEditingContext | SourceEditingContext | null = null;
-
-let inlinePreviewPanel: vscode.WebviewPanel | null = null;
-let inlinePreviewDocUri: vscode.Uri | null = null;
-
-/** When true, suppress inline preview updates triggered by our own edits. */
-let suppressInlinePreviewUpdate = false;
-
-/**
- * Extract the diagram id attribute from XML (e.g. <diagram id="abc">).
- */
-function extractDiagramId(xml: string): string | null {
-	const match = xml.match(/<diagram[^>]+id="([^"]+)"/);
-	return match ? match[1] : null;
-}
 
 /**
  * Resolves a Markdown image-link target to an editable, same-repo `.drawio.svg`
@@ -109,17 +115,42 @@ function resolveEditableDiagramLink(
 
 	const isPng = isPngLinkTarget(resolved);
 	const isSvg = /\.drawio\.svg$/i.test(resolved);
-	if ((!isPng && !isSvg) || !fs.existsSync(resolved)) { return null; }
+	if (!isPng && !isSvg) { return null; }
+
+	const xml = readLinkedDiagramXml(resolved, isPng);
+	if (!xml) { return null; }
+
+	return { fileUri: vscode.Uri.file(resolved), xml, isPng };
+}
+
+/**
+ * Diagram XML of linked image files by path, kept while the file's size and
+ * modification time stay the same: the Markdown editor resolves every link on
+ * each update, which would otherwise read and decode every file each time.
+ */
+const linkedDiagramCache = new Map<string, { mtimeMs: number; size: number; xml: string | null }>();
+
+function readLinkedDiagramXml(fsPath: string, isPng: boolean): string | null {
+	let stat: fs.Stats;
+	try {
+		stat = fs.statSync(fsPath);
+	} catch (e) {
+		linkedDiagramCache.delete(fsPath);
+		return null;
+	}
+	const cached = linkedDiagramCache.get(fsPath);
+	if (cached && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
+		return cached.xml;
+	}
 
 	let xml: string | null = null;
 	try {
 		xml = isPng
-			? extractDiagramXmlFromPng(fs.readFileSync(resolved))
-			: extractDiagramXmlFromSvg(fs.readFileSync(resolved, "utf8"));
-	} catch (e) { return null; }
-	if (!xml) { return null; }
-
-	return { fileUri: vscode.Uri.file(resolved), xml, isPng };
+			? extractDiagramXmlFromPng(fs.readFileSync(fsPath))
+			: extractDiagramXmlFromSvg(fs.readFileSync(fsPath, "utf8"));
+	} catch (e) { xml = null; }
+	linkedDiagramCache.set(fsPath, { mtimeMs: stat.mtimeMs, size: stat.size, xml });
+	return xml;
 }
 
 /** Case-fold + normalize an fsPath for comparison. On case-insensitive
@@ -231,13 +262,19 @@ function decodeExportedImage(dataUri: string): Buffer | null {
  */
 function handleForwardedMessage(msg: { type: string; command?: string; href?: string; message?: string }): boolean {
 	if (msg.type === "vscodeShortcut" && msg.command) {
-		vscode.commands.executeCommand(msg.command);
+		// Any frame in the webview can post this (the webview cannot always
+		// tell the frames apart), so only the pass-through chords' commands run.
+		if (VSCODE_PASSTHROUGH_COMMANDS.has(msg.command)) {
+			vscode.commands.executeCommand(msg.command);
+		}
 		return true;
 	}
 	if (msg.type === "openLink" && msg.href) {
 		// Link click forwarded from draw.io (suppressNewWindows mode): open it in
 		// the host's default browser instead of a new tab/window.
-		vscode.env.openExternal(vscode.Uri.parse(msg.href));
+		if (isExternalLink(msg.href)) {
+			vscode.env.openExternal(vscode.Uri.parse(msg.href));
+		}
 		return true;
 	}
 	if (msg.type === "conversionFailed" && msg.message) {
@@ -247,6 +284,45 @@ function handleForwardedMessage(msg: { type: string; command?: string; href?: st
 		return true;
 	}
 	return false;
+}
+
+/** Converts the line breaks of text to the document's line terminator. */
+function withEol(document: vscode.TextDocument, text: string): string {
+	return text.replace(/\r?\n/g, document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n");
+}
+
+/** Lines first..last including their line break (for deleting them). */
+function wholeLinesRange(document: vscode.TextDocument, first: number, last: number): vscode.Range {
+	if (last + 1 < document.lineCount) {
+		return new vscode.Range(first, 0, last + 1, 0);
+	}
+	if (first > 0) {
+		return new vscode.Range(first - 1, document.lineAt(first - 1).text.length, last, document.lineAt(last).text.length);
+	}
+	return new vscode.Range(0, 0, last, document.lineAt(last).text.length);
+}
+
+/** The range between two character offsets of the document. */
+function offsetRange(document: vscode.TextDocument, start: number, end: number): vscode.Range {
+	return new vscode.Range(document.positionAt(start), document.positionAt(end));
+}
+
+/**
+ * An edit that replaces only the given diagram block (not the whole
+ * document), and the block's last line after the edit.
+ */
+function diagramBlockEdit(
+	document: vscode.TextDocument,
+	block: DiagramBlock,
+	xml: string,
+	locked: boolean,
+	height: number | null,
+	width: number | null
+): { edit: vscode.WorkspaceEdit; newEndLine: number } {
+	const blockText = buildDiagramBlock(xml, block.format, locked, height, width);
+	const edit = new vscode.WorkspaceEdit();
+	edit.replace(document.uri, offsetRange(document, block.index, block.index + block.fullMatch.length), withEol(document, blockText));
+	return { edit, newEndLine: block.startLine + blockText.split("\n").length - 1 };
 }
 
 /** Settings section shared with the main draw.io editor. */
@@ -285,10 +361,9 @@ async function getEditorUrl(context: vscode.ExtensionContext): Promise<string> {
 			if (!localServer) {
 				localServer = createLocalServer(webappRoot);
 			}
-			if (!localServer.port) {
-				await localServer.start();
-			}
-			const local = vscode.Uri.parse(`http://127.0.0.1:${localServer.port}`);
+			// Also waits for a start that is still in progress
+			const port = await localServer.start();
+			const local = vscode.Uri.parse(`http://127.0.0.1:${port}`);
 			const external = await vscode.env.asExternalUri(local);
 			return external.toString().replace(/\/$/, "");
 		}
@@ -346,11 +421,9 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 				if (!localServer) {
 					localServer = createLocalServer(webappRoot);
 				}
-				if (!localServer.port) {
-					localServer.start().catch(err =>
-						console.error("drawio-inline-editor: failed to pre-start local server:", err)
-					);
-				}
+				localServer.start().catch(err =>
+					console.error("drawio-inline-editor: failed to pre-start local server:", err)
+				);
 			}
 		}
 	}
@@ -419,14 +492,11 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 				function findBlockInDoc(doc: vscode.TextDocument): DiagramBlock | null {
 					const blocks = findDiagramBlocks(doc.getText());
 
-					// Prefer diagram ID match (unique and stable across edits)
-					if (diagramIdParam) {
-						const byId = blocks.find(b => extractDiagramId(b.xml) === diagramIdParam);
-						if (byId) { return byId; }
-					}
-
-					if (hasBlockIndex && blockIndex < blocks.length) {
-						return blocks[blockIndex];
+					// The block index and diagram ID, where they agree (several
+					// blocks can share an ID when a block was copied)
+					if (diagramIdParam || hasBlockIndex) {
+						const located = locateDiagramBlock(blocks, hasBlockIndex ? blockIndex : -1, diagramIdParam);
+						if (located) { return located; }
 					}
 
 					const exact = blocks.find(b => line >= b.startLine && line <= b.endLine);
@@ -729,19 +799,6 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt: 
 		})
 	);
 
-	// Update inline preview when the source document changes
-	context.subscriptions.push(
-		vscode.workspace.onDidChangeTextDocument(e => {
-			if (inlinePreviewPanel && inlinePreviewDocUri &&
-				e.document.uri.toString() === inlinePreviewDocUri.toString()) {
-				if (suppressInlinePreviewUpdate) {
-					return;
-				}
-				updateInlinePreview(e.document);
-			}
-		})
-	);
-
 	// Return extendMarkdownIt so VS Code's markdown preview can find it.
 	// VS Code looks for this on extension.exports (the activate() return value).
 	return { extendMarkdownIt };
@@ -756,7 +813,12 @@ async function openDiagramEditor(
 		activePanel.dispose();
 	}
 
-	editingContext = { documentUri: document.uri, block };
+	editingContext = {
+		documentUri: document.uri,
+		blockIndex: findDiagramBlocks(document.getText()).findIndex(b => b.index === block.index),
+		diagramId: extractDiagramId(block.xml),
+		xml: block.xml,
+	};
 
 	const config = vscode.workspace.getConfiguration("drawio-inline-editor");
 	const editorUrl = await getEditorUrl(context);
@@ -822,17 +884,17 @@ async function openDiagramEditor(
 					break;
 
 				case "saveAndClose":
-					await saveDiagram(msg.xml, autoLock);
-					activePanel!.dispose();
+					// Stays open if the diagram could not be saved
+					if (await saveDiagram(msg.xml, autoLock)) {
+						activePanel?.dispose();
+					}
 					break;
 
 				case "cancel":
 					activePanel!.dispose();
 					break;
 			}
-		},
-		undefined,
-		context.subscriptions
+		}
 	);
 
 	// TODO: WebviewPanel has no onWillDispose / close-prevention API.
@@ -844,36 +906,33 @@ async function openDiagramEditor(
 	});
 }
 
-async function saveDiagram(newXml: string, autoLock: boolean): Promise<void> {
-	if (!editingContext || !("block" in editingContext)) { return; }
+/**
+ * Saves the Edit Diagram tab to its block. The block is found again by its
+ * index, page id and XML, so edits to the Markdown file in the meantime are
+ * fine; if it can't be identified the diagram is not saved anywhere else.
+ */
+async function saveDiagram(newXml: string, autoLock: boolean): Promise<boolean> {
+	const ctx = editingContext;
+	if (!ctx || !("xml" in ctx)) { return false; }
 
-	const { documentUri, block } = editingContext;
+	// Re-open the document by URI: the editor may have been closed meanwhile
+	const document = await vscode.workspace.openTextDocument(ctx.documentUri);
+	const blocks = findDiagramBlocks(document.getText());
+	const block = locateDiagramBlock(blocks, ctx.blockIndex, ctx.diagramId, ctx.xml);
+	if (!block) {
+		vscode.window.showErrorMessage(
+			"The diagram was not saved: its block in the Markdown file was removed or can't be told apart from a copy of it.");
+		return false;
+	}
 
-	// Re-open the document by URI to ensure a valid reference.
-	// The original document reference may have been garbage-collected or closed
-	// between when the editor was opened and when the user clicks "save".
-	const document = await vscode.workspace.openTextDocument(documentUri);
-	const text = document.getText();
-
-	// Re-parse to find the block.  Prefer diagram-ID match (survives edits
-	// that shift line numbers), then fall back to startLine match.
-	const blocks = findDiagramBlocks(text);
-	const diagramId = extractDiagramId(block.xml);
-	const currentBlock = (diagramId && blocks.find(b => extractDiagramId(b.xml) === diagramId))
-		|| blocks.find(b => b.startLine === block.startLine)
-		|| block;
-
-	const locked = autoLock ? true : currentBlock.locked;
-	const newText = replaceDiagramBlock(text, currentBlock, newXml, locked);
-
-	const fullRange = new vscode.Range(
-		document.positionAt(0),
-		document.positionAt(text.length)
-	);
-
-	const edit = new vscode.WorkspaceEdit();
-	edit.replace(document.uri, fullRange, newText);
-	await vscode.workspace.applyEdit(edit);
+	const locked = autoLock || block.locked;
+	if (!(await vscode.workspace.applyEdit(diagramBlockEdit(document, block, newXml, locked, block.height, block.width).edit))) {
+		return false;
+	}
+	ctx.blockIndex = blocks.indexOf(block);
+	ctx.diagramId = extractDiagramId(newXml);
+	ctx.xml = newXml.trim();
+	return true;
 }
 
 /**
@@ -890,7 +949,11 @@ async function openSourceEditor(
 	}
 
 	// Store the source block as the editing context so saveSourceDiagram can find it
-	editingContext = { documentUri: document.uri, sourceBlock };
+	editingContext = {
+		documentUri: document.uri,
+		sourceIndex: findSourceBlocks(document.getText()).findIndex(b => b.index === sourceBlock.index),
+		sourceBlock,
+	};
 
 	const editorUrl = await getEditorUrl(context);
 	const devMode = DEV_MODE;
@@ -951,17 +1014,17 @@ async function openSourceEditor(
 					break;
 
 				case "saveAndClose":
-					await saveSourceDiagram(msg.xml);
-					activePanel!.dispose();
+					// Stays open if the diagram could not be saved
+					if (await saveSourceDiagram(msg.xml)) {
+						activePanel?.dispose();
+					}
 					break;
 
 				case "cancel":
 					activePanel!.dispose();
 					break;
 			}
-		},
-		undefined,
-		context.subscriptions
+		}
 	);
 
 	// TODO: WebviewPanel has no onWillDispose / close-prevention API.
@@ -974,85 +1037,41 @@ async function openSourceEditor(
 }
 
 /**
- * Saves the converted diagram, replacing the source block with a drawio block.
+ * Saves the converted diagram. The first save replaces the source block with
+ * a drawio block, later saves of the same tab update that diagram block.
  */
-async function saveSourceDiagram(newXml: string): Promise<void> {
-	if (!editingContext || !("sourceBlock" in editingContext)) { return; }
+async function saveSourceDiagram(newXml: string): Promise<boolean> {
+	const ctx = editingContext;
+	if (!ctx) { return false; }
+	if ("xml" in ctx) { return saveDiagram(newXml, false); }
 
-	const { documentUri, sourceBlock } = editingContext;
-	const document = await vscode.workspace.openTextDocument(documentUri);
-	const text = document.getText();
-
-	// Re-parse to find the source block by startLine
-	const blocks = findSourceBlocks(text);
-	const currentBlock = blocks.find(b => b.startLine === sourceBlock.startLine) || sourceBlock;
-
-	const newText = replaceSourceBlock(text, currentBlock, newXml, "fenced");
-
-	const fullRange = new vscode.Range(
-		document.positionAt(0),
-		document.positionAt(text.length)
-	);
-
-	const edit = new vscode.WorkspaceEdit();
-	edit.replace(document.uri, fullRange, newText);
-	await vscode.workspace.applyEdit(edit);
-}
-
-/**
- * Saves a mermaid/plantuml-to-drawio conversion from the inline preview.
- * Replaces the source block with a drawio block and re-renders.
- */
-async function saveSourceConversion(
-	sourceIndex: number,
-	xml: string,
-	height: number | undefined,
-	width: number | undefined
-): Promise<void> {
-	const doc = await vscode.workspace.openTextDocument(inlinePreviewDocUri!);
-	const text = doc.getText();
-	const sBlocks = findSourceBlocks(text);
-	const sBlock = sBlocks[sourceIndex];
-	if (!sBlock) { return; }
-
-	suppressInlinePreviewUpdate = true;
-	const newText = replaceSourceBlock(text, sBlock, xml, "fenced", height, width);
-	const fullRange = new vscode.Range(
-		doc.positionAt(0),
-		doc.positionAt(text.length)
-	);
-	const edit = new vscode.WorkspaceEdit();
-	edit.replace(doc.uri, fullRange, newText);
-	await vscode.workspace.applyEdit(edit);
-	await doc.save();
-
-	// Find the new diagram block that replaced the source block
-	const updatedDoc = await vscode.workspace.openTextDocument(inlinePreviewDocUri!);
-	const newDiagramBlocks = findDiagramBlocks(updatedDoc.getText());
-	const newBlock = newDiagramBlocks.find(b => b.startLine >= sBlock.startLine);
-	const blockIndex = newBlock ? newDiagramBlocks.indexOf(newBlock) : -1;
-
-	// Send targeted message to replace the source element in-place
-	if (inlinePreviewPanel && blockIndex >= 0) {
-		inlinePreviewPanel.webview.postMessage({
-			type: "sourceConverted",
-			sourceIndex: sourceIndex,
-			blockIndex: blockIndex,
-			xml: xml,
-			locked: false,
-			height: newBlock!.height,
-			width: newBlock!.width,
-			startLine: newBlock!.startLine,
-			endLine: newBlock!.endLine,
-			format: newBlock!.format,
-			diagramId: extractDiagramId(xml),
-		});
+	const document = await vscode.workspace.openTextDocument(ctx.documentUri);
+	const sources = findSourceBlocks(document.getText());
+	const original = ctx.sourceBlock;
+	const same = sources.filter(b => b.language === original.language && b.source === original.source);
+	const atIndex = sources[ctx.sourceIndex];
+	const block = atIndex && same.includes(atIndex) ? atIndex : same.length === 1 ? same[0] : null;
+	if (!block) {
+		vscode.window.showErrorMessage(
+			`The diagram was not saved: the ${SOURCE_LANGUAGE_NAMES[original.language]} block in the Markdown file was changed or removed.`);
+		return false;
 	}
 
-	// Keep suppressing until late-firing change events have been processed.
-	// applyEdit() can trigger async onDidChangeTextDocument events that would
-	// cause a full re-render and reset the scroll position.
-	setTimeout(() => { suppressInlinePreviewUpdate = false; }, 500);
+	const blockText = buildDiagramBlock(newXml, "fenced", false);
+	const edit = new vscode.WorkspaceEdit();
+	edit.replace(document.uri, offsetRange(document, block.index, block.index + block.fullMatch.length), withEol(document, blockText));
+	if (!(await vscode.workspace.applyEdit(edit))) { return false; }
+
+	// From now on the tab edits the new diagram block
+	if (editingContext === ctx) {
+		editingContext = {
+			documentUri: ctx.documentUri,
+			blockIndex: findDiagramBlocks(document.getText()).findIndex(b => b.index === block.index),
+			diagramId: extractDiagramId(newXml),
+			xml: newXml.trim(),
+		};
+	}
+	return true;
 }
 
 async function openPreviewPanel(context: vscode.ExtensionContext, xml: string): Promise<void> {
@@ -1215,641 +1234,6 @@ async function openPreviewPanel(context: vscode.ExtensionContext, xml: string): 
 </html>`;
 }
 
-// ---------------------------------------------------------------------------
-// Inline Preview (custom markdown preview with inline editing)
-// ---------------------------------------------------------------------------
-
-async function openInlinePreview(
-	context: vscode.ExtensionContext,
-	document: vscode.TextDocument,
-	targetBlockIndex?: number
-): Promise<void> {
-	const config = vscode.workspace.getConfiguration("drawio-inline-editor");
-	const editorUrl = await getEditorUrl(context);
-	const minimalUI = config.get<boolean>("minimalUI", true)!;
-	const devMode = DEV_MODE;
-	const diagramPadding = config.get<number>("diagramPadding", DEFAULT_DIAGRAM_PADDING)!;
-	const isDark = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
-		|| vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast;
-
-	if (inlinePreviewPanel) {
-		// Reuse existing panel
-		inlinePreviewDocUri = document.uri;
-		inlinePreviewPanel.reveal(vscode.ViewColumn.Beside);
-		updateInlinePreview(document);
-		if (targetBlockIndex != null) {
-			inlinePreviewPanel.webview.postMessage({
-				type: "scrollToAndEdit",
-				blockIndex: targetBlockIndex,
-			});
-		}
-		return;
-	}
-
-	inlinePreviewDocUri = document.uri;
-
-	inlinePreviewPanel = vscode.window.createWebviewPanel(
-		"drawio-inline-editor.inlinePreview",
-		"Markdown Editor",
-		vscode.ViewColumn.Beside,
-		{
-			enableScripts: true,
-			retainContextWhenHidden: true,
-			localResourceRoots: [
-				vscode.Uri.file(path.join(context.extensionPath, "src", "inline-editor", "webview")),
-				vscode.Uri.file(path.join(context.extensionPath, "drawio", "src", "main", "webapp", "js")),
-				vscode.Uri.file(path.dirname(document.uri.fsPath)),
-			],
-		}
-	);
-
-	const nonce = getNonce();
-	const htmlPath = path.join(context.extensionPath, "src", "inline-editor", "webview", "inlinePreview.html");
-	let html = fs.readFileSync(htmlPath, "utf8");
-
-	// Replace template variables
-	const cspSource = inlinePreviewPanel.webview.cspSource;
-	html = html.replace(/\$\{nonce\}/g, nonce);
-	html = html.replace(/\$\{cspSource\}/g, cspSource);
-
-	// Update CSP to allow the configured editor URL (local or online)
-	const editorOrigin = new URL(editorUrl).origin;
-	html = html.replace(
-		/frame-src[^;]+;/,
-		`frame-src ${editorOrigin} http://127.0.0.1:* https://*.draw.io https://*.diagrams.net;`
-	);
-
-	// Inject viewer-static.min.js as a script tag
-	const viewerUri = inlinePreviewPanel.webview.asWebviewUri(
-		vscode.Uri.file(path.join(context.extensionPath, "drawio", "src", "main", "webapp", "js", "viewer-static.min.js"))
-	);
-	html = html.replace("</head>",
-		`<script nonce="${nonce}" src="${viewerUri}"></script>\n</head>`);
-
-	inlinePreviewPanel.webview.html = html;
-
-	inlinePreviewPanel.webview.onDidReceiveMessage(
-		async (msg) => {
-			if (handleForwardedMessage(msg)) return;
-			switch (msg.type) {
-				case "previewReady":
-					inlinePreviewPanel!.webview.postMessage({
-						type: "setDevMode",
-						devMode: devMode,
-					});
-					inlinePreviewPanel!.webview.postMessage({
-						type: "setEditorUrl",
-						url: editorUrl,
-					});
-					inlinePreviewPanel!.webview.postMessage({
-						type: "setDarkMode",
-						dark: isDark,
-					});
-					inlinePreviewPanel!.webview.postMessage({
-						type: "setMinimalUI",
-						minimalUI: minimalUI,
-					});
-					inlinePreviewPanel!.webview.postMessage({
-						type: "setDiagramPadding",
-						padding: diagramPadding,
-					});
-					updateInlinePreview(document);
-					if (targetBlockIndex != null) {
-						inlinePreviewPanel!.webview.postMessage({
-							type: "scrollToAndEdit",
-							blockIndex: targetBlockIndex,
-						});
-					}
-					break;
-
-				case "diagramEdited":
-					if (msg.sourceIndex != null) {
-						await saveSourceConversion(msg.sourceIndex, msg.xml, msg.height, msg.width);
-					} else {
-						await saveInlineDiagramEdit(msg.blockIndex, msg.xml, msg.diagramId);
-					}
-					break;
-
-				case "textEdited":
-					await saveTextSectionEdit(msg.startLine, msg.endLine, msg.markdown);
-					break;
-
-				case "diagramResized":
-					await saveInlineDiagramResize(msg.blockIndex, msg.height, msg.diagramId, msg.width);
-					break;
-
-				case "diagramFitted":
-					await saveInlineDiagramFit(msg.blockIndex, msg.diagramId, msg.width, msg.height);
-					break;
-
-
-				case "requestRefresh":
-					{
-						const doc = await vscode.workspace.openTextDocument(inlinePreviewDocUri!);
-						updateInlinePreview(doc);
-						break;
-					}
-
-				case "insertDiagram":
-					await insertDiagramFromPreview(msg.afterLine);
-					break;
-
-				case "convertSource":
-					{
-						const doc = await vscode.workspace.openTextDocument(inlinePreviewDocUri!);
-						const sBlocks = findSourceBlocks(doc.getText());
-						const sBlock = sBlocks[msg.sourceIndex];
-						if (sBlock) {
-							openSourceEditor(context, doc, sBlock);
-						}
-						break;
-					}
-			}
-		},
-		undefined,
-		context.subscriptions
-	);
-
-	inlinePreviewPanel.onDidDispose(() => {
-		inlinePreviewPanel = null;
-		inlinePreviewDocUri = null;
-	});
-}
-
-/**
- * Renders the markdown document and sends sections (text + diagram) to the webview.
- */
-function updateInlinePreview(document: vscode.TextDocument): void {
-	if (!inlinePreviewPanel) { return; }
-
-	const docDir = path.dirname(document.uri.fsPath);
-	const imageBaseUri = inlinePreviewPanel.webview.asWebviewUri(
-		vscode.Uri.file(docDir)
-	).toString();
-
-	const text = document.getText();
-	const diagramBlocks = findDiagramBlocks(text);
-	const sourceBlocks = findSourceBlocks(text);
-
-	// Merge diagram and source blocks, sorted by position
-	const allBlocks = [
-		...diagramBlocks.map((b, i) => ({ ...b, sectionType: "diagram" as const, blockIndex: i })),
-		...sourceBlocks.map((b, i) => ({ ...b, sectionType: "source" as const, sourceIndex: i })),
-	];
-	allBlocks.sort((a, b) => a.index - b.index);
-
-	const lines = text.split("\n");
-	const sections: Array<Record<string, unknown>> = [];
-	let currentLine = 0;
-
-	// Helper: split a range of lines into paragraph-level text sections
-	// (split at blank lines) so that each section maps to a small line range.
-	function pushTextSections(fromLine: number, toLine: number): void {
-		let paraStart = fromLine;
-		for (let i = fromLine; i <= toLine; i++) {
-			if (lines[i].trim() === "" || i === toLine) {
-				// End of paragraph (blank line) or end of range
-				const paraEnd = (lines[i].trim() === "" && i > paraStart) ? i - 1 : i;
-				if (paraEnd >= paraStart) {
-					const paraText = lines.slice(paraStart, paraEnd + 1).join("\n");
-					if (paraText.trim()) {
-						sections.push({
-							type: "text",
-							startLine: paraStart,
-							endLine: paraEnd,
-							html: renderBasicMarkdown(paraText, imageBaseUri),
-						});
-					}
-				}
-				paraStart = i + 1;
-			}
-		}
-	}
-
-	for (const block of allBlocks) {
-		// Text sections before this block (split into paragraphs)
-		if (currentLine < block.startLine) {
-			pushTextSections(currentLine, block.startLine - 1);
-		}
-
-		if (block.sectionType === "diagram") {
-			sections.push({
-				type: "diagram",
-				blockIndex: block.blockIndex,
-				xml: block.xml,
-				locked: block.locked,
-				height: block.height,
-				width: block.width,
-				startLine: block.startLine,
-				endLine: block.endLine,
-				format: block.format,
-				diagramId: extractDiagramId(block.xml),
-			});
-		} else if (block.sectionType === "source") {
-			sections.push({
-				type: "source",
-				sourceIndex: block.sourceIndex,
-				language: block.language,
-				source: block.source,
-				descriptor: createConversionDescriptor(block),
-				startLine: block.startLine,
-				endLine: block.endLine,
-			});
-		}
-
-		currentLine = block.endLine + 1;
-	}
-
-	// Text sections after last block (split into paragraphs)
-	if (currentLine < lines.length) {
-		pushTextSections(currentLine, lines.length - 1);
-	}
-
-	inlinePreviewPanel.webview.postMessage({
-		type: "updateContent",
-		sections: sections,
-		imageBaseUri: imageBaseUri,
-	});
-}
-
-/**
- * Basic markdown to HTML conversion.
- * This is intentionally simple - a production version would use markdown-it.
- */
-function renderBasicMarkdown(text: string, imageBaseUri: string): string {
-	// Escape HTML
-	text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-	// Stash code blocks/spans to protect their content from further processing
-	const codeStash: string[] = [];
-
-	// Code blocks (fenced with backticks or tildes)
-	text = text.replace(/^(`{3,}|~{3,})(\w*)[^\r\n]*\r?\n([\s\S]*?)^\1$/gm, (_, _fence, lang, code) => {
-		const i = codeStash.length;
-		codeStash.push(`<pre><code class="language-${lang}">${(code as string).trim()}</code></pre>`);
-		return `<pre data-stash="${i}"></pre>`;
-	});
-
-	// Indented code blocks (4 spaces or tab)
-	text = text.replace(/((?:^(?:    |\t).*$(?:\r?\n|$))+)/gm, (match) => {
-		const i = codeStash.length;
-		const code = match.replace(/^(?:    |\t)/gm, "").trimEnd();
-		codeStash.push(`<pre><code>${code}</code></pre>`);
-		return `<pre data-stash="${i}"></pre>`;
-	});
-
-	// Double-backtick inline code (can contain single backticks)
-	// Lookbehind/lookahead ensures `` is exactly two backticks, not part of ```
-	text = text.replace(/(?<!`)``(?!`)(.+?)(?<!`)``(?!`)/g, (_, code) => {
-		const i = codeStash.length;
-		codeStash.push(`<code>${(code as string).trim()}</code>`);
-		return `\x00cs${i}\x00`;
-	});
-
-	// Inline code
-	text = text.replace(/(?<!`)`(?!`)([^`]+)`/g, (_, code) => {
-		const i = codeStash.length;
-		codeStash.push(`<code>${code}</code>`);
-		return `\x00cs${i}\x00`;
-	});
-
-	// Headers
-	text = text.replace(/^######\s+(.+)$/gm, "<h6>$1</h6>");
-	text = text.replace(/^#####\s+(.+)$/gm, "<h5>$1</h5>");
-	text = text.replace(/^####\s+(.+)$/gm, "<h4>$1</h4>");
-	text = text.replace(/^###\s+(.+)$/gm, "<h3>$1</h3>");
-	text = text.replace(/^##\s+(.+)$/gm, "<h2>$1</h2>");
-	text = text.replace(/^#\s+(.+)$/gm, "<h1>$1</h1>");
-
-	// Horizontal rules
-	text = text.replace(/^---+$/gm, "<hr>");
-
-	// Bold and italic
-	text = text.replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>");
-	text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-	text = text.replace(/\*(.+?)\*/g, "<em>$1</em>");
-
-	// Images (must run before links so ![alt](src) isn't matched as a link)
-	text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
-		let resolvedSrc = src as string;
-		if (imageBaseUri && !/^https?:\/\/|^data:/i.test(src as string)) {
-			resolvedSrc = imageBaseUri + "/" + src;
-		}
-		return `<img alt="${alt}" src="${resolvedSrc}">`;
-	});
-
-	// Links
-	text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-
-	// Blockquotes
-	text = text.replace(/^&gt;\s+(.+)$/gm, "<blockquote>$1</blockquote>");
-
-	// Unordered lists
-	text = text.replace(/^[-*]\s+(.+)$/gm, "<li>$1</li>");
-	text = text.replace(/((?:<li>.*<\/li>\r?\n?)+)/g, "<ul>$1</ul>");
-
-	// Tables (header row, separator row, body rows)
-	text = text.replace(/(^\|.+\|\s*\r?\n\|[-| :]+\|\s*\r?\n(?:\|.+\|\s*\r?\n?)+)/gm, (table) => {
-		const rows = table.trim().split(/\r?\n/);
-		const parseRow = (row: string) => row.replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim());
-		const headers = parseRow(rows[0]);
-		const body = rows.slice(2).map(parseRow);
-		let html = "<table><thead><tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr></thead><tbody>";
-		for (const row of body) {
-			html += "<tr>" + row.map(c => `<td>${c}</td>`).join("") + "</tr>";
-		}
-		html += "</tbody></table>";
-		return html;
-	});
-
-	// Paragraphs - wrap remaining text lines
-	text = text.replace(/^(?!<[a-z/]|$)(.+)$/gm, "<p>$1</p>");
-
-	// Clean up empty paragraphs
-	text = text.replace(/<p>\s*<\/p>/g, "");
-
-	// Restore stashed code blocks and inline code
-	text = text.replace(/<pre data-stash="(\d+)"><\/pre>/g, (_, i) => codeStash[parseInt(i)]);
-	text = text.replace(/\x00cs(\d+)\x00/g, (_, i) => codeStash[parseInt(i)]);
-
-	return text;
-}
-
-/**
- * Saves an inline diagram edit back to the markdown source file.
- */
-async function saveInlineDiagramEdit(
-	blockIndex: number,
-	newXml: string,
-	diagramId: string | undefined
-): Promise<void> {
-	if (!inlinePreviewDocUri) { return; }
-
-	try {
-		const document = await vscode.workspace.openTextDocument(inlinePreviewDocUri);
-		const text = document.getText();
-		const blocks = findDiagramBlocks(text);
-
-		// Prefer diagram ID match (survives line-number shifts), fall back to index
-		let block: DiagramBlock | null = null;
-		if (diagramId) {
-			block = blocks.find(b => extractDiagramId(b.xml) === diagramId) || null;
-		}
-		if (!block && blockIndex >= 0 && blockIndex < blocks.length) {
-			block = blocks[blockIndex];
-		}
-		if (!block) { return; }
-
-		const newText = replaceDiagramBlock(text, block, newXml, block.locked);
-
-		const fullRange = new vscode.Range(
-			document.positionAt(0),
-			document.positionAt(text.length)
-		);
-
-		// Suppress preview update so we don't re-render and destroy live editors
-		suppressInlinePreviewUpdate = true;
-		const edit = new vscode.WorkspaceEdit();
-		edit.replace(document.uri, fullRange, newText);
-		await vscode.workspace.applyEdit(edit);
-		setTimeout(() => { suppressInlinePreviewUpdate = false; }, 200);
-	} catch (err: any) {
-		suppressInlinePreviewUpdate = false;
-		vscode.window.showErrorMessage("Failed to save diagram: " + err.message);
-	}
-}
-
-/**
- * Saves a text section edit back to the markdown source file.
- */
-async function saveTextSectionEdit(
-	startLine: number,
-	endLine: number,
-	newMarkdown: string
-): Promise<void> {
-	if (!inlinePreviewDocUri) { return; }
-
-	try {
-		const document = await vscode.workspace.openTextDocument(inlinePreviewDocUri);
-		const text = document.getText();
-		const lines = text.split("\n");
-
-		// Replace lines from startLine to endLine with new markdown
-		const newLines = newMarkdown.split("\n");
-		lines.splice(startLine, endLine - startLine + 1, ...newLines);
-
-		const newText = lines.join("\n");
-		const fullRange = new vscode.Range(
-			document.positionAt(0),
-			document.positionAt(text.length)
-		);
-
-		suppressInlinePreviewUpdate = true;
-		const edit = new vscode.WorkspaceEdit();
-		edit.replace(document.uri, fullRange, newText);
-		await vscode.workspace.applyEdit(edit);
-		setTimeout(() => { suppressInlinePreviewUpdate = false; }, 500);
-	} catch (err: any) {
-		suppressInlinePreviewUpdate = false;
-		console.error("drawio-inline-editor: failed to save text edit:", err.message);
-	}
-}
-
-/**
- * Saves a diagram container height change back to the markdown source file.
- */
-async function saveInlineDiagramResize(
-	blockIndex: number,
-	_height: number | undefined,
-	diagramId: string | undefined,
-	width: number | undefined
-): Promise<void> {
-	if (!inlinePreviewDocUri) { return; }
-
-	try {
-		const document = await vscode.workspace.openTextDocument(inlinePreviewDocUri);
-		const text = document.getText();
-		const blocks = findDiagramBlocks(text);
-
-		let block: DiagramBlock | null = null;
-		if (diagramId) {
-			block = blocks.find(b => extractDiagramId(b.xml) === diagramId) || null;
-		}
-		if (!block && blockIndex >= 0 && blockIndex < blocks.length) {
-			block = blocks[blockIndex];
-		}
-		if (!block) { return; }
-
-		const clampedWidth = width != null ? Math.max(200, width) : block.width;
-		const newText = replaceDiagramBlock(text, block, block.xml, block.locked, undefined, clampedWidth);
-
-		const fullRange = new vscode.Range(
-			document.positionAt(0),
-			document.positionAt(text.length)
-		);
-
-		suppressInlinePreviewUpdate = true;
-		const edit = new vscode.WorkspaceEdit();
-		edit.replace(document.uri, fullRange, newText);
-		await vscode.workspace.applyEdit(edit);
-		setTimeout(() => { suppressInlinePreviewUpdate = false; }, 200);
-	} catch {
-		suppressInlinePreviewUpdate = false;
-	}
-}
-
-/**
- * Updates a diagram block after fit: always removes height, keeps width only if provided.
- */
-async function saveInlineDiagramFit(
-	blockIndex: number,
-	diagramId: string | undefined,
-	keepWidth: number | undefined,
-	keepHeight: number | undefined
-): Promise<void> {
-	if (!inlinePreviewDocUri) { return; }
-
-	try {
-		const document = await vscode.workspace.openTextDocument(inlinePreviewDocUri);
-		const text = document.getText();
-		const blocks = findDiagramBlocks(text);
-
-		let block: DiagramBlock | null = null;
-		if (diagramId) {
-			block = blocks.find(b => extractDiagramId(b.xml) === diagramId) || null;
-		}
-		if (!block && blockIndex >= 0 && blockIndex < blocks.length) {
-			block = blocks[blockIndex];
-		}
-		if (!block) { return; }
-
-		const newWidth = keepWidth != null ? keepWidth : null;
-		const newHeight = keepHeight != null ? keepHeight : null;
-		if (block.width === newWidth && block.height === newHeight) { return; }
-
-		const newText = replaceDiagramBlock(text, block, block.xml, block.locked, newHeight, newWidth);
-
-		const fullRange = new vscode.Range(
-			document.positionAt(0),
-			document.positionAt(text.length)
-		);
-
-		suppressInlinePreviewUpdate = true;
-		const edit = new vscode.WorkspaceEdit();
-		edit.replace(document.uri, fullRange, newText);
-		await vscode.workspace.applyEdit(edit);
-		setTimeout(() => { suppressInlinePreviewUpdate = false; }, 200);
-	} catch {
-		suppressInlinePreviewUpdate = false;
-	}
-}
-
-
-
-/**
- * Inserts a new empty diagram block after the block containing the cursor,
- * or at the end of the document if no cursor position is available.
- */
-async function insertDiagramFromPreview(afterLine: number | null): Promise<void> {
-	if (!inlinePreviewDocUri) { return; }
-
-	try {
-		const document = await vscode.workspace.openTextDocument(inlinePreviewDocUri);
-		const text = document.getText();
-		const xml = createEmptyDiagram();
-		const snippet = buildDiagramBlock(xml, "fenced", false, null, DEFAULT_NEW_DIAGRAM_WIDTH);
-
-		// Try to get the cursor line from the VS Code text editor for this document
-		let cursorLine = afterLine;
-		if (cursorLine == null) {
-			const editors = vscode.window.visibleTextEditors;
-			for (const ed of editors) {
-				if (ed.document.uri.toString() === inlinePreviewDocUri!.toString()) {
-					cursorLine = ed.selection.active.line;
-					break;
-				}
-			}
-		}
-
-		// Find the block (diagram or otherwise) that contains the cursor line,
-		// and insert after it. If no cursor, append at end.
-		let insertAfterLine: number | null = null;
-		if (cursorLine != null && cursorLine >= 0) {
-			const blocks = findDiagramBlocks(text);
-			const lines = text.split("\n");
-
-			// Find the end of the paragraph/block containing the cursor.
-			// Check if cursor is inside a diagram block first.
-			for (const b of blocks) {
-				if (cursorLine >= b.startLine && cursorLine <= b.endLine) {
-					insertAfterLine = b.endLine;
-					break;
-				}
-			}
-
-			// If not inside a diagram block, find the end of the current
-			// paragraph (next blank line or next diagram block start).
-			if (insertAfterLine == null) {
-				insertAfterLine = cursorLine;
-				// Walk forward to find end of current paragraph
-				for (let i = cursorLine + 1; i < lines.length; i++) {
-					// Stop at blank line
-					if (lines[i].trim() === "") { insertAfterLine = i; break; }
-					// Stop before a diagram block
-					let hitBlock = false;
-					for (const b of blocks) {
-						if (i === b.startLine) { hitBlock = true; break; }
-					}
-					if (hitBlock) { insertAfterLine = i - 1; break; }
-					insertAfterLine = i;
-				}
-			}
-		}
-
-		let newText: string;
-		if (insertAfterLine != null) {
-			const lines = text.split("\n");
-			const idx = Math.min(insertAfterLine, lines.length - 1);
-			const before = lines.slice(0, idx + 1).join("\n");
-			const after = lines.slice(idx + 1).join("\n");
-			newText = before + "\n\n" + snippet + "\n\n" + after;
-		} else {
-			newText = text.trimEnd() + "\n\n" + snippet + "\n";
-		}
-
-		const fullRange = new vscode.Range(
-			document.positionAt(0),
-			document.positionAt(text.length)
-		);
-		const edit = new vscode.WorkspaceEdit();
-		edit.replace(document.uri, fullRange, newText);
-		await vscode.workspace.applyEdit(edit);
-
-		// After inserting, find the new block index and scroll to it
-		const updatedDoc = await vscode.workspace.openTextDocument(inlinePreviewDocUri);
-		const newBlocks = findDiagramBlocks(updatedDoc.getText());
-		let newBlockIndex = newBlocks.length - 1; // default: last block
-		if (insertAfterLine != null) {
-			for (let i = 0; i < newBlocks.length; i++) {
-				if (newBlocks[i].startLine > insertAfterLine) {
-					newBlockIndex = i;
-					break;
-				}
-			}
-		}
-
-		if (inlinePreviewPanel && newBlockIndex >= 0) {
-			inlinePreviewPanel.webview.postMessage({
-				type: "scrollToAndEdit",
-				blockIndex: newBlockIndex,
-				isNew: true,
-			});
-		}
-	} catch (err: any) {
-		vscode.window.showErrorMessage("Failed to insert diagram: " + err.message);
-	}
-}
-
 function getNonce(): string {
 	let text = "";
 	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -1876,7 +1260,8 @@ class DrawioCustomEditorProvider implements vscode.CustomTextEditorProvider {
 		const isDark = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
 			|| vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast;
 
-		let suppressUpdate = false;
+		// Edits of this editor in progress: their change events are echoes
+		let ownEdits = 0;
 
 		webviewPanel.webview.options = {
 			enableScripts: true,
@@ -1927,15 +1312,15 @@ class DrawioCustomEditorProvider implements vscode.CustomTextEditorProvider {
 					case "save":
 					case "autosave":
 						if (msg.xml) {
-							suppressUpdate = true;
-							const fullRange = new vscode.Range(
-								document.positionAt(0),
-								document.positionAt(document.getText().length)
-							);
 							const edit = new vscode.WorkspaceEdit();
-							edit.replace(document.uri, fullRange, msg.xml);
-							await vscode.workspace.applyEdit(edit);
-							setTimeout(() => { suppressUpdate = false; }, 200);
+							edit.replace(document.uri, offsetRange(document, 0, document.getText().length), msg.xml);
+							// The change event fires before applyEdit resolves
+							ownEdits++;
+							try {
+								await vscode.workspace.applyEdit(edit);
+							} finally {
+								ownEdits--;
+							}
 						}
 						break;
 
@@ -1948,7 +1333,7 @@ class DrawioCustomEditorProvider implements vscode.CustomTextEditorProvider {
 
 		// Reload diagram when external changes occur
 		const changeDisposable = vscode.workspace.onDidChangeTextDocument(e => {
-			if (suppressUpdate) { return; }
+			if (ownEdits > 0 || e.contentChanges.length === 0) { return; }
 			if (e.document.uri.toString() === document.uri.toString()) {
 				webviewPanel.webview.postMessage({
 					type: "loadDiagram",
@@ -2016,7 +1401,10 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		const isDark = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
 			|| vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast;
 
-		let suppressUpdate = false;
+		// Edits of this editor in progress: their change events are echoes of
+		// what the webview already shows (the event fires before applyEdit
+		// resolves), so they are not sent back to it.
+		let ownEdits = 0;
 
 		// Case-folded fsPaths of the linked .drawio.svg/.png files referenced by
 		// editable image links in this document (recomputed each sendContent) — the
@@ -2066,12 +1454,19 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		// Track this panel so openEditor() can send messages to it
 		this.activePanels.set(document.uri.toString(), webviewPanel);
 
+		let contentTimer: NodeJS.Timeout | undefined;
+
 		const sendContent = (): void => {
+			if (contentTimer) {
+				clearTimeout(contentTimer);
+				contentTimer = undefined;
+			}
 			const imageBaseUri = webviewPanel.webview.asWebviewUri(
 				vscode.Uri.file(docDir)
 			).toString();
 			const text = document.getText();
-			const lines = text.split("\n");
+			const lines = splitLines(text);
+			const env = createRenderEnv(text, imageBaseUri);
 			const diagramBlocks = findDiagramBlocks(text);
 			const sourceBlocks = findSourceBlocks(text);
 
@@ -2100,34 +1495,13 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 				...imageLinks.map((b, i) => ({ ...b, sectionType: "imageLink" as const, linkIndex: i })),
 			];
 			allBlocks.sort((a, b) => a.index - b.index);
-			const sections: Array<Record<string, unknown>> = [];
+			const sections: Array<TextSection | Record<string, unknown>> = [];
 			let currentLine = 0;
 
-			// Helper: split a range of lines into paragraph-level text sections
-			function pushTextSections(fromLine: number, toLine: number): void {
-				let paraStart = fromLine;
-				for (let i = fromLine; i <= toLine; i++) {
-					if (lines[i].trim() === "" || i === toLine) {
-						const paraEnd = (lines[i].trim() === "" && i > paraStart) ? i - 1 : i;
-						if (paraEnd >= paraStart) {
-							const paraText = lines.slice(paraStart, paraEnd + 1).join("\n");
-							if (paraText.trim()) {
-								sections.push({
-									type: "text",
-									startLine: paraStart,
-									endLine: paraEnd,
-									html: renderBasicMarkdown(paraText, imageBaseUri),
-								});
-							}
-						}
-						paraStart = i + 1;
-					}
-				}
-			}
-
 			for (const block of allBlocks) {
+				// The text before the block, one section per Markdown block
 				if (currentLine < block.startLine) {
-					pushTextSections(currentLine, block.startLine - 1);
+					sections.push(...buildTextSections(lines, currentLine, block.startLine - 1, env));
 				}
 
 				if (block.sectionType === "diagram") {
@@ -2160,16 +1534,16 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 					// clash with them.
 					sections.push({
 						type: "diagram",
-						blockIndex: diagramBlocks.length + (block as any).linkIndex,
-						xml: (block as any).xml,
+						blockIndex: diagramBlocks.length + block.linkIndex,
+						xml: block.xml,
 						locked: false,
 						height: null,
 						width: null,
 						startLine: block.startLine,
 						endLine: block.endLine,
 						format: "fenced",
-						diagramId: extractDiagramId((block as any).xml),
-						linkTarget: (block as any).target,
+						diagramId: extractDiagramId(block.xml),
+						linkTarget: block.target,
 					});
 				}
 
@@ -2177,7 +1551,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			}
 
 			if (currentLine < lines.length) {
-				pushTextSections(currentLine, lines.length - 1);
+				sections.push(...buildTextSections(lines, currentLine, lines.length - 1, env));
 			}
 
 			webviewPanel.webview.postMessage({
@@ -2187,293 +1561,339 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			});
 		};
 
-		const applyEdit = async (newText: string): Promise<void> => {
-			suppressUpdate = true;
-			const text = document.getText();
-			const fullRange = new vscode.Range(
-				document.positionAt(0),
-				document.positionAt(text.length)
-			);
-			const edit = new vscode.WorkspaceEdit();
-			edit.replace(document.uri, fullRange, newText);
-			await vscode.workspace.applyEdit(edit);
-			setTimeout(() => { suppressUpdate = false; }, 200);
+		// Changes from elsewhere (the text editor, git, linked files) are shown
+		// after a short pause instead of on every keystroke.
+		const scheduleContent = (): void => {
+			if (contentTimer) { clearTimeout(contentTimer); }
+			contentTimer = setTimeout(sendContent, CONTENT_UPDATE_DELAY_MS);
 		};
 
-		webviewPanel.webview.onDidReceiveMessage(
-			async (msg) => {
-				if (handleForwardedMessage(msg)) return;
-				switch (msg.type) {
-					case "previewReady":
-						webviewPanel.webview.postMessage({
-							type: "setDevMode",
-							devMode: DEV_MODE,
-						});
-						webviewPanel.webview.postMessage({
-							type: "setEditorUrl",
-							url: editorUrl,
-							uiTheme: resolveDrawioUiTheme(),
-							lang: resolveDrawioLanguage(),
-						});
-						webviewPanel.webview.postMessage({
-							type: "setDrawioConfig",
-							config: getDrawioUserConfig(context.globalState, document.uri),
-						});
-						webviewPanel.webview.postMessage({
-							type: "setDarkMode",
-							dark: isDark,
-						});
-						webviewPanel.webview.postMessage({
-							type: "setMinimalUI",
-							minimalUI: minimalUI,
-						});
-						webviewPanel.webview.postMessage({
-							type: "setDiagramPadding",
-							padding: diagramPadding,
-						});
-						webviewPanel.webview.postMessage({
-							type: "setSvgAppearance",
-							appearance: vscode.workspace
-								.getConfiguration(DRAWIO_CONFIG_SECTION, document.uri)
-								.get<string>("svgAppearance", "light"),
-						});
-						sendContent();
-						{
-							const uriKey = document.uri.toString();
-							const pendingBlock = this.pendingScrollTargets.get(uriKey);
-							if (pendingBlock != null) {
-								this.pendingScrollTargets.delete(uriKey);
-								webviewPanel.webview.postMessage({
-									type: "scrollToAndEdit",
-									blockIndex: pendingBlock,
-								});
-							}
-						}
-						break;
-
-					case "diagramEdited":
-						{
-							if (msg.sourceIndex != null) {
-								// Source conversion: replace mermaid/plantuml block with drawio block
-								const text = document.getText();
-								const sBlocks = findSourceBlocks(text);
-								const sBlock = sBlocks[msg.sourceIndex];
-								if (sBlock) {
-									const newText = replaceSourceBlock(text, sBlock, msg.xml, "fenced", msg.height, msg.width);
-									await applyEdit(newText);
-
-									// Send targeted sourceConverted message for in-place DOM replacement
-									// (avoids full re-render which resets scroll position)
-									const updatedText = document.getText();
-									const newDiagramBlocks = findDiagramBlocks(updatedText);
-									const newBlock = newDiagramBlocks.find(b => b.startLine >= sBlock.startLine);
-									const bIdx = newBlock ? newDiagramBlocks.indexOf(newBlock) : -1;
-
-									if (bIdx >= 0) {
-										webviewPanel.webview.postMessage({
-											type: "sourceConverted",
-											sourceIndex: msg.sourceIndex,
-											blockIndex: bIdx,
-											xml: msg.xml,
-											locked: false,
-											height: newBlock!.height,
-											width: newBlock!.width,
-											startLine: newBlock!.startLine,
-											endLine: newBlock!.endLine,
-											format: newBlock!.format,
-											diagramId: extractDiagramId(msg.xml),
-										});
-									}
-								}
-							} else {
-								const text = document.getText();
-								const blocks = findDiagramBlocks(text);
-								let block: DiagramBlock | null = null;
-								if (msg.diagramId) {
-									block = blocks.find(b => extractDiagramId(b.xml) === msg.diagramId) || null;
-								}
-								if (!block && msg.blockIndex >= 0 && msg.blockIndex < blocks.length) {
-									block = blocks[msg.blockIndex];
-								}
-								if (block) {
-									const newText = replaceDiagramBlock(text, block, msg.xml, block.locked);
-									await applyEdit(newText);
-								}
-							}
-							break;
-						}
-
-					case "diagramLinkEdited":
-						{
-							// An editable image link was saved: write the exported
-							// editable image back to the linked same-repo .drawio.svg /
-							// .drawio.png file (re-resolved from the link target, so a
-							// moved/renamed file is handled safely). The markdown is left
-							// untouched.
-							const r = resolveEditableDiagramLink(msg.target as string, document.uri);
-							if (r && msg.svg) {
-								const bytes = decodeExportedImage(msg.svg as string);
-								if (bytes) {
-									try {
-										// If the linked .drawio.svg is ALSO open in another editor
-										// with unsaved changes (e.g. the full-tab draw.io editor), a
-										// direct disk write would make that editor's in-memory document
-										// stale — VS Code won't reload a dirty document, so its save hits
-										// the "content is newer" conflict and its merge-on-change never
-										// runs. Instead apply the change as a WorkspaceEdit: that updates
-										// the open document in place, fires onDidChangeTextDocument, and
-										// lets the other editor merge it. Persisting happens via that
-										// document's own save. (PNG has no TextDocument, so it always
-										// falls through to a disk write.)
-										const key = caseFold(r.fileUri.fsPath);
-										const openDoc = vscode.workspace.textDocuments.find(
-											d => caseFold(d.uri.fsPath) === key);
-										if (openDoc && openDoc.isDirty && !r.isPng) {
-											const edit = new vscode.WorkspaceEdit();
-											edit.replace(r.fileUri,
-												new vscode.Range(0, 0, openDoc.lineCount, 0),
-												bytes.toString("utf8"));
-											await vscode.workspace.applyEdit(edit);
-										} else {
-											// Record the bytes we're writing so the watcher can
-											// recognize this self-write by content and ignore its
-											// own echo (a genuine concurrent external write has
-											// different bytes and still refreshes).
-											recentLinkWrites.set(key, hashBytes(bytes));
-											await vscode.workspace.fs.writeFile(r.fileUri, bytes);
-										}
-									} catch (e) {
-										vscode.window.showErrorMessage(
-											`draw.io: failed to write ${path.basename(r.fileUri.fsPath)}: ${e}`);
-									}
-								}
-							}
-							break;
-						}
-
-					case "openLinkedFile":
-						{
-							// Preview button on a linked diagram: open the linked image
-							// file in VS Code's built-in image preview tab (beside the
-							// editor) instead of the draw.io lightbox viewer.
-							const r = resolveEditableDiagramLink(msg.target as string, document.uri);
-							if (r) {
-								try {
-									await vscode.commands.executeCommand(
-										"vscode.openWith", r.fileUri, "imagePreview.previewEditor",
-										vscode.ViewColumn.Beside);
-								} catch (e) {
-									await vscode.commands.executeCommand(
-										"vscode.open", r.fileUri, vscode.ViewColumn.Beside);
-								}
-							}
-							break;
-						}
-
-					case "textEdited":
-						{
-							const text = document.getText();
-							const lines = text.split("\n");
-							const newLines = (msg.markdown as string).split("\n");
-							lines.splice(msg.startLine, msg.endLine - msg.startLine + 1, ...newLines);
-							await applyEdit(lines.join("\n"));
-							break;
-						}
-
-					case "diagramResized":
-						{
-							const text = document.getText();
-							const blocks = findDiagramBlocks(text);
-							let block: DiagramBlock | null = null;
-							if (msg.diagramId) {
-								block = blocks.find(b => extractDiagramId(b.xml) === msg.diagramId) || null;
-							}
-							if (!block && msg.blockIndex >= 0 && msg.blockIndex < blocks.length) {
-								block = blocks[msg.blockIndex];
-							}
-							if (block) {
-								const clampedWidth = msg.width != null ? Math.max(200, msg.width) : block.width;
-								const newText = replaceDiagramBlock(text, block, block.xml, block.locked, undefined, clampedWidth);
-								await applyEdit(newText);
-							}
-							break;
-						}
-
-					case "diagramFitted":
-						{
-							const text = document.getText();
-							const blocks = findDiagramBlocks(text);
-							let block: DiagramBlock | null = null;
-							if (msg.diagramId) {
-								block = blocks.find(b => extractDiagramId(b.xml) === msg.diagramId) || null;
-							}
-							if (!block && msg.blockIndex >= 0 && msg.blockIndex < blocks.length) {
-								block = blocks[msg.blockIndex];
-							}
-							if (block) {
-								const newWidth = msg.width != null ? msg.width : null;
-								if (block.width !== newWidth) {
-									const newText = replaceDiagramBlock(text, block, block.xml, block.locked, undefined, newWidth);
-									await applyEdit(newText);
-								}
-							}
-							break;
-						}
-
-					case "requestRefresh":
-						sendContent();
-						break;
-
-					case "insertDiagram":
-						{
-							const text = document.getText();
-							const xml = createEmptyDiagram();
-							const snippet = buildDiagramBlock(xml, "fenced", false, null, DEFAULT_NEW_DIAGRAM_WIDTH);
-							const lines = text.split("\n");
-							const afterLine = msg.afterLine as number | undefined;
-
-							let newText: string;
-							if (afterLine != null && afterLine >= 0 && afterLine < lines.length) {
-								const before = lines.slice(0, afterLine + 1).join("\n");
-								const after = lines.slice(afterLine + 1).join("\n");
-								newText = before + "\n\n" + snippet + "\n\n" + after;
-							} else {
-								newText = text.trimEnd() + "\n\n" + snippet + "\n";
-							}
-
-							await applyEdit(newText);
-
-							// Find the newly inserted block and open it in the inline editor
-							const updatedText = document.getText();
-							const newBlocks = findDiagramBlocks(updatedText);
-							let newBlockIndex = newBlocks.length - 1;
-							if (afterLine != null && afterLine >= 0) {
-								for (let i = 0; i < newBlocks.length; i++) {
-									if (newBlocks[i].startLine > afterLine) {
-										newBlockIndex = i;
-										break;
-									}
-								}
-							}
-
-							if (newBlockIndex >= 0) {
-								sendContent();
-								webviewPanel.webview.postMessage({
-									type: "scrollToAndEdit",
-									blockIndex: newBlockIndex,
-									isNew: true,
-								});
-							}
-							break;
-						}
-				}
+		const applyOwnEdit = async (edit: vscode.WorkspaceEdit): Promise<boolean> => {
+			ownEdits++;
+			try {
+				return await vscode.workspace.applyEdit(edit);
+			} finally {
+				ownEdits--;
 			}
-		);
+		};
+
+		/**
+		 * Tells the webview that the block on lines [startLine, oldEndLine] now
+		 * ends at newEndLine, so it moves the line numbers of what follows.
+		 */
+		const postLinesChanged = (startLine: number, oldEndLine: number, newEndLine: number): void => {
+			if (newEndLine !== oldEndLine) {
+				webviewPanel.webview.postMessage({ type: "linesChanged", startLine, oldEndLine, newEndLine });
+			}
+		};
+
+		/** The diagram block a webview message is about, or null (and a refresh). */
+		const locateBlock = (msg: { blockIndex: number; diagramId?: string | null }): DiagramBlock | null => {
+			const block = locateDiagramBlock(findDiagramBlocks(document.getText()), msg.blockIndex, msg.diagramId);
+			if (!block) {
+				console.warn("drawio-inline-editor: diagram block not found, refreshing the editor", msg.blockIndex, msg.diagramId);
+				sendContent();
+			}
+			return block;
+		};
+
+		const replaceBlock = async (
+			block: DiagramBlock,
+			xml: string,
+			height: number | null,
+			width: number | null
+		): Promise<void> => {
+			const { edit, newEndLine } = diagramBlockEdit(document, block, xml, block.locked, height, width);
+			if (await applyOwnEdit(edit)) {
+				postLinesChanged(block.startLine, block.endLine, newEndLine);
+			}
+		};
+
+		const handleMessage = async (msg: any): Promise<void> => {
+			if (handleForwardedMessage(msg)) { return; }
+			switch (msg.type) {
+				case "previewReady":
+					webviewPanel.webview.postMessage({
+						type: "setDevMode",
+						devMode: DEV_MODE,
+					});
+					webviewPanel.webview.postMessage({
+						type: "setEditorUrl",
+						url: editorUrl,
+						uiTheme: resolveDrawioUiTheme(),
+						lang: resolveDrawioLanguage(),
+					});
+					webviewPanel.webview.postMessage({
+						type: "setDrawioConfig",
+						config: getDrawioUserConfig(context.globalState, document.uri),
+					});
+					webviewPanel.webview.postMessage({
+						type: "setDarkMode",
+						dark: isDark,
+					});
+					webviewPanel.webview.postMessage({
+						type: "setMinimalUI",
+						minimalUI: minimalUI,
+					});
+					webviewPanel.webview.postMessage({
+						type: "setDiagramPadding",
+						padding: diagramPadding,
+					});
+					webviewPanel.webview.postMessage({
+						type: "setSvgAppearance",
+						appearance: vscode.workspace
+							.getConfiguration(DRAWIO_CONFIG_SECTION, document.uri)
+							.get<string>("svgAppearance", "light"),
+					});
+					sendContent();
+					{
+						const uriKey = document.uri.toString();
+						const pendingBlock = this.pendingScrollTargets.get(uriKey);
+						if (pendingBlock != null) {
+							this.pendingScrollTargets.delete(uriKey);
+							webviewPanel.webview.postMessage({
+								type: "scrollToAndEdit",
+								blockIndex: pendingBlock,
+							});
+						}
+					}
+					break;
+
+				case "diagramEdited":
+					if (msg.sourceIndex != null) {
+						// Source conversion: replace the mermaid/plantuml block with a
+						// drawio block. The index is checked against the source text,
+						// as converting a block moves the indices of the ones after it.
+						const sBlocks = findSourceBlocks(document.getText());
+						const atIndex = sBlocks[msg.sourceIndex];
+						const sameSource = sBlocks.filter(b => b.source === msg.source);
+						const sBlock = msg.source == null || (atIndex && atIndex.source === msg.source)
+							? atIndex
+							: sameSource.length === 1 ? sameSource[0] : undefined;
+						if (!sBlock) {
+							sendContent();
+							break;
+						}
+
+						const blockText = buildDiagramBlock(msg.xml, "fenced", false, msg.height, msg.width);
+						const edit = new vscode.WorkspaceEdit();
+						edit.replace(document.uri, offsetRange(document, sBlock.index, sBlock.index + sBlock.fullMatch.length), withEol(document, blockText));
+						if (!(await applyOwnEdit(edit))) { break; }
+						postLinesChanged(sBlock.startLine, sBlock.endLine, sBlock.startLine + blockText.split("\n").length - 1);
+
+						// Send targeted sourceConverted message for in-place DOM replacement
+						// (avoids full re-render which resets scroll position)
+						const newDiagramBlocks = findDiagramBlocks(document.getText());
+						const bIdx = newDiagramBlocks.findIndex(b => b.index === sBlock.index);
+						if (bIdx >= 0) {
+							const newBlock = newDiagramBlocks[bIdx];
+							webviewPanel.webview.postMessage({
+								type: "sourceConverted",
+								sourceIndex: msg.sourceIndex,
+								blockIndex: bIdx,
+								xml: msg.xml,
+								locked: false,
+								height: newBlock.height,
+								width: newBlock.width,
+								startLine: newBlock.startLine,
+								endLine: newBlock.endLine,
+								format: newBlock.format,
+								diagramId: extractDiagramId(msg.xml),
+							});
+						}
+					} else {
+						const block = locateBlock(msg);
+						if (block) {
+							await replaceBlock(block, msg.xml, block.height, block.width);
+						}
+					}
+					break;
+
+				case "diagramLinkEdited":
+					{
+						// An editable image link was saved: write the exported
+						// editable image back to the linked same-repo .drawio.svg /
+						// .drawio.png file (re-resolved from the link target, so a
+						// moved/renamed file is handled safely). The markdown is left
+						// untouched.
+						const r = resolveEditableDiagramLink(msg.target as string, document.uri);
+						if (r && msg.svg) {
+							const bytes = decodeExportedImage(msg.svg as string);
+							if (bytes) {
+								try {
+									// If the linked .drawio.svg is ALSO open in another editor
+									// with unsaved changes (e.g. the full-tab draw.io editor), a
+									// direct disk write would make that editor's in-memory document
+									// stale — VS Code won't reload a dirty document, so its save hits
+									// the "content is newer" conflict and its merge-on-change never
+									// runs. Instead apply the change as a WorkspaceEdit: that updates
+									// the open document in place, fires onDidChangeTextDocument, and
+									// lets the other editor merge it. Persisting happens via that
+									// document's own save. (PNG has no TextDocument, so it always
+									// falls through to a disk write.)
+									const key = caseFold(r.fileUri.fsPath);
+									const openDoc = vscode.workspace.textDocuments.find(
+										d => caseFold(d.uri.fsPath) === key);
+									if (openDoc && openDoc.isDirty && !r.isPng) {
+										const edit = new vscode.WorkspaceEdit();
+										edit.replace(r.fileUri,
+											new vscode.Range(0, 0, openDoc.lineCount, 0),
+											bytes.toString("utf8"));
+										await vscode.workspace.applyEdit(edit);
+									} else {
+										// Record the bytes we're writing so the watcher can
+										// recognize this self-write by content and ignore its
+										// own echo (a genuine concurrent external write has
+										// different bytes and still refreshes).
+										recentLinkWrites.set(key, hashBytes(bytes));
+										await vscode.workspace.fs.writeFile(r.fileUri, bytes);
+									}
+								} catch (e) {
+									vscode.window.showErrorMessage(
+										`draw.io: failed to write ${path.basename(r.fileUri.fsPath)}: ${e}`);
+								}
+							}
+						}
+						break;
+					}
+
+				case "openLinkedFile":
+					{
+						// Preview button on a linked diagram: open the linked image
+						// file in VS Code's built-in image preview tab (beside the
+						// editor) instead of the draw.io lightbox viewer.
+						const r = resolveEditableDiagramLink(msg.target as string, document.uri);
+						if (r) {
+							try {
+								await vscode.commands.executeCommand(
+									"vscode.openWith", r.fileUri, "imagePreview.previewEditor",
+									vscode.ViewColumn.Beside);
+							} catch (e) {
+								await vscode.commands.executeCommand(
+									"vscode.open", r.fileUri, vscode.ViewColumn.Beside);
+							}
+						}
+						break;
+					}
+
+				case "textEdited":
+					{
+						// The Markdown source of one block, edited in the webview. Only
+						// its lines are replaced. They are checked against the text the
+						// webview started from, and searched for nearby if lines above
+						// were added or removed in the meantime.
+						const lines = splitLines(document.getText());
+						const oldLines = String(msg.oldMarkdown).split("\n");
+						const start = locateLines(lines, msg.startLine, oldLines);
+						if (start < 0) {
+							vscode.window.showWarningMessage(
+								"Draw.io: the text was changed in another editor at the same time, so this edit was not applied.");
+							sendContent();
+							break;
+						}
+						const end = start + oldLines.length - 1;
+						const markdown = String(msg.markdown);
+						const edit = new vscode.WorkspaceEdit();
+						if (markdown === "") {
+							// The block was emptied: remove its lines, and one of the
+							// blank lines around it so no double blank line is left
+							const blankBefore = start > 0 && lines[start - 1].trim() === "";
+							const blankAfter = end + 1 < lines.length && lines[end + 1].trim() === "";
+							edit.delete(document.uri, wholeLinesRange(document, start, blankBefore && blankAfter ? end + 1 : end));
+						} else {
+							edit.replace(document.uri, new vscode.Range(start, 0, end, lines[end].length), withEol(document, markdown));
+						}
+						// The webview moved its line numbers for the edit; where it
+						// could not know the result, it gets the document anew
+						if (await applyOwnEdit(edit) && (start !== msg.startLine || markdown === "")) {
+							sendContent();
+						}
+						break;
+					}
+
+				case "diagramResized":
+					{
+						const block = locateBlock(msg);
+						if (block) {
+							const clampedWidth = msg.width != null ? Math.max(200, msg.width) : block.width;
+							await replaceBlock(block, block.xml, block.height, clampedWidth);
+						}
+						break;
+					}
+
+				case "diagramFitted":
+					{
+						const block = locateBlock(msg);
+						if (block) {
+							const newWidth = msg.width != null ? msg.width : null;
+							if (block.width !== newWidth) {
+								await replaceBlock(block, block.xml, block.height, newWidth);
+							}
+						}
+						break;
+					}
+
+				case "requestRefresh":
+					sendContent();
+					break;
+
+				case "saveDocument":
+					// Ctrl+S in a text block, handled after the edits sent before it
+					await document.save();
+					break;
+
+				case "insertDiagram":
+					{
+						const snippet = buildDiagramBlock(createEmptyDiagram(), "fenced", false, null, DEFAULT_NEW_DIAGRAM_WIDTH);
+						const lineCount = document.lineCount;
+						const afterLine = typeof msg.afterLine === "number" && msg.afterLine >= 0 && msg.afterLine < lineCount
+							? msg.afterLine as number : null;
+						const edit = new vscode.WorkspaceEdit();
+						let snippetLine: number;
+						if (afterLine != null) {
+							// After the line, with a blank line before and after it
+							const next = afterLine + 1 < lineCount ? document.lineAt(afterLine + 1) : null;
+							edit.insert(document.uri, document.lineAt(afterLine).range.end,
+								withEol(document, "\n\n" + snippet + (next == null || !next.isEmptyOrWhitespace ? "\n" : "")));
+							snippetLine = afterLine + 2;
+						} else {
+							// At the end of the document
+							const text = document.getText();
+							const contentEnd = text.trimEnd().length;
+							edit.replace(document.uri, offsetRange(document, contentEnd, text.length),
+								withEol(document, (contentEnd > 0 ? "\n\n" : "") + snippet + "\n"));
+							snippetLine = contentEnd > 0 ? document.positionAt(contentEnd).line + 2 : 0;
+						}
+						if (!(await applyOwnEdit(edit))) { break; }
+
+						// Show the document with the new block and open it in the inline editor
+						sendContent();
+						const newBlockIndex = findDiagramBlocks(document.getText()).findIndex(b => b.startLine === snippetLine);
+						if (newBlockIndex >= 0) {
+							webviewPanel.webview.postMessage({
+								type: "scrollToAndEdit",
+								blockIndex: newBlockIndex,
+								isNew: true,
+							});
+						}
+						break;
+					}
+			}
+		};
+
+		// One message after the other, so each edit sees the document as the
+		// edits before it left it (the handlers await applyEdit).
+		let queue: Promise<void> = Promise.resolve();
+		webviewPanel.webview.onDidReceiveMessage((msg) => {
+			queue = queue
+				.then(() => handleMessage(msg))
+				.catch((err) => console.error("drawio-inline-editor: failed to handle", msg && msg.type, err));
+		});
 
 		const changeDisposable = vscode.workspace.onDidChangeTextDocument(e => {
-			if (suppressUpdate) { return; }
+			if (ownEdits > 0 || e.contentChanges.length === 0) { return; }
 			if (e.document.uri.toString() === document.uri.toString()) {
-				sendContent();
+				scheduleContent();
 			}
 		});
 
@@ -2499,7 +1919,7 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 					try { cur = fs.readFileSync(uri.fsPath); } catch (e) { cur = null; }
 					if (cur && hashBytes(cur) === wroteHash) { recentLinkWrites.delete(key); return; }
 				}
-				sendContent();
+				scheduleContent();
 			};
 			linkWatcher.onDidChange(onLinkChange);
 			linkWatcher.onDidCreate(onLinkChange);
@@ -2507,9 +1927,12 @@ class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		}
 
 		webviewPanel.onDidDispose(() => {
+			if (contentTimer) { clearTimeout(contentTimer); }
 			changeDisposable.dispose();
 			linkWatcher?.dispose();
-			this.activePanels.delete(document.uri.toString());
+			if (this.activePanels.get(document.uri.toString()) === webviewPanel) {
+				this.activePanels.delete(document.uri.toString());
+			}
 		});
 	}
 }

@@ -24,6 +24,7 @@
  * found as source blocks, which can be converted into draw.io diagrams.
  */
 
+import * as crypto from "crypto";
 import * as zlib from "zlib";
 
 export const FENCED_REGEX = /^(`{3,})drawio((?:\s+(?:locked|height=\d+|width=\d+))*)\s*\r?\n([\s\S]*?)^\1[ \t]*$/gm;
@@ -227,11 +228,66 @@ export function replaceDiagramBlock(
 	return text.substring(0, block.index) + replacement + text.substring(block.index + block.fullMatch.length);
 }
 
+const ID_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_";
+
+/** A random page id in the format of draw.io's Editor.guid (20 characters). */
+export function createDiagramId(): string {
+	const bytes = crypto.randomBytes(20);
+	let id = "";
+	for (let i = 0; i < bytes.length; i++) {
+		id += ID_CHARS[bytes[i] & 63];
+	}
+	return id;
+}
+
 /**
- * Creates a minimal empty diagram XML.
+ * Creates a minimal empty diagram XML. Every diagram gets its own page id,
+ * which is how the editors find their block again when they save.
  */
 export function createEmptyDiagram(): string {
-	return '<mxfile>\n  <diagram id="default" name="Page-1">\n    <mxGraphModel>\n      <root>\n        <mxCell id="0"/>\n        <mxCell id="1" parent="0"/>\n      </root>\n    </mxGraphModel>\n  </diagram>\n</mxfile>';
+	return '<mxfile>\n  <diagram id="' + createDiagramId() + '" name="Page-1">\n    <mxGraphModel>\n      <root>\n        <mxCell id="0"/>\n        <mxCell id="1" parent="0"/>\n      </root>\n    </mxGraphModel>\n  </diagram>\n</mxfile>';
+}
+
+/**
+ * The id of the first page (e.g. <diagram id="abc">), or null.
+ */
+export function extractDiagramId(xml: string): string | null {
+	const match = xml.match(/<diagram[^>]+id="([^"]+)"/);
+	return match ? match[1] : null;
+}
+
+/**
+ * Finds the block an editor is bound to after the document may have changed.
+ * The editor knows the index of its block, the id of its first page and,
+ * optionally, the XML it last saw in the document. A candidate is taken only
+ * if nothing contradicts it, so a save never lands in another diagram:
+ * blocks copied with the same page id are told apart by their index, and an
+ * ambiguous match returns null.
+ */
+export function locateDiagramBlock(
+	blocks: DiagramBlock[],
+	index: number,
+	diagramId?: string | null,
+	xml?: string | null
+): DiagramBlock | null {
+	const atIndex = index >= 0 && index < blocks.length ? blocks[index] : undefined;
+
+	if (xml != null) {
+		const trimmed = xml.trim();
+		if (atIndex && atIndex.xml === trimmed) { return atIndex; }
+		const sameXml = blocks.filter(b => b.xml === trimmed);
+		if (sameXml.length === 1) { return sameXml[0]; }
+	}
+
+	if (!diagramId) { return atIndex ?? null; }
+	if (atIndex && extractDiagramId(atIndex.xml) === diagramId) { return atIndex; }
+
+	const sameId = blocks.filter(b => extractDiagramId(b.xml) === diagramId);
+	if (sameId.length === 1) { return sameId[0]; }
+	// No block has the id any more (it was edited in the text): keep the index
+	if (sameId.length === 0) { return atIndex ?? null; }
+	// Several blocks share the id and none is at the index
+	return null;
 }
 
 /**

@@ -30,3 +30,22 @@ export const VSCODE_PASSTHROUGH_KEYS: PassThroughKey[] = [
 	{ key: "S", ctrl: true, shift: true, alt: false, command: "workbench.action.files.saveAs" },
 	{ key: "F1", ctrl: false, shift: false, alt: false, command: "workbench.action.showCommands" },
 ];
+
+/**
+ * The commands of {@link VSCODE_PASSTHROUGH_KEYS}: the only commands a
+ * Draw.io frame may ask the extension to run. The frames show diagram content
+ * and, online, pages from the web, so nothing else is executed.
+ */
+export const VSCODE_PASSTHROUGH_COMMANDS: ReadonlySet<string> = new Set(
+	VSCODE_PASSTHROUGH_KEYS.map((k) => k.command).filter(
+		(c): c is string => c !== null
+	)
+);
+
+/**
+ * Whether a link clicked in a diagram may be opened with the operating
+ * system: web and mail links only, never file or app protocol links.
+ */
+export function isExternalLink(href: string): boolean {
+	return /^(https?:|mailto:)/i.test(href.trim());
+}
