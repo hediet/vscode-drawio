@@ -48,6 +48,11 @@ export class CustomizedDrawioClient extends DrawioClient<
 	}>();
 	public readonly onInvokeCommand = this.onInvokeCommandEmitter.asEvent();
 
+	private readonly onOpenLinkEmitter = new EventEmitter<{
+		url: string;
+	}>();
+	public readonly onOpenLink = this.onOpenLinkEmitter.asEvent();
+
 	public linkSelectedNodeWithData(linkedData: unknown) {
 		this.sendCustomAction({
 			action: "linkSelectedNodeWithData",
@@ -120,6 +125,8 @@ export class CustomizedDrawioClient extends DrawioClient<
 			this.onSelectedRectangleChangedEmitter.emit({
 				rectangle: evt.rect,
 			});
+		} else if (evt.event === "openLink") {
+			this.onOpenLinkEmitter.emit({ url: evt.url });
 		} else {
 			await super.handleEvent(evt);
 		}
