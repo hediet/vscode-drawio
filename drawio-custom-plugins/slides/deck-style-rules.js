@@ -1,11 +1,16 @@
 // The rules of the styles of a deck, the setting "drawSlidesCode.deckStyles" of the VS Code
 // extension yujunhuang.drawslidescode, on the style strings of draw.io.
 //
-// A style of the deck is a style string of a kind of geometry, rectangles or wires, under a name.
+// A style of the deck is a style string of a kind of geometry under a name.  The kind of an edge is
+// wire, and the kind of a vertex is the shape that draw.io draws for it: its key shape, or else the
+// first name of the stylesheet in its style, such as ellipse or text, or else rectangle, the shape
+// of a vertex without either.  A style of a kind is given to the cells of that kind alone, so a
+// style holds no key that turns one kind into another.
 // A cell that takes a style holds every key of the style and, beside them, the link
 // deckStyle=<name>, so that a draw.io without the extension draws the cell the same, as a hex value
 // stays beside the link of a color of the deck.  A style holds the keys of appearance alone: never
-// the link itself, nor a key of geometry, which places the ends of a wire or turns a shape.  The
+// the link itself, nor a key of geometry, which places the ends of a wire or turns a shape, nor a key
+// that decides the kind, shape and perimeter, which each cell keeps of its own.  The
 // points, the source, the target and the place of a label sit in the geometry of a cell, outside
 // its style, so a style never reaches them either.
 //
@@ -32,11 +37,17 @@ function deckStyleRules(colorLinkKeys) {
   var GEOMETRY_KEYS = ['exitX', 'exitY', 'exitDx', 'exitDy', 'exitPerimeter',
     'entryX', 'entryY', 'entryDx', 'entryDy', 'entryPerimeter',
     'sourcePort', 'targetPort', 'rotation'];
-  // The shapes that a style of the kind rectangles covers: a vertex without a shape draws a
-  // rectangle, rounded or not.
-  var RECTANGLE_SHAPES = ['rect', 'rectangle'];
-  var KINDS = ['rectangles', 'wires'];
+  // The keys that decide the kind of a cell: its shape and the perimeter that the shape draws.
+  var KIND_KEYS = ['shape', 'perimeter'];
+  var WIRE = 'wire';
+  // The shape of a vertex whose style names none, and the other names of a shape.
+  var DEFAULT_SHAPE = 'rectangle';
+  var SHAPE_NAMES = {rect: 'rectangle'};
+  // A group of draw.io draws neither fill nor line, so it has no kind.
+  var KINDLESS = ['group'];
   var NAME = /^[A-Za-z][A-Za-z0-9]*$/;
+  // A kind is a name of a shape of draw.io, such as ellipse or mxgraph.flowchart.decision.
+  var KIND = /^[A-Za-z][A-Za-z0-9.]*$/;
   var links = colorLinkKeys || {};
 
   // The entries of a style string in their order: {key, value} for key=value, and {name} for a
@@ -71,24 +82,26 @@ function deckStyleRules(colorLinkKeys) {
   }
 
   function isAppearanceKey(key) {
-    return key != LINK && GEOMETRY_KEYS.indexOf(key) < 0;
+    return key != LINK && GEOMETRY_KEYS.indexOf(key) < 0 && KIND_KEYS.indexOf(key) < 0;
   }
 
-  // The kind of geometry of a cell, given its style and whether it is an edge: wires for an edge,
-  // rectangles for a vertex that draws a rectangle, and null for any other cell.
+  // The kind of geometry of a cell, given its style and whether it is an edge, or null for a cell
+  // that has none, such as a group.
   function kindOf(style, isEdge) {
     if (isEdge) {
-      return 'wires';
+      return WIRE;
     }
 
     var list = entries(style);
-    var shape = valuesOf(list).shape;
-    var named = list.some(function (entry) {
+    var firstName = list.filter(function (entry) {
       return entry.key == null;
-    });
+    }).map(function (entry) {
+      return entry.name;
+    })[0];
+    var shape = valuesOf(list).shape || firstName || DEFAULT_SHAPE;
+    var kind = SHAPE_NAMES[shape] || shape;
 
-    return (!named && (shape == null || RECTANGLE_SHAPES.indexOf(shape) >= 0)) ?
-      'rectangles' : null;
+    return (KINDLESS.indexOf(kind) < 0 && KIND.test(kind)) ? kind : null;
   }
 
   // The name of the style that the cell links to, or null.
@@ -196,12 +209,27 @@ function deckStyleRules(colorLinkKeys) {
     }));
   }
 
+  // The style of a cell after an edit of the cells linked to a style: update, from the style string
+  // before to the style string after, rename to newName, or remove, which takes the link out.  A
+  // cell linked to another style stays as it is.
+  function afterUseEdit(cellStyle, edit) {
+    if (linkOf(cellStyle) != edit.name) {
+      return cellStyle;
+    }
+
+    return (edit.operation == 'update') ? updated(cellStyle, edit.before, edit.after) :
+      relinked(cellStyle, (edit.operation == 'rename') ? edit.newName : null);
+  }
+
   return {
     link: LINK,
-    kinds: KINDS,
     geometryKeys: GEOMETRY_KEYS,
+    kindKeys: KIND_KEYS,
     isName: function (name) {
       return typeof name == 'string' && NAME.test(name);
+    },
+    isKind: function (kind) {
+      return typeof kind == 'string' && KIND.test(kind);
     },
     kindOf: kindOf,
     linkOf: linkOf,
@@ -209,6 +237,7 @@ function deckStyleRules(colorLinkKeys) {
     differingKeys: differingKeys,
     given: given,
     updated: updated,
-    relinked: relinked
+    relinked: relinked,
+    afterUseEdit: afterUseEdit
   };
 }

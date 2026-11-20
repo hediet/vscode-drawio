@@ -38,7 +38,7 @@ import {
 	titleOf,
 } from "./deckFiles";
 import { withLinkedColorValues } from "./deckColorLinks";
-import { DeckStyles, NO_DECK_STYLES, unknownStyleLinks } from "./deckStyles";
+import { DeckStyles, unknownStyleLinks } from "./deckStyles";
 import { colorNamesOf, formulasOfPage } from "./formulaColors";
 import { embedPictures } from "./deckPictures";
 import { PagePictures, withPagePictures } from "./pageSnapshots";
@@ -386,7 +386,7 @@ export function assembleDeck(
 		}
 		const unknownStyles = unknownStyleLinks(
 			slide.diagram,
-			inputs.styles ?? NO_DECK_STYLES
+			inputs.styles ?? {}
 		);
 		if (unknownStyles.length > 0) {
 			warnings.push(

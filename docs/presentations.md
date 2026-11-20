@@ -350,32 +350,37 @@ The setting `drawSlidesCode.deckStyles` of `.vscode/settings.json` of a presenta
 
 ```jsonc
 "drawSlidesCode.deckStyles": {
-  "rectangles": {
+  "rectangle": {
     "designProblem": "rounded=1;absoluteArcSize=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3;"
   },
-  "wires": {
+  "ellipse": {
+    "node": "whiteSpace=wrap;html=1;fillColor=#000000;strokeColor=none;"
+  },
+  "wire": {
     "functionality": "edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;strokeColor=#008000;deckStrokeColor=dpgreen;strokeWidth=3;startArrow=none;endArrow=circle;endFill=1;endSize=3;targetPerimeterSpacing=-1.5;fixedPointSpacing=1;"
   }
 }
 ```
 
-A wire is an edge.
-A rectangle is a vertex that draws a rectangle, rounded or square: its style sets the shape `rect`, or sets no shape and starts with a key rather than with a name such as `text` or `ellipse`.
-A name is letters and digits that start with a letter, and it stands for one style across both kinds.
+The kind of an edge is `wire`.
+The kind of a vertex is the shape that draw.io draws for it.
+That shape is the value of the key `shape` of the style, or else its first name of the stylesheet, such as `ellipse` in `ellipse;whiteSpace=wrap;`, or else `rectangle`, rounded or square.
+A style given to a selected group of draw.io reaches the cells in it, each by its own kind.
+A name is letters and digits that start with a letter, and it stands for one style across every kind.
 
 The section Deck styles of the Format panel follows the section Deck colors in the Style tab.
-It lists the styles of the kinds of the selected cells as a grid of tiles, as the Format sidebar of Keynote lists the styles of the kind of object selected.
-Each tile holds a preview of the style, its name in a text field and a button ×.
-With nothing selected, the Style tab of the diagram lists the styles of both kinds, to rename and to remove.
+It lists the styles of the kinds of the selected cells, one grid per kind, as the Format sidebar of Keynote lists the styles of the kind of object selected.
+Each tile holds a preview of the style, its name under the preview, and the buttons ✎ and × under the name.
+With nothing selected, the Style tab of the diagram lists the styles of every kind, to rename and to remove.
 
 - A click on a preview gives the style to each selected cell of its kind, and a selected group gives it to the cells in it, in one step of the undo history.
-- New style from selection saves the style of the one selected cell of its kind under the name `rectangle1` or `wire1`, or the next free number, and links the cell to it.
+- New style from selection saves the style of the one selected cell of its kind under the name of the kind and the first free number, such as `ellipse1`, and links the cell to it.
 - A frame marks the tile of the style that the selected cells link to.
   When one selected cell differs from its style, a line under the grid names the keys in which it differs, with the buttons Update and Revert.
   Update redefines the style from the cell, as Redefine Style from Selection of Keynote does, and writes the change into every cell of the deck linked to the style.
   Revert gives the cell the style again.
-- A new name in the text field renames the style and the links of the drawing files of the deck, and a message counts the linked cells.
-- The button × asks first, in a dialog of VS Code that counts the rectangles and the wires linked to the style in the drawing files of the deck.
+- The button ✎ opens the rename dialog of draw.io, and a new name renames the style and the links of the drawing files of the deck, after which a message counts the linked cells by kind.
+- The button × asks first, in a dialog of VS Code that counts the cells of each kind linked to the style in the drawing files of the deck.
   Delete then takes the style out of the setting and the link out of each cell, and each cell keeps the keys of the style.
 
 A cell linked to a style holds every key of the style in its own style, and the link `deckStyle=<name>` beside them, as in `...;fixedPointSpacing=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;deckStyle=functionality;`.
@@ -385,6 +390,7 @@ The name would also take the place of the first token of the style, which draw.i
 
 A style holds the keys of appearance alone, and keeps the links to the colors of the deck that it holds.
 It never holds the keys of geometry `exitX`, `exitY`, `entryX` and `entryY`, their `Dx`, `Dy` and `Perimeter`, `sourcePort`, `targetPort` and `rotation`.
+It never holds the keys `shape` and `perimeter` either, which decide the kind, so a style saved from `ellipse;...` given to a cell styled `shape=ellipse;perimeter=ellipsePerimeter;...` leaves the cell an ellipse.
 The points, the source, the target and the place of a label sit in the geometry of a cell, outside its style.
 A give or an update of a style therefore leaves each wire attached where it was, and each label where it was.
 The dot of a co-design wire stays tangent to the border of its box, because the negative spacing that keeps it tangent is a key of the style.
@@ -730,7 +736,7 @@ The skills in `skills/` of the extension give an agent the steps to start a deck
 | `links colors to gone, which the setting drawSlidesCode.colors does not define, so they keep the values beside the links` | a shape or a text linked to a name that `drawSlidesCode.colors` lacks, such as a color removed by hand from the settings file | add the color to `drawSlidesCode.colors`, or give the shape a color again |
 | `holds #00AA00 beside a link to red, #B20000, and draws #B20000` | a key of a style or a text whose value was changed outside the editor of the extension, such as by an agent or in a draw.io without the extension, and whose link stayed | take the link out beside the new value, or give the shape the color again from the section Deck colors |
 | `links cells to the styles gone, which the setting drawSlidesCode.deckStyles does not define, so they keep the keys written in them` | a cell linked to a name that `drawSlidesCode.deckStyles` lacks, such as a style removed by hand from the settings file | add the style to `drawSlidesCode.deckStyles`, or give the cell a style again from the section Deck styles |
-| `drawSlidesCode.deckStyles.wires names a style "dp-wire", which is not letters and digits that start with a letter, so the style is left out` | a name of a style of other characters | rename the style in the setting, and the links of its cells |
+| `drawSlidesCode.deckStyles.wire names a style "dp-wire", which is not letters and digits that start with a letter, so the style is left out` | a name of a style of other characters | rename the style in the setting, and the links of its cells |
 | `drawSlidesCode.colors names a color "dp-red", which is not letters and digits that start with a letter, so the color is left out` | a name that TeX cannot read | rename the color, and the formulas that name it |
 | `drawSlidesCode.colors gives accent the value "#04D80", which is not # and six hexadecimal digits, so the color is left out` | a value other than `#RRGGBB` | write the value as `#RRGGBB` |
 | `drawSlidesCode.listStyles names the color acent, which drawSlidesCode.colors does not define, so the value stays as written` | a color of a level of the list styles that is a name `drawSlidesCode.colors` lacks, often a typo, or a name of CSS, such as `red`, which the marker still takes | fix the name, add the color to `drawSlidesCode.colors`, or write the value as `#RRGGBB` |

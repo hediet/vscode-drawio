@@ -3,7 +3,6 @@ import {
 	addedStyleUses,
 	DeckStyleRules,
 	DeckStyles,
-	NO_STYLE_USES,
 	styleUsesInDrawing,
 	StyleUseEdit,
 	StyleUses,
@@ -43,8 +42,11 @@ export async function writeDeckStyleEditWithUses(
 	const uses = () =>
 		documents.reduce(
 			(sum, document) =>
-				addedStyleUses(sum, styleUsesInDrawing(document.getText(), edit.name)),
-			NO_STYLE_USES
+				addedStyleUses(
+					sum,
+					styleUsesInDrawing(document.getText(), edit.name, rules)
+				),
+			new Map<string, number>() as StyleUses
 		);
 	if (edit.operation === "remove") {
 		const answer = await window.showWarningMessage(
@@ -76,18 +78,18 @@ export async function writeDeckStyleEditWithUses(
 
 /** The detail of the question before a removal, which counts the cells that keep the keys of the style. */
 export function styleRemovalDetail(name: string, uses: StyleUses): string {
-	const count = uses.rectangles + uses.wires;
+	const count = [...uses.values()].reduce((sum, each) => sum + each, 0);
 	return count === 0
-		? `No rectangle or wire of the drawing files of the deck links to ${name}.`
+		? `No cell of the drawing files of the deck links to ${name}.`
 		: `In the drawing files of the deck, ${usesText(uses)} ${
 				count === 1 ? "links" : "link"
 		  } to ${name}, and each keeps the keys of the style without the link. The editor of each open drawing of the deck then starts a new undo history.`;
 }
 
+/** The counts of the cells by kind, as in `2 wire cells and 1 ellipse cell`. */
 function usesText(uses: StyleUses): string {
-	const parts = [
-		nounWithCount(uses.rectangles, "rectangle", "rectangles"),
-		nounWithCount(uses.wires, "wire", "wires"),
-	].filter((part): part is string => part !== undefined);
+	const parts = [...uses.entries()]
+		.map(([kind, count]) => nounWithCount(count, `${kind} cell`, `${kind} cells`))
+		.filter((part): part is string => part !== undefined);
 	return parts.length === 0 ? "no cell" : joinedWithAnd(parts);
 }

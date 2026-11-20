@@ -31,10 +31,10 @@ function deck() {
   "drawSlidesCode.slides": true,
   // The styles of the co-design diagrams.
   "drawSlidesCode.deckStyles": {
-    "rectangles": {
+    "rectangle": {
       "box": "rounded=1;strokeWidth=3;"
     },
-    "wires": {
+    "wire": {
       // A functionality.
       "functionality": "${WIRE}"
     }
@@ -56,8 +56,8 @@ function deck() {
 		path.join(folder, file)
 	);
 	const deckStyles = {
-		rectangles: { box: "rounded=1;strokeWidth=3;" },
-		wires: { functionality: WIRE },
+		rectangle: { box: "rounded=1;strokeWidth=3;" },
+		wire: { functionality: WIRE },
 	};
 	return { folder, files, deckStyles, read: (file) => fs.readFileSync(path.join(folder, file), "utf8") };
 }
@@ -77,7 +77,7 @@ test("an update writes the style into the settings and the change into every lin
 	const boxes = given.read("sections/2-b.drawio.xml");
 	standIn.resetState({ workspaceFolders: [given.folder] });
 	const after = WIRE.replace("endSize=3", "endSize=5");
-	const written = await write({ operation: "set", kind: "wires", name: "functionality", style: after }, given);
+	const written = await write({ operation: "set", kind: "wire", name: "functionality", style: after }, given);
 	assert.deepEqual(written, { operation: "update", name: "functionality", before: WIRE, after });
 	const settings = given.read(".vscode/settings.json");
 	assert.match(settings, /\/\/ A functionality\.\n\s*"functionality": "[^"]*endSize=5;/);
@@ -98,7 +98,7 @@ test("a removal asks with the count of the linked cells, Cancel changes nothing,
 	assert.equal(given.read("sections/1-a.drawio.xml"), before);
 	const [question] = state.messages;
 	assert.match(JSON.stringify(question), /Delete the style functionality\?/);
-	assert.match(JSON.stringify(question), /3 wires link to functionality/);
+	assert.match(JSON.stringify(question), /3 wire cells link to functionality/);
 
 	standIn.resetState({ workspaceFolders: [given.folder], answers: { warning: [useEdits.DELETE_STYLE] } });
 	assert.deepEqual(await write({ operation: "remove", name: "functionality" }, given), {
@@ -117,10 +117,10 @@ test("a rename renames the links and counts them in a message, and a name of the
 	await write({ operation: "rename", name: "box", newName: "designProblem" }, given);
 	assert.match(given.read(".vscode/settings.json"), /"designProblem": "rounded=1;strokeWidth=3;"/);
 	assert.match(given.read("sections/2-b.drawio.xml"), /deckStyle=designProblem;/);
-	assert.match(JSON.stringify(state.messages), /The style box is now designProblem, in 1 rectangle of the drawing files of the deck\./);
+	assert.match(JSON.stringify(state.messages), /The style box is now designProblem, in 1 rectangle cell of the drawing files of the deck\./);
 	const settings = given.read(".vscode/settings.json");
 	await assert.rejects(
-		write({ operation: "set", kind: "wires", name: "designProblem", style: "dashed=1;" }, given),
+		write({ operation: "set", kind: "wire", name: "designProblem", style: "dashed=1;" }, given),
 		{ name: "RefusedStyleEdit" }
 	);
 	assert.equal(given.read(".vscode/settings.json"), settings);
@@ -136,21 +136,18 @@ test("the live settings of the editor list the styles of each kind in the order 
 			presetColors: [],
 			colorNames: {},
 			deckStyles: {
-				wires: { functionality: WIRE + "exitX=1;", resource: "dashed=1;" },
-				rectangles: { "1box": "rounded=1;" },
+				wire: { functionality: WIRE + "exitX=1;", resource: "dashed=1;" },
+				rectangle: { "1box": "rounded=1;" },
 			},
 		},
 		[],
 		rules
 	);
-	assert.deepEqual(settings.styles, {
-		rectangles: [],
-		wires: [
-			{ name: "functionality", style: WIRE },
-			{ name: "resource", style: "dashed=1;" },
-		],
-	});
+	assert.deepEqual(settings.styles, [
+		{ kind: "wire", name: "functionality", style: WIRE },
+		{ kind: "wire", name: "resource", style: "dashed=1;" },
+	]);
 	assert.deepEqual(problems, [
-		'drawSlidesCode.deckStyles.rectangles names a style "1box", which is not letters and digits that start with a letter, so the style is left out.',
+		'drawSlidesCode.deckStyles.rectangle names a style "1box", which is not letters and digits that start with a letter, so the style is left out.',
 	]);
 });

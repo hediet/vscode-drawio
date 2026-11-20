@@ -703,30 +703,21 @@
 						"type": "object",
 						"scope": "resource",
 						"default": {},
-						"description": "The styles of a deck, by kind of geometry: `rectangles` and `wires`, each an object of names of letters and digits that start with a letter to style strings of draw.io, such as `\"rounded=1;strokeWidth=3;\"`. A name stands for one style across both kinds. In a drawing whose `drawSlidesCode.slides` is true, the section Deck styles of the Format panel lists the styles, gives one to the selected rectangles or wires, saves one from a selected cell, updates every cell of the deck linked to a style, and renames and removes a style. A cell linked to a style holds `deckStyle=<name>` beside the keys of the style. A style holds keys of appearance alone, never the keys of geometry `exitX`, `exitY`, `entryX`, `entryY` and their `Dx`, `Dy` and `Perimeter`, `sourcePort`, `targetPort` and `rotation`.",
-						"properties": {
-							"rectangles": {
-								"type": "object",
-								"propertyNames": {
-									"pattern": "^[A-Za-z][A-Za-z0-9]*$",
-									"patternErrorMessage": "A name of a style is letters and digits and starts with a letter."
-								},
-								"additionalProperties": {
-									"type": "string"
-								}
-							},
-							"wires": {
-								"type": "object",
-								"propertyNames": {
-									"pattern": "^[A-Za-z][A-Za-z0-9]*$",
-									"patternErrorMessage": "A name of a style is letters and digits and starts with a letter."
-								},
-								"additionalProperties": {
-									"type": "string"
-								}
-							}
+						"description": "The styles of a deck, by kind of geometry: `wire` for an edge, and for a vertex the shape that draw.io draws, such as `rectangle`, `ellipse` or `rhombus`. Each kind is an object of names of letters and digits that start with a letter to style strings of draw.io, such as `\"rounded=1;strokeWidth=3;\"`, and a name stands for one style across every kind. In a drawing whose `drawSlidesCode.slides` is true, the section Deck styles of the Format panel lists the styles of the kinds of the selected cells, gives one to the selected cells of its kind, saves one from a selected cell, updates every cell of the deck linked to a style, and renames and removes a style. A cell linked to a style holds `deckStyle=<name>` beside the keys of the style. A style holds keys of appearance alone, never the keys of geometry `exitX`, `exitY`, `entryX`, `entryY` and their `Dx`, `Dy` and `Perimeter`, `sourcePort`, `targetPort` and `rotation`, nor the keys `shape` and `perimeter` of its kind.",
+						"propertyNames": {
+							"pattern": "^[A-Za-z][A-Za-z0-9.]*$",
+							"patternErrorMessage": "A kind is the name of a shape of draw.io, such as `wire`, `rectangle`, `ellipse` or `mxgraph.flowchart.decision`."
 						},
-						"additionalProperties": false
+						"additionalProperties": {
+							"type": "object",
+							"propertyNames": {
+								"pattern": "^[A-Za-z][A-Za-z0-9]*$",
+								"patternErrorMessage": "A name of a style is letters and digits and starts with a letter."
+							},
+							"additionalProperties": {
+								"type": "string"
+							}
+						}
 					},
 					"drawSlidesCode.plugins": {
 						"type": "array",

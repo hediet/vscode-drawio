@@ -16,11 +16,11 @@ const settings = `{
   },
   // The styles of the co-design diagrams.
   "drawSlidesCode.deckStyles": {
-    "rectangles": {
+    "rectangle": {
       // A design problem.
       "box": "rounded=1;strokeWidth=3;"
     },
-    "wires": {
+    "wire": {
       "functionalityWire": "strokeColor=#008000;deckStrokeColor=dpgreen;endArrow=circle;endSize=3;"
     }
   }
@@ -32,7 +32,7 @@ test("a new style goes into its kind with its keys of appearance alone, and the 
 		settings,
 		{
 			operation: "set",
-			kind: "rectangles",
+			kind: "rectangle",
 			name: "container",
 			style: "rounded=1;fillColor=none;exitX=0;rotation=90;deckStyle=box;",
 		},
@@ -44,18 +44,17 @@ test("a new style goes into its kind with its keys of appearance alone, and the 
 
 test("a new style string of a style that exists updates its cells from the old string", () => {
 	const known = {
-		rectangles: {},
-		wires: { functionalityWire: "endSize=3;" },
+		wire: { functionalityWire: "endSize=3;" },
 	};
 	assert.deepEqual(
 		edits.styleUseEditOf(
-			{ operation: "set", kind: "wires", name: "functionalityWire", style: "endSize=5;" },
+			{ operation: "set", kind: "wire", name: "functionalityWire", style: "endSize=5;" },
 			known
 		),
 		{ operation: "update", name: "functionalityWire", before: "endSize=3;", after: "endSize=5;" }
 	);
 	assert.equal(
-		edits.styleUseEditOf({ operation: "set", kind: "wires", name: "other", style: "x=1;" }, known),
+		edits.styleUseEditOf({ operation: "set", kind: "wire", name: "other", style: "x=1;" }, known),
 		undefined
 	);
 });
@@ -69,6 +68,8 @@ test("a rename and a removal keep the other styles and the comments, and a name 
 	assert.match(renamed, /\/\/ A design problem\.\n\s*"designProblem": "rounded=1;strokeWidth=3;"/);
 	const removed = edits.withStyleEditInSettings(settings, { operation: "remove", name: "box" }, rules);
 	assert.doesNotMatch(removed, /"box"/);
+	assert.doesNotMatch(removed, /"rectangle"/);
+	assert.match(removed, /"drawSlidesCode.deckStyles": \{\s*"wire": \{/);
 	assert.match(removed, /"functionalityWire"/);
 	assert.throws(
 		() =>
@@ -83,7 +84,7 @@ test("a rename and a removal keep the other styles and the comments, and a name 
 		() =>
 			edits.withStyleEditInSettings(
 				settings,
-				{ operation: "set", kind: "wires", name: "box", style: "x=1;" },
+				{ operation: "set", kind: "wire", name: "box", style: "x=1;" },
 				rules
 			),
 		{ name: "RefusedStyleEdit" }

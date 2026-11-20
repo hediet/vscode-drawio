@@ -2,43 +2,28 @@
  * The styles of a deck, the setting `drawSlidesCode.deckStyles`, and their links in the XML of a
  * drawing as the editor saves it.
  *
- * The setting holds one object of names to style strings per kind of geometry, `rectangles` and
- * `wires`, and a name stands for one style of the deck across both kinds. A cell links to a style
- * through the key `deckStyle` of its own style, beside the keys of the style, as the header of
- * `deck-style-rules.js` says. The functions here read the text of a page as the file holds it, where
- * the style of a cell is the escaped value of its attribute `style`, and change only the cells that
- * they edit, by the rules of `deck-style-rules.js`, which the editor applies alike.
+ * The setting holds one object of names to style strings per kind of geometry, such as `wire`,
+ * `rectangle` or `ellipse`, and a name stands for one style across every kind. The kind of a cell
+ * and the keys that a style holds are the rules of `deck-style-rules.js`, which the editor applies
+ * alike. A cell links to a style through the key `deckStyle` of its own style, beside the keys of
+ * the style. The functions here read the text of a page as the file holds it, where the style of a
+ * cell is the escaped value of its attribute `style`, and change only the cells that they edit.
  */
 import * as fs from "fs";
 import { COLOR_LINK_KEYS } from "./deckColors";
 import { DIAGRAM } from "./deckFiles";
 
-/** The kinds of geometry of the styles of a deck, the keys of `drawSlidesCode.deckStyles`. */
-export const STYLE_KINDS = ["rectangles", "wires"] as const;
-export type StyleKind = typeof STYLE_KINDS[number];
-
 /** The key of a style of draw.io that links a cell to a style of the deck. */
 export const STYLE_LINK = "deckStyle";
 
-/** The styles of a deck by kind, each a name to its style string. */
-export type DeckStyles = Readonly<
-	Record<StyleKind, Readonly<Record<string, string>>>
->;
+/** The styles of a deck, by kind of geometry, each a name to its style string. */
+export type DeckStyles = Readonly<Record<string, Readonly<Record<string, string>>>>;
 
-export const NO_DECK_STYLES: DeckStyles = { rectangles: {}, wires: {} };
-
-/** The rules of `deck-style-rules.js`, which the editor and the extension share. */
-export interface DeckStyleRules {
-	readonly link: string;
-	readonly geometryKeys: readonly string[];
-	isName(name: unknown): boolean;
-	kindOf(style: string, isEdge: boolean): StyleKind | null;
-	linkOf(style: string): string | null;
-	appearanceOf(style: string): string;
-	differingKeys(cellStyle: string, style: string): string[];
-	given(cellStyle: string, name: string, style: string): string;
-	updated(cellStyle: string, before: string, after: string): string;
-	relinked(cellStyle: string, newName: string | null): string;
+/** A style of the deck with its kind, as the editor lists it. */
+export interface NamedStyle {
+	readonly kind: string;
+	readonly name: string;
+	readonly style: string;
 }
 
 /**
@@ -60,21 +45,31 @@ export type StyleUseEdit =
 	  }
 	| { readonly operation: "remove"; readonly name: string };
 
-/** The cells linked to a style, by the kind of geometry of the cell. */
-export type StyleUses = Readonly<Record<StyleKind, number>>;
+/** The rules of `deck-style-rules.js`, which the editor and the extension share. */
+export interface DeckStyleRules {
+	readonly link: string;
+	readonly geometryKeys: readonly string[];
+	readonly kindKeys: readonly string[];
+	isName(name: unknown): boolean;
+	isKind(kind: unknown): boolean;
+	kindOf(style: string, isEdge: boolean): string | null;
+	linkOf(style: string): string | null;
+	appearanceOf(style: string): string;
+	differingKeys(cellStyle: string, style: string): string[];
+	given(cellStyle: string, name: string, style: string): string;
+	updated(cellStyle: string, before: string, after: string): string;
+	relinked(cellStyle: string, newName: string | null): string;
+	afterUseEdit(cellStyle: string, edit: StyleUseEdit): string;
+}
 
-export const NO_STYLE_USES: StyleUses = { rectangles: 0, wires: 0 };
+/** The cells linked to a style, by their kind of geometry. */
+export type StyleUses = ReadonlyMap<string, number>;
 
 /** The rules of the file `deck-style-rules.js`, with the keys of the links to the colors of the deck. */
 export function loadDeckStyleRules(rulesFile: string): DeckStyleRules {
-	return deckStyleRulesOf(fs.readFileSync(rulesFile, "utf8"));
-}
-
-/** The rules of the text of `deck-style-rules.js`, with the keys of the links to the colors of the deck. */
-export function deckStyleRulesOf(rulesText: string): DeckStyleRules {
-	const rules = new Function(rulesText + "\nreturn deckStyleRules;")() as (
-		colorLinkKeys: Record<string, string>
-	) => DeckStyleRules;
+	const rules = new Function(
+		fs.readFileSync(rulesFile, "utf8") + "\nreturn deckStyleRules;"
+	)() as (colorLinkKeys: Record<string, string>) => DeckStyleRules;
 	return rules(
 		Object.fromEntries(
 			Object.entries(COLOR_LINK_KEYS).map(([key, { link }]) => [key, link])
@@ -88,133 +83,108 @@ const STYLE_ATTRIBUTE = /(\sstyle=")([^"]*)(")/;
 const EDGE = /\sedge="1"/;
 const LINK_IN_STYLE = new RegExp(`(?:^|;)${STYLE_LINK}=([^;]*)`);
 
-/** The page after the edit of the cells linked to a style. */
-export function withStyleUseEdit(
-	page: string,
-	edit: StyleUseEdit,
-	rules: DeckStyleRules
-): string {
-	return page.replace(CELL_TAG, (tag) =>
-		tag.replace(
-			STYLE_ATTRIBUTE,
-			(whole, start: string, escaped: string, end: string) => {
-				const style = unescapeAttribute(escaped);
-				if (rules.linkOf(style) !== edit.name) {
-					return whole;
-				}
-				const edited =
-					edit.operation === "update"
-						? rules.updated(style, edit.before, edit.after)
-						: rules.relinked(
-								style,
-								edit.operation === "rename" ? edit.newName : null
-						  );
-				return edited === style
-					? whole
-					: start + escapeAttribute(edited) + end;
-			}
-		)
-	);
-}
-
-/** The text of a drawing file after the edits of the cells linked to styles, page by page. */
+/** The text of a drawing file after the edits of the cells linked to styles. */
 export function withStyleUseEditsInDrawing(
 	text: string,
 	edits: readonly StyleUseEdit[],
 	rules: DeckStyleRules
 ): string {
 	return text.replace(new RegExp(DIAGRAM.source, "g"), (page) =>
-		edits.reduce((result, edit) => withStyleUseEdit(result, edit, rules), page)
+		page.replace(CELL_TAG, (tag) =>
+			tag.replace(
+				STYLE_ATTRIBUTE,
+				(whole, start: string, escaped: string, end: string) => {
+					const style = unescapeAttribute(escaped);
+					const edited = edits.reduce(
+						(result, edit) => rules.afterUseEdit(result, edit),
+						style
+					);
+					return edited === style
+						? whole
+						: start + escapeAttribute(edited) + end;
+				}
+			)
+		)
 	);
 }
 
-/** The cells of a drawing file linked to the style, by their kind: an edge is a wire, any other cell a rectangle. */
-export function styleUsesInDrawing(text: string, name: string): StyleUses {
-	const kinds = linkedCells(text)
-		.filter(({ link }) => link === name)
-		.map(({ isEdge }) => (isEdge ? "wires" : "rectangles"));
-	return {
-		rectangles: kinds.filter((kind) => kind === "rectangles").length,
-		wires: kinds.filter((kind) => kind === "wires").length,
-	};
+/** The cells of a drawing file linked to the style, by their kind. */
+export function styleUsesInDrawing(
+	text: string,
+	name: string,
+	rules: DeckStyleRules
+): StyleUses {
+	const uses = new Map<string, number>();
+	for (const { style, isEdge } of cellStyles(text)) {
+		if (rules.linkOf(style) === name) {
+			const kind = rules.kindOf(style, isEdge) ?? "cell";
+			uses.set(kind, (uses.get(kind) ?? 0) + 1);
+		}
+	}
+	return uses;
 }
 
 /** The sum of the uses of each kind. */
 export function addedStyleUses(first: StyleUses, second: StyleUses): StyleUses {
-	return {
-		rectangles: first.rectangles + second.rectangles,
-		wires: first.wires + second.wires,
-	};
+	const sum = new Map(first);
+	second.forEach((count, kind) => sum.set(kind, (sum.get(kind) ?? 0) + count));
+	return sum;
 }
 
 /** The names that the cells of the page link to and that the styles do not define, sorted. */
-export function unknownStyleLinks(
-	page: string,
-	styles: DeckStyles
-): string[] {
-	const known = new Set(styleNames(styles));
-	return [
-		...new Set(
-			linkedCells(page)
-				.map(({ link }) => link)
-				.filter((link) => !known.has(link))
-		),
-	].sort();
+export function unknownStyleLinks(page: string, styles: DeckStyles): string[] {
+	const known = new Set(namedStyles(styles).map(({ name }) => name));
+	const links = cellStyles(page)
+		.map(({ style }) => LINK_IN_STYLE.exec(style)?.[1])
+		.filter((link): link is string => !!link && !known.has(link));
+	return [...new Set(links)].sort();
 }
 
-/** The names of the styles of every kind. */
-export function styleNames(styles: DeckStyles): string[] {
-	return STYLE_KINDS.flatMap((kind) => Object.keys(styles[kind]));
+/** The styles of every kind, in the order of the setting. */
+export function namedStyles(styles: DeckStyles): NamedStyle[] {
+	return Object.entries(styles).flatMap(([kind, named]) =>
+		Object.entries(named).map(([name, style]) => ({ kind, name, style }))
+	);
 }
 
-/** The kind of the style of the name, or undefined when the styles do not define it. */
-export function kindOfStyle(
+/** The style of the name, or undefined when the styles do not define it. */
+export function styleNamed(
 	styles: DeckStyles,
 	name: string
-): StyleKind | undefined {
-	return STYLE_KINDS.find((kind) =>
-		Object.prototype.hasOwnProperty.call(styles[kind], name)
-	);
+): NamedStyle | undefined {
+	return namedStyles(styles).find((style) => style.name === name);
 }
 
 /**
  * The styles of a value of `drawSlidesCode.deckStyles`, with a line for each entry that they leave
- * out: a value that is no object, a kind other than `rectangles` and `wires`, a name that is not
- * letters and digits starting with a letter or that another kind holds as well, and a style that
- * is not a string. Each style keeps its keys of appearance alone.
+ * out: a value that is no object, a kind that is no name of a shape, a name that is not letters and
+ * digits starting with a letter or that an earlier style holds, and a style that is not a string.
+ * Each style keeps its keys of appearance alone.
  */
 export function readDeckStyles(
 	value: unknown,
 	rules: DeckStyleRules
 ): { readonly styles: DeckStyles; readonly problems: readonly string[] } {
 	const setting = "drawSlidesCode.deckStyles";
-	const problems = new Array<string>();
 	if (value === undefined) {
-		return { styles: NO_DECK_STYLES, problems };
+		return { styles: {}, problems: [] };
 	}
 	if (!isPlainObject(value)) {
 		return {
-			styles: NO_DECK_STYLES,
+			styles: {},
 			problems: [
-				`${setting} holds ${JSON.stringify(value)}, where an object of the kinds rectangles and wires was expected, so the deck has no style.`,
+				`${setting} holds ${JSON.stringify(value)}, where an object of kinds of geometry was expected, so the deck has no style.`,
 			],
 		};
 	}
-	Object.keys(value)
-		.filter((kind) => !(STYLE_KINDS as readonly string[]).includes(kind))
-		.forEach((kind) =>
-			problems.push(
-				`${setting} holds the kind ${JSON.stringify(kind)}, where rectangles or wires was expected, so its styles are left out.`
-			)
-		);
+	const problems = new Array<string>();
 	const seen = new Set<string>();
-	const styles = { rectangles: {}, wires: {} } as Record<
-		StyleKind,
-		Record<string, string>
-	>;
-	for (const kind of STYLE_KINDS) {
-		const given = value[kind];
-		if (given === undefined) {
+	const styles: Record<string, Record<string, string>> = {};
+	for (const [kind, given] of Object.entries(value)) {
+		if (!rules.isKind(kind)) {
+			problems.push(
+				`${setting} holds the kind ${JSON.stringify(kind)}, which is no name of a shape of draw.io, so its styles are left out.`
+			);
 			continue;
 		}
 		if (!isPlainObject(given)) {
@@ -230,7 +200,7 @@ export function readDeckStyles(
 				);
 			} else if (seen.has(name)) {
 				problems.push(
-					`${setting}.${kind} names a style ${name}, which another kind holds as well, so the second is left out.`
+					`${setting}.${kind} names a style ${name}, which an earlier kind holds as well, so this one is left out.`
 				);
 			} else if (typeof style !== "string") {
 				problems.push(
@@ -238,49 +208,48 @@ export function readDeckStyles(
 				);
 			} else {
 				seen.add(name);
-				styles[kind][name] = rules.appearanceOf(style);
+				styles[kind] = { ...styles[kind], [name]: rules.appearanceOf(style) };
 			}
 		}
 	}
 	return { styles, problems };
 }
 
-/** The cells of a text that link to a style, with the name of the style and whether the cell is an edge. */
-function linkedCells(
+/** The style of each cell of a text, unescaped, and whether the cell is an edge. */
+function cellStyles(
 	text: string
-): { readonly link: string; readonly isEdge: boolean }[] {
+): { readonly style: string; readonly isEdge: boolean }[] {
 	return [...text.matchAll(CELL_TAG)].flatMap(([tag]) => {
 		const escaped = STYLE_ATTRIBUTE.exec(tag)?.[2];
-		const link =
-			escaped === undefined
-				? undefined
-				: LINK_IN_STYLE.exec(unescapeAttribute(escaped))?.[1];
-		return link === undefined || link === ""
+		return escaped === undefined
 			? []
-			: [{ link, isEdge: EDGE.test(tag) }];
+			: [{ style: unescapeAttribute(escaped), isEdge: EDGE.test(tag) }];
 	});
 }
 
 function unescapeAttribute(text: string): string {
-	return text.replace(/&(quot|lt|gt|apos|amp|#x[0-9A-Fa-f]+|#\d+);/g, (_, entity: string) => {
-		switch (entity) {
-			case "quot":
-				return '"';
-			case "lt":
-				return "<";
-			case "gt":
-				return ">";
-			case "apos":
-				return "'";
-			case "amp":
-				return "&";
+	return text.replace(
+		/&(quot|lt|gt|apos|amp|#x[0-9A-Fa-f]+|#\d+);/g,
+		(_, entity: string) => {
+			switch (entity) {
+				case "quot":
+					return '"';
+				case "lt":
+					return "<";
+				case "gt":
+					return ">";
+				case "apos":
+					return "'";
+				case "amp":
+					return "&";
+			}
+			return String.fromCodePoint(
+				entity.startsWith("#x")
+					? parseInt(entity.slice(2), 16)
+					: parseInt(entity.slice(1), 10)
+			);
 		}
-		return String.fromCodePoint(
-			entity.startsWith("#x")
-				? parseInt(entity.slice(2), 16)
-				: parseInt(entity.slice(1), 10)
-		);
-	});
+	);
 }
 
 /** The text as the value of an attribute in double quotes, as draw.io escapes it. */

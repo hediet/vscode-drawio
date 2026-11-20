@@ -44,6 +44,10 @@ function box(id, x, y) {
 	return `<mxCell id="${id}" value="${id}" style="${escaped(BOX)}" vertex="1" parent="1"><mxGeometry x="${x}" y="${y}" width="200" height="100" as="geometry"/></mxCell>`;
 }
 
+function vertex(id, style, x, y) {
+	return `<mxCell id="${id}" value="${id}" style="${escaped(style)}" vertex="1" parent="1"><mxGeometry x="${x}" y="${y}" width="120" height="120" as="geometry"/></mxCell>`;
+}
+
 function wire(id, style, source, target, exitAndEntry) {
 	return (
 		`<mxCell id="${id}" value="${id}" style="${escaped(style + exitAndEntry)}" edge="1" parent="1" source="${source}" target="${target}">` +
@@ -60,6 +64,8 @@ const DIAGRAM =
 	wire("f1", FUNCTIONALITY, "a", "b", "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;") +
 	wire("f2", FUNCTIONALITY, "c", "d", "exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;") +
 	wire("r1", RESOURCE, "b", "d", "exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;") +
+	vertex("e1", "ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3;", 900, 100) +
+	vertex("e2", "whiteSpace=wrap;html=1;shape=ellipse;perimeter=ellipsePerimeter;fillColor=none;rotation=30;", 900, 400) +
 	"</root></mxGraphModel></diagram></mxfile>";
 
 /** A server of the files of draw.io and of the plugins of the slides, on a free port. */
@@ -167,12 +173,17 @@ async function sendStyles(page, deckStyles) {
 		);
 	}, deckStyles);
 	await page.waitForFunction(
-		(count) =>
-			window.drawSlidesCodeSettings.styles.wires.length +
-				window.drawSlidesCodeSettings.styles.rectangles.length ===
-			count,
-		deckStyles.wires.length + deckStyles.rectangles.length
+		(count) => window.drawSlidesCodeSettings.styles.length === count,
+		deckStyles.length
 	);
+}
+
+/** Renames the style through the button ✎ of its tile and the rename dialog of draw.io. */
+async function rename(section, page, name, newName) {
+	await section.locator(`[data-deck-style="${name}"] button:text("✎")`).click();
+	const field = page.locator(".geDialog input").first();
+	await field.fill(newName);
+	await field.press("Enter");
 }
 
 /** The style, the terminals, the geometry, the points and the label of each wire, as the editor holds and draws them. */
@@ -229,32 +240,29 @@ test("a wire style saved, given and updated in the editor keeps the terminals, t
 	const server = await serveEditor();
 	const baseUrl = `http://127.0.0.1:${server.address().port}`;
 	try {
-		const page = await openEditor(launched, baseUrl, { rectangles: [], wires: [] });
+		const page = await openEditor(launched, baseUrl, []);
 		const before = await wireStates(page);
 
 		// New style from selection on the functionality wire f1.
 		await select(page, ["f1"]);
 		const section = page.locator('.geFormatSection:has(.geCollapsibleTitle:text("Deck styles"))');
-		await section.locator('[data-deck-style-kind="wires"] button:text("New style from selection")').click();
+		await section.locator('[data-deck-style-kind="wire"] button:text("New style from selection")').click();
 		const [saved] = await sentEdits(page, 1);
 		assert.equal(saved.operation, "set");
-		assert.equal(saved.kind, "wires");
+		assert.equal(saved.kind, "wire");
 		assert.equal(saved.name, "wire1");
 		assert.deepEqual(geometryKeys(saved.style), []);
 		assert.equal(saved.style, rules.appearanceOf(FUNCTIONALITY));
-		await sendStyles(page, { rectangles: [], wires: [{ name: "wire1", style: saved.style }] });
+		await sendStyles(page, [{ kind: "wire", name: "wire1", style: saved.style }]);
 
 		// The same for the resource wire r1, which the extension saves as resourceWire.
 		await select(page, ["r1"]);
-		await section.locator('[data-deck-style-kind="wires"] button:text("New style from selection")').click();
+		await section.locator('[data-deck-style-kind="wire"] button:text("New style from selection")').click();
 		const resource = (await sentEdits(page, 2))[1];
-		await sendStyles(page, {
-			rectangles: [],
-			wires: [
-				{ name: "wire1", style: saved.style },
-				{ name: "wire2", style: resource.style },
-			],
-		});
+		await sendStyles(page, [
+			{ kind: "wire", name: "wire1", style: saved.style },
+			{ kind: "wire", name: "wire2", style: resource.style },
+		]);
 
 		// The functionality wire f2 takes wire1 with a click on its tile.
 		await select(page, ["f2"]);
@@ -305,7 +313,7 @@ test("a wire style saved, given and updated in the editor keeps the terminals, t
 		assert.deepEqual(update, {
 			event: "drawSlidesCodeEditStyle",
 			operation: "set",
-			kind: "wires",
+			kind: "wire",
 			name: "wire1",
 			style: saved.style.replace("endSize=3", "endSize=5"),
 		});
@@ -324,14 +332,14 @@ test("a rectangle style is listed for a selected rectangle alone, a removal and 
 	const server = await serveEditor();
 	const baseUrl = `http://127.0.0.1:${server.address().port}`;
 	try {
-		const page = await openEditor(launched, baseUrl, {
-			rectangles: [{ name: "box", style: rules.appearanceOf(BOX) }],
-			wires: [{ name: "wire1", style: rules.appearanceOf(FUNCTIONALITY) }],
-		});
+		const page = await openEditor(launched, baseUrl, [
+			{ kind: "rectangle", name: "box", style: rules.appearanceOf(BOX) },
+			{ kind: "wire", name: "wire1", style: rules.appearanceOf(FUNCTIONALITY) },
+		]);
 		const section = page.locator('.geFormatSection:has(.geCollapsibleTitle:text("Deck styles"))');
 		await select(page, ["a"]);
 		assert.equal(await section.locator("[data-deck-style-kind]").count(), 1);
-		assert.equal(await section.locator('[data-deck-style-kind="rectangles"] [data-deck-style]').count(), 1);
+		assert.equal(await section.locator('[data-deck-style-kind="rectangle"] [data-deck-style]').count(), 1);
 		const titles = await page.locator(".geFormatSection > .geCollapsibleTitle").allTextContents();
 		assert.equal(titles.indexOf("Deck styles"), titles.indexOf("Deck colors") + 1);
 		await section.locator('[data-deck-style="box"] button.geColorBtn').click();
@@ -339,8 +347,7 @@ test("a rectangle style is listed for a selected rectangle alone, a removal and 
 			await page.evaluate(() => window.testUi.editor.graph.getModel().getCell("a").style),
 			/deckStyle=box;$/
 		);
-		await section.locator('[data-deck-style="box"] input').fill("designProblem");
-		await section.locator('[data-deck-style="box"] input').press("Enter");
+		await rename(section, page, "box", "designProblem");
 		await select(page, []);
 		// With nothing selected, the section sits in the Style tab of the diagram.
 		await page.locator('.geFormatContainer >> text="Style"').first().click();
@@ -391,6 +398,74 @@ test("a rectangle style is listed for a selected rectangle alone, a removal and 
 		});
 		assert.equal(renamed.styles.length, 2);
 		assert.ok(renamed.styles.every((style) => style.endsWith("deckStyle=designProblem;")));
+		await page.close();
+	} finally {
+		server.close();
+	}
+});
+
+test("an ellipse style is saved from one ellipse and given to another, which keeps its own shape keys, and a tile holds its name and buttons under its preview", async (t) => {
+	const launched = await browserStarts;
+	if (launched === undefined) {
+		t.skip("no headless browser starts on this machine");
+		return;
+	}
+	const server = await serveEditor();
+	const baseUrl = `http://127.0.0.1:${server.address().port}`;
+	try {
+		const page = await openEditor(launched, baseUrl, [
+			{ kind: "wire", name: "functionalityWire", style: rules.appearanceOf(FUNCTIONALITY) },
+		]);
+		const section = page.locator('.geFormatSection:has(.geCollapsibleTitle:text("Deck styles"))');
+		await select(page, ["e1", "a"]);
+		assert.deepEqual(
+			await section.locator("[data-deck-style-kind]").evaluateAll((lists) => lists.map((list) => list.getAttribute("data-deck-style-kind"))),
+			["ellipse", "rectangle"]
+		);
+		await select(page, ["e1"]);
+		await section.locator('[data-deck-style-kind="ellipse"] button:text("New style from selection")').click();
+		const [saved] = await sentEdits(page, 1);
+		assert.deepEqual(saved, {
+			event: "drawSlidesCodeEditStyle",
+			operation: "set",
+			kind: "ellipse",
+			name: "ellipse1",
+			style: "whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3;",
+		});
+		await sendStyles(page, [
+			{ kind: "wire", name: "functionalityWire", style: rules.appearanceOf(FUNCTIONALITY) },
+			{ kind: "ellipse", name: "ellipse1", style: saved.style },
+		]);
+		await select(page, ["e2"]);
+		await section.locator('[data-deck-style="ellipse1"] button.geColorBtn').click();
+		assert.equal(
+			await page.evaluate(() => window.testUi.editor.graph.getModel().getCell("e2").style),
+			"whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3;shape=ellipse;perimeter=ellipsePerimeter;rotation=30;deckStyle=ellipse1;"
+		);
+		// The preview of the tile draws an ellipse, and the name and the buttons sit under it, inside the tile.
+		await page.waitForFunction(() => document.querySelector('[data-deck-style="ellipse1"] svg ellipse') !== null);
+		const boxes = await section.locator('[data-deck-style="ellipse1"]').evaluate((tile) => {
+			const box = (element) => {
+				const rect = element.getBoundingClientRect();
+				return { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right };
+			};
+			return {
+				tile: box(tile),
+				preview: box(tile.querySelector("button.geColorBtn")),
+				name: box(tile.querySelector(".deckStyleName")),
+				buttons: [...tile.querySelectorAll("button:not(.geColorBtn)")].map(box),
+			};
+		});
+		assert.ok(boxes.name.top >= boxes.preview.bottom, "the name is under the preview");
+		for (const button of boxes.buttons) {
+			assert.ok(button.top >= boxes.name.bottom, "each button is under the name");
+		}
+		for (const part of [boxes.preview, boxes.name, ...boxes.buttons]) {
+			assert.ok(
+				part.left >= boxes.tile.left && part.right <= boxes.tile.right && part.bottom <= boxes.tile.bottom,
+				"each part is inside the tile"
+			);
+		}
 		await page.close();
 	} finally {
 		server.close();

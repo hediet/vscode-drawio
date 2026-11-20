@@ -23,7 +23,7 @@ import {
 	withColorEditInSettings,
 } from "./deckColorEdits";
 import { colorDefinition, mathCommandLines } from "../deck/texDefinitions";
-import { DeckStyleRules, readDeckStyles } from "../deck/deckStyles";
+import { DeckStyleRules, namedStyles, readDeckStyles } from "../deck/deckStyles";
 import {
 	RefusedStyleEdit,
 	withStyleEdit,
@@ -62,7 +62,7 @@ interface DeckColor {
  * definitions of MathJax before the commands that MathJax lacks, the presets and the names of the color picker with the
  * colors added, and the swatches of `drawSlidesCode.customColorSchemes`, the list styles and the
  * list markers, in which each name of a color stands for its value, and the styles of
- * `drawSlidesCode.deckStyles` by kind.
+ * `drawSlidesCode.deckStyles` with their kinds, in the order of the setting.
  */
 export function readLiveSlideSettings(
 	config: DiagramConfig,
@@ -155,10 +155,7 @@ export function readLiveSlideSettings(
 			presetColors: withColorPresets(config.presetColors, colors),
 			colorNames: withColorNames(config.colorNames, colors),
 			colorSchemes,
-			styles: {
-				rectangles: styleList(styles.styles.rectangles),
-				wires: styleList(styles.styles.wires),
-			},
+			styles: namedStyles(styles.styles),
 		},
 		problems,
 	};
@@ -262,13 +259,6 @@ async function plannedSettingsWrite(
 			);
 		}
 	};
-}
-
-/** The styles of one kind as a list in the order of the setting. */
-function styleList(
-	named: Readonly<Record<string, string>>
-): { name: string; style: string }[] {
-	return Object.entries(named).map(([name, style]) => ({ name, style }));
 }
 
 /**

@@ -89,13 +89,24 @@ test("a key beside a link to a color counts as the style's while both link to th
 	assert.equal(values.deckStrokeColor, "dpred");
 });
 
-test("a rectangle is a vertex without a shape or with the shape rect, and an edge is a wire", () => {
-	assert.equal(rules.kindOf("rounded=1;whiteSpace=wrap;html=1;", false), "rectangles");
-	assert.equal(rules.kindOf("shape=rect;", false), "rectangles");
-	assert.equal(rules.kindOf("ellipse;whiteSpace=wrap;", false), null);
-	assert.equal(rules.kindOf("text;html=1;", false), null);
-	assert.equal(rules.kindOf("shape=image;", false), null);
-	assert.equal(rules.kindOf("text;html=1;", true), "wires");
+test("the kind of a vertex is its shape, its first name of the stylesheet or rectangle, and an edge is a wire", () => {
+	assert.equal(rules.kindOf("rounded=1;whiteSpace=wrap;html=1;", false), "rectangle");
+	assert.equal(rules.kindOf("shape=rect;", false), "rectangle");
+	assert.equal(rules.kindOf("ellipse;whiteSpace=wrap;", false), "ellipse");
+	assert.equal(rules.kindOf("whiteSpace=wrap;shape=ellipse;perimeter=ellipsePerimeter;", false), "ellipse");
+	assert.equal(rules.kindOf("text;html=1;", false), "text");
+	assert.equal(rules.kindOf("shape=mxgraph.flowchart.decision;", false), "mxgraph.flowchart.decision");
+	assert.equal(rules.kindOf("group;", false), null);
+	assert.equal(rules.kindOf("text;html=1;", true), "wire");
+});
+
+test("a style of a kind holds no key that decides the kind, so each cell of the kind keeps its own shape", () => {
+	const saved = rules.appearanceOf("ellipse;whiteSpace=wrap;fillColor=#FFFFFF;strokeWidth=3;");
+	assert.equal(saved, "whiteSpace=wrap;fillColor=#FFFFFF;strokeWidth=3;");
+	const given = rules.given("shape=ellipse;perimeter=ellipsePerimeter;fillColor=none;rotation=30;", "dot", saved);
+	assert.equal(given, "whiteSpace=wrap;fillColor=#FFFFFF;strokeWidth=3;shape=ellipse;perimeter=ellipsePerimeter;rotation=30;deckStyle=dot;");
+	assert.equal(rules.kindOf(given, false), "ellipse");
+	assert.equal(rules.given("ellipse;fillColor=none;", "dot", saved), "ellipse;whiteSpace=wrap;fillColor=#FFFFFF;strokeWidth=3;deckStyle=dot;");
 });
 
 test("an edit of a page reaches the cells linked to the style alone, with the style escaped as draw.io writes it", () => {
@@ -119,11 +130,8 @@ test("an edit of a page reaches the cells linked to the style alone, with the st
 	assert.equal(edited, text.replace(escaped(linked), escaped(rules.updated(linked, before, after))));
 	assert.match(edited, /source="s" target="t"/);
 	assert.match(edited, /<mxPoint x="1" y="2"\/>/);
-	assert.deepEqual(styles.styleUsesInDrawing(edited, "functionalityWire"), {
-		rectangles: 0,
-		wires: 1,
-	});
-	assert.deepEqual(styles.styleUsesInDrawing(edited, "box"), { rectangles: 1, wires: 0 });
+	assert.deepEqual(styles.styleUsesInDrawing(edited, "functionalityWire", rules), new Map([["wire", 1]]));
+	assert.deepEqual(styles.styleUsesInDrawing(edited, "box", rules), new Map([["rectangle", 1]]));
 	const renamed = styles.withStyleUseEditsInDrawing(
 		edited,
 		[{ operation: "rename", name: "box", newName: "container" }],
@@ -137,7 +145,7 @@ test("an edit of a page reaches the cells linked to the style alone, with the st
 	);
 	assert.match(removed, /style="rounded=1;"/);
 	assert.deepEqual(
-		styles.unknownStyleLinks(renamed, { rectangles: {}, wires: { functionalityWire: before } }),
+		styles.unknownStyleLinks(renamed, { wire: { functionalityWire: before } }),
 		["container"]
 	);
 });
@@ -145,13 +153,14 @@ test("an edit of a page reaches the cells linked to the style alone, with the st
 test("the setting gives each kind its styles, and names each entry that it leaves out", () => {
 	const { styles: read, problems } = styles.readDeckStyles(
 		{
-			rectangles: { box: "rounded=1;exitX=0;", "2bad": "x=1;" },
-			wires: { box: "dashed=1;", wire: 3 },
-			ellipses: {},
+			rectangle: { box: "rounded=1;exitX=0;", "2bad": "x=1;" },
+			wire: { box: "dashed=1;", wire: 3 },
+			ellipse: { dot: "ellipse;fillColor=#000000;" },
+			"no kind": {},
 		},
 		rules
 	);
-	assert.deepEqual(read, { rectangles: { box: "rounded=1;" }, wires: {} });
+	assert.deepEqual(read, { rectangle: { box: "rounded=1;" }, ellipse: { dot: "fillColor=#000000;" } });
 	assert.equal(problems.length, 4);
 });
 
@@ -169,7 +178,7 @@ test("the assembly warns of a link to a style that the setting does not define, 
 	const assembled = assembly.assembleDeck(slides, {
 		project,
 		colors: new Map(),
-		styles: { rectangles: { box: "rounded=1;" }, wires: {} },
+		styles: { rectangle: { box: "rounded=1;" } },
 		missingCommands: new Map(),
 		pictures: new Map(),
 	});

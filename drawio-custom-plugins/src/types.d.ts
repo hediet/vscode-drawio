@@ -114,13 +114,10 @@ declare interface SlideSettingsAction {
             font?: string;
         }[][];
         /**
-         * The styles of `drawSlidesCode.deckStyles` by kind of geometry, each list in the order of
-         * the setting.
+         * The styles of `drawSlidesCode.deckStyles`, each with its kind of geometry, such as `wire`,
+         * `rectangle` or `ellipse`, in the order of the setting.
          */
-        styles: {
-            rectangles: { name: string; style: string }[];
-            wires: { name: string; style: string }[];
-        };
+        styles: { kind: string; name: string; style: string }[];
     };
 }
 
@@ -143,7 +140,7 @@ declare type DeckColorEditEvent = { event: "drawSlidesCodeEditColor" } & DeckCol
  * new name, and `remove` takes a style out and leaves its keys in the cells linked to it.
  */
 declare type DeckStyleEdit =
-    | { operation: "set"; kind: "rectangles" | "wires"; name: string; style: string }
+    | { operation: "set"; kind: string; name: string; style: string }
     | { operation: "rename"; name: string; newName: string }
     | { operation: "remove"; name: string };
 

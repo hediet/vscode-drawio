@@ -41,7 +41,7 @@ import {
 import { RefusedColorEdit } from "./deckColorEdits";
 import { writeDeckColorEditWithUses } from "./deckColorUseEdits";
 import { DeckColorValueWatch } from "./deckColorValueWatch";
-import { DeckStyleRules, loadDeckStyleRules } from "../deck/deckStyles";
+import { DeckStyleRules, DeckStyles, loadDeckStyleRules } from "../deck/deckStyles";
 import { RefusedStyleEdit } from "./deckStyleEdits";
 import { writeDeckStyleEditWithUses } from "./deckStyleUseEdits";
 import { COLOR_LINK_KEYS, TEXT_COLOR_LINK } from "../deck/deckColors";
@@ -657,8 +657,6 @@ export class DrawioClientFactory {
 		deckFolder: Uri,
 		styles: LiveSlideSettings["styles"]
 	): Promise<void> {
-		const named = (list: { name: string; style: string }[]) =>
-			Object.fromEntries(list.map(({ name, style }) => [name, style]));
 		try {
 			const write = await plannedStyleSettingsWrite(
 				config,
@@ -672,10 +670,7 @@ export class DrawioClientFactory {
 					...(this.deckColorWatches.get(deckFolder.fsPath)?.drawings ??
 						[]),
 				]),
-				{
-					rectangles: named(styles.rectangles),
-					wires: named(styles.wires),
-				},
+				stylesByKind(styles),
 				this.styleRules,
 				write
 			);
@@ -918,6 +913,15 @@ function slideSettingsScript(
 			colorLinks,
 		})};`
 	);
+}
+
+/** The styles of the live settings, by kind, as the setting holds them. */
+function stylesByKind(styles: LiveSlideSettings["styles"]): DeckStyles {
+	const byKind: Record<string, Record<string, string>> = {};
+	for (const { kind, name, style } of styles) {
+		byKind[kind] = { ...byKind[kind], [name]: style };
+	}
+	return byKind;
 }
 
 function getNonce(): string {
