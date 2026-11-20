@@ -60,6 +60,7 @@ import {
 	Section,
 } from "./deckFiles";
 import { DeckError, failureText } from "./deckError";
+import { loadDeckStyleRules, readDeckStyles } from "./deckStyles";
 import { embedSlideFilePictures } from "./deckPictures";
 import {
 	DECK_SETTINGS,
@@ -86,6 +87,7 @@ import { readMissingCommands } from "./texDefinitions";
 const SLIDES = path.join("build", "slides");
 const MATHJAX_COMMANDS = "mathjax-commands.tex";
 const LIST_MARKER_RULES = "list-marker-rules.js";
+const DECK_STYLE_RULES = "deck-style-rules.js";
 
 /** What every mode of the build takes. */
 export interface DeckBuildOptions {
@@ -220,6 +222,14 @@ async function exportSlides(
 		colors.value
 	);
 	reportWarnings(reporter, listStyles.warnings);
+	const deckStyles = readDeckStyles(
+		settings["drawSlidesCode.deckStyles"],
+		loadDeckStyleRules(pluginFile(extensionRoot, DECK_STYLE_RULES))
+	);
+	reportWarnings(
+		reporter,
+		deckStyles.problems.map((problem) => problem.replace(/\.$/, ""))
+	);
 	throwIfCancelled(signal);
 	const pictures = await takePagePictures({
 		slides,
@@ -234,6 +244,7 @@ async function exportSlides(
 	const written = writeAssembly(slides, {
 		project,
 		colors: colors.value,
+		styles: deckStyles.styles,
 		missingCommands: readMissingCommands(
 			commandsFile,
 			fs.readFileSync(commandsFile, "utf8")

@@ -35,11 +35,15 @@ import {
 	SlideTemplate,
 	templateFiles,
 	checkDeckColorEdit,
+	plannedStyleSettingsWrite,
 	writeDeckColorEdit,
 } from "./slideSettings";
 import { RefusedColorEdit } from "./deckColorEdits";
 import { writeDeckColorEditWithUses } from "./deckColorUseEdits";
 import { DeckColorValueWatch } from "./deckColorValueWatch";
+import { DeckStyleRules, loadDeckStyleRules } from "../deck/deckStyles";
+import { RefusedStyleEdit } from "./deckStyleEdits";
+import { writeDeckStyleEditWithUses } from "./deckStyleUseEdits";
 import { COLOR_LINK_KEYS, TEXT_COLOR_LINK } from "../deck/deckColors";
 import { deckDrawingFiles, deckSectionFiles } from "../deck/deckColorFiles";
 import * as path from "path";
@@ -93,6 +97,21 @@ export class DrawioClientFactory {
 		private readonly extensionUri: Uri
 	) { }
 
+	private loadedStyleRules: DeckStyleRules | undefined;
+
+	/** The rules of the styles of a deck, from `deck-style-rules.js` of the extension, read once. */
+	private get styleRules(): DeckStyleRules {
+		this.loadedStyleRules ??= loadDeckStyleRules(
+			Uri.joinPath(
+				this.extensionUri,
+				"drawio-custom-plugins",
+				"slides",
+				"deck-style-rules.js"
+			).fsPath
+		);
+		return this.loadedStyleRules;
+	}
+
 	public async createDrawioClientInWebview(
 		uri: Uri,
 		webviewPanel: WebviewPanel,
@@ -106,7 +125,11 @@ export class DrawioClientFactory {
 		// `updateSlideTemplates` and reloads no webview, which would lose the zoom and the undo.
 		let slideTemplates = slides?.templates ?? [];
 		const readLiveSettings = () =>
-			slides && readLiveSlideSettings(config, slides.mathCommands);
+			slides && readLiveSlideSettings(
+				config,
+				slides.mathCommands,
+				this.styleRules
+			);
 		// The live settings that the HTML of the webview holds, which the configuration of
 		// draw.io takes as well, so that the two agree at every load of the page, also at a load
 		// that VS Code starts from the same HTML.
@@ -303,6 +326,22 @@ export class DrawioClientFactory {
 			});
 		}
 
+		if (slides) {
+			let pendingStyleEdit = Promise.resolve();
+			drawioClient.onDeckStyleEdit.sub(({ edit }) => {
+				pendingStyleEdit = pendingStyleEdit
+					.then(() =>
+						this.editDeckStyles(
+							config,
+							edit,
+							slides.deckFolder,
+							untracked(readLiveSettings)!.settings.styles
+						)
+					)
+					.catch((error) => this.log.appendLine(`${error}`));
+			});
+		}
+
 		const templateWatchers = slides
 			? this.watchTemplates(config, slides.deckFolder, (templates) => {
 					slideTemplates = templates;
@@ -394,7 +433,8 @@ export class DrawioClientFactory {
 				new Map(
 					readLiveSlideSettings(
 						[...drawings][0] ?? config,
-						[]
+						[],
+						this.styleRules
 					).settings.colors.map(({ name, value }) => [name, value])
 				),
 			() => this.deckDrawingFiles(deckFolder, [...drawings]),
@@ -582,6 +622,50 @@ export class DrawioClientFactory {
 			const message = error instanceof Error ? error.message : `${error}`;
 			this.log.appendLine(message);
 			if (error instanceof RefusedColorEdit) {
+				window.showWarningMessage(message);
+			} else {
+				window.showErrorMessage(message);
+			}
+		}
+	}
+
+	/**
+	 * Writes an edit of the styles that the section Deck styles of the Format panel sends into the
+	 * settings and into the cells linked to the style in the drawing files of the deck, after a
+	 * question before a removal, and says in VS Code why the extension refuses an edit.
+	 */
+	private async editDeckStyles(
+		config: DiagramConfig,
+		edit: DeckStyleEdit,
+		deckFolder: Uri,
+		styles: LiveSlideSettings["styles"]
+	): Promise<void> {
+		const named = (list: { name: string; style: string }[]) =>
+			Object.fromEntries(list.map(({ name, style }) => [name, style]));
+		try {
+			const write = await plannedStyleSettingsWrite(
+				config,
+				edit,
+				this.styleRules
+			);
+			await writeDeckStyleEditWithUses(
+				edit,
+				await this.deckDrawingFiles(deckFolder, [
+					config,
+					...(this.deckColorWatches.get(deckFolder.fsPath)?.drawings ??
+						[]),
+				]),
+				{
+					rectangles: named(styles.rectangles),
+					wires: named(styles.wires),
+				},
+				this.styleRules,
+				write
+			);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : `${error}`;
+			this.log.appendLine(message);
+			if (error instanceof RefusedStyleEdit) {
 				window.showWarningMessage(message);
 			} else {
 				window.showErrorMessage(message);

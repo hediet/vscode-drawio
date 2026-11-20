@@ -54,6 +54,12 @@ export class CustomizedDrawioClient extends DrawioClient<
 	/** An edit of the colors of the deck, which `deck-colors-section.plugin.js` sends. */
 	public readonly onDeckColorEdit = this.onDeckColorEditEmitter.asEvent();
 
+	private readonly onDeckStyleEditEmitter = new EventEmitter<{
+		edit: DeckStyleEdit;
+	}>();
+	/** An edit of the styles of the deck, which `deck-styles-section.plugin.js` sends. */
+	public readonly onDeckStyleEdit = this.onDeckStyleEditEmitter.asEvent();
+
 	public linkSelectedNodeWithData(linkedData: unknown) {
 		this.sendCustomAction({
 			action: "linkSelectedNodeWithData",
@@ -145,6 +151,8 @@ export class CustomizedDrawioClient extends DrawioClient<
 			});
 		} else if (evt.event === "drawSlidesCodeEditColor") {
 			this.onDeckColorEditEmitter.emit({ edit: evt });
+		} else if (evt.event === "drawSlidesCodeEditStyle") {
+			this.onDeckStyleEditEmitter.emit({ edit: evt });
 		} else {
 			await super.handleEvent(evt);
 		}

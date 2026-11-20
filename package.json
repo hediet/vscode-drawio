@@ -699,6 +699,35 @@
 							"patternErrorMessage": "A color is `#` and six hexadecimal digits, such as `#004D80`."
 						}
 					},
+					"drawSlidesCode.deckStyles": {
+						"type": "object",
+						"scope": "resource",
+						"default": {},
+						"description": "The styles of a deck, by kind of geometry: `rectangles` and `wires`, each an object of names of letters and digits that start with a letter to style strings of draw.io, such as `\"rounded=1;strokeWidth=3;\"`. A name stands for one style across both kinds. In a drawing whose `drawSlidesCode.slides` is true, the section Deck styles of the Format panel lists the styles, gives one to the selected rectangles or wires, saves one from a selected cell, updates every cell of the deck linked to a style, and renames and removes a style. A cell linked to a style holds `deckStyle=<name>` beside the keys of the style. A style holds keys of appearance alone, never the keys of geometry `exitX`, `exitY`, `entryX`, `entryY` and their `Dx`, `Dy` and `Perimeter`, `sourcePort`, `targetPort` and `rotation`.",
+						"properties": {
+							"rectangles": {
+								"type": "object",
+								"propertyNames": {
+									"pattern": "^[A-Za-z][A-Za-z0-9]*$",
+									"patternErrorMessage": "A name of a style is letters and digits and starts with a letter."
+								},
+								"additionalProperties": {
+									"type": "string"
+								}
+							},
+							"wires": {
+								"type": "object",
+								"propertyNames": {
+									"pattern": "^[A-Za-z][A-Za-z0-9]*$",
+									"patternErrorMessage": "A name of a style is letters and digits and starts with a letter."
+								},
+								"additionalProperties": {
+									"type": "string"
+								}
+							}
+						},
+						"additionalProperties": false
+					},
 					"drawSlidesCode.plugins": {
 						"type": "array",
 						"items": {

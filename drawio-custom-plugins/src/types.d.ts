@@ -4,7 +4,7 @@ declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | Get
     | SlideTemplatesAction | SlideSettingsAction;
 declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent
     | UpdateLocalStorage | PluginLoaded | CursorChangedEvent | SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent | SelectionRectangleChangedEvent
-    | DeckColorEditEvent;
+    | DeckColorEditEvent | DeckStyleEditEvent;
 
 declare interface InvokeCommandEvent {
     event: "invokeCommand";
@@ -113,6 +113,14 @@ declare interface SlideSettingsAction {
             gradient?: string;
             font?: string;
         }[][];
+        /**
+         * The styles of `drawSlidesCode.deckStyles` by kind of geometry, each list in the order of
+         * the setting.
+         */
+        styles: {
+            rectangles: { name: string; style: string }[];
+            wires: { name: string; style: string }[];
+        };
     };
 }
 
@@ -127,6 +135,19 @@ declare type DeckColorEdit =
     | { operation: "remove"; name: string };
 
 declare type DeckColorEditEvent = { event: "drawSlidesCodeEditColor" } & DeckColorEdit;
+
+/**
+ * An edit of the styles of a deck, which `deck-styles-section.plugin.js` sends and the extension
+ * writes into `drawSlidesCode.deckStyles`: `set` gives a style of a kind, new or not, its style
+ * string, and the cells linked to a style that exists take the change, `rename` gives a style a
+ * new name, and `remove` takes a style out and leaves its keys in the cells linked to it.
+ */
+declare type DeckStyleEdit =
+    | { operation: "set"; kind: "rectangles" | "wires"; name: string; style: string }
+    | { operation: "rename"; name: string; newName: string }
+    | { operation: "remove"; name: string };
+
+declare type DeckStyleEditEvent = { event: "drawSlidesCodeEditStyle" } & DeckStyleEdit;
 
 /** The setting `drawSlidesCode.listStyles`. */
 declare interface SlideListStyles {

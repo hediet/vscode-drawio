@@ -38,6 +38,7 @@ import {
 	titleOf,
 } from "./deckFiles";
 import { withLinkedColorValues } from "./deckColorLinks";
+import { DeckStyles, NO_DECK_STYLES, unknownStyleLinks } from "./deckStyles";
 import { colorNamesOf, formulasOfPage } from "./formulaColors";
 import { embedPictures } from "./deckPictures";
 import { PagePictures, withPagePictures } from "./pageSnapshots";
@@ -125,6 +126,8 @@ export interface AssemblyInputs {
 	readonly project: string;
 	/** The colors of `drawSlidesCode.colors`, name to `#RRGGBB`. */
 	readonly colors: ReadonlyMap<string, string>;
+	/** The styles of `drawSlidesCode.deckStyles`, whose names the links of the cells may name. */
+	readonly styles?: DeckStyles;
 	/** The commands that MathJax lacks, name to body. */
 	readonly missingCommands: ReadonlyMap<string, string>;
 	readonly pictures: PagePictures;
@@ -379,6 +382,17 @@ export function assembleDeck(
 				`${where}, links colors to ${linked.unknown.join(
 					", "
 				)}, which the setting drawSlidesCode.colors does not define, so they keep the values beside the links`
+			);
+		}
+		const unknownStyles = unknownStyleLinks(
+			slide.diagram,
+			inputs.styles ?? NO_DECK_STYLES
+		);
+		if (unknownStyles.length > 0) {
+			warnings.push(
+				`${where}, links cells to the styles ${unknownStyles.join(
+					", "
+				)}, which the setting drawSlidesCode.deckStyles does not define, so they keep the keys written in them`
 			);
 		}
 		warnings.push(

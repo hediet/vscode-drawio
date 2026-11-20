@@ -5,12 +5,14 @@ import {
 	LIST_KINDS,
 	SCHEME_COLOR_KEYS,
 } from "../deck/deckColors";
+import { ColorUseEdit, withLinkedStyleStringEdit } from "../deck/deckColorLinks";
 
 export { COLOR_NAME, COLOR_VALUE, LIST_KINDS, SCHEME_COLOR_KEYS };
 
 const COLORS = "drawSlidesCode.colors";
 const LIST_STYLES = "drawSlidesCode.listStyles";
 const COLOR_SCHEMES = "drawSlidesCode.customColorSchemes";
+const DECK_STYLES = "drawSlidesCode.deckStyles";
 const OPERATIONS: Record<DeckColorEdit["operation"], true> = {
 	set: true,
 	rename: true,
@@ -54,7 +56,9 @@ export function withColorEdit(
 /**
  * The text of a settings file of VS Code after the edit of its member `drawSlidesCode.colors`, with
  * every other member and every comment as they were. A rename also renames the color where
- * `drawSlidesCode.listStyles` and `drawSlidesCode.customColorSchemes` of the file name it.
+ * `drawSlidesCode.listStyles` and `drawSlidesCode.customColorSchemes` of the file name it. Each
+ * style of `drawSlidesCode.deckStyles` of the file that links to the color takes the edit as a
+ * linked cell does: the new value, the new name, or the last value without the link.
  */
 export function withColorEditInSettings(
 	text: string,
@@ -77,13 +81,27 @@ export function withColorEditInSettings(
 	if (edit.operation === "rename" && edit.newName === edit.name) {
 		return text;
 	}
+	return withStyleColorLinksEdited(
+		withColorsEdited(text, root!, edit, options),
+		useEditOf(edit, colors),
+		options
+	);
+}
+
+/** The text of a settings file after the edit of `drawSlidesCode.colors` and of the settings that name a color. */
+function withColorsEdited(
+	text: string,
+	root: jsoncParser.Node,
+	edit: DeckColorEdit,
+	options: jsoncParser.ModificationOptions
+): string {
 	if (edit.operation === "set") {
 		return jsoncParser.applyEdits(
 			text,
 			jsoncParser.modify(text, [COLORS, edit.name], edit.value, options)
 		);
 	}
-	const property = jsoncParser.findNodeAtLocation(root!, [COLORS, edit.name])!
+	const property = jsoncParser.findNodeAtLocation(root, [COLORS, edit.name])!
 		.parent!;
 	if (edit.operation === "remove") {
 		return withoutProperty(text, property);
@@ -100,6 +118,59 @@ export function withColorEditInSettings(
 				jsoncParser.modify(result, path, edit.newName, options)
 			),
 		renamed
+	);
+}
+
+/** The edit of the linked uses of a color that an edit of the colors makes. */
+function useEditOf(
+	edit: DeckColorEdit,
+	colors: Record<string, unknown>
+): ColorUseEdit {
+	switch (edit.operation) {
+		case "set":
+			return edit;
+		case "rename":
+			return edit;
+		case "remove":
+			return { ...edit, value: String(colors[edit.name]) };
+	}
+}
+
+/**
+ * The text of a settings file with each style of `drawSlidesCode.deckStyles` that links to the
+ * color edited as a linked cell is.
+ */
+function withStyleColorLinksEdited(
+	text: string,
+	edit: ColorUseEdit,
+	options: jsoncParser.ModificationOptions
+): string {
+	const root = parseSettings(text);
+	const node = root && jsoncParser.findNodeAtLocation(root, [DECK_STYLES]);
+	const styles: unknown = node && jsoncParser.getNodeValue(node);
+	if (!isPlainObject(styles)) {
+		return text;
+	}
+	const changes = Object.entries(styles).flatMap(([kind, named]) =>
+		isPlainObject(named)
+			? Object.entries(named).flatMap(([name, style]) => {
+					if (typeof style !== "string") {
+						return [];
+					}
+					const edited = withLinkedStyleStringEdit(style, edit);
+					return edited === style
+						? []
+						: [{ path: [DECK_STYLES, kind, name], edited }];
+			  })
+			: []
+	);
+	return changes.reduce(
+		(result, { path, edited }) =>
+			jsoncParser.applyEdits(
+				result,
+				jsoncParser.modify(result, path, edited, options)
+			),
+		text
 	);
 }
 
@@ -173,7 +244,7 @@ function checkColorEdit(
  * left on it. The comments around the member stay, which `jsoncParser.modify` removes before the
  * first member of an object.
  */
-function withoutProperty(text: string, property: jsoncParser.Node): string {
+export function withoutProperty(text: string, property: jsoncParser.Node): string {
 	const siblings = property.parent!.children!;
 	const index = siblings.indexOf(property);
 	const start = property.offset;
@@ -224,7 +295,7 @@ function nextTokenOffset(text: string, offset: number): number {
 	return offset + scanner.getTokenOffset();
 }
 
-function parseSettings(text: string): jsoncParser.Node | undefined {
+export function parseSettings(text: string): jsoncParser.Node | undefined {
 	if (jsoncParser.stripComments(text).trim() === "") {
 		return undefined;
 	}
@@ -296,7 +367,7 @@ function pathsNamingColor(
 }
 
 /** The indentation and the line ends of a settings file, which an added member follows. */
-function formattingOf(text: string): jsoncParser.FormattingOptions {
+export function formattingOf(text: string): jsoncParser.FormattingOptions {
 	const indent = /^([ \t]+)\S/m.exec(text)?.[1] ?? "  ";
 	return {
 		insertSpaces: !indent.includes("\t"),
@@ -313,6 +384,6 @@ function hasColor(colors: Record<string, unknown>, name: string): boolean {
 	return Object.prototype.hasOwnProperty.call(colors, name);
 }
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
+export function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }

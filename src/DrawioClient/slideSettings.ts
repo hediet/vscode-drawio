@@ -23,6 +23,12 @@ import {
 	withColorEditInSettings,
 } from "./deckColorEdits";
 import { colorDefinition, mathCommandLines } from "../deck/texDefinitions";
+import { DeckStyleRules, readDeckStyles } from "../deck/deckStyles";
+import {
+	RefusedStyleEdit,
+	withStyleEdit,
+	withStyleEditInSettings,
+} from "./deckStyleEdits";
 
 /**
  * The settings of a deck that the slide plugins follow without a reload, which the extension
@@ -55,11 +61,13 @@ interface DeckColor {
  * The live settings of a drawing: the valid colors of `drawSlidesCode.colors`, the same colors as
  * definitions of MathJax before the commands that MathJax lacks, the presets and the names of the color picker with the
  * colors added, and the swatches of `drawSlidesCode.customColorSchemes`, the list styles and the
- * list markers, in which each name of a color stands for its value.
+ * list markers, in which each name of a color stands for its value, and the styles of
+ * `drawSlidesCode.deckStyles` by kind.
  */
 export function readLiveSlideSettings(
 	config: DiagramConfig,
-	mathCommands: readonly string[]
+	mathCommands: readonly string[],
+	styleRules: DeckStyleRules
 ): LiveSlideSettingsReading {
 	const structureProblems = new Array<string>();
 	const entries = isPlainObject(config.colors)
@@ -113,8 +121,10 @@ export function readLiveSlideSettings(
 		.filter(isColorName);
 	const unknownSchemeColors =
 		schemeColors(colorSchemes).filter(isColorName);
+	const styles = readDeckStyles(config.deckStyles, styleRules);
 	const problems = [
 		...structureProblems,
+		...styles.problems,
 		...entries
 			.filter((entry) => !isValidColor(entry))
 			.map(([name, value]) => invalidColorProblem(name, value)),
@@ -145,6 +155,10 @@ export function readLiveSlideSettings(
 			presetColors: withColorPresets(config.presetColors, colors),
 			colorNames: withColorNames(config.colorNames, colors),
 			colorSchemes,
+			styles: {
+				rectangles: styleList(styles.styles.rectangles),
+				wires: styleList(styles.styles.wires),
+			},
 		},
 		problems,
 	};
@@ -245,6 +259,82 @@ async function plannedSettingsWrite(
 		) {
 			throw new Error(
 				`VS Code did not write ${settingsFile.fsPath}, so drawSlidesCode.colors stays as it is.`
+			);
+		}
+	};
+}
+
+/** The styles of one kind as a list in the order of the setting. */
+function styleList(
+	named: Readonly<Record<string, string>>
+): { name: string; style: string }[] {
+	return Object.entries(named).map(([name, style]) => ({ name, style }));
+}
+
+/**
+ * Writes an edit of the styles of a drawing into `drawSlidesCode.deckStyles` of the
+ * `.vscode/settings.json` of its workspace folder, as a text edit of that member, so every comment
+ * of the file stays, and VS Code writes the whole setting at the scope of the workspace folder when
+ * the file is missing. Returns the write, after the checks that raise `RefusedStyleEdit` for an
+ * edit that the extension does not write, so that the caller asks before it writes. The write
+ * raises `Error` when VS Code does not save the file.
+ */
+export async function plannedStyleSettingsWrite(
+	config: DiagramConfig,
+	edit: DeckStyleEdit,
+	rules: DeckStyleRules
+): Promise<() => Promise<void>> {
+	const setting = "drawSlidesCode.deckStyles";
+	const folder = workspace.getWorkspaceFolder(config.uri);
+	if (folder === undefined) {
+		throw new RefusedStyleEdit(
+			`The drawing ${config.uri.fsPath} lies in no workspace folder, so no .vscode/settings.json holds the styles of its deck.`
+		);
+	}
+	const settingsFile = Uri.joinPath(folder.uri, ".vscode", "settings.json");
+	const document = await openExistingDocument(settingsFile);
+	if (document === undefined) {
+		const value = workspace
+			.getConfiguration(undefined, config.uri)
+			.inspect(setting)?.workspaceFolderValue;
+		const styles = withStyleEdit(
+			isPlainObject(value) ? value : {},
+			edit,
+			rules
+		);
+		return async () => {
+			await workspace
+				.getConfiguration(undefined, config.uri)
+				.update(setting, styles, ConfigurationTarget.WorkspaceFolder);
+		};
+	}
+	if (document.isDirty) {
+		throw new RefusedStyleEdit(
+			`${settingsFile.fsPath} has changes that are not saved, so ${setting} stays as it is.`
+		);
+	}
+	const text = document.getText();
+	const edited = withStyleEditInSettings(text, edit, rules);
+	return async () => {
+		if (edited === text) {
+			return;
+		}
+		const change = changedPart(text, edited);
+		const workspaceEdit = new WorkspaceEdit();
+		workspaceEdit.replace(
+			settingsFile,
+			new Range(
+				document.positionAt(change.start),
+				document.positionAt(change.end)
+			),
+			change.text
+		);
+		if (
+			!(await workspace.applyEdit(workspaceEdit)) ||
+			!(await document.save())
+		) {
+			throw new Error(
+				`VS Code did not write ${settingsFile.fsPath}, so ${setting} stays as it is.`
 			);
 		}
 	};

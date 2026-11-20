@@ -90,13 +90,33 @@ export async function writeColorUseEdits(
 	edits: readonly ColorUseEdit[],
 	documents: readonly TextDocument[]
 ): Promise<void> {
+	await writeDrawingEdits(
+		documents,
+		(text) => withColorUseEditsInDrawing(text, edits),
+		"the color",
+		"drawSlidesCode.colors"
+	);
+}
+
+/**
+ * Writes the edit of the texts of drawing files that `edited` makes into the documents in one edit
+ * of VS Code, and saves each document that had no unsaved changes before it, as
+ * `writeColorUseEdits` does. `subject` names what changes, such as `the color`, in the messages,
+ * and `setting` the setting that holds the edit.
+ */
+export async function writeDrawingEdits(
+	documents: readonly TextDocument[],
+	edited: (text: string) => string,
+	subject: string,
+	setting: string
+): Promise<void> {
 	const changed = documents
 		.map((document) => {
 			const before = document.getText();
 			return {
 				document,
 				before,
-				after: withColorUseEditsInDrawing(before, edits),
+				after: edited(before),
 				isDirty: document.isDirty,
 			};
 		})
@@ -118,9 +138,9 @@ export async function writeColorUseEdits(
 	}
 	if (!(await workspace.applyEdit(workspaceEdit))) {
 		throw new Error(
-			`VS Code did not write the uses of the color into ${pathsOf(
+			`VS Code did not write the uses of ${subject} into ${pathsOf(
 				changed.map(({ document }) => document)
-			)}, while drawSlidesCode.colors holds the edit.`
+			)}, while ${setting} holds the edit.`
 		);
 	}
 	const unsaved = new Array<TextDocument>();
@@ -133,22 +153,25 @@ export async function writeColorUseEdits(
 		.filter(({ isDirty }) => isDirty)
 		.map(({ document }) => document);
 	if (kept.length > 0) {
-		window.showInformationMessage(keptUnsavedMessage(kept));
+		window.showInformationMessage(keptUnsavedMessage(kept, subject));
 	}
 	if (unsaved.length > 0) {
 		throw new Error(
-			`VS Code did not save the uses of the color in ${pathsOf(
+			`VS Code did not save the uses of ${subject} in ${pathsOf(
 				unsaved
-			)}, while drawSlidesCode.colors holds the edit.`
+			)}, while ${setting} holds the edit.`
 		);
 	}
 }
 
 /** The message that names the drawing files that hold an edit of a color with unsaved changes. */
-export function keptUnsavedMessage(documents: readonly TextDocument[]): string {
+export function keptUnsavedMessage(
+	documents: readonly TextDocument[],
+	subject = "the color"
+): string {
 	return documents.length === 1
-		? `${pathsOf(documents)} holds the change of the color with its other unsaved changes.`
-		: `${pathsOf(documents)} hold the change of the color with their other unsaved changes.`;
+		? `${pathsOf(documents)} holds the change of ${subject} with its other unsaved changes.`
+		: `${pathsOf(documents)} hold the change of ${subject} with their other unsaved changes.`;
 }
 
 function pathsOf(documents: readonly TextDocument[]): string {
@@ -221,7 +244,7 @@ export function removalDetail(
 	return `${summary} The editor of each open drawing of the deck then starts a new undo history.`;
 }
 
-function nounWithCount(
+export function nounWithCount(
 	count: number,
 	singular: string,
 	plural: string

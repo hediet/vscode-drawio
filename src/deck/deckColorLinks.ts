@@ -139,6 +139,24 @@ export function withLinkedUseEdit(page: string, edit: ColorUseEdit): string {
 	return withLinkedTexts(withLinkedStyles(page, rewrite), rewrite);
 }
 
+/**
+ * A style string, as `drawSlidesCode.deckStyles` holds one, after the edit of its links to a color
+ * and of the keys that they link.
+ */
+export function withLinkedStyleStringEdit(
+	style: string,
+	edit: ColorUseEdit
+): string {
+	const rewrite = linkRewrite(edit);
+	return Object.entries(COLOR_LINK_KEYS)
+		.reduce<readonly string[]>(
+			(entries, [key, { link }]) =>
+				withLinkedKeyChanged(entries, key, link, rewrite),
+			style.split(";")
+		)
+		.join(";");
+}
+
 /** The page after the edit of the formulas of its labels that name the color. */
 export function withFormulaUseEdit(
 	page: string,

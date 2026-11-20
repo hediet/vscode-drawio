@@ -154,3 +154,27 @@ test("the setting gives each kind its styles, and names each entry that it leave
 	assert.deepEqual(read, { rectangles: { box: "rounded=1;" }, wires: {} });
 	assert.equal(problems.length, 4);
 });
+
+test("the assembly warns of a link to a style that the setting does not define, and leaves the cell as it is", () => {
+	const assembly = loadTsModule("deck/deckAssembly.ts");
+	const { folderWith } = require("./deckHelpers");
+	const cell = (id, style) =>
+		`<mxCell id="${id}" vertex="1" parent="1" style="${style}"><mxGeometry width="10" height="10" as="geometry"/></mxCell>`;
+	const project = folderWith({
+		"sections/1-talk.drawio.xml": drawing(
+			page("a-1", cell("a", "rounded=1;deckStyle=box;") + cell("b", "rounded=0;deckStyle=gone;"))
+		),
+	});
+	const { slides } = assembly.readDeckSlides(project, assembly.deckOptions(project));
+	const assembled = assembly.assembleDeck(slides, {
+		project,
+		colors: new Map(),
+		styles: { rectangles: { box: "rounded=1;" }, wires: {} },
+		missingCommands: new Map(),
+		pictures: new Map(),
+	});
+	assert.match(assembled.text, /rounded=0;deckStyle=gone;/);
+	assert.deepEqual(assembled.warnings, [
+		'slide 1, "a-1", links cells to the styles gone, which the setting drawSlidesCode.deckStyles does not define, so they keep the keys written in them',
+	]);
+});

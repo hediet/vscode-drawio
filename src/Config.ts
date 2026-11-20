@@ -635,6 +635,16 @@ export class DiagramConfig {
 		return this._colors.get();
 	}
 
+	private readonly _deckStyles = new VsCodeSetting<unknown>(
+		`${settingPrefix}.deckStyles`,
+		{ scope: this.uri }
+	);
+
+	/** The styles of the deck by kind, as the setting gives them, before they are checked. */
+	public get deckStyles(): unknown {
+		return this._deckStyles.get();
+	}
+
 	private readonly _colorDefinitions = new VsCodeSetting<unknown>(
 		`${settingPrefix}.colorDefinitions`,
 		{ scope: this.uri }
