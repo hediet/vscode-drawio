@@ -127,8 +127,12 @@
 				"viewType": "drawSlidesCode.inlineEditor.drawioEditor",
 				"displayName": "DrawSlidesCode Inline Editor",
 				"selector": [
-					{ "filenamePattern": "*.drawio" },
-					{ "filenamePattern": "*.dio" }
+					{
+						"filenamePattern": "*.drawio"
+					},
+					{
+						"filenamePattern": "*.dio"
+					}
 				],
 				"priority": "option"
 			},
@@ -136,7 +140,9 @@
 				"viewType": "drawSlidesCode.inlineEditor.markdownEditor",
 				"displayName": "Markdown with Diagrams (Experimental)",
 				"selector": [
-					{ "filenamePattern": "*.md" }
+					{
+						"filenamePattern": "*.md"
+					}
 				],
 				"priority": "option"
 			}
@@ -440,7 +446,14 @@
 					"drawSlidesCode.inlineEditor.theme": {
 						"type": "string",
 						"default": "auto",
-						"enum": ["auto", "kennedy", "min", "atlas", "dark", "sketch"],
+						"enum": [
+							"auto",
+							"kennedy",
+							"min",
+							"atlas",
+							"dark",
+							"sketch"
+						],
 						"description": "Editor UI theme"
 					},
 					"drawSlidesCode.inlineEditor.autoLock": {
@@ -1059,5 +1072,6 @@
 		"vsls": "^1.0.3015",
 		"xml-formatter": "^2.0.1",
 		"xml-parser-xo": "^3.0.0"
-	}
+	},
+	"packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
