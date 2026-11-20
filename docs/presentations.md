@@ -23,11 +23,13 @@ The build needs the following software:
 
 - VS Code 1.90 or later with this extension, `yujunhuang.drawslidescode`, installed from its `.vsix` as the README of this repository says
 - git, which makes each new presentation a repository of its own
-- Node.js 20 or later with npm, for `npm run` and the command line
+- Node.js 22 or later with npm, for `npm run` and the command line
 - a Chrome, an Edge or a Chromium for the export of the pages and for the PDF
 
 The build draws each page with the diagrams.net viewer, the library of draw.io that draws a page in a web page, in a headless browser that it drives through `playwright-core`.
-The browser is the first that starts of the Chromium that Playwright installs into its cache, Google Chrome and Microsoft Edge.
+The browser is the first that starts of the Chromium that Playwright installs into its cache, Google Chrome, Microsoft Edge, and then the programs `chromium`, `chromium-browser`, `google-chrome` and `google-chrome-stable` that the folders of the PATH hold, in that order.
+The programs of the PATH serve a Linux whose packages put Chromium or Chrome where Playwright does not look, such as NixOS.
+A program of the PATH that takes more than 30 seconds to start counts as one that fails to start.
 The command *DrawSlidesCode: Install Chromium for the Build* installs that Chromium once for every presentation, and the build then needs no network.
 The user setting `drawSlidesCode.browserPath`, or the option `--browser <path>` of the command line, names another browser by the path of its program.
 The viewer is the copy that the extension bundles, so the build draws with the draw.io of the editor.
@@ -671,7 +673,7 @@ The skills in `skills/` of the extension give an agent the steps to start a deck
 | `page 3 produced no SVG`, then `1 of 3 pages produced no SVG` | the viewer drew nothing, such as a viewer on the web without a network connection, and the build stops | fix the viewer or the connection, and build again |
 | `the viewer v does not exist` | the path of `DRAWIO_VIEWER` names no file, and the build stops | name a file, or leave the variable out |
 | `the viewer v lies outside the folder webapp of draw.io` | a copy of `viewer-static.min.js` outside the folder `webapp/js/` of draw.io, and the build stops | name the `viewer-static.min.js` in `webapp/js/` |
-| `no browser started` or `the browser p did not start` | no Chromium of Playwright, Chrome or Edge starts, or the path of the browser names no browser, and the build stops | run *Install Chromium for the Build*, or set `drawSlidesCode.browserPath` or `--browser` to the program of a browser |
+| `no browser started` or `the browser p did not start` | no Chromium of Playwright, Chrome, Edge or program `chromium`, `chromium-browser`, `google-chrome` or `google-chrome-stable` of the PATH starts, or the path of the browser names no browser, and the build stops | run *Install Chromium for the Build*, or set `drawSlidesCode.browserPath` or `--browser` to the program of a browser |
 | `the cell x links to the page p, which the deck does not show` | a link to a page that is gone or hidden with `-hide` | link to a page of the deck |
 | `the cell x has the link data:..., which only the editor follows` | a link of another kind of draw.io, such as an action | link to an address or a page |
 | `a label links to the page p, which the deck does not show` | a link inside the text of a label to a page that is gone or hidden | link to a page of the deck |

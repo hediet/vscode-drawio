@@ -87,10 +87,10 @@ It then writes the HTML file, which shows the SVGs with the links, the videos an
 The commands of the category DrawSlidesCode, the command line `dist/cli.js` and the launcher `drawslidescode.cjs` of each deck are in the section The scripts of package.json and the commands of VS Code build the presentation of [docs/presentations.md](./docs/presentations.md).
 The section of the same guide on what the build needs names the command Install Chromium for the Build, and the section on the colors of a formula names the commands Import Colors from TeX and Export Colors to TeX.
 
-The build drives a headless browser through `playwright-core`, the first that starts of the Chromium of Playwright, Google Chrome and Microsoft Edge.
+The build drives a headless browser through `playwright-core`, the first that starts of the Chromium of Playwright, Google Chrome, Microsoft Edge and the programs `chromium`, `chromium-browser`, `google-chrome` and `google-chrome-stable` of the PATH.
 The user setting `drawSlidesCode.browserPath` names another browser by the path of its program, and a build that finds no browser offers to install Chromium or to set the path.
 The extension needs VS Code 1.90 or later, whose Node.js 20 `playwright-core` needs.
-`dist/cli.js` runs the same build without VS Code, with Node.js 20 or later, so that an agent, a script or a CI job builds a deck.
+`dist/cli.js` runs the same build without VS Code, with Node.js 22 or later, so that an agent, a script or a CI job builds a deck.
 
 ## The command Set Up a Presentation in This Folder starts a deck or sets up the editor for one
 
@@ -118,13 +118,17 @@ The mode `migrate` of the command line makes the same move.
 
 ## Build the extension and install it
 
-The build needs yarn 1 and the submodule `drawio`.
-The continuous integration of the original builds with Node.js 22, and Node.js 23 needs `NODE_OPTIONS=--no-experimental-strip-types`, as the commands below set it:
+The build needs Node.js 22 or later, as `engines` of `package.json` says, yarn 1 and the submodule `drawio`.
+The continuous integration builds and tests on Node.js 22 and 24.
+On Node.js 22.23.4 and 24.21.0, `yarn install --frozen-lockfile`, `yarn build` and `yarn test` pass both with and without `NODE_OPTIONS=--no-experimental-strip-types`, which the original names for Node.js 23, so the commands below leave the flag out.
+On Node.js 26.13.0, the install, `yarn build-extension`, `yarn build-plugins`, `yarn test` and `dist/cli.js` pass, and `yarn build` stops in `vsce package`, because the package `buffer-equal-constant-time` 1.0.1 that `@vscode/vsce` 3.2.1 loads reads `buffer.SlowBuffer`, which Node.js 26 lacks.
+
+The commands build, test and install the extension:
 
 ```sh
 git submodule update --init --depth 1 drawio
 yarn install --frozen-lockfile
-NODE_OPTIONS=--no-experimental-strip-types yarn build    # dist/extension.vsix and dist/cli.js
+yarn build    # dist/extension.vsix and dist/cli.js
 yarn test
 code --install-extension dist/extension.vsix --force
 ```

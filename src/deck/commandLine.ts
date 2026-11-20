@@ -123,7 +123,9 @@ options:
   --pdf <file>           for build and pdf, the PDF, build/<folder>.pdf by default
   --interval <seconds>   for watch, the seconds between two looks at the slides, 1 by default
   --browser <path>       the Chrome, Edge or Chromium of the export, in place of the first that
-                         starts of Playwright's Chromium, Google Chrome and Microsoft Edge
+                         starts of Playwright's Chromium, Google Chrome, Microsoft Edge and
+                         a chromium, chromium-browser, google-chrome or google-chrome-stable
+                         of the PATH
   --colors <file>       for vscode, a color configuration of the editor, as color-config writes
   --out <file>           for color-config, the file to write, of \\definecolor lines for .tex
   --definecolor <file>   for color-config, a TeX file whose \\definecolor lines name colors,

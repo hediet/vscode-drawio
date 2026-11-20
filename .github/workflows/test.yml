@@ -10,6 +10,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
+        node-version: ["22", "24"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -19,7 +20,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile
       - run: yarn lint
       - run: yarn test

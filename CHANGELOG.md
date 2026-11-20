@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## yujunhuang.drawslidescode [Unreleased]
+
+### Added
+
+- A build without the path of a browser tries the programs `chromium`, `chromium-browser`, `google-chrome` and `google-chrome-stable` of the PATH after the Chromium of Playwright, Google Chrome and Microsoft Edge, so that a Linux such as NixOS builds without `--browser`.
+  A program of the PATH that takes more than 30 seconds to start counts as one that fails to start.
+  When no browser starts, the message names each program of the PATH that the build tried, or says that the PATH holds none of the four.
+
+### Changed
+
+- The build of the extension and `dist/cli.js` need Node.js 22 or later, as `engines` of `package.json` says, and the continuous integration builds and tests on Node.js 22 and 24.
+  On Node.js 26, `yarn build` stops in `vsce package`, as the README says.
+  The commands of the README leave out `NODE_OPTIONS=--no-experimental-strip-types`, which the build does not need on those two versions.
+
 ## yujunhuang.drawslidescode [0.1.0]
 
 The first version of the fork yujunhuang.drawslidescode, which edits slide decks drawn in draw.io and builds them into one HTML file and a PDF, in place of the Python build of the draw.io presentation framework.

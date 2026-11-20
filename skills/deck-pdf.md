@@ -40,7 +40,7 @@ The skill uses one file of the extension.
 3. To write the PDF to another place, run `node drawslidescode.cjs pdf --pdf <file>` in the folder of the deck.
    The mode reads the title from the key `config` of the `package.json` of the deck, and the colors from `drawSlidesCode.colors` of its `.vscode/settings.json`, as the scripts of the deck do.
 
-The mode `pdf` needs a browser, the Chromium that the command *DrawSlidesCode: Install Chromium for the Build* installs once for every deck, or Chrome or Edge.
+The mode `pdf` needs a browser, the Chromium that the command *DrawSlidesCode: Install Chromium for the Build* installs once for every deck, Chrome, Edge, or a program `chromium`, `chromium-browser`, `google-chrome` or `google-chrome-stable` of the PATH.
 When the build stops because no browser starts, tell the user to run that command, or pass the program of a browser with `--browser <path>`.
 
 ## Required action: check the PDF before handing it over
