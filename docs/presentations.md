@@ -344,6 +344,65 @@ A presentation whose settings still hold `drawSlidesCode.colorDefinitions`, the 
 Import the files, remove `drawSlidesCode.colorDefinitions`, and delete the TeX files that nothing else reads.
 The extension reads no `drawSlidesCode.colorDefinitions`, and its output channel names the import while the settings hold it.
 
+## A rectangle or a wire takes a style of the deck from the section Deck styles
+
+The setting `drawSlidesCode.deckStyles` of `.vscode/settings.json` of a presentation holds its styles, with one object of names and style strings per kind of geometry:
+
+```jsonc
+"drawSlidesCode.deckStyles": {
+  "rectangles": {
+    "designProblem": "rounded=1;absoluteArcSize=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3;"
+  },
+  "wires": {
+    "functionality": "edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;strokeColor=#008000;deckStrokeColor=dpgreen;strokeWidth=3;startArrow=none;endArrow=circle;endFill=1;endSize=3;targetPerimeterSpacing=-1.5;fixedPointSpacing=1;"
+  }
+}
+```
+
+A wire is an edge.
+A rectangle is a vertex that draws a rectangle, rounded or square: its style sets the shape `rect`, or sets no shape and starts with a key rather than with a name such as `text` or `ellipse`.
+A name is letters and digits that start with a letter, and it stands for one style across both kinds.
+
+The section Deck styles of the Format panel follows the section Deck colors in the Style tab.
+It lists the styles of the kinds of the selected cells as a grid of tiles, as the Format sidebar of Keynote lists the styles of the kind of object selected.
+Each tile holds a preview of the style, its name in a text field and a button ×.
+With nothing selected, the Style tab of the diagram lists the styles of both kinds, to rename and to remove.
+
+- A click on a preview gives the style to each selected cell of its kind, and a selected group gives it to the cells in it, in one step of the undo history.
+- New style from selection saves the style of the one selected cell of its kind under the name `rectangle1` or `wire1`, or the next free number, and links the cell to it.
+- A frame marks the tile of the style that the selected cells link to.
+  When one selected cell differs from its style, a line under the grid names the keys in which it differs, with the buttons Update and Revert.
+  Update redefines the style from the cell, as Redefine Style from Selection of Keynote does, and writes the change into every cell of the deck linked to the style.
+  Revert gives the cell the style again.
+- A new name in the text field renames the style and the links of the drawing files of the deck, and a message counts the linked cells.
+- The button × asks first, in a dialog of VS Code that counts the rectangles and the wires linked to the style in the drawing files of the deck.
+  Delete then takes the style out of the setting and the link out of each cell, and each cell keeps the keys of the style.
+
+A cell linked to a style holds every key of the style in its own style, and the link `deckStyle=<name>` beside them, as in `...;fixedPointSpacing=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;deckStyle=functionality;`.
+A draw.io without the extension therefore draws the cell as the editor does, as a hex value stays beside the link of a color of the deck.
+A named style of the stylesheet of draw.io, written as `functionality;strokeWidth=3;`, would give the cell nothing in such a draw.io, whose stylesheet lacks the name.
+The name would also take the place of the first token of the style, which draw.io reads as the kind of a cell, such as `text` or `ellipse`.
+
+A style holds the keys of appearance alone, and keeps the links to the colors of the deck that it holds.
+It never holds the keys of geometry `exitX`, `exitY`, `entryX` and `entryY`, their `Dx`, `Dy` and `Perimeter`, `sourcePort`, `targetPort` and `rotation`.
+The points, the source, the target and the place of a label sit in the geometry of a cell, outside its style.
+A give or an update of a style therefore leaves each wire attached where it was, and each label where it was.
+The dot of a co-design wire stays tangent to the border of its box, because the negative spacing that keeps it tangent is a key of the style.
+The end of such a wire depends on the width of the wire alone, so an update of the size of the dot leaves the end where it was.
+A new value, a new name or a removal of a color reaches the styles that link to it, as it reaches the linked cells.
+
+A cell keeps the keys in which it differs from its style, as a paragraph of Keynote keeps its changes to its paragraph style.
+An update writes each changed key into each linked cell whose value of the key is the one that the style held, and leaves a cell with a value of its own in that key as it is.
+A key beside a link to a color counts as the style's while both link to the same color.
+For example, functionality wires whose labels differ in their font size share one style, and an update of `endSize` reaches every one of them while each keeps its font size.
+A click on the preview replaces every key of appearance of the cell, so the cell loses the keys in which it differed.
+
+Update writes into the cells of the page being edited in one step of the undo history.
+The extension writes the setting, and the change into the other pages and the other drawing files of the deck, as it writes a new value of a color.
+After a new name or a removal of a style, the editor of each open drawing of the deck starts a new undo history.
+A style changed by hand in `.vscode/settings.json` changes no cell until Update in the section writes it.
+The build warns of a cell linked to a name that `drawSlidesCode.deckStyles` does not define, and draws the keys written in the cell.
+
 ## A cell links to an address or to a slide, and a shape plays a video or shows an HTML page
 
 Three properties of a cell reach the HTML file of `npm run html`: a link, a video and an HTML page.
@@ -468,9 +527,11 @@ With `drawSlidesCode.slides` on, the extension loads the plugins in its folder `
 - `math-definitions.plugin.js` defines the colors of `drawSlidesCode.colors` and the commands of `mathjax-commands.tex` on every page, as the section on colors above says, and starts every new page with mathematical typesetting on.
 - `deck-colors.plugin.js` gives the color picker its presets and its names, and the Style tab of the Format panel its swatches, again after a change of the settings.
 - `deck-colors-section.plugin.js` adds the section Deck colors to the Format panel, as the section on colors above says.
+- `deck-styles-section.plugin.js` adds the section Deck styles to the Format panel, as the section on the styles of the deck above says.
+  `deck-style-rules.js` holds the rules of a give and of an update, which the plugin and the extension share.
 - `deck-color-links.plugin.js` draws each use of a color linked to a color of the deck in the value of that color, as the section on the links above says.
   The plugin takes a link out when another option of draw.io changes the color, gives a pasted shape the current values of its links, and starts a new undo history after a new name or a removal of a color.
-- `slide-settings.js` receives the settings that the extension sends after a change, and passes them to `math-definitions.plugin.js`, `deck-colors.plugin.js`, `deck-color-links.plugin.js`, `deck-colors-section.plugin.js` and `list-styles.plugin.js`, as the paragraph after the templates says.
+- `slide-settings.js` receives the settings that the extension sends after a change, and passes them to `math-definitions.plugin.js`, `deck-colors.plugin.js`, `deck-color-links.plugin.js`, `deck-colors-section.plugin.js`, `deck-styles-section.plugin.js` and `list-styles.plugin.js`, as the paragraph after the templates says.
 - `single-page.plugin.js` keeps a page of the size of the setting `drawSlidesCode.slideSize`, 1920 by 1080 by default, at one page in the page view, so content past the edge is cut as the build cuts it.
 - `click-through.plugin.js` lets a click on the empty inside of a shape or a text box without fill select the shape behind it.
 - `edit-at-click.plugin.js` keeps the view still when a double-click starts editing a label, and puts the caret at the character under the double-click.
@@ -647,6 +708,9 @@ Every slide is uncompressed XML: a `<diagram name="...">` per page, and inside i
 - A key of a style such as `fillColor` beside a link such as `deckFillColor=red` takes its value from the color `red` in the editor and in the build.
   The color of an element with `data-deck-color="red"` in a label takes its value from `red` in the same way.
   To give such a key another value, take the link out as well, or change the color in `drawSlidesCode.colors`.
+- A cell with `deckStyle=<name>` holds the keys of the style `<name>` of `drawSlidesCode.deckStyles`.
+  A key of the cell with another value stays the cell's own when the style is updated from the section Deck styles.
+  To give every cell of a style a new key, change the style in the setting and the key in each cell linked to it.
 - After a change, run `npm run build` in the presentation folder and read its warnings.
 
 An agent changes only the files in `sections/`, `assets/` and `templates/`, and `.vscode/settings.json` for a setting of the slides.
@@ -663,6 +727,8 @@ The skills in `skills/` of the extension give an agent the steps to start a deck
 | `colors formulas with dpgren, which neither the page nor the setting drawSlidesCode.colors defines` | a name of a color that `drawSlidesCode.colors` lacks, often a typo | fix the name, or add the color to `drawSlidesCode.colors` |
 | `links colors to gone, which the setting drawSlidesCode.colors does not define, so they keep the values beside the links` | a shape or a text linked to a name that `drawSlidesCode.colors` lacks, such as a color removed by hand from the settings file | add the color to `drawSlidesCode.colors`, or give the shape a color again |
 | `holds #00AA00 beside a link to red, #B20000, and draws #B20000` | a key of a style or a text whose value was changed outside the editor of the extension, such as by an agent or in a draw.io without the extension, and whose link stayed | take the link out beside the new value, or give the shape the color again from the section Deck colors |
+| `links cells to the styles gone, which the setting drawSlidesCode.deckStyles does not define, so they keep the keys written in them` | a cell linked to a name that `drawSlidesCode.deckStyles` lacks, such as a style removed by hand from the settings file | add the style to `drawSlidesCode.deckStyles`, or give the cell a style again from the section Deck styles |
+| `drawSlidesCode.deckStyles.wires names a style "dp-wire", which is not letters and digits that start with a letter, so the style is left out` | a name of a style of other characters | rename the style in the setting, and the links of its cells |
 | `drawSlidesCode.colors names a color "dp-red", which is not letters and digits that start with a letter, so the color is left out` | a name that TeX cannot read | rename the color, and the formulas that name it |
 | `drawSlidesCode.colors gives accent the value "#04D80", which is not # and six hexadecimal digits, so the color is left out` | a value other than `#RRGGBB` | write the value as `#RRGGBB` |
 | `drawSlidesCode.listStyles names the color acent, which drawSlidesCode.colors does not define, so the value stays as written` | a color of a level of the list styles that is a name `drawSlidesCode.colors` lacks, often a typo, or a name of CSS, such as `red`, which the marker still takes | fix the name, add the color to `drawSlidesCode.colors`, or write the value as `#RRGGBB` |

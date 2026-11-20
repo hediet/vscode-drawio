@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   A program of the PATH that takes more than 30 seconds to start counts as one that fails to start.
   When no browser starts, the message names each program of the PATH that the build tried, or says that the PATH holds none of the four.
 
+- The section Deck styles of the Format panel, after Deck colors, lists the styles of the setting `drawSlidesCode.deckStyles` of a deck, one grid per kind of geometry, rectangles and wires.
+  A click on a style gives it to the selected cells, and New style from selection saves the style of a selected cell.
+  Update redefines a style from a changed cell and writes the change into every cell of the deck linked to it.
+  A cell links to its style through `deckStyle=<name>` beside the keys of the style, keeps its keys of geometry, and keeps the keys in which it differs from the style.
+  The build warns of a cell linked to a style that the setting does not define.
+
 ### Changed
 
 - The build of the extension and `dist/cli.js` need Node.js 22 or later, as `engines` of `package.json` says, and the continuous integration builds and tests on Node.js 22 and 24.
