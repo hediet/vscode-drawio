@@ -157,6 +157,13 @@ Build it from a commit that GitHub holds, because the page of the extension show
 `yarn build` packages a release, as `"preRelease": false` in `package.json` says, and `yarn package-extension-preRelease` packages a pre-release.
 Each registry takes a version number once, so a release raises `version` in `package.json` and adds its section to `CHANGELOG.md`.
 
+The workflow `.github/workflows/publish.yml` publishes each push to `main`, such as the merge of a pull request, to both registries, through trusted publishing, with no token stored in the repository.
+A feature branch that raises `version` therefore publishes that version when it is merged, and a merge that keeps the version publishes nothing, because the workflow skips a version that a registry already holds.
+The workflow runs in the GitHub environment `release`, whose deployment branches are `main` alone, so a run from another branch gets no token.
+Each registry holds a trusted publisher for the repository `HuangYujun-JunkyTalent/draw-slides-code`, the workflow `publish.yml` and the environment `release`.
+The Marketplace holds it under Trusted Publishing on the publisher management page below, and Open VSX on its page [Trusted publishers](https://open-vsx.org/user-settings/trusted-publishers).
+The upload and the commands below publish by hand, such as the first version on a registry.
+
 The publisher `yujunhuang` of the Marketplace is created once, with a Microsoft account, on the [publisher management page](https://marketplace.visualstudio.com/manage).
 The same page uploads the first version with New extension and then Visual Studio Code, and each later version with Update in the menu of the extension.
 The upload needs no personal access token of Azure DevOps, whose global tokens retire on December 1, 2026, as the [guide to publishing extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension) of VS Code says.
