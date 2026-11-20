@@ -10,7 +10,7 @@ The editor `hediet.vscode-drawio-text` of the original is `drawSlidesCode.textEd
 DrawSlidesCode is made by Yujun Huang and is not made or endorsed by draw.io Ltd. draw.io is a registered trademark of draw.io Ltd.
 
 The guide for authors of slides, [docs/presentations.md](./docs/presentations.md), says how to start a deck and how the build numbers the slides.
-The guide also says how a formula, a color, a link, a video and an embedded page work, and what each warning of the build means.
+The guide also says how a formula, a color, a style of the deck, a link, a video and an embedded page work, and what each warning of the build means.
 
 | folder or file | what it holds |
 |---|---|
@@ -31,11 +31,12 @@ The fork tells them the folder of the deck, the nearest folder above the drawing
 The page of the editor gives the text of a label its font color, where the original gives it the color of the interface.
 The editor also opens `*.drawio.xml`, the files of the decks.
 
-Six settings of scope `resource` describe a deck, so that the `.vscode/settings.json` of each deck holds its own:
+Seven settings of scope `resource` describe a deck, so that the `.vscode/settings.json` of each deck holds its own:
 
 | setting | what it gives |
 |---|---|
 | `drawSlidesCode.colors` | the colors of the deck, each a name of letters and digits, such as `accent`, with a value `#RRGGBB`, which the formulas of every page may name, as in `\textcolor{accent}{x}`, and which the color picker names and offers as presets |
+| `drawSlidesCode.deckStyles` | the styles of the deck by kind of geometry, `rectangles` and `wires`, each a name of letters and digits with a style string of draw.io, which the section Deck styles of the Format panel gives, saves and updates |
 | `drawSlidesCode.listStyles` | the indent, the marker and the color and the size of the marker of each level of a bulleted and of a numbered list, and the gap between the items |
 | `drawSlidesCode.listMarkers` | the markers of the menu List style |
 | `drawSlidesCode.templates` | the multi-page template files of the deck, `${deckFolder}/templates/*.drawio.xml` by default, whose pages the submenu Insert slide of the menus Insert and Pages inserts |
@@ -74,7 +75,17 @@ The extension refuses a name that another color has, a name of other characters 
 The extension also refuses a change while the settings file has unsaved changes.
 A message in VS Code then gives the reason, and the section shows the colors as they were.
 
-The editor follows a change of `drawSlidesCode.colors`, `drawSlidesCode.listStyles`, `drawSlidesCode.listMarkers`, `drawSlidesCode.customColorSchemes`, `drawSlidesCode.presetColors` and `drawSlidesCode.colorNames` without a reload, so the zoom and the undo history stay.
+The section Deck styles of the Format panel follows the section Deck colors in the Style tab.
+It lists the styles of `drawSlidesCode.deckStyles` of the kinds of the selected cells, as the Format sidebar of Keynote lists the styles of the kind of object selected.
+Each style is a tile with a preview, its name and a button ×, in a grid for the rectangles and a grid for the wires.
+A click on a preview gives the style to the selected cells of its kind in one step of the undo history, and New style from selection saves the style of one selected cell under a new name.
+When a selected cell differs from its style, the button Update redefines the style from the cell and writes the change into every cell of the deck linked to the style, and Revert gives the cell the style again.
+A new name in the text field renames the style, and × removes it after a dialog of VS Code that counts the linked cells.
+A cell linked to a style holds `deckStyle=<name>` beside every key of the style, so a draw.io without the extension draws it the same.
+A style holds keys of appearance alone, so a wire stays attached where it was and its label stays in place.
+A cell keeps the keys in which it differs from its style through an update, and the guide says which keys an update writes.
+
+The editor follows a change of `drawSlidesCode.colors`, `drawSlidesCode.deckStyles`, `drawSlidesCode.listStyles`, `drawSlidesCode.listMarkers`, `drawSlidesCode.customColorSchemes`, `drawSlidesCode.presetColors` and `drawSlidesCode.colorNames` without a reload, so the zoom and the undo history stay.
 After a new name or a removal of a color, the editor starts a new undo history.
 The formulas, the presets and the names of the color picker, the swatches, the colors of the list markers and the menu List style take the new settings, and a list made after the change takes the new list style.
 A color taken out of `drawSlidesCode.colors` stays defined for the formulas until the editor reloads.
