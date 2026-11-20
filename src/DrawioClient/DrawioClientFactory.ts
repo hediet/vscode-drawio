@@ -52,8 +52,9 @@ import * as path from "path";
  * The plugins of the slides in `drawio-custom-plugins/slides/`, in the
  * order of loading: `deck-files.js` before `deck-pictures.plugin.js`, `language-check.plugin.js`
  * and `media.plugin.js`, `slide-settings.js` before `math-definitions.plugin.js`,
- * `deck-colors.plugin.js`, `deck-color-links.plugin.js`, `deck-colors-section.plugin.js` and
- * `list-styles.plugin.js`,
+ * `deck-colors.plugin.js`, `deck-color-links.plugin.js`, `deck-colors-section.plugin.js`,
+ * `deck-styles-section.plugin.js` and `list-styles.plugin.js`, `deck-style-rules.js` before
+ * `deck-styles-section.plugin.js`,
  * `list-marker-rules.js` before
  * `list-styles.plugin.js`, and `media-bar.js` before `media.plugin.js`, which use them.
  */
@@ -64,6 +65,8 @@ const SLIDE_PLUGINS = [
 	"deck-colors.plugin.js",
 	"deck-color-links.plugin.js",
 	"deck-colors-section.plugin.js",
+	"deck-style-rules.js",
+	"deck-styles-section.plugin.js",
 	"single-page.plugin.js",
 	"click-through.plugin.js",
 	"edit-at-click.plugin.js",
