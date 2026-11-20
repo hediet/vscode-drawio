@@ -3,7 +3,7 @@
 	"private": true,
 	"displayName": "DrawSlidesCode",
 	"description": "Edits and builds slide decks drawn in draw.io, as a fork of the Draw.io Integration of Henning Dieterichs. Not made or endorsed by draw.io Ltd.",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"preRelease": false,
 	"license": "GPL-3.0",
 	"publisher": "yujunhuang",
