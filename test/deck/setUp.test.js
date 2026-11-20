@@ -111,6 +111,33 @@ test("a new deck is a repository with its first section, its commands, its setti
 		settings.readDeckSettings(project)["drawSlidesCode.slides"],
 		true
 	);
+	// The deck starts with the styles that the cells of the template link to, and its first
+	// section links its titles, its text with bullet points and its slide numbers to them.
+	const deckStyles = settings.readDeckSettings(project)["drawSlidesCode.deckStyles"];
+	assert.deepEqual(Object.keys(deckStyles), ["text"]);
+	assert.deepEqual(Object.keys(deckStyles.text).sort(), ["bulletText", "slideNumber", "slideTitle", "talkTitle"]);
+	assert.match(deckStyles.text.slideTitle, /^html=1;.*fontSize=44;fontFamily=STIX Two Text;/);
+	assert.match(deckStyles.text.bulletText, /align=left;verticalAlign=top;.*fontSize=32;/);
+	assert.deepEqual(
+		[...section.matchAll(/deckStyle=([A-Za-z0-9]+);/g)].map((match) => match[1]).sort(),
+		["bulletText", "slideNumber", "slideNumber", "slideTitle", "slideTitle", "talkTitle"]
+	);
+});
+
+test("the styles of the template are those that its cells link to, each the same in every cell that links to it", () => {
+	const styles = loadTsModule("deck/deckStyles.ts");
+	const rules = styles.loadDeckStyleRules(path.join(extensionRoot, "drawio-custom-plugins/slides/deck-style-rules.js"));
+	const template = fs.readFileSync(setUp.templateFile(extensionRoot), "utf8");
+	assert.deepEqual(
+		plain(styles.linkedStyles(template, rules)),
+		plain(setUp.templateStyles(extensionRoot))
+	);
+	assert.deepEqual(styles.unknownStyleLinks(template, setUp.templateStyles(extensionRoot)), []);
+	const cell = (id, style) => `<mxCell id="${id}" vertex="1" parent="1" style="${style}"><mxGeometry as="geometry"/></mxCell>`;
+	assert.throws(
+		() => styles.linkedStyles(cell("a", "text;fontSize=44;deckStyle=title;") + cell("b", "text;fontSize=40;deckStyle=title;"), rules),
+		/link to the style title with two styles/
+	);
 });
 
 test("a deck at other names keeps them in config", () => {

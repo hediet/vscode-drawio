@@ -246,8 +246,8 @@ Draw.loadPlugin(function (ui) {
     }
   });
 
-  // A preview of the style on a cell of its kind, drawn as the sidebar of draw.io draws a shape, or
-  // the word of the kind when the editor has no sidebar.  A style holds no key of its kind, so the
+  // A preview of the style on a cell of its kind, with the label Aa on a vertex, drawn as the sidebar
+  // of draw.io draws a shape, or the word of the kind when the editor has no sidebar.  A style holds no key of its kind, so the
   // cell of the preview names the kind first: as a name of the stylesheet, such as ellipse, or else
   // as its shape, such as shape=mxgraph.flowchart.decision.
   function preview(style, parent) {
@@ -268,11 +268,12 @@ Draw.loadPlugin(function (ui) {
       var kindStyle = (rules.kindOf('', false) == style.kind) ? '' :
         ((graph.getStylesheet().styles[style.kind] != null) ? style.kind + ';' :
           'shape=' + style.kind + ';');
-      cell = new mxCell('', new mxGeometry(0, 0, 120, 70), kindStyle + style.style);
+      // A label shows the font of the style, also for a text, which draws no fill and no line.
+      cell = new mxCell('Aa', new mxGeometry(0, 0, 120, 70), kindStyle + style.style);
       cell.vertex = true;
     }
 
-    ui.sidebar.createThumb([cell], 56, 30, parent, null, false, false);
+    ui.sidebar.createThumb([cell], 56, 30, parent, null, true, false);
   }
 
   function rename(style) {

@@ -73,6 +73,9 @@ That text is the title, the date, the author and the affiliation of the title sl
 `init` writes the colors of `deck-templates/color-definitions.tex` into the setting `drawSlidesCode.colors` of `.vscode/settings.json` of the presentation, with the comment lines before each color and without the header of the file.
 The formulas of the presentation then name those colors, as the section on colors below says.
 `init` copies `deck-templates/slide-format.drawio.xml` to `templates/slides.drawio.xml`, the template of the presentation, from which the editor inserts a slide, as the section on VS Code below says.
+`init` and the mode `vscode` also write the styles that the cells of the template link to into the setting `drawSlidesCode.deckStyles`, as the section on the styles of the deck below says.
+The styles are of the kind `text`: `talkTitle` of the title slide, `slideTitle` of a slide and of a section divider, `bulletText` of the text with bullet points of a body, and `slideNumber`.
+The cells of the template that play those roles link to them, so a slide inserted from the template takes the styles of its deck, and an update of `slideTitle` reaches every title of the deck.
 `npm run build` prints what it did:
 
 ```
@@ -372,6 +375,7 @@ The section Deck styles of the Format panel follows the section Deck colors in t
 It lists the styles of the kinds of the selected cells, one grid per kind, as the Format sidebar of Keynote lists the styles of the kind of object selected.
 Each tile holds a preview of the style, its name under the preview, and the buttons ✎ and × under the name.
 With nothing selected, the Style tab of the diagram lists the styles of every kind, to rename and to remove.
+Each preview shows a vertex with the label Aa, so that a style of text shows its font, its size and its alignment.
 
 - A click on a preview gives the style to each selected cell of its kind, and a selected group gives it to the cells in it, in one step of the undo history.
 - New style from selection saves the style of the one selected cell of its kind under the name of the kind and the first free number, such as `ellipse1`, and links the cell to it.

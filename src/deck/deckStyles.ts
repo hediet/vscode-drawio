@@ -11,6 +11,7 @@
  */
 import * as fs from "fs";
 import { COLOR_LINK_KEYS } from "./deckColors";
+import { DeckError } from "./deckError";
 import { DIAGRAM } from "./deckFiles";
 
 /** The key of a style of draw.io that links a cell to a style of the deck. */
@@ -213,6 +214,33 @@ export function readDeckStyles(
 		}
 	}
 	return { styles, problems };
+}
+
+/**
+ * The styles that the cells of a drawing file link to, by kind, each from the first cell that links
+ * to its name, as the set-up of a deck reads them from the template, whose cells of one role, such
+ * as the titles of the slides, link to one style. Raises `DeckError` for a name that cells of two
+ * kinds or of two styles link to, which no setting can hold.
+ */
+export function linkedStyles(text: string, rules: DeckStyleRules): DeckStyles {
+	const styles: Record<string, Record<string, string>> = {};
+	for (const { style, isEdge } of cellStyles(text)) {
+		const name = rules.linkOf(style);
+		const kind = rules.kindOf(style, isEdge);
+		if (name === null || kind === null) {
+			continue;
+		}
+		const appearance = rules.appearanceOf(style);
+		const known = styleNamed(styles, name);
+		if (known === undefined) {
+			styles[kind] = { ...styles[kind], [name]: appearance };
+		} else if (known.kind !== kind || known.style !== appearance) {
+			throw new DeckError(
+				`cells of the template link to the style ${name} with two styles, ${known.kind} ${JSON.stringify(known.style)} and ${kind} ${JSON.stringify(appearance)}`
+			);
+		}
+	}
+	return styles;
 }
 
 /** The style of each cell of a text, unescaped, and whether the cell is an edge. */

@@ -13,7 +13,9 @@
  * with which the extension loads the plugins of the slides, name the files in `templates/` of the
  * presentation in `drawSlidesCode.templates`, and give `drawSlidesCode.colors` the colors and the
  * comments of the starting palette, without the header of the palette, the comment lines before its
- * first blank line.
+ * first blank line. They give `drawSlidesCode.deckStyles` the styles that the cells of the template
+ * link to, such as the titles of the slides and the text with bullet points, so that a slide
+ * inserted from the template links to the styles of its deck.
  *
  * Yujun Huang grants an additional permission for this file under section 7 of the GNU General
  * Public License, version 3, in LICENSE-EXCEPTION.md of DrawSlidesCode.
@@ -41,6 +43,8 @@ import {
 import { COLORS, DECK_SETTINGS, SETTING_PREFIX } from "./deckSettings";
 import { CommentedObject, withMemberObject } from "./jsonWithComments";
 import { readColorFileText } from "./texDefinitions";
+import { DeckStyles, linkedStyles, loadDeckStyleRules } from "./deckStyles";
+import { pluginFile } from "./extensionFiles";
 import { jsonText } from "./textFormats";
 
 export { DECK_COMMAND_LINE, DECK_LAUNCHER, launcherFile, TEMPLATE_FOLDER };
@@ -166,7 +170,8 @@ export function readColorConfiguration(file: string): Record<string, unknown> {
  */
 export function vscodeSettingsText(
 	palette: CommentedObject,
-	configuration: Record<string, unknown> = {}
+	configuration: Record<string, unknown> = {},
+	deckStyles: DeckStyles = {}
 ): string {
 	const settings: Record<string, unknown> = {
 		"workbench.editorAssociations": {
@@ -185,16 +190,28 @@ export function vscodeSettingsText(
 			settings[SETTING_PREFIX + name] = configuration[name];
 		}
 	}
+	if (Object.keys(deckStyles).length > 0) {
+		settings[SETTING_PREFIX + "deckStyles"] = deckStyles;
+	}
 	return withMemberObject(jsonText(settings, 2) + "\n", COLORS, palette);
 }
 
+/** The styles that the cells of the template of the extension link to, which a new deck starts with. */
+export function templateStyles(extensionRoot: string): DeckStyles {
+	return linkedStyles(
+		fs.readFileSync(templateFile(extensionRoot), "utf8"),
+		loadDeckStyleRules(pluginFile(extensionRoot, "deck-style-rules.js"))
+	);
+}
+
 /**
- * Writes `.vscode/settings.json` of a presentation, and returns its path. Raises `DeckError` when
- * the file exists, which the set-up does not replace.
+ * Writes `.vscode/settings.json` of a presentation, with the styles of the template, and returns
+ * its path. Raises `DeckError` when the file exists, which the set-up does not replace.
  */
 export function writeVscodeSettings(
 	project: string,
 	palette: CommentedObject,
+	deckStyles: DeckStyles,
 	colorConfiguration?: string
 ): string {
 	const target = path.join(project, DECK_SETTINGS);
@@ -207,7 +224,7 @@ export function writeVscodeSettings(
 		colorConfiguration === undefined
 			? {}
 			: readColorConfiguration(colorConfiguration);
-	const text = vscodeSettingsText(palette, configuration);
+	const text = vscodeSettingsText(palette, configuration, deckStyles);
 	fs.mkdirSync(path.dirname(target), { recursive: true });
 	fs.writeFileSync(target, text, "utf8");
 	return target;
@@ -243,6 +260,7 @@ export function setUpEditor(
 	const settings = writeVscodeSettings(
 		folder,
 		palette.colors,
+		templateStyles(extensionRoot),
 		colorConfiguration
 	);
 	const copies = copyMissingTemplates(folder, extensionRoot);
@@ -420,7 +438,11 @@ export function initDeck(options: InitOptions): SetUpResult {
 		: "";
 	fs.writeFileSync(gitignore, withDeckIgnored(existing), "utf8");
 	copyMissingTemplates(realProject, options.extensionRoot);
-	const settings = writeVscodeSettings(realProject, palette.colors);
+	const settings = writeVscodeSettings(
+		realProject,
+		palette.colors,
+		templateStyles(options.extensionRoot)
+	);
 	return {
 		lines: [
 			`${path.relative(
