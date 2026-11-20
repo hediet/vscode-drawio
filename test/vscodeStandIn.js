@@ -56,6 +56,9 @@ class Uri {
 	static file(fsPath) {
 		return new Uri("file", fsPath);
 	}
+	static joinPath(base, ...parts) {
+		return new Uri(base.scheme, path.join(base.fsPath, ...parts));
+	}
 	toString() {
 		return `${this.scheme}://${this.fsPath}`;
 	}
@@ -249,6 +252,7 @@ const vscode = {
 	DiagnosticSeverity: { Error: 0, Warning: 1, Information: 2, Hint: 3 },
 	StatusBarAlignment: { Left: 1, Right: 2 },
 	ConfigurationTarget: { Global: 1, Workspace: 2, WorkspaceFolder: 3 },
+	FileType: { Unknown: 0, File: 1, Directory: 2, SymbolicLink: 64 },
 	ProgressLocation: { SourceControl: 1, Window: 10, Notification: 15 },
 	env: {
 		openExternal: (uri) => {
@@ -285,6 +289,13 @@ const vscode = {
 		},
 		openTextDocument,
 		applyEdit,
+		fs: {
+			stat: (uri) =>
+				fs.promises.stat(uri.fsPath).then((stats) => ({
+					type: stats.isDirectory() ? 2 : 1,
+					size: stats.size,
+				})),
+		},
 		getConfiguration: (section) => ({
 			get: (key, fallback) => state.settings[`${section}.${key}`] ?? fallback,
 		}),

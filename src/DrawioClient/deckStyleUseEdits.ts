@@ -5,6 +5,7 @@ import {
 	DeckStyles,
 	NO_STYLE_USES,
 	styleUsesInDrawing,
+	StyleUseEdit,
 	StyleUses,
 	withStyleUseEditsInDrawing,
 } from "../deck/deckStyles";
@@ -25,8 +26,9 @@ export const DELETE_STYLE = "Delete";
  * that holds the keys as the style held them, a new name into each link, and a removal takes each
  * link out and leaves the keys. Before a removal, a modal dialog of VS Code counts the linked
  * cells, and the edit goes on only after its button Delete, and after a rename a message counts
- * them. `writeSettings` writes the setting, before the drawing files. Returns whether the edit was
- * written.
+ * them. `writeSettings` writes the setting, before the drawing files. Returns the edit of the linked
+ * cells when the edit was written, which the open drawings of the deck then apply, `null` for an
+ * edit written that changes no cell, and `undefined` for an edit that the dialog cancelled.
  */
 export async function writeDeckStyleEditWithUses(
 	edit: DeckStyleEdit,
@@ -34,7 +36,7 @@ export async function writeDeckStyleEditWithUses(
 	styles: DeckStyles,
 	rules: DeckStyleRules,
 	writeSettings: () => Promise<void>
-): Promise<boolean> {
+): Promise<StyleUseEdit | null | undefined> {
 	const useEdit = styleUseEditOf(edit, styles);
 	const documents =
 		useEdit === undefined ? [] : await openDrawingDocuments(files);
@@ -51,7 +53,7 @@ export async function writeDeckStyleEditWithUses(
 			DELETE_STYLE
 		);
 		if (answer !== DELETE_STYLE) {
-			return false;
+			return undefined;
 		}
 	}
 	const renamed = edit.operation === "rename" ? uses() : undefined;
@@ -69,7 +71,7 @@ export async function writeDeckStyleEditWithUses(
 			`The style ${edit.name} is now ${edit.newName}, in ${usesText(renamed)} of the drawing files of the deck.`
 		);
 	}
-	return true;
+	return useEdit ?? null;
 }
 
 /** The detail of the question before a removal, which counts the cells that keep the keys of the style. */

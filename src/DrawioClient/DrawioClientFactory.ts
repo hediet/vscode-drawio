@@ -91,6 +91,9 @@ interface DeckColorWatchEntry {
 }
 
 export class DrawioClientFactory {
+	/** The clients of the open drawings of each deck folder, by the path of the folder. */
+	private readonly deckClients = new Map<string, Set<CustomizedDrawioClient>>();
+
 	/** The watch of the colors of each deck folder with an open drawing, by the path of the folder. */
 	private readonly deckColorWatches = new Map<string, DeckColorWatchEntry>();
 
@@ -330,6 +333,17 @@ export class DrawioClientFactory {
 		}
 
 		if (slides) {
+			const clients =
+				this.deckClients.get(slides.deckFolder.fsPath) ??
+				new Set<CustomizedDrawioClient>();
+			this.deckClients.set(slides.deckFolder.fsPath, clients);
+			clients.add(drawioClient);
+			webviewPanel.onDidDispose(() => {
+				clients.delete(drawioClient);
+				if (clients.size === 0) {
+					this.deckClients.delete(slides.deckFolder.fsPath);
+				}
+			});
 			let pendingStyleEdit = Promise.resolve();
 			drawioClient.onDeckStyleEdit.sub(({ edit }) => {
 				pendingStyleEdit = pendingStyleEdit
@@ -651,7 +665,7 @@ export class DrawioClientFactory {
 				edit,
 				this.styleRules
 			);
-			await writeDeckStyleEditWithUses(
+			const useEdit = await writeDeckStyleEditWithUses(
 				edit,
 				await this.deckDrawingFiles(deckFolder, [
 					config,
@@ -665,6 +679,13 @@ export class DrawioClientFactory {
 				this.styleRules,
 				write
 			);
+			// An open drawing merges a change of its file relative to the file as it was loaded, so
+			// a cell linked since then takes the edit from its own plugin alone.
+			if (useEdit) {
+				this.deckClients
+					.get(deckFolder.fsPath)
+					?.forEach((client) => client.applyStyleUseEdit(useEdit));
+			}
 		} catch (error) {
 			const message = error instanceof Error ? error.message : `${error}`;
 			this.log.appendLine(message);

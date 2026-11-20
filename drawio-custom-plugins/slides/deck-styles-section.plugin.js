@@ -24,8 +24,16 @@
 // deck-style-rules.js, loaded before this plugin, holds the rules: which keys a style holds, what a
 // give and an update write, and which keys of a cell differ from its style.  An update writes the
 // change into the linked cells of the current page in one edit of the model, and the extension
-// writes it into the other pages and the other drawing files of the deck.  A cell keeps a key in
-// which it differed from the style before the update.
+// writes it into the drawing files of the deck.  A cell keeps a key in which it differed from the
+// style before the update.
+//
+// draw.io merges a change of the file from the extension as the change from the file as it was
+// loaded, so a cell linked since then would keep its old link or its old keys.  After each edit of
+// the styles that it writes, the extension therefore sends every open drawing of the deck the edit
+// of the linked cells, as the action drawSlidesCodeStyleUse, and the plugin applies it to every page
+// of the drawing: to the current page in one edit of the model, and to the cells of the other pages,
+// which draw.io keeps in each page.  The edit gives an already edited cell no further change, so the
+// merge and the action agree in either order.
 //
 // The VS Code extension yujunhuang.drawslidescode gives the plugin the styles in
 // window.drawSlidesCodeSettings.styles, a list of names and style strings per kind in the order of
@@ -174,6 +182,60 @@ Draw.loadPlugin(function (ui) {
     });
     sendEdit({operation: 'set', kind: style.kind, name: style.name, style: after});
   }
+
+  // The style of a cell after the edit of the cells linked to a style, which the extension sends.
+  function styleAfterUseEdit(edit, style) {
+    if (rules.linkOf(style) != edit.name) {
+      return style;
+    }
+
+    return (edit.operation == 'update') ? rules.updated(style, edit.before, edit.after) :
+      rules.relinked(style, (edit.operation == 'rename') ? edit.newName : null);
+  }
+
+  // Applies the edit to every page of the drawing: to the current page in one edit of the model,
+  // and to the cells that draw.io keeps for each other page.
+  function applyUseEdit(edit) {
+    var restyle = function (style) {
+      return styleAfterUseEdit(edit, style);
+    };
+
+    setStyles(linkedCells(edit.name), restyle);
+
+    (ui.pages || []).forEach(function (page) {
+      if (page == ui.currentPage || page.root == null) {
+        return;
+      }
+
+      var visit = function (cell) {
+        if (typeof cell.style == 'string') {
+          cell.style = restyle(cell.style);
+        }
+
+        (cell.children || []).forEach(visit);
+      };
+
+      visit(page.root);
+    });
+  }
+
+  window.addEventListener('message', function (evt) {
+    if (evt.source !== window.opener || typeof evt.data != 'string') {
+      return;
+    }
+
+    var data = null;
+
+    try {
+      data = JSON.parse(evt.data);
+    } catch (error) {
+      return;
+    }
+
+    if (data != null && data.action == 'drawSlidesCodeStyleUse' && data.edit != null) {
+      applyUseEdit(data.edit);
+    }
+  });
 
   function saveNewStyle(kind, cell) {
     var name = freeName(kind);

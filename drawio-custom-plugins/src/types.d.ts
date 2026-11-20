@@ -1,7 +1,7 @@
 
 declare type CustomDrawioAction = UpdateVerticesAction | AddVerticesAction | GetVerticesAction
     | LinkSelectedNodeWithDataAction | NodeSelectionEnabledAction | UpdateLiveshareViewState
-    | SlideTemplatesAction | SlideSettingsAction;
+    | SlideTemplatesAction | SlideSettingsAction | StyleUseAction;
 declare type CustomDrawioEvent = NodeSelectedEvent | GetVerticesResultEvent
     | UpdateLocalStorage | PluginLoaded | CursorChangedEvent | SelectionChangedEvent | FocusChangedEvent | InvokeCommandEvent | SelectionRectangleChangedEvent
     | DeckColorEditEvent | DeckStyleEditEvent;
@@ -148,6 +148,21 @@ declare type DeckStyleEdit =
     | { operation: "remove"; name: string };
 
 declare type DeckStyleEditEvent = { event: "drawSlidesCodeEditStyle" } & DeckStyleEdit;
+
+/**
+ * The edit of the cells linked to a style that an edit of the styles makes, which the extension
+ * sends to each open drawing of the deck, so that `deck-styles-section.plugin.js` applies it to
+ * every page of the drawing, also to a cell linked since the drawing was loaded: `update` writes
+ * the change of the style from `before` to `after`, `rename` gives the links the new name, and
+ * `remove` takes the links out.
+ */
+declare interface StyleUseAction {
+    action: "drawSlidesCodeStyleUse";
+    edit:
+        | { operation: "update"; name: string; before: string; after: string }
+        | { operation: "rename"; name: string; newName: string }
+        | { operation: "remove"; name: string };
+}
 
 /** The setting `drawSlidesCode.listStyles`. */
 declare interface SlideListStyles {

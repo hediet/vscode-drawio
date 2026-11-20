@@ -399,6 +399,8 @@ A click on the preview replaces every key of appearance of the cell, so the cell
 
 Update writes into the cells of the page being edited in one step of the undo history.
 The extension writes the setting, and the change into the other pages and the other drawing files of the deck, as it writes a new value of a color.
+The extension also sends the change to each open drawing of the deck, whose editor applies it to every page, also to a cell linked since the drawing was opened, which a change of the file alone would miss.
+A new name and a removal reach the open drawings in the same way.
 After a new name or a removal of a style, the editor of each open drawing of the deck starts a new undo history.
 A style changed by hand in `.vscode/settings.json` changes no cell until Update in the section writes it.
 The build warns of a cell linked to a name that `drawSlidesCode.deckStyles` does not define, and draws the keys written in the cell.

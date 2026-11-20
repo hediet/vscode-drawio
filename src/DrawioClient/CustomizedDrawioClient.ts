@@ -116,6 +116,11 @@ export class CustomizedDrawioClient extends DrawioClient<
 		this.sendCustomAction({ action: "drawSlidesCodeSettings", settings });
 	}
 
+	/** Gives `deck-styles-section.plugin.js` the edit of the cells linked to a style. */
+	public applyStyleUseEdit(edit: StyleUseAction["edit"]): void {
+		this.sendCustomAction({ action: "drawSlidesCodeStyleUse", edit });
+	}
+
 	public updateLiveshareViewState(update: {
 		cursors: ParticipantCursorInfo[];
 		selectedCells: ParticipantSelectedCellsInfo[];

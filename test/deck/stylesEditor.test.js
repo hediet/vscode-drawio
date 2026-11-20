@@ -315,7 +315,7 @@ test("a wire style saved, given and updated in the editor keeps the terminals, t
 	}
 });
 
-test("a rectangle style is listed for a selected rectangle alone, and a removal and a rename are sent with the name", async (t) => {
+test("a rectangle style is listed for a selected rectangle alone, a removal and a rename are sent with the name, and the rename that the extension sends reaches the cells linked since the load on every page", async (t) => {
 	const launched = await browserStarts;
 	if (launched === undefined) {
 		t.skip("no headless browser starts on this machine");
@@ -352,6 +352,45 @@ test("a rectangle style is listed for a selected rectangle alone, and a removal 
 				["remove", "wire1", undefined],
 			]
 		);
+		// The section sends an edit alone, and the cell linked in this session takes the rename
+		// when the extension sends the edit of the linked cells, on its page and on another page.
+		assert.match(
+			await page.evaluate(() => window.testUi.editor.graph.getModel().getCell("a").style),
+			/deckStyle=box;$/
+		);
+		const renamed = await page.evaluate(() => {
+			const ui = window.testUi;
+			const other = ui.insertPage();
+			const cell = new mxCell("", new mxGeometry(0, 0, 10, 10), "rounded=1;deckStyle=box;");
+			cell.vertex = true;
+			ui.editor.graph.addCell(cell);
+			ui.selectPage(ui.pages[0]);
+			window.postMessage(
+				JSON.stringify({
+					action: "drawSlidesCodeStyleUse",
+					edit: { operation: "rename", name: "box", newName: "designProblem" },
+				}),
+				"*"
+			);
+			return new Promise((resolve) =>
+				setTimeout(() => {
+					const styles = [];
+					const visit = (node) => {
+						if (node == null) {
+							return;
+						}
+						if (typeof node.style === "string" && /deckStyle=/.test(node.style)) {
+							styles.push(node.style);
+						}
+						(node.children || []).forEach(visit);
+					};
+					ui.pages.forEach((each) => visit(each.root));
+					resolve({ styles });
+				}, 200)
+			);
+		});
+		assert.equal(renamed.styles.length, 2);
+		assert.ok(renamed.styles.every((style) => style.endsWith("deckStyle=designProblem;")));
 		await page.close();
 	} finally {
 		server.close();
