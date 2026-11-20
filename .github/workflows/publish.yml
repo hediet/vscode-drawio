@@ -1,0 +1,51 @@
+# Publishes the extension to the Visual Studio Marketplace and to Open VSX after each push to main,
+# such as the merge of a pull request, through trusted publishing: each registry trades the OIDC
+# token of this job for a short-lived token of its own, so the repository stores no token.
+#
+# A registry takes each version once, and --skip-duplicate skips a version that it already holds,
+# so a merge that raises "version" in package.json publishes that version, and any other merge
+# publishes nothing. A run that failed on one registry can be run again, and publishes on the other
+# registry alone what it still lacks.
+#
+# Both registries trust this workflow by its file name, publish.yml, in the GitHub environment
+# release, whose deployment branches are main alone, so a run from another branch gets no token:
+# the publisher page of the Marketplace under Trusted Publishing, and
+# https://open-vsx.org/user-settings/trusted-publishers for the namespace yujunhuang.
+name: Publish
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn test
+      - run: yarn build
+      - name: Publish to the Visual Studio Marketplace
+        run: npx --yes @vscode/vsce@4.1.1 publish --oidc --packagePath dist/extension.vsix --skip-duplicate
+      - name: Publish to Open VSX
+        run: npx --yes ovsx@1.4.0 publish dist/extension.vsix --trusted-publishing --skip-duplicate
