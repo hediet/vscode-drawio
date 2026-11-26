@@ -285,6 +285,13 @@
 						"markdownDescription": "Options of the [Draw.io configuration](https://www.drawio.com/doc/faq/configure-diagram-editor), for example `{\"zoomWheel\": false}` to scroll with the mouse wheel. In newer Draw.io versions, you can also change them in the editor in *Extras > Configuration*, which stores them in the user settings (API keys in the secret storage) and hides the options of the workspace settings. Options that have a setting of their own, such as `customFonts`, are stored in that setting.",
 						"order": 25
 					},
+					"hediet.vscode-drawio.enableLiveshare": {
+						"type": "boolean",
+						"default": true,
+						"title": "Enable Live Share",
+						"description": "When enabled, diagrams can be edited collaboratively via VS Code Live Share. Disable this if Live Share is not available (for example in OpenVSCode Server), so that the extension does not try to load the Live Share API.",
+						"order": 25
+					},
 					"hediet.vscode-drawio.local-storage": {
 						"anyOf": [
 							{
